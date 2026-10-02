@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import { categories, getCategory, guarantees } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { MetInPerson } from "@/components/ui/MetInPerson";
 import { Icon } from "@/components/ui/Icon";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { Rating } from "@/components/ui/Rating";
 import { FinalCta } from "@/components/home/FinalCta";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -103,42 +102,6 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
           ))}
         </ul>
       </Container>
-
-      <section className="bg-wash py-16">
-        <Container>
-          <h2 className="text-3xl font-normal sm:text-[40px]">Verified {category.name.toLowerCase()}</h2>
-          <p className="mt-3 text-body">
-            Met in person by our team, portfolio-reviewed and background-checked. Or skip the browsing —{" "}
-            <Link href="/book" className="font-medium text-brand hover:text-brand-hover">
-              get 3 curated matches
-            </Link>
-            .
-          </p>
-          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {category.artists.map((a, i) => (
-              <li key={i} className="rounded-[1.25rem] border border-line bg-white p-3">
-                <PhotoPlaceholder icon={category.icon} label={`${a.title} portfolio`} className="aspect-square" />
-                <div className="px-3 pb-3 pt-4">
-                  <p className="flex items-center gap-1.5 font-medium text-ink">
-                    Verified {a.title}
-                    <BadgeCheck className="h-4 w-4 text-brand-bright" aria-label="Verified" />
-                  </p>
-                  <div className="mt-1">
-                    <Rating rating={a.rating} count={a.jobs} unit="jobs" />
-                  </div>
-                  <ul className="mt-3 flex gap-2">
-                    {a.tags.map((t) => (
-                      <li key={t} className="rounded-full bg-wash px-2.5 py-1 text-xs text-ink">
-                        {t}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </section>
 
       <Container className="pt-16">
         <h2 className="text-3xl font-normal sm:text-[40px]">People also book</h2>

@@ -39,13 +39,6 @@ export type Service = {
   popular?: boolean;
 };
 
-export type SampleArtist = {
-  title: string;
-  rating: number;
-  jobs: number;
-  tags: [string, string];
-};
-
 export type Category = {
   slug: string;
   name: string;
@@ -54,7 +47,6 @@ export type Category = {
   short: string;
   description: string;
   services: Service[];
-  artists: SampleArtist[];
   keywords: string[]; // other words people search with, e.g. "dj", "mua", "camera"
 };
 
@@ -76,12 +68,6 @@ export const categories: Category[] = [
       { name: "Product photography", rating: 4.82, bookings: 97 },
       { name: "Portrait session", rating: 4.9, bookings: 84 },
     ],
-    artists: [
-      { title: "Photographer", rating: 4.92, jobs: 68, tags: ["Weddings", "Candid"] },
-      { title: "Photographer", rating: 4.88, jobs: 54, tags: ["Portraits", "Fashion"] },
-      { title: "Photographer", rating: 4.85, jobs: 47, tags: ["Events", "Corporate"] },
-      { title: "Photographer", rating: 4.95, jobs: 39, tags: ["Product", "Food"] },
-    ],
   },
   {
     slug: "cinematographers",
@@ -98,11 +84,6 @@ export const categories: Category[] = [
       { name: "Event videography", rating: 4.86, bookings: 121, popular: true },
       { name: "Reels & social video", rating: 4.88, bookings: 143, popular: true },
     ],
-    artists: [
-      { title: "Cinematographer", rating: 4.9, jobs: 51, tags: ["Wedding films", "Drone combo"] },
-      { title: "Cinematographer", rating: 4.87, jobs: 42, tags: ["Corporate", "Interviews"] },
-      { title: "Cinematographer", rating: 4.84, jobs: 38, tags: ["Reels", "Music videos"] },
-    ],
   },
   {
     slug: "drone-pilots",
@@ -117,11 +98,6 @@ export const categories: Category[] = [
       { name: "Aerial event coverage", rating: 4.87, bookings: 64, popular: true },
       { name: "Real-estate aerials", rating: 4.85, bookings: 41 },
       { name: "Wedding flyover package", rating: 4.9, bookings: 77, popular: true },
-    ],
-    artists: [
-      { title: "Drone Pilot", rating: 4.91, jobs: 33, tags: ["Weddings", "FPV"] },
-      { title: "Drone Pilot", rating: 4.86, jobs: 29, tags: ["Real estate", "Mapping"] },
-      { title: "Drone Pilot", rating: 4.89, jobs: 26, tags: ["Events", "Expos"] },
     ],
   },
   {
@@ -138,11 +114,6 @@ export const categories: Category[] = [
       { name: "Corporate emcee", rating: 4.87, bookings: 92, popular: true },
       { name: "Expo booth host", rating: 4.83, bookings: 57 },
     ],
-    artists: [
-      { title: "Anchor / Host", rating: 4.93, jobs: 61, tags: ["Sangeet", "Bilingual"] },
-      { title: "Anchor / Host", rating: 4.88, jobs: 48, tags: ["Corporate", "Award nights"] },
-      { title: "Anchor / Host", rating: 4.85, jobs: 36, tags: ["Expos", "Launches"] },
-    ],
   },
   {
     slug: "editors",
@@ -157,11 +128,6 @@ export const categories: Category[] = [
       { name: "Wedding highlight edit", rating: 4.86, bookings: 73, popular: true },
       { name: "Reel editing (pack of 5)", rating: 4.88, bookings: 96, popular: true },
       { name: "Album design & retouch", rating: 4.84, bookings: 52 },
-    ],
-    artists: [
-      { title: "Editor", rating: 4.9, jobs: 57, tags: ["Wedding films", "Colour grade"] },
-      { title: "Editor", rating: 4.87, jobs: 44, tags: ["Reels", "Motion graphics"] },
-      { title: "Editor", rating: 4.83, jobs: 31, tags: ["Albums", "Retouching"] },
     ],
   },
   {
@@ -178,11 +144,6 @@ export const categories: Category[] = [
       { name: "Live acoustic set", rating: 4.9, bookings: 87, popular: true },
       { name: "Corporate party DJ", rating: 4.85, bookings: 66 },
     ],
-    artists: [
-      { title: "Musician / DJ", rating: 4.9, jobs: 72, tags: ["Bollywood", "EDM"] },
-      { title: "Musician / DJ", rating: 4.92, jobs: 45, tags: ["Live band", "Acoustic"] },
-      { title: "Musician / DJ", rating: 4.86, jobs: 58, tags: ["Sangeet", "Garba"] },
-    ],
   },
   {
     slug: "comedians",
@@ -196,10 +157,6 @@ export const categories: Category[] = [
     services: [
       { name: "Corporate comedy show", rating: 4.87, bookings: 48, popular: true },
       { name: "Private party set", rating: 4.85, bookings: 39 },
-    ],
-    artists: [
-      { title: "Comedian", rating: 4.89, jobs: 41, tags: ["Corporate-safe", "Hinglish"] },
-      { title: "Comedian", rating: 4.86, jobs: 27, tags: ["Observational", "Crowd work"] },
     ],
   },
   {
@@ -215,11 +172,6 @@ export const categories: Category[] = [
       { name: "Sangeet live vocals", rating: 4.9, bookings: 91, popular: true },
       { name: "Sufi / ghazal night", rating: 4.88, bookings: 63 },
       { name: "Garba night vocals", rating: 4.92, bookings: 104, popular: true },
-    ],
-    artists: [
-      { title: "Singer", rating: 4.93, jobs: 49, tags: ["Sangeet", "Bollywood"] },
-      { title: "Singer", rating: 4.88, jobs: 37, tags: ["Sufi", "Ghazal"] },
-      { title: "Singer", rating: 4.91, jobs: 55, tags: ["Garba", "Folk"] },
     ],
   },
   {
@@ -237,11 +189,6 @@ export const categories: Category[] = [
       { name: "Editorial / shoot makeup", rating: 4.86, bookings: 71 },
       { name: "Hair styling add-on", rating: 4.84, bookings: 89 },
     ],
-    artists: [
-      { title: "Makeup Artist", rating: 4.94, jobs: 83, tags: ["Bridal", "HD"] },
-      { title: "Makeup Artist", rating: 4.89, jobs: 64, tags: ["Party glam", "Airbrush"] },
-      { title: "Makeup Artist", rating: 4.87, jobs: 46, tags: ["Editorial", "Shoots"] },
-    ],
   },
   {
     slug: "models",
@@ -256,11 +203,6 @@ export const categories: Category[] = [
       { name: "Brand / product shoot", rating: 4.85, bookings: 58, popular: true },
       { name: "Ramp / fashion show", rating: 4.88, bookings: 43 },
       { name: "Promotional event", rating: 4.82, bookings: 67 },
-    ],
-    artists: [
-      { title: "Model", rating: 4.9, jobs: 38, tags: ["Fashion", "Ramp"] },
-      { title: "Model", rating: 4.85, jobs: 31, tags: ["Product", "Fitness"] },
-      { title: "Model", rating: 4.87, jobs: 29, tags: ["Ethnic wear", "Jewellery"] },
     ],
   },
 ];
