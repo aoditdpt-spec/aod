@@ -18,7 +18,7 @@ export function FinalCta({
   return (
     <Container className="pt-16">
       <section className="rounded-[1.25rem] bg-gradient-to-r from-brand-bright via-brand to-brand-bright px-6 py-14 text-center">
-        <h2 className="text-3xl font-medium !text-white sm:text-[40px]">{title}</h2>
+        <h2 className="text-3xl font-medium !text-white sm:text-[2.5rem]">{title}</h2>
         <p className="mt-3 text-lg text-white">{text}</p>
         <Link href={href} className={buttonClasses("white", "md", "mt-8")}>
           {cta}

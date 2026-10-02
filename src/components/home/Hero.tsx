@@ -14,25 +14,33 @@ export function Hero() {
         {/* Decorative glow on the right; replace with a real event photo when available. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-32 top-1/2 hidden h-[560px] w-[560px] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.35)_0%,rgba(249,115,22,0)_65%)] lg:block"
+          className="pointer-events-none absolute -right-32 top-1/2 hidden h-[35rem] w-[35rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.35)_0%,rgba(249,115,22,0)_65%)] lg:block"
         />
         <div className="relative">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{hero.eyebrow}</p>
-          <h1 className="mt-5 max-w-[900px] text-[2.6rem] font-medium leading-[1.05] !text-white sm:text-7xl">
-            {hero.title[0]}
-            <span className="mt-2 block text-apricot">{hero.title[1]}</span>
+          <h1 className="mt-5 max-w-[56rem] text-4xl font-medium leading-[1.05] !text-white sm:text-6xl">
+            {hero.title[0].map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+            {hero.title[1].map((line, i) => (
+              <span key={line} className={`block text-apricot ${i === 0 ? "mt-3" : ""}`}>
+                {line}
+              </span>
+            ))}
           </h1>
-          <p className="mt-8 max-w-[560px] text-lg text-white/90 sm:text-2xl sm:leading-snug">{hero.subtitle}</p>
+          <p className="mt-6 max-w-[35rem] text-base text-white/90 sm:text-xl sm:leading-snug">{hero.subtitle}</p>
           <div className="mt-6">
             <MetInPerson variant="inline" dark />
           </div>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
-            <Link href="/book" className={buttonClasses("primary", "lg", "sm:min-w-[200px]")}>
+            <Link href="/book" className={buttonClasses("primary", "lg", "sm:min-w-[12.5rem]")}>
               {hero.primaryCta}
               <ArrowRight className="h-5 w-5" aria-hidden />
             </Link>
-            <Link href="/#categories" className={buttonClasses("ghost-light", "lg", "sm:min-w-[200px]")}>
+            <Link href="/#categories" className={buttonClasses("ghost-light", "lg", "sm:min-w-[12.5rem]")}>
               {hero.secondaryCta}
             </Link>
           </div>

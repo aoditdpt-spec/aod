@@ -35,6 +35,12 @@
 
 /* In the base layer so utility classes (e.g. text-white on a heading) can override these. */
 @layer base {
+  /* Everything is sized in rem, so 90% here scales the whole site to what
+     90% browser zoom looked like. Change this one value to resize everything. */
+  html {
+    font-size: 90%;
+  }
+
   body {
     background: var(--color-surface);
     color: var(--color-body);

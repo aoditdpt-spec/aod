@@ -31,7 +31,7 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer className="px-2 pb-2 pt-16 sm:px-6 sm:pb-6">
+    <footer className="px-4 pb-4 pt-16 sm:px-6 sm:pb-6 lg:px-8">
       <div className="rounded-[1.25rem] bg-night px-6 py-12 text-white sm:px-16 sm:py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
@@ -54,7 +54,7 @@ export function Footer() {
           {columns.map((col) => (
             <div key={col.title}>
               <h2 className="text-sm text-white/60">{col.title}</h2>
-              <ul className="mt-4 space-y-3 text-[15px]">
+              <ul className="mt-4 space-y-3 text-[0.9375rem]">
                 {col.links.map((l) => (
                   <li key={l.label}>
                     <Link href={l.href} className="hover:text-apricot">

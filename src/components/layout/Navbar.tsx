@@ -29,7 +29,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 sm:px-6 xl:gap-6" aria-label="Main">
+      <nav className="flex h-16 w-full items-center gap-4 px-4 sm:px-6 lg:px-8 xl:gap-6" aria-label="Main">
         <Logo />
 
         <button
@@ -42,7 +42,7 @@ export function Navbar() {
           <ChevronDown className="h-3.5 w-3.5" aria-hidden />
         </button>
 
-        <ul className="hidden items-center gap-1 text-[15px] lg:flex">
+        <ul className="hidden items-center gap-1 text-[0.9375rem] lg:flex">
           <li className="group relative">
             <button
               type="button"
@@ -53,7 +53,7 @@ export function Navbar() {
               <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" aria-hidden />
             </button>
             {/* Opens on hover and on keyboard focus. */}
-            <div className="invisible absolute left-0 top-full w-[520px] rounded-card border border-line bg-white p-4 opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+            <div className="invisible absolute left-0 top-full w-[32.5rem] rounded-card border border-line bg-white p-4 opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
               <ul className="grid grid-cols-2 gap-1">
                 {categories.map((c) => (
                   <li key={c.slug}>
@@ -77,7 +77,7 @@ export function Navbar() {
 
         {/* Wide screens: search sits in the navbar; narrower screens use the search icon below. */}
         <div className="hidden flex-1 justify-end xl:flex">
-          <div className="w-full max-w-[340px]">
+          <div className="w-full max-w-[21.25rem]">
             <SearchBox variant="nav" />
           </div>
         </div>
@@ -100,7 +100,7 @@ export function Navbar() {
             href={whatsappUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden whitespace-nowrap text-[15px] hover:text-brand xl:inline"
+            className="hidden whitespace-nowrap text-[0.9375rem] hover:text-brand xl:inline"
           >
             Chat on WhatsApp
           </a>

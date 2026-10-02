@@ -23,8 +23,8 @@ export default function BusinessPage() {
       <Container className="pt-8">
         <section className="rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-16">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{business.eyebrow}</p>
-          <h1 className="mt-4 max-w-3xl text-5xl font-medium leading-[1.05] !text-white sm:text-7xl">{business.title}</h1>
-          <p className="mt-6 max-w-2xl text-lg text-white/90 sm:text-xl">{business.subtitle}</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] !text-white sm:text-6xl">{business.title}</h1>
+          <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-lg">{business.subtitle}</p>
           <div className="mt-10 flex flex-wrap gap-4">
             <ButtonLink href={enquiry} variant="white" size="lg">
               <WhatsAppIcon /> Talk to us
@@ -37,7 +37,7 @@ export default function BusinessPage() {
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[40px]">Built for recurring creative needs</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">Built for recurring creative needs</h2>
         <ul className="mt-8 grid gap-6 md:grid-cols-3">
           {business.segments.map((s, i) => {
             const I = segmentIcons[i];
@@ -55,7 +55,7 @@ export default function BusinessPage() {
       <Container className="pb-4">
         <section className="grid gap-10 rounded-[1.5rem] bg-wash p-8 sm:p-12 lg:grid-cols-2">
           <div>
-            <h2 className="text-3xl font-normal sm:text-[40px]">{business.whyTitle}</h2>
+            <h2 className="text-3xl font-normal sm:text-[2.5rem]">{business.whyTitle}</h2>
             <ul className="mt-8 space-y-4">
               {business.why.map((w) => (
                 <li key={w} className="flex gap-3 text-ink">

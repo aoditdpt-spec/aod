@@ -22,8 +22,8 @@ export function HowItWorks() {
     <Container className="py-16">
       <section id="how-it-works" className="scroll-mt-24">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-          <h2 className="text-3xl font-normal sm:text-[40px]">How it works</h2>
-          <div role="tablist" aria-label="How it works for" className="grid grid-cols-2 rounded-xl border border-body/40 p-0.5 sm:w-[350px]">
+          <h2 className="text-3xl font-normal sm:text-[2.5rem]">How it works</h2>
+          <div role="tablist" aria-label="How it works for" className="grid grid-cols-2 rounded-xl border border-body/40 p-0.5 sm:w-[21.875rem]">
             {tabs.map((t) => (
               <button
                 key={t.id}
@@ -31,7 +31,7 @@ export function HowItWorks() {
                 role="tab"
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
-                className={`rounded-lg py-2 text-[15px] transition-colors ${
+                className={`rounded-lg py-2 text-[0.9375rem] transition-colors ${
                   tab === t.id ? "border-2 border-ink font-medium text-ink" : "text-body hover:text-ink"
                 }`}
               >

@@ -8,7 +8,7 @@ export function Features() {
     <Container className="py-16">
       <section>
         <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">Every booking includes</p>
-        <h2 className="mt-3 text-3xl font-normal sm:text-[40px]">Book with confidence</h2>
+        <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">Book with confidence</h2>
         <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
             <li key={f.title} className="flex gap-4 rounded-card border border-line bg-white p-6">

@@ -6,8 +6,8 @@ import { Container } from "@/components/ui/Container";
 export function Stats() {
   return (
     <Container className="py-16">
-      <h2 className="text-center text-3xl font-normal sm:text-[40px]">Trusted across Gujarat</h2>
-      <ul className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
+      <h2 className="text-center text-3xl font-normal sm:text-[2.5rem]">Trusted across Gujarat</h2>
+      <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <li key={s.label} className="rounded-card border border-line px-4 py-6 text-center">
             <p className="text-4xl font-medium text-ink">{s.value}</p>

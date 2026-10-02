@@ -50,8 +50,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
             </span>
             <div>
-              <h1 className="text-4xl font-medium !text-white sm:text-6xl">{category.name}</h1>
-              <p className="mt-4 max-w-2xl text-lg text-white/90">{category.description}</p>
+              <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
+              <p className="mt-4 max-w-2xl text-base text-white/90 sm:text-lg">{category.description}</p>
               <div className="mt-5">
                 <MetInPerson variant="inline" dark />
               </div>
@@ -67,7 +67,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[40px]">What you can book</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">What you can book</h2>
         <p className="mt-3 text-body">Pick a service and ask for a quote — we&apos;ll reply with 3 curated matches.</p>
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {category.services.map((s) => (
@@ -104,7 +104,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       </Container>
 
       <Container className="pt-16">
-        <h2 className="text-3xl font-normal sm:text-[40px]">People also book</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">People also book</h2>
         <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {others.map((c) => (
             <li key={c.slug}>

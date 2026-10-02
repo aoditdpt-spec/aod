@@ -238,7 +238,11 @@ export const guarantees = [
 
 export const hero = {
   eyebrow: "Artists on Demand · Gujarat",
-  title: ["Our services reach your location.", "Our artists, on your demand."],
+  // Each line is shown on its own row; the second pair is highlighted in orange.
+  title: [
+    ["Our services", "Your location"],
+    ["Our artists", "Your demand"],
+  ],
   subtitle: "Get yours now or browse categories and find your perfect match.",
   primaryCta: "Get yours now",
   secondaryCta: "Browse categories",

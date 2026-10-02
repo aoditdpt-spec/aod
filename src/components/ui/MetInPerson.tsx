@@ -24,7 +24,7 @@ export function MetInPerson({ variant = "card", dark = false }: { variant?: "ban
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white">
             <Handshake className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />
           </span>
-          <h2 className="mt-6 text-3xl font-normal sm:text-[40px] sm:leading-tight">{metInPerson.title}</h2>
+          <h2 className="mt-6 text-3xl font-normal sm:text-[2.5rem] sm:leading-tight">{metInPerson.title}</h2>
           <p className="mt-4 max-w-xl text-lg text-body">{metInPerson.text}</p>
         </div>
         <Points />

@@ -27,14 +27,14 @@ export default function ForArtistsPage() {
         <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-20">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[520px] w-[520px] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.3)_0%,rgba(249,115,22,0)_65%)] lg:block"
+            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[32.5rem] w-[32.5rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.3)_0%,rgba(249,115,22,0)_65%)] lg:block"
           />
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{forArtists.eyebrow}</p>
-            <h1 className="mt-4 max-w-3xl text-5xl font-medium leading-[1.05] text-white sm:text-7xl">
+            <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] text-white sm:text-6xl">
               {forArtists.title}
             </h1>
-            <p className="mt-6 max-w-2xl text-lg text-white/90 sm:text-2xl sm:leading-snug">{forArtists.subtitle}</p>
+            <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-xl sm:leading-snug">{forArtists.subtitle}</p>
             <ButtonLink href={join} size="lg" className="mt-10">
               <WhatsAppIcon /> {forArtists.cta}
             </ButtonLink>
@@ -44,7 +44,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[40px]">{forArtists.whyTitle}</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.whyTitle}</h2>
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {forArtists.why.map((w, i) => {
             const I = whyIcons[i];
@@ -76,7 +76,7 @@ export default function ForArtistsPage() {
 
       <Container className="py-16">
         <section id="verification" className="scroll-mt-24">
-          <h2 className="text-3xl font-normal sm:text-[40px]">{forArtists.verificationTitle}</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.verificationTitle}</h2>
           <p className="mt-3 max-w-2xl text-body">{forArtists.verificationIntro}</p>
           <ol className="mt-10 grid gap-8 md:grid-cols-3">
             {howItWorks.artists.map((s, i) => (
@@ -94,7 +94,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container className="pb-16">
-        <h2 className="text-3xl font-normal sm:text-[40px]">Who we&apos;re onboarding</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">Who we&apos;re onboarding</h2>
         <ul className="mt-8 flex flex-wrap gap-3">
           {categories.map((c) => (
             <li key={c.slug} className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-ink">
@@ -106,7 +106,7 @@ export default function ForArtistsPage() {
 
       <Container>
         <section className="rounded-[1.25rem] bg-gradient-to-r from-brand-bright via-brand to-brand-bright px-6 py-14 text-center">
-          <h2 className="text-3xl font-medium text-white sm:text-[40px]">{forArtists.ctaTitle}</h2>
+          <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <ButtonLink href={join} variant="white" className="mt-8">
             <WhatsAppIcon /> {forArtists.cta}

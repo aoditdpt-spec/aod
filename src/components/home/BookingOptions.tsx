@@ -12,13 +12,13 @@ export function BookingOptions() {
     <section className="relative py-20">
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-wash to-transparent bg-[repeating-linear-gradient(135deg,transparent_0_14px,rgba(194,65,12,0.05)_14px_15px)]"
+        className="absolute inset-x-0 top-0 h-[26.25rem] bg-gradient-to-b from-wash to-transparent bg-[repeating-linear-gradient(135deg,transparent_0_14px,rgba(194,65,12,0.05)_14px_15px)]"
       />
       <Container className="relative">
-        <h2 className="text-center text-3xl font-normal sm:text-[40px]">Choose how you want to book</h2>
+        <h2 className="text-center text-3xl font-normal sm:text-[2.5rem]">Choose how you want to book</h2>
         <p className="mt-6 text-center text-lg text-ink">One-off celebrations or a year of brand shoots — we&apos;ve got both.</p>
 
-        <div className="mx-auto mt-12 grid max-w-[928px] gap-8 md:grid-cols-2">
+        <div className="mt-12 grid gap-8 md:grid-cols-2">
           <OptionCard option={bookingOptions.personal} href="/book/personal" />
           <OptionCard option={bookingOptions.business} href="/book/business" featured />
         </div>

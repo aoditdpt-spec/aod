@@ -51,7 +51,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
   return (
     <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(38,18,0,0.06)] sm:p-10">
       <div className="flex flex-col-reverse justify-between gap-4 sm:flex-row sm:items-start">
-        <h3 className="max-w-[300px] text-2xl font-normal sm:text-[32px] sm:leading-tight">
+        <h3 className="max-w-[18.75rem] text-2xl font-normal sm:text-[2rem] sm:leading-tight">
           {questions[step as 1 | 2 | 3]}
         </h3>
         <div className="flex items-center gap-2 text-xs text-ink" aria-label={`Question ${step} of ${TOTAL}`}>

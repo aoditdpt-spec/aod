@@ -16,7 +16,7 @@ export function MostBooked() {
     <Container className="py-16">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="text-3xl font-normal sm:text-[40px]">Most booked services</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem]">Most booked services</h2>
           <p className="mt-3 text-body">Verified artists, real reviews. Get matched in minutes — no haggling.</p>
         </div>
         <Link href="/book" className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-hover">
