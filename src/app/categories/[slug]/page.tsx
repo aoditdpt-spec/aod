@@ -1,0 +1,164 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
+import { categories, getCategory, guarantees } from "@/content/site";
+import { buttonClasses } from "@/components/ui/Button";
+import { Container } from "@/components/ui/Container";
+import { MetInPerson } from "@/components/ui/MetInPerson";
+import { Icon } from "@/components/ui/Icon";
+import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { Rating } from "@/components/ui/Rating";
+import { FinalCta } from "@/components/home/FinalCta";
+import { whatsappUrl } from "@/lib/whatsapp";
+
+// One static page per category, built at deploy time.
+export function generateStaticParams() {
+  return categories.map((c) => ({ slug: c.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps<"/categories/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const category = getCategory(slug);
+  if (!category) return {};
+  return {
+    title: `Book ${category.name.toLowerCase()} in Ahmedabad`,
+    description: category.description,
+    alternates: { canonical: `/categories/${category.slug}` },
+  };
+}
+
+export default async function CategoryPage({ params }: PageProps<"/categories/[slug]">) {
+  const { slug } = await params;
+  const category = getCategory(slug);
+  if (!category) notFound();
+
+  const others = categories.filter((c) => c.slug !== category.slug).slice(0, 5);
+
+  return (
+    <>
+      <Container className="pt-8">
+        <section className="rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-14">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-white/70">
+            <Link href="/" className="hover:text-white">
+              Home
+            </Link>
+            <ChevronRight className="h-4 w-4" aria-hidden />
+            <span className="text-white">{category.name}</span>
+          </nav>
+          <div className="mt-6 flex items-start gap-5">
+            <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-tangerine/15 sm:flex">
+              <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
+            </span>
+            <div>
+              <h1 className="text-4xl font-medium !text-white sm:text-6xl">{category.name}</h1>
+              <p className="mt-4 max-w-2xl text-lg text-white/90">{category.description}</p>
+              <div className="mt-5">
+                <MetInPerson variant="inline" dark />
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link href="/book" className={buttonClasses("white", "lg")}>
+              Get 3 curated matches <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <span className="text-sm text-white/70">Verified professionals · transparent quotes · no negotiation</span>
+          </div>
+        </section>
+      </Container>
+
+      <Container className="py-16">
+        <h2 className="text-3xl font-normal sm:text-[40px]">What you can book</h2>
+        <p className="mt-3 text-body">Pick a service and ask for a quote — we&apos;ll reply with 3 curated matches.</p>
+        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {category.services.map((s) => (
+            <li key={s.name} className="flex flex-col rounded-[1.25rem] border border-line bg-white p-6">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-lg font-medium">{s.name}</h3>
+                {s.popular && (
+                  <span className="rounded-full bg-peach px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-ink">
+                    Popular
+                  </span>
+                )}
+              </div>
+              <div className="mt-2">
+                <Rating rating={s.rating} count={s.bookings} unit="bookings" />
+              </div>
+              <a
+                href={whatsappUrl(`Hi Artists on Demand! I'd like a quote for: ${s.name} (${category.name}).`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonClasses("outline", "md", "mt-6")}
+              >
+                Request a quote
+              </a>
+            </li>
+          ))}
+        </ul>
+        <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 rounded-card bg-wash px-6 py-4 text-sm text-ink">
+          {guarantees.map((g) => (
+            <li key={g.label} className="flex items-center gap-2">
+              <Icon name={g.icon} className="h-4 w-4 text-brand" /> {g.label}
+            </li>
+          ))}
+        </ul>
+      </Container>
+
+      <section className="bg-wash py-16">
+        <Container>
+          <h2 className="text-3xl font-normal sm:text-[40px]">Verified {category.name.toLowerCase()}</h2>
+          <p className="mt-3 text-body">
+            Met in person by our team, portfolio-reviewed and background-checked. Or skip the browsing —{" "}
+            <Link href="/book" className="font-medium text-brand hover:text-brand-hover">
+              get 3 curated matches
+            </Link>
+            .
+          </p>
+          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {category.artists.map((a, i) => (
+              <li key={i} className="rounded-[1.25rem] border border-line bg-white p-3">
+                <PhotoPlaceholder icon={category.icon} label={`${a.title} portfolio`} className="aspect-square" />
+                <div className="px-3 pb-3 pt-4">
+                  <p className="flex items-center gap-1.5 font-medium text-ink">
+                    Verified {a.title}
+                    <BadgeCheck className="h-4 w-4 text-brand-bright" aria-label="Verified" />
+                  </p>
+                  <div className="mt-1">
+                    <Rating rating={a.rating} count={a.jobs} unit="jobs" />
+                  </div>
+                  <ul className="mt-3 flex gap-2">
+                    {a.tags.map((t) => (
+                      <li key={t} className="rounded-full bg-wash px-2.5 py-1 text-xs text-ink">
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
+
+      <Container className="pt-16">
+        <h2 className="text-3xl font-normal sm:text-[40px]">People also book</h2>
+        <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {others.map((c) => (
+            <li key={c.slug}>
+              <Link
+                href={`/categories/${c.slug}`}
+                className="flex h-full flex-col gap-4 rounded-card border border-line p-5 transition hover:border-brand"
+              >
+                <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
+                <span className="font-medium text-ink">{c.name}</span>
+                <span className="text-sm text-muted">{c.short}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Container>
+
+      <FinalCta />
+    </>
+  );
+}

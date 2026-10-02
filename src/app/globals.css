@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/*
+ * AOD design tokens — orange / white / black, laid out in the style of the
+ * Upwork homepage saved in context/. Use these via Tailwind classes such as
+ * bg-brand, text-ink, border-line — never raw hex values in components.
+ */
+@theme {
+  --color-ink: #1f1208; /* warm near-black: headings */
+  --color-body: #1a1a1a; /* body text */
+  --color-muted: #6b5d52; /* secondary text */
+  --color-line: #eedfd3; /* borders, dividers */
+  --color-surface: #ffffff;
+  --color-wash: #fff6ef; /* soft section background */
+
+  --color-night: #181818; /* dark hero / footer cards */
+  --color-night-soft: #2a2a2a; /* panels on dark cards */
+  --color-night-line: #3d3d3d;
+
+  --color-brand: #c2410c; /* primary buttons, links (dark enough for white text) */
+  --color-brand-hover: #9a3412;
+  --color-brand-bright: #f97316; /* icons, highlights, badges */
+  --color-apricot: #fdba74; /* accents on dark backgrounds */
+  --color-peach: #fed7aa; /* call-out highlight */
+  --color-tangerine: #fb923c; /* icons on dark backgrounds */
+
+  --color-whatsapp: #075e54; /* dark WhatsApp green, for the chat button */
+  --color-whatsapp-hover: #054a42;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-panel: 2rem;
+}
+
+/* In the base layer so utility classes (e.g. text-white on a heading) can override these. */
+@layer base {
+  body {
+    background: var(--color-surface);
+    color: var(--color-body);
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--color-ink);
+    letter-spacing: -0.02em;
+  }
+}
