@@ -31,6 +31,17 @@
 
   --radius-card: 1rem;
   --radius-panel: 2rem;
+
+  --animate-caret: caret-blink 1s steps(1) infinite;
+  @keyframes caret-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
 }
 
 /* In the base layer so utility classes (e.g. text-white on a heading) can override these. */

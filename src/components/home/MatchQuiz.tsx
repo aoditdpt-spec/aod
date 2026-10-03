@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
+import { setCity, useCity } from "@/lib/city";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const audienceLabel: Record<Audience, string> = {
@@ -13,8 +14,18 @@ const audienceLabel: Record<Audience, string> = {
 
 const TOTAL = 3;
 
+// Earliest bookable date: tomorrow, in the visitor's local time, as YYYY-MM-DD.
+// (Today and earlier can't be picked.)
+function tomorrowISO(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 // Three quick questions, then a pre-filled WhatsApp message to the AOD team.
 // `audience` picks the occasion list (personal or business); without it a mixed list is shown.
+// The city comes from the navbar picker (src/lib/city.ts); if it's already chosen, it isn't asked again.
 // Nothing is saved yet — once Supabase is set up, save the request before opening WhatsApp.
 export function MatchQuiz({ audience }: { audience?: Audience }) {
   const occasionList = occasions[audience ?? "any"];
@@ -22,7 +33,12 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
   const [occasion, setOccasion] = useState("");
   const [needs, setNeeds] = useState<string[]>([]);
   const [date, setDate] = useState("");
-  const [city, setCity] = useState(cities[0]);
+  const city = useCity();
+  const minDate = tomorrowISO();
+  // YYYY-MM-DD strings compare correctly as text. An empty date means "not fixed yet", which is allowed.
+  const dateOk = date === "" || date >= minDate;
+  const canSend = Boolean(city) && dateOk;
+  const [changingCity, setChangingCity] = useState(false);
   const [details, setDetails] = useState("");
   const [opened, setOpened] = useState(false);
 
@@ -32,7 +48,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
     `Occasion: ${occasion}`,
     `Looking for: ${needs.join(", ")}`,
     `Date: ${date || "Not fixed yet"}`,
-    `City: ${city}`,
+    `City: ${city ?? "Not selected"}`,
     details && `Details: ${details}`,
   ]
     .filter(Boolean)
@@ -122,22 +138,57 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
               <input
                 type="date"
                 value={date}
+                min={minDate}
                 onChange={(e) => setDate(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                aria-invalid={!dateOk}
+                aria-describedby={dateOk ? undefined : "event-date-error"}
+                className={`mt-1.5 w-full rounded-xl border px-4 py-3 font-normal outline-none focus:border-brand ${
+                  dateOk ? "border-line" : "border-red-500"
+                }`}
               />
+              {!dateOk && (
+                <span id="event-date-error" className="mt-1.5 block text-xs font-normal text-red-600">
+                  Choose a date from tomorrow onwards.
+                </span>
+              )}
             </label>
-            <label className="text-sm font-medium text-ink">
-              City
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
-              >
-                {cities.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </label>
+            {city && !changingCity ? (
+              <div className="text-sm font-medium text-ink">
+                City
+                <div className="mt-1.5 flex items-center justify-between gap-3 rounded-xl border border-brand/40 bg-peach/40 px-4 py-3">
+                  <span className="flex items-center gap-2 font-normal">
+                    <MapPin className="h-4 w-4 text-brand" aria-hidden />
+                    City selected: <strong className="font-medium">{city}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setChangingCity(true)}
+                    className="text-sm font-medium text-brand underline-offset-4 hover:underline"
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="text-sm font-medium text-ink">
+                City
+                <select
+                  value={city ?? ""}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setChangingCity(false);
+                  }}
+                  className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
+                >
+                  <option value="" disabled>
+                    Choose your city
+                  </option>
+                  {cities.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="text-sm font-medium text-ink sm:col-span-2">
               Anything else? <span className="font-normal text-muted">(optional)</span>
               <textarea
@@ -155,15 +206,19 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
               <ArrowLeft className="h-4 w-4" aria-hidden /> Back
             </button>
             <a
-              href={whatsappUrl(message)}
+              href={canSend ? whatsappUrl(message) : undefined}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => setOpened(true)}
-              className="inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover"
+              aria-disabled={!canSend}
+              onClick={(e) => (canSend ? setOpened(true) : e.preventDefault())}
+              className={`inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white ${
+                canSend ? "hover:bg-brand-hover" : "cursor-not-allowed opacity-40"
+              }`}
             >
               <WhatsAppIcon /> Send on WhatsApp
             </a>
           </div>
+          {!city && <p className="mt-3 text-right text-sm text-muted">Choose your city to continue.</p>}
           {opened && (
             <p className="mt-4 rounded-xl bg-wash p-4 text-sm text-ink" role="status">
               WhatsApp opened with your request pre-filled — just tap <strong>send</strong> to reach our team.

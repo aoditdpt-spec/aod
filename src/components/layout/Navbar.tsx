@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, MapPin, Menu, Search, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { SearchBox } from "@/components/search/SearchBox";
+import { CityChips, CityPicker } from "@/components/location/CityPicker";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const links = [
@@ -32,15 +33,9 @@ export function Navbar() {
       <nav className="flex h-16 w-full items-center gap-4 px-4 sm:px-6 lg:px-8 xl:gap-6" aria-label="Main">
         <Logo />
 
-        <button
-          type="button"
-          className="hidden shrink-0 items-center gap-1 rounded-lg border border-line px-3 py-1.5 text-sm text-body hover:border-brand lg:flex"
-          aria-label={`Location: ${brand.city}`}
-        >
-          <MapPin className="h-4 w-4 text-brand" aria-hidden />
-          {brand.city}
-          <ChevronDown className="h-3.5 w-3.5" aria-hidden />
-        </button>
+        <div className="hidden lg:block">
+          <CityPicker />
+        </div>
 
         <ul className="hidden items-center gap-1 text-[0.9375rem] lg:flex">
           <li className="group relative">
@@ -133,7 +128,10 @@ export function Navbar() {
 
       {menuOpen && (
         <div id="mobile-menu" className="border-t border-line bg-white px-4 pb-6 lg:hidden">
-          <p className="pt-4 text-xs font-medium uppercase tracking-wider text-muted">Book an artist</p>
+          <div className="pt-4">
+            <CityChips />
+          </div>
+          <p className="mt-5 border-t border-line pt-4 text-xs font-medium uppercase tracking-wider text-muted">Book an artist</p>
           <ul className="mt-2 grid grid-cols-2 gap-1">
             {categories.map((c) => (
               <li key={c.slug}>

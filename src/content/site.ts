@@ -13,6 +13,9 @@ export const brand = {
   phoneDisplay: "+91 92747 39763",
   phoneHref: "tel:+919274739763",
   email: "communication.aod@gmail.com",
+  // Opens Gmail's compose window in the browser, addressed to AOD.
+  gmailComposeUrl: (subject: string) =>
+    `https://mail.google.com/mail/?view=cm&fs=1&to=communication.aod@gmail.com&su=${encodeURIComponent(subject)}`,
   instagramHandle: "@artistsondemand.in",
   instagramUrl: "https://www.instagram.com/artistsondemand.in/",
   domain: "aod.co.in",
@@ -222,12 +225,13 @@ export const mostBooked: { service: string; category: string }[] = [
 ];
 
 // Sample data — see note at top.
+// `animation` picks how each number animates in (see src/components/motion/StatCounters.tsx).
 export const stats = [
-  { value: "150+", label: "verified artists" },
-  { value: "4.9", label: "average rating" },
-  { value: "10", label: "talent categories" },
-  { value: "Zero", label: "negotiation drama" },
-];
+  { value: "150+", label: "verified artists", animation: "odometer" },
+  { value: "4.9", label: "average rating", animation: "rating" },
+  { value: "10", label: "talent categories", animation: "flip" },
+  { value: "Zero", label: "negotiation drama", animation: "zero" },
+] as const;
 
 export const guarantees = [
   { icon: "tag", label: "Transparent upfront quotes" },
@@ -248,6 +252,13 @@ export const hero = {
   secondaryCta: "Browse categories",
   searchPlaceholder: "Search for 'wedding photographer'",
   chips: ["Wedding photography", "Bridal makeup", "Wedding film", "Wedding / sangeet DJ"],
+  // Animated walk-through of a booking shown beside the headline. Illustrative steps, not real customers.
+  demo: [
+    { icon: "camera", title: "Request sent", text: "Wedding photographer · Surat · 14 Oct" },
+    { icon: "sparkles", title: "3 curated matches ready", text: "Verified, with clear quotes" },
+    { icon: "handshake", title: "Meet the artist in person", text: "See their work before you decide" },
+    { icon: "signature", title: "Booking confirmed", text: "Digital contract shared on WhatsApp" },
+  ],
 };
 
 // Booking features shown on the homepage. Cancellation, rescheduling and meeting the

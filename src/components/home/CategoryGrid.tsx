@@ -2,26 +2,39 @@ import Link from "next/link";
 import { categories } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
+import { Reveal } from "@/components/motion/Reveal";
+import { CategoryRing } from "./CategoryRing";
 
-// 5 × 2 grid of category cards with green line icons.
+// "Find artists for every kind of event": the categories on a 3D ring,
+// with every category also listed below as quick links (handy on phones).
 export function CategoryGrid({ title = "Find artists for every kind of event" }: { title?: string }) {
   return (
-    <Container className="py-10">
+    <Container className="py-12">
       <section id="categories" className="scroll-mt-24">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem]">{title}</h2>
-        <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 lg:gap-7">
-          {categories.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/categories/${c.slug}`}
-                className="group flex h-full min-h-[10.25rem] flex-col gap-6 rounded-card border border-line bg-white p-5 shadow-[0_2px_6px_rgba(38,18,0,0.06)] transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
-              >
-                <Icon name={c.icon} className="h-9 w-9 text-brand-bright" strokeWidth={1.25} />
-                <span className="text-base leading-snug break-words text-ink group-hover:text-brand sm:text-xl">{c.name}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <Reveal className="text-center">
+          <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">10 categories · one booking</p>
+          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{title}</h2>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <CategoryRing />
+        </Reveal>
+
+        <Reveal delay={0.15}>
+          <ul className="mx-auto mt-8 flex max-w-5xl flex-wrap justify-center gap-2">
+            {categories.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  href={`/categories/${c.slug}`}
+                  className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
+                >
+                  <Icon name={c.icon} className="h-4 w-4 text-brand-bright" />
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </section>
     </Container>
   );

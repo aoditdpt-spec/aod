@@ -5,31 +5,22 @@ import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { MetInPerson } from "@/components/ui/MetInPerson";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { ScrambleText } from "@/components/motion/ScrambleText";
+import { HeroDemo, HeroGlow, HeroHeadline } from "./HeroMotion";
 
-// Large dark rounded card: two big headline lines, the two main actions and popular services.
+// Large dark rounded card: animated headline, the two main actions, popular services,
+// and (on large screens) an animated walk-through of a booking.
 export function Hero() {
   return (
     <Container className="pt-8">
       <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-20">
-        {/* Decorative glow on the right; replace with a real event photo when available. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-32 top-1/2 hidden h-[35rem] w-[35rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.35)_0%,rgba(249,115,22,0)_65%)] lg:block"
-        />
-        <div className="relative">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{hero.eyebrow}</p>
-          <h1 className="mt-5 max-w-[56rem] text-4xl font-medium leading-[1.05] !text-white sm:text-6xl">
-            {hero.title[0].map((line) => (
-              <span key={line} className="block">
-                {line}
-              </span>
-            ))}
-            {hero.title[1].map((line, i) => (
-              <span key={line} className={`block text-apricot ${i === 0 ? "mt-3" : ""}`}>
-                {line}
-              </span>
-            ))}
-          </h1>
+        <HeroGlow />
+        <div className="relative grid items-center gap-12 lg:grid-cols-[1fr_auto]">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">
+            <ScrambleText text={hero.eyebrow} delay={0.1} />
+          </p>
+          <HeroHeadline />
           <p className="mt-6 max-w-[35rem] text-base text-white/90 sm:text-xl sm:leading-snug">{hero.subtitle}</p>
           <div className="mt-6">
             <MetInPerson variant="inline" dark />
@@ -73,6 +64,10 @@ export function Hero() {
               Join AOD on WhatsApp
             </a>
           </p>
+        </div>
+        <div className="hidden lg:block">
+          <HeroDemo />
+        </div>
         </div>
       </section>
     </Container>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { useHydrated, useReducedMotionSafe } from "@/lib/motion-safe";
 import { ArrowRight, Search } from "lucide-react";
-import { hero } from "@/content/site";
+import { categories, hero } from "@/content/site";
 import { searchServices } from "@/lib/search";
 
 type Variant = "hero" | "nav";
@@ -25,6 +26,64 @@ const styles = {
   },
 } satisfies Record<Variant, Record<string, string>>;
 
+// Words the placeholder types out: every category plus each category's popular services.
+const TYPED_WORDS = [
+  ...categories.map((c) => c.name),
+  ...categories.flatMap((c) => c.services.filter((s) => s.popular).map((s) => s.name)),
+];
+
+function shuffled<T>(list: T[]): T[] {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Types a word, pauses, deletes it, then types the next one in random order (Blinkit-style).
+function useTypedPlaceholder(active: boolean): string {
+  const [text, setText] = useState("");
+  useEffect(() => {
+    if (!active) return;
+    let words = shuffled(TYPED_WORDS);
+    let w = 0;
+    let i = 0;
+    let deleting = false;
+    let timer = 0;
+    const tick = () => {
+      const word = words[w];
+      if (!deleting) {
+        i++;
+        setText(word.slice(0, i));
+        if (i === word.length) {
+          deleting = true;
+          timer = window.setTimeout(tick, 1500);
+          return;
+        }
+        timer = window.setTimeout(tick, 65 + Math.random() * 50);
+      } else {
+        i--;
+        setText(word.slice(0, i));
+        if (i === 0) {
+          deleting = false;
+          w++;
+          if (w === words.length) {
+            words = shuffled(TYPED_WORDS);
+            w = 0;
+          }
+          timer = window.setTimeout(tick, 350);
+          return;
+        }
+        timer = window.setTimeout(tick, 30);
+      }
+    };
+    timer = window.setTimeout(tick, 500);
+    return () => window.clearTimeout(timer);
+  }, [active]);
+  return text;
+}
+
 // Search input with ranked, typo-tolerant suggestions (see src/lib/fuzzy.ts).
 // Arrow keys move through suggestions, Enter opens the highlighted one (or the best match),
 // Escape closes the list. With no match, it offers the booking flow instead.
@@ -43,9 +102,14 @@ export function SearchBox({
   const [focused, setFocused] = useState(false);
   const [active, setActive] = useState(-1);
   const results = useMemo(() => searchServices(query), [query]);
+  // Hydration-safe: the server renders the plain placeholder, the typing starts once the page is live.
+  const hydrated = useHydrated();
+  const reduce = useReducedMotionSafe();
+  const animatePlaceholder = hydrated && !reduce && !focused && query === "";
+  const typed = useTypedPlaceholder(animatePlaceholder);
   const s = styles[variant];
 
-  const typed = query.trim().length > 0;
+  const hasQuery = query.trim().length > 0;
   const showResults = focused && results.length > 0;
   const showEmpty = focused && query.trim().length >= 2 && results.length === 0;
 
@@ -77,7 +141,7 @@ export function SearchBox({
       className="relative w-full"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!typed) return;
+        if (!hasQuery) return;
         go(results[active]?.href ?? results[0]?.href ?? "/book");
       }}
     >
@@ -86,28 +150,40 @@ export function SearchBox({
         <label htmlFor={`${id}-input`} className="sr-only">
           Search artists and services
         </label>
-        <input
-          id={`${id}-input`}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setActive(-1);
-            setFocused(true);
-          }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onKeyDown={onKeyDown}
-          placeholder={variant === "nav" ? "Search artists & services" : hero.searchPlaceholder}
-          autoComplete="off"
-          spellCheck={false}
-          autoFocus={autoFocus}
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={showResults}
-          aria-controls={`${id}-list`}
-          aria-activedescendant={showResults && active >= 0 ? `${id}-opt-${active}` : undefined}
-          className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted ${s.input}`}
-        />
+        <div className="relative min-w-0 flex-1">
+          <input
+            id={`${id}-input`}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setActive(-1);
+              setFocused(true);
+            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onKeyDown={onKeyDown}
+            placeholder={animatePlaceholder ? "" : variant === "nav" ? "Search artists & services" : hero.searchPlaceholder}
+            autoComplete="off"
+            spellCheck={false}
+            autoFocus={autoFocus}
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showResults}
+            aria-controls={`${id}-list`}
+            aria-activedescendant={showResults && active >= 0 ? `${id}-opt-${active}` : undefined}
+            className={`w-full bg-transparent outline-none placeholder:text-muted ${s.input}`}
+          />
+          {animatePlaceholder && (
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute inset-y-0 left-0 flex items-center truncate text-muted ${s.input}`}
+            >
+              Search &ldquo;<span className="text-ink">{typed}</span>
+              <span className="mx-px inline-block h-[1.1em] w-[2px] animate-caret bg-brand" />
+              &rdquo;
+            </span>
+          )}
+        </div>
         <button type="submit" aria-label="Search" className={`inline-flex shrink-0 items-center gap-2 font-medium ${s.button}`}>
           {variant === "hero" ? <Search className={s.icon} aria-hidden /> : <Search className={`${s.icon} 2xl:hidden`} aria-hidden />}
           <span className={s.label}>Search</span>

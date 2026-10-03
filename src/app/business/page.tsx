@@ -74,7 +74,7 @@ export default function BusinessPage() {
         </section>
       </Container>
 
-      <FinalCta title={business.ctaTitle} text={business.ctaText} cta="Email us" href={`mailto:${brand.email}?subject=Business enquiry`} />
+      <FinalCta title={business.ctaTitle} text={business.ctaText} cta="Email us" href={brand.gmailComposeUrl("Business enquiry")} />
     </>
   );
 }
