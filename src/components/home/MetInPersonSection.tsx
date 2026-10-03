@@ -17,7 +17,7 @@ export function MetInPersonSection() {
   const words = metInPerson.text.split(" ");
 
   return (
-    <section ref={ref} className="relative py-28 sm:py-36">
+    <section ref={ref} className="relative overflow-hidden py-28 sm:py-36">
       <motion.div data-reveal aria-hidden className="absolute inset-0 bg-night" style={{ opacity: dark }} />
       <motion.div
         data-reveal
