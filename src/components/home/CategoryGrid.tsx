@@ -3,9 +3,9 @@ import { categories } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
 import { Reveal } from "@/components/motion/Reveal";
-import { CategoryRing } from "./CategoryRing";
+import { CategoryCoverflow } from "./CategoryCoverflow";
 
-// "Find artists for every kind of event": the categories on a 3D ring,
+// "Find artists for every kind of event": the categories in a 3D coverflow (same as Most booked),
 // with every category also listed below as quick links (handy on phones).
 export function CategoryGrid({ title = "Find artists for every kind of event" }: { title?: string }) {
   return (
@@ -16,8 +16,8 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
           <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{title}</h2>
         </Reveal>
 
-        <Reveal delay={0.1}>
-          <CategoryRing />
+        <Reveal delay={0.1} className="mt-8">
+          <CategoryCoverflow />
         </Reveal>
 
         <Reveal delay={0.15}>
