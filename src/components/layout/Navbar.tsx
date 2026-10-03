@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, Menu, Search, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { SearchBox } from "@/components/search/SearchBox";
@@ -26,7 +26,6 @@ export function Logo({ light = false }: { light?: boolean }) {
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur">
@@ -62,7 +61,8 @@ export function Navbar() {
             </div>
           </li>
           {links.map((l) => (
-            <li key={l.href}>
+            // "How it works" drops out between 1024 and 1280px to make room for the search box.
+            <li key={l.href} className={l.href === "/#how-it-works" ? "hidden xl:block" : undefined}>
               <Link href={l.href} className="whitespace-nowrap rounded-md px-3 py-2 hover:text-brand">
                 {l.label}
               </Link>
@@ -70,27 +70,14 @@ export function Navbar() {
           ))}
         </ul>
 
-        {/* Wide screens: search sits in the navbar; narrower screens use the search icon below. */}
-        <div className="hidden flex-1 justify-end xl:flex">
-          <div className="w-full max-w-[21.25rem]">
+        {/* From 1024px the search sits in the navbar; below that it is a full-width bar under the logo row. */}
+        <div className="hidden min-w-0 flex-1 justify-end lg:flex">
+          <div className="w-full max-w-[22rem] xl:max-w-[28rem] 2xl:max-w-[34rem]">
             <SearchBox variant="nav" />
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-2 lg:gap-4 xl:ml-0">
-          <button
-            type="button"
-            onClick={() => {
-              setSearchOpen((o) => !o);
-              setMenuOpen(false);
-            }}
-            className="rounded-lg p-2 text-ink hover:bg-wash xl:hidden"
-            aria-expanded={searchOpen}
-            aria-controls="nav-search"
-            aria-label={searchOpen ? "Close search" : "Search"}
-          >
-            {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-          </button>
+        <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:gap-4">
           <a
             href={whatsappUrl()}
             target="_blank"
@@ -104,10 +91,7 @@ export function Navbar() {
           </Link>
           <button
             type="button"
-            onClick={() => {
-              setMenuOpen((o) => !o);
-              setSearchOpen(false);
-            }}
+            onClick={() => setMenuOpen((o) => !o)}
             className="rounded-lg p-2 lg:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -118,13 +102,10 @@ export function Navbar() {
         </div>
       </nav>
 
-      {searchOpen && (
-        <div id="nav-search" className="border-t border-line bg-white px-4 py-3 sm:px-6 xl:hidden">
-          <div className="mx-auto max-w-2xl">
-            <SearchBox variant="nav" autoFocus onNavigate={() => setSearchOpen(false)} />
-          </div>
-        </div>
-      )}
+      {/* Phones and tablets: an always-visible search bar under the logo row (Blinkit-style). */}
+      <div className="px-4 pb-3 sm:px-6 lg:hidden">
+        <SearchBox variant="nav" />
+      </div>
 
       {menuOpen && (
         <div id="mobile-menu" className="border-t border-line bg-white px-4 pb-6 lg:hidden">

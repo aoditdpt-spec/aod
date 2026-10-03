@@ -42,10 +42,29 @@ function shuffled<T>(list: T[]): T[] {
 }
 
 // Types a word, pauses, deletes it, then types the next one in random order (Blinkit-style).
-function useTypedPlaceholder(active: boolean): string {
+// With `swapOnly` (visitor prefers reduced motion) it just shows a new word every few seconds.
+function useTypedPlaceholder(active: boolean, swapOnly: boolean): string {
   const [text, setText] = useState("");
   useEffect(() => {
     if (!active) return;
+    if (swapOnly) {
+      let words = shuffled(TYPED_WORDS);
+      let w = 0;
+      const show = () => {
+        setText(words[w]);
+        w++;
+        if (w === words.length) {
+          words = shuffled(TYPED_WORDS);
+          w = 0;
+        }
+      };
+      const first = window.setTimeout(show, 0);
+      const id = window.setInterval(show, 2800);
+      return () => {
+        window.clearTimeout(first);
+        window.clearInterval(id);
+      };
+    }
     let words = shuffled(TYPED_WORDS);
     let w = 0;
     let i = 0;
@@ -80,7 +99,7 @@ function useTypedPlaceholder(active: boolean): string {
     };
     timer = window.setTimeout(tick, 500);
     return () => window.clearTimeout(timer);
-  }, [active]);
+  }, [active, swapOnly]);
   return text;
 }
 
@@ -105,8 +124,9 @@ export function SearchBox({
   // Hydration-safe: the server renders the plain placeholder, the typing starts once the page is live.
   const hydrated = useHydrated();
   const reduce = useReducedMotionSafe();
-  const animatePlaceholder = hydrated && !reduce && !focused && query === "";
-  const typed = useTypedPlaceholder(animatePlaceholder);
+  // Runs for everyone while the box is empty and not focused (only swaps words under reduced motion).
+  const animatePlaceholder = hydrated && !focused && query === "";
+  const typed = useTypedPlaceholder(animatePlaceholder, reduce);
   const s = styles[variant];
 
   const hasQuery = query.trim().length > 0;
@@ -174,13 +194,17 @@ export function SearchBox({
             className={`w-full bg-transparent outline-none placeholder:text-muted ${s.input}`}
           />
           {animatePlaceholder && (
+            // Spans the full input width and truncates with "…", so long suggestions never spill out.
+            // Greyed out like a disabled field, so it reads as a hint rather than typed text.
             <span
               aria-hidden
-              className={`pointer-events-none absolute inset-y-0 left-0 flex items-center truncate text-muted ${s.input}`}
+              className={`pointer-events-none absolute inset-0 flex items-center overflow-hidden text-muted/70 ${s.input}`}
             >
-              Search &ldquo;<span className="text-ink">{typed}</span>
-              <span className="mx-px inline-block h-[1.1em] w-[2px] animate-caret bg-brand" />
-              &rdquo;
+              <span className="truncate">
+                Search &ldquo;{typed}
+                {!reduce && <span className="mx-px inline-block h-[1em] w-[1.5px] translate-y-[0.12em] animate-caret bg-muted/50" />}
+                &rdquo;
+              </span>
             </span>
           )}
         </div>
