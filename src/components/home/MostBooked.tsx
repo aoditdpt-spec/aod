@@ -3,11 +3,11 @@ import { ArrowRight } from "lucide-react";
 import { getCategory, mostBooked } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/motion/Reveal";
-import { MostBookedSlider, type SliderItem } from "./MostBookedSlider";
+import { MostBookedRing, type ServiceItem } from "./MostBookedRing";
 
-// The most-booked services as a 3D coverflow slider.
+// The most-booked services on a rotating 3D globe.
 export function MostBooked() {
-  const items: SliderItem[] = mostBooked.map(({ service, category }) => {
+  const items: ServiceItem[] = mostBooked.map(({ service, category }) => {
     const cat = getCategory(category)!;
     const s = cat.services.find((x) => x.name === service)!;
     return { service, category: cat.name, slug: cat.slug, icon: cat.icon, rating: s.rating, bookings: s.bookings };
@@ -27,7 +27,7 @@ export function MostBooked() {
           </Link>
         </Reveal>
         <Reveal delay={0.1} className="mt-8">
-          <MostBookedSlider items={items} />
+          <MostBookedRing items={items} />
         </Reveal>
       </Container>
     </section>
