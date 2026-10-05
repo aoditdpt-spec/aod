@@ -43,7 +43,7 @@ function LogoList({ copy = false }: { copy?: boolean }) {
 export function BrandStrip() {
   return (
     <div className="mt-12">
-      <p className="text-center text-sm font-medium text-muted">Brands we&apos;ve worked with</p>
+      <p className="text-center text-sm font-medium text-muted">Brands we&apos;ve worked with, along with personal events</p>
       <div className="mt-6 overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] motion-reduce:[mask-image:none]">
         <div className="flex w-max animate-marquee motion-reduce:w-full motion-reduce:animate-none">
           <LogoList />

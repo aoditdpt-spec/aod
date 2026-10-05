@@ -43,3 +43,6 @@ next-env.d.ts
 
 # saved third-party reference pages (kept locally, not published)
 context/*.html
+
+# Owner reference material (brief, saved pages, raw brand logos)
+/context/
