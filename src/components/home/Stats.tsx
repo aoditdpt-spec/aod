@@ -1,7 +1,7 @@
-import { BadgeCheck } from "lucide-react";
-import { business, stats } from "@/content/site";
+import { stats } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { BrandStrip } from "@/components/home/BrandStrip";
 import { FlipStat, OdometerStat, RatingStat, ZeroStat } from "@/components/motion/StatCounters";
 
 // Each stat animates differently (odometer, rating fill, split-flap, draining meter).
@@ -41,10 +41,7 @@ export function Stats() {
         })}
       </StaggerList>
       <Reveal delay={0.3}>
-        <p className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full bg-peach px-4 py-2 text-sm font-medium text-ink">
-          <BadgeCheck className="h-4 w-4 text-brand" aria-hidden />
-          {business.caseStudy.label}
-        </p>
+        <BrandStrip />
       </Reveal>
     </Container>
   );

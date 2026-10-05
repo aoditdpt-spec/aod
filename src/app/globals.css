@@ -32,6 +32,14 @@
   --radius-card: 1rem;
   --radius-panel: 2rem;
 
+  /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
+  --animate-marquee: marquee 45s linear infinite;
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   --animate-caret: caret-blink 1s steps(1) infinite;
   @keyframes caret-blink {
     0%,

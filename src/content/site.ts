@@ -233,6 +233,25 @@ export const stats = [
   { value: "Zero", label: "negotiation drama", animation: "zero" },
 ] as const;
 
+// Brands AOD has worked with, shown in the scrolling strip under the stats.
+// Logos live in public/brands/: cut out of their backgrounds, cropped tight, 160px tall.
+// `width` / `height` are the image's real pixel size (the strip uses them for the shape).
+export const clientBrands = [
+  { name: "Aluminium Bharat", logo: "/brands/aluminium-bharat.png", width: 391, height: 52 },
+  { name: "ATOA Technologies", logo: "/brands/atoa-technologies.png", width: 491, height: 160 },
+  { name: "Meraki", logo: "/brands/meraki.png", width: 280, height: 160 },
+  { name: "GTZ", logo: "/brands/gtz.png", width: 219, height: 160 },
+  { name: "Lalaji", logo: "/brands/lalaji.png", width: 269, height: 160 },
+  { name: "HI Interior Hardware", logo: "/brands/hi-interior-hardware.png", width: 181, height: 160 },
+  { name: "Ralco Extrusion", logo: "/brands/ralco-extrusion.png", width: 276, height: 160 },
+  { name: "Saru Aikoh Chemicals", logo: "/brands/saru-aikoh-chemicals.png", width: 477, height: 160 },
+  { name: "MMR Mayur Group", logo: "/brands/mmr-mayur-group.png", width: 195, height: 160 },
+  { name: "Swastik Furnaces", logo: "/brands/swastik-furnaces.png", width: 246, height: 160 },
+  { name: "FCT Surface Innovators", logo: "/brands/fct.png", width: 359, height: 160 },
+  { name: "Galco", logo: "/brands/galco.png", width: 468, height: 160 },
+  { name: "Power Hydrotech", logo: "/brands/power-hydrotech.png", width: 180, height: 46 },
+];
+
 export const guarantees = [
   { icon: "tag", label: "Transparent upfront quotes" },
   { icon: "lock", label: "Escrowed payments" }, // not built yet — see note at top

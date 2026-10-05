@@ -22,7 +22,7 @@ export default function Home() {
       <AnnouncementBar />
       {/* 1. The promise and the main actions */}
       <Hero />
-      {/* 2. Instant proof: numbers and the GATE Expo credential */}
+      {/* 2. Instant proof: numbers and the brands we've worked with */}
       <Stats />
       {/* 3. "Do they have what I need?" — every category, one tap away */}
       <CategoryGrid />
