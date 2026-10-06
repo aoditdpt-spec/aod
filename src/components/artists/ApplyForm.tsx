@@ -8,6 +8,7 @@ import { applySteps, experienceLevels, languages, uploadRules } from "@/content/
 import { categories, cities } from "@/content/site";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
+import { siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { DigiLockerCard } from "./DigiLockerCard";
@@ -513,8 +514,15 @@ function VerifyStep({
 
       <div className="space-y-3 rounded-xl border border-line p-5">
         <CheckRow checked={profile.agreeTerms} onChange={(agreeTerms) => set({ agreeTerms })}>
-          I agree to the AOD artist terms and privacy policy{" "}
-          <span className="text-muted">(published before the portal goes live)</span>, and confirm the work I&apos;ve shared is my own.
+          I agree to the AOD{" "}
+          <a href={siteHref("/terms")} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-2">
+            terms
+          </a>{" "}
+          and{" "}
+          <a href={siteHref("/privacy")} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-2">
+            privacy policy
+          </a>
+          , and confirm the work I&apos;ve shared is my own.
         </CheckRow>
         {errors.agreeTerms && <p className="pl-7 text-xs text-red-600">{errors.agreeTerms}</p>}
       </div>

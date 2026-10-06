@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, Clock, CreditCard, Lock, Printer, ShieldC
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { bank, payCopy, payee, purposes, upiApps } from "@/content/payments";
 import { amountProblem, cleanUtr, formatINR, isUpiId, isUtr, parseAmount, UPI_MAX, upiUrl } from "@/lib/upi";
+import { siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { CopyButton } from "./CopyButton";
@@ -224,6 +225,17 @@ export function PayFlow() {
             <button type="submit" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
               Continue to pay {amount && !errors.amount ? formatINR(amount) : ""} <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
+            <p className="text-center text-xs text-muted">
+              By paying you agree to our{" "}
+              <a href={siteHref("/terms")} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-ink">
+                terms
+              </a>{" "}
+              and{" "}
+              <a href={siteHref("/refund-policy")} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-ink">
+                cancellation & refund policy
+              </a>
+              .
+            </p>
           </form>
         )}
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
+import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { InstagramIcon, WhatsAppIcon } from "@/components/ui/Icon";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -81,7 +82,16 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {brand.fullName} · {brand.domain}
           </p>
-          <p>Made in {brand.city}</p>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1">
+            {legalDocs.map((d) => (
+              <li key={d.slug}>
+                <Link href={`/${d.slug}`} className="hover:text-apricot">
+                  {d.title}
+                </Link>
+              </li>
+            ))}
+            <li>Made in {brand.city}</li>
+          </ul>
         </div>
       </div>
     </footer>
