@@ -234,7 +234,7 @@ export const stats = [
 ] as const;
 
 // Brands AOD has worked with, shown in the scrolling strip under the stats.
-// Logos live in public/brands/: cut out of their backgrounds, cropped tight, 160px tall.
+// Logos live in public/brands/: cut out of their backgrounds, cropped tight, 160–240px tall.
 // `width` / `height` are the image's real pixel size (the strip uses them for the shape).
 export const clientBrands = [
   { name: "Aluminium Bharat", logo: "/brands/aluminium-bharat-logo.png", width: 1955, height: 251 },
@@ -250,6 +250,8 @@ export const clientBrands = [
   { name: "FCT Surface Innovators", logo: "/brands/fct.png", width: 359, height: 160 },
   { name: "Galco", logo: "/brands/galco.png", width: 468, height: 160 },
   { name: "Power Hydrotech", logo: "/brands/power-hydrotech-logo.png", width: 910, height: 240 },
+  { name: "Ayodhya", logo: "/brands/ayodhya-logo.png", width: 353, height: 240 },
+  { name: "Shree Ramji Buildcon Group", logo: "/brands/shree-ramji-logo.png", width: 330, height: 240 },
 ];
 
 export const guarantees = [
