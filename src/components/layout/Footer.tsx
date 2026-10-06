@@ -28,13 +28,17 @@ const columns = [
       { href: "/for-artists#verification", label: "How verification works" },
     ],
   },
+  {
+    title: "Policies",
+    links: legalDocs.map((d) => ({ href: `/${d.slug}`, label: d.title })),
+  },
 ];
 
 export function Footer() {
   return (
     <footer className="px-4 pb-4 pt-16 sm:px-6 sm:pb-6 lg:px-8">
       <div className="rounded-[1.25rem] bg-night px-6 py-12 text-white sm:px-16 sm:py-14">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
             <Logo size="footer" />
             <p className="mt-3 max-w-xs text-sm text-white/70">{brand.tagline}</p>
@@ -82,16 +86,7 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {brand.fullName} · {brand.domain}
           </p>
-          <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {legalDocs.map((d) => (
-              <li key={d.slug}>
-                <Link href={`/${d.slug}`} className="hover:text-apricot">
-                  {d.title}
-                </Link>
-              </li>
-            ))}
-            <li>Made in {brand.city}</li>
-          </ul>
+          <p>Made in {brand.city}</p>
         </div>
       </div>
     </footer>

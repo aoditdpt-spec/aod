@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
+import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { SearchBox } from "@/components/search/SearchBox";
@@ -154,6 +155,15 @@ export function Navbar() {
           >
             Get your artist
           </Link>
+          <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-4 text-xs text-muted">
+            {legalDocs.map((d) => (
+              <li key={d.slug}>
+                <Link href={`/${d.slug}`} onClick={() => setMenuOpen(false)} className="hover:text-brand">
+                  {d.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </header>

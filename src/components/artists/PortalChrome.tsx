@@ -2,6 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { portal } from "@/content/artist-portal";
+import { legalDocs } from "@/content/legal";
+import { brand } from "@/content/site";
+import { siteHref } from "@/lib/site-url";
 
 // "AOD. for Artists" mark. Links to the portal's start page.
 export function PortalLogo({ href = "/artists" }: { href?: string }) {
@@ -22,5 +25,27 @@ export function PortalHeader({ right, logoHref }: { right?: ReactNode; logoHref?
         <div className="flex items-center gap-3">{right}</div>
       </div>
     </header>
+  );
+}
+
+// Bottom line on every portal page: the policies, which live on the customer site.
+export function PortalFooter() {
+  return (
+    <footer className="border-t border-line px-4 py-5 text-xs text-muted sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p>
+          © {new Date().getFullYear()} {brand.fullName}
+        </p>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
+          {legalDocs.map((d) => (
+            <li key={d.slug}>
+              <a href={siteHref(`/${d.slug}`)} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
+                {d.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </footer>
   );
 }

@@ -2,7 +2,9 @@
 
 import { Check, Circle, Download, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { legalDocs } from "@/content/legal";
 import { payee } from "@/content/payments";
+import { siteHref } from "@/lib/site-url";
 import { resetDb, update, useDb, type Settings } from "@/lib/admin-store";
 import { buildXlsx, download, XLSX_TYPE } from "@/lib/xlsx";
 import { usePayBase } from "@/components/pay/PayLinkBuilder";
@@ -115,6 +117,20 @@ export function SettingsPage() {
               </li>
             ))}
           </ul>
+        </Card>
+
+        <Card title="Policies on the website">
+          <ul className="space-y-2 text-sm">
+            {legalDocs.map((d) => (
+              <li key={d.slug} className="flex items-center justify-between gap-3">
+                <a href={siteHref(`/${d.slug}`)} target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:text-brand-hover">
+                  {d.title}
+                </a>
+                <span className="text-xs text-muted">Draft · updated {d.updated}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted">Text lives in src/content/legal.ts. Linked from the site footer, booking request, payment page and artist portal.</p>
         </Card>
 
         <Card title="Data">
