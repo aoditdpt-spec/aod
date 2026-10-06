@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:search": "node --experimental-strip-types --no-warnings scripts/search-check.mts",
-    "check:links": "node --experimental-strip-types --no-warnings scripts/links-check.mts"
+    "check:links": "node --experimental-strip-types --no-warnings scripts/links-check.mts",
+    "check:pay": "node --experimental-strip-types --no-warnings scripts/pay-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -16,12 +17,14 @@
     "lucide-react": "^1.49.0",
     "motion": "^14.0.0",
     "next": "16.3.8",
+    "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
