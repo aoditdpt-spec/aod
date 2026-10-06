@@ -23,7 +23,7 @@ export function MostBooked() {
             <p className="mt-3 text-body">Verified artists, real reviews. Get matched in minutes — no haggling.</p>
           </div>
           <Link href="/book" className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-hover">
-            Get matched <ArrowRight className="h-4 w-4" aria-hidden />
+            Get your artist <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </Reveal>
         <Reveal delay={0.1} className="mt-8">

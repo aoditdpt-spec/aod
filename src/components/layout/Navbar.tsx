@@ -95,7 +95,7 @@ export function Navbar() {
             Chat on WhatsApp
           </a>
           <Link href="/book" className={buttonClasses("primary", "md", "hidden lg:inline-flex")}>
-            Get matched
+            Get your artist
           </Link>
           <button
             type="button"
@@ -152,7 +152,7 @@ export function Navbar() {
             onClick={() => setMenuOpen(false)}
             className={buttonClasses("primary", "lg", "mt-4 w-full")}
           >
-            Get matched
+            Get your artist
           </Link>
         </div>
       )}
