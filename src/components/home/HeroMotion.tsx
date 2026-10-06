@@ -15,11 +15,11 @@ export function HeroHeadline() {
     ...hero.title[1].map((text) => ({ text, accent: true })),
   ];
   return (
-    <h1 className="mt-5 max-w-[56rem] text-4xl font-medium leading-[1.08] !text-white sm:text-6xl">
+    <h1 className="mt-8 max-w-[56rem] text-2xl font-medium leading-[1.1] !text-ink sm:text-4xl">
       {lines.map((line, i) => (
         <span
           key={line.text}
-          className={`block overflow-hidden pb-[0.08em] ${line.accent ? "text-apricot" : ""} ${i === 2 ? "mt-3" : ""}`}
+          className={`block overflow-hidden pb-[0.08em] ${line.accent ? "text-brand" : ""} ${i === 2 ? "mt-3" : ""}`}
         >
           <motion.span
             data-reveal
@@ -43,7 +43,7 @@ export function HeroGlow() {
   const y = useMotionValue(45);
   const sx = useSpring(x, { stiffness: 60, damping: 20 });
   const sy = useSpring(y, { stiffness: 60, damping: 20 });
-  const background = useMotionTemplate`radial-gradient(38rem circle at ${sx}% ${sy}%, rgba(249,115,22,0.32), transparent 60%)`;
+  const background = useMotionTemplate`radial-gradient(38rem circle at ${sx}% ${sy}%, rgba(249,115,22,0.16), transparent 60%)`;
 
   useEffect(() => {
     const card = ref.current?.parentElement;
@@ -86,7 +86,7 @@ export function HeroDemo() {
   const visible = steps.slice(0, reduce ? steps.length : Math.min(count, steps.length));
 
   return (
-    <div aria-hidden className="relative w-[22rem]">
+    <div aria-hidden className="relative w-full">
       <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-white/50">How a booking flows</p>
       <ul className="flex flex-col gap-3">
         <AnimatePresence initial={false}>

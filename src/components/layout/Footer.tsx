@@ -35,7 +35,7 @@ export function Footer() {
       <div className="rounded-[1.25rem] bg-night px-6 py-12 text-white sm:px-16 sm:py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
-            <Logo light />
+            <Logo size="footer" />
             <p className="mt-3 max-w-xs text-sm text-white/70">{brand.tagline}</p>
             <ul className="mt-6 space-y-3 text-sm">
               <li>

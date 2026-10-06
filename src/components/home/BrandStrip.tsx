@@ -3,8 +3,8 @@ import { clientBrands } from "@/content/site";
 
 // Logos have very different shapes (a long exhibition banner next to a square crest),
 // so instead of one fixed height each gets the same visual area, capped at MAX_HEIGHT.
-const AREA = 150 * 56; // in px at the 16px rem
-const MAX_HEIGHT = 60;
+const AREA = 270 * 100; // in px at the 16px rem
+const MAX_HEIGHT = 110;
 
 function logoSize(width: number, height: number) {
   const aspect = width / height;
@@ -18,7 +18,7 @@ function LogoList({ copy = false }: { copy?: boolean }) {
       // The second copy only exists to make the loop seamless: hidden from screen readers,
       // and dropped entirely when the strip doesn't move.
       aria-hidden={copy || undefined}
-      className={`flex shrink-0 items-center gap-x-14 pr-14 motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8 motion-reduce:pr-0 ${
+      className={`flex shrink-0 items-center gap-x-24 pr-24 motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8 motion-reduce:pr-0 ${
         copy ? "motion-reduce:hidden" : ""
       }`}
     >
@@ -42,9 +42,9 @@ function LogoList({ copy = false }: { copy?: boolean }) {
 // Pure CSS, so it also runs without JavaScript. With reduced motion it's a still, wrapped row.
 export function BrandStrip() {
   return (
-    <div className="mt-12">
+    <div className="mt-14">
       <p className="text-center text-sm font-medium text-muted">Brands we&apos;ve worked with, along with personal events</p>
-      <div className="mt-6 overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] motion-reduce:[mask-image:none]">
+      <div className="mt-8 overflow-hidden py-8 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] motion-reduce:[mask-image:none]">
         <div className="flex w-max animate-marquee motion-reduce:w-full motion-reduce:animate-none">
           <LogoList />
           <LogoList copy />

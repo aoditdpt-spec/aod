@@ -54,10 +54,10 @@
 
 /* In the base layer so utility classes (e.g. text-white on a heading) can override these. */
 @layer base {
-  /* Everything is sized in rem, so 90% here scales the whole site to what
-     90% browser zoom looked like. Change this one value to resize everything. */
+  /* Everything is sized in rem, so 81% here scales the whole site to what
+     81% browser zoom looks like (90% of the earlier 90% setting). Change this one value to resize everything. */
   html {
-    font-size: 90%;
+    font-size: 81%;
   }
 
   body {

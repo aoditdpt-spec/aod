@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
@@ -15,11 +16,18 @@ const links = [
   { href: "/#how-it-works", label: "How it works" },
 ];
 
-export function Logo({ light = false }: { light?: boolean }) {
+// The AOD. wordmark in the brand orange, on a transparent background (public/aod-wordmark.png).
+export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {
   return (
-    <Link href="/" className={`text-2xl font-bold tracking-tight ${light ? "text-white" : "text-ink"}`}>
-      {brand.name}
-      <span className="text-brand-bright">.</span>
+    <Link href="/" aria-label={`${brand.name} home`} className="inline-block shrink-0">
+      <Image
+        src="/aod-wordmark.png"
+        alt={brand.name}
+        width={708}
+        height={200}
+        priority
+        className={`w-auto ${size === "nav" ? "h-6" : "h-9"}`}
+      />
     </Link>
   );
 }

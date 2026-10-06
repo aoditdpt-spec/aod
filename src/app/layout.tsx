@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { brand } from "@/content/site";
-import { Footer } from "@/components/layout/Footer";
-import { Navbar } from "@/components/layout/Navbar";
-import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
 import { MotionProvider } from "@/components/motion/MotionProvider";
-import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import "./globals.css";
 
 // Free stand-in for Upwork's Neue Montreal (a paid font).
@@ -43,13 +39,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </noscript>
       </head>
       <body className="flex min-h-full flex-col font-sans">
-        <MotionProvider>
-          <ScrollProgress />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <WhatsAppFab />
-        </MotionProvider>
+        {/* The customer site's navbar and footer live in (site)/layout.tsx; the artist portal has its own. */}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

@@ -237,19 +237,19 @@ export const stats = [
 // Logos live in public/brands/: cut out of their backgrounds, cropped tight, 160px tall.
 // `width` / `height` are the image's real pixel size (the strip uses them for the shape).
 export const clientBrands = [
-  { name: "Aluminium Bharat", logo: "/brands/aluminium-bharat.png", width: 391, height: 52 },
+  { name: "Aluminium Bharat", logo: "/brands/aluminium-bharat-logo.png", width: 1955, height: 251 },
   { name: "ATOA Technologies", logo: "/brands/atoa-technologies.png", width: 491, height: 160 },
   { name: "Meraki", logo: "/brands/meraki.png", width: 280, height: 160 },
   { name: "GTZ", logo: "/brands/gtz.png", width: 219, height: 160 },
   { name: "Lalaji", logo: "/brands/lalaji.png", width: 269, height: 160 },
   { name: "HI Interior Hardware", logo: "/brands/hi-interior-hardware.png", width: 181, height: 160 },
   { name: "Ralco Extrusion", logo: "/brands/ralco-extrusion.png", width: 276, height: 160 },
-  { name: "Saru Aikoh Chemicals", logo: "/brands/saru-aikoh-chemicals.png", width: 477, height: 160 },
+  { name: "Saru Aikoh Chemicals", logo: "/brands/saru-aikoh-chemicals-logo.png", width: 714, height: 240 },
   { name: "MMR Mayur Group", logo: "/brands/mmr-mayur-group.png", width: 195, height: 160 },
   { name: "Swastik Furnaces", logo: "/brands/swastik-furnaces.png", width: 246, height: 160 },
   { name: "FCT Surface Innovators", logo: "/brands/fct.png", width: 359, height: 160 },
   { name: "Galco", logo: "/brands/galco.png", width: 468, height: 160 },
-  { name: "Power Hydrotech", logo: "/brands/power-hydrotech.png", width: 180, height: 46 },
+  { name: "Power Hydrotech", logo: "/brands/power-hydrotech-logo.png", width: 910, height: 240 },
 ];
 
 export const guarantees = [
@@ -260,13 +260,14 @@ export const guarantees = [
 ] as const;
 
 export const hero = {
-  eyebrow: "Artists on Demand · Gujarat",
+  eyebrow: "Artists On Demand",
   // Each line is shown on its own row; the second pair is highlighted in orange.
   title: [
     ["Our services", "Your location"],
     ["Our artists", "Your demand"],
   ],
-  subtitle: "Get yours now or browse categories and find your perfect match.",
+  // Each entry is shown on its own line.
+  subtitle: ["Get yours now or browse categories", "and find your perfect match."],
   primaryCta: "Get yours now",
   secondaryCta: "Browse categories",
   searchPlaceholder: "Search for 'wedding photographer'",
@@ -275,7 +276,6 @@ export const hero = {
   demo: [
     { icon: "camera", title: "Request sent", text: "Wedding photographer · Surat · 14 Oct" },
     { icon: "sparkles", title: "3 curated matches ready", text: "Verified, with clear quotes" },
-    { icon: "handshake", title: "Meet the artist in person", text: "See their work before you decide" },
     { icon: "signature", title: "Booking confirmed", text: "Digital contract shared on WhatsApp" },
   ],
 };
@@ -494,6 +494,10 @@ export const forArtists = {
     "Your talent and potential, put in the right place at the right rate. We bring you real bookings — weddings, corporate events, expos — so you can focus on your art.",
   note: "Zero joining fees · An in-person meeting is required to join",
   cta: "Join AOD on WhatsApp",
+  // The artist portal (/artists, later artists.aod.co.in) is reached only from this page.
+  applyCta: "Apply online",
+  signInText: "Already with AOD?",
+  signInCta: "Sign in to the artist portal",
   whyTitle: "Your talent deserves the right stage",
   why: [
     {

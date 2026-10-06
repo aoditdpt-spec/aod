@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { BadgeCheck, CalendarCheck, Handshake, IndianRupee, Target } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BadgeCheck, CalendarCheck, Handshake, IndianRupee, Target } from "lucide-react";
 import { artistJoinMessage, categories, forArtists, howItWorks } from "@/content/site";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -17,7 +18,8 @@ export const metadata: Metadata = {
 const whyIcons = [Target, IndianRupee, CalendarCheck, BadgeCheck];
 const stepIcons: AnyIconName[] = ["handshake", "camera", "video"];
 
-// Until the online registration system is built, joining sends a WhatsApp message to the AOD team.
+// Artists apply online in the portal (/artists/apply, a preview until the backend exists) or,
+// as today, by sending a WhatsApp message to the AOD team.
 const join = whatsappUrl(artistJoinMessage);
 
 export default function ForArtistsPage() {
@@ -35,10 +37,21 @@ export default function ForArtistsPage() {
               {forArtists.title}
             </h1>
             <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-xl sm:leading-snug">{forArtists.subtitle}</p>
-            <ButtonLink href={join} size="lg" className="mt-10">
-              <WhatsAppIcon /> {forArtists.cta}
-            </ButtonLink>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <ButtonLink href="/artists/apply" size="lg">
+                {forArtists.applyCta} <ArrowRight className="h-5 w-5" aria-hidden />
+              </ButtonLink>
+              <ButtonLink href={join} variant="ghost-light" size="lg">
+                <WhatsAppIcon /> {forArtists.cta}
+              </ButtonLink>
+            </div>
             <p className="mt-4 text-sm text-white/70">{forArtists.note}</p>
+            <p className="mt-2 text-sm text-white/70">
+              {forArtists.signInText}{" "}
+              <Link href="/artists" className="font-medium text-white underline underline-offset-4 hover:text-tangerine">
+                {forArtists.signInCta}
+              </Link>
+            </p>
           </div>
         </section>
       </Container>
@@ -108,9 +121,14 @@ export default function ForArtistsPage() {
         <section className="rounded-[1.25rem] bg-gradient-to-r from-brand-bright via-brand to-brand-bright px-6 py-14 text-center">
           <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
-          <ButtonLink href={join} variant="white" className="mt-8">
-            <WhatsAppIcon /> {forArtists.cta}
-          </ButtonLink>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <ButtonLink href="/artists/apply" variant="white">
+              {forArtists.applyCta} <ArrowRight className="h-4 w-4" aria-hidden />
+            </ButtonLink>
+            <ButtonLink href={join} variant="ghost-light">
+              <WhatsAppIcon /> {forArtists.cta}
+            </ButtonLink>
+          </div>
           <p className="mt-4 text-sm text-white/90">{forArtists.ctaNote}</p>
         </section>
       </Container>
