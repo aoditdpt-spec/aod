@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
-import { portal } from "@/content/artist-portal";
+import { mainSiteUrl, portal } from "@/content/artist-portal";
 import { categories } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
@@ -9,7 +9,8 @@ import { PortalHeader } from "@/components/artists/PortalChrome";
 import { SignIn } from "@/components/artists/SignIn";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  // The layout's title template only applies to pages below /artists, so this one is spelled out.
+  title: { absolute: `Sign in — ${portal.name}` },
   alternates: { canonical: "/artists" },
 };
 
@@ -19,8 +20,8 @@ export default function ArtistsHome() {
     <>
       <PortalHeader
         right={
-          <Link href="/" className="text-sm text-muted hover:text-brand">
-            Back to aod.co.in
+          <Link href={mainSiteUrl} className="text-sm text-muted hover:text-brand">
+            Back to the main site
           </Link>
         }
       />

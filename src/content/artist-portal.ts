@@ -6,6 +6,10 @@
 // to show how the portal will work, and every portal page says so. Replace them with
 // Supabase data when the backend is built.
 
+// The customer site, for "back" links. On the artists domain "/" is the portal itself, so this
+// must be a full address there: set NEXT_PUBLIC_SITE_URL (e.g. https://artistsondemand.vercel.app).
+export const mainSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "/";
+
 export const portal = {
   name: "AOD for Artists",
   host: "artists.aod.co.in",
