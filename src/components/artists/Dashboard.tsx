@@ -1,26 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, Check, MapPin } from "lucide-react";
+import { ArrowRight, Check, Search } from "lucide-react";
 import type { ReactNode } from "react";
-import { onboardingStages, sampleArtist, sampleMeeting, sampleStage } from "@/content/artist-portal";
+import { onboardingStages, sampleArtist, sampleStage } from "@/content/artist-portal";
 import { blockedDatesStore, modeStore, profileStore, type ArtistProfile, type PreviewMode } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge, Panel } from "./form";
 import { OnboardingTimeline } from "./OnboardingTimeline";
 
-// Profile checklist: what's left before the profile is complete. Photos, uploads and identity
-// can't be checked yet (nothing is uploaded in the preview), so they always show as to-do.
+// Profile checklist: what's left before the profile is complete. Uploads and identity can't be
+// checked yet (nothing is uploaded in the preview), so they always show as to-do.
 export function useProfileChecks(): { label: string; done: boolean; href: string }[] {
-  const profile: ArtistProfile = profileStore.use() ?? { ...sampleArtist, agreeMeeting: true, agreeTerms: true };
+  const profile: ArtistProfile = profileStore.use() ?? { ...sampleArtist, agreeTerms: true };
   const blocked = blockedDatesStore.use();
   return [
     { label: "Services and experience", done: profile.services.length > 0 && !!profile.experience, href: "/artists/profile" },
     { label: "About your work", done: profile.bio.trim().length >= 40, href: "/artists/profile" },
     { label: "Portfolio links", done: profile.links.length > 0, href: "/artists/portfolio" },
     { label: "Portfolio photos and videos", done: false, href: "/artists/portfolio" },
-    { label: "Profile photo", done: false, href: "/artists/profile" },
     { label: "Identity (DigiLocker)", done: false, href: "/artists/documents" },
     { label: "Days you're unavailable", done: blocked.length > 0, href: "/artists/availability" },
   ];
@@ -125,18 +124,16 @@ export function Dashboard() {
               detail={
                 <div className="rounded-xl bg-peach/40 p-4">
                   <p className="flex items-center gap-2 text-sm font-medium text-ink">
-                    <CalendarClock className="h-4 w-4 text-brand" aria-hidden /> {sampleMeeting.when}
+                    <Search className="h-4 w-4 text-brand" aria-hidden /> Our team is reviewing your portfolio
                   </p>
-                  <p className="mt-1 flex items-center gap-2 text-sm text-body">
-                    <MapPin className="h-4 w-4 text-brand" aria-hidden /> {sampleMeeting.where}
-                  </p>
+                  <p className="mt-1 text-sm text-body">We&apos;ll message you on WhatsApp if we need anything else.</p>
                   <a
-                    href={whatsappUrl("Hi AOD, I'd like to reschedule my in-person meeting.")}
+                    href={whatsappUrl("Hi AOD, I have a question about my artist application.")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-3 inline-flex text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-hover"
                   >
-                    Need another time? Message us
+                    Have a question? Message us
                   </a>
                 </div>
               }
@@ -144,12 +141,12 @@ export function Dashboard() {
           </Panel>
           <div className="space-y-6">
             <ProfileStrength />
-            <Panel title="Bring to your meeting">
+            <Panel title="While we review">
               <ul className="space-y-2 text-sm text-body">
                 {[
-                  "10–15 of your best photos or clips, on your phone or a drive",
-                  "Your phone, to verify your identity on DigiLocker if you haven't yet",
-                  "A list of your gear, or your team if you work with one",
+                  "Add more of your best photos or clips to your portfolio",
+                  "Verify your identity with DigiLocker on the Documents page",
+                  "Mark the days you can't work under Availability",
                 ].map((t) => (
                   <li key={t} className="flex gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden /> {t}

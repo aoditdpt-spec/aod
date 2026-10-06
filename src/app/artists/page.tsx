@@ -48,7 +48,7 @@ export default function ArtistsHome() {
             >
               <span>
                 <span className="block text-lg font-medium">Not with AOD yet?</span>
-                <span className="mt-1 block text-sm text-white/70">Apply online. Zero joining fees, and an in-person meeting before you go live.</span>
+                <span className="mt-1 block text-sm text-white/70">Apply online. Zero joining fees.</span>
               </span>
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand">
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />

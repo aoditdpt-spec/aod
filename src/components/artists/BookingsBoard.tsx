@@ -27,7 +27,7 @@ export function BookingsBoard() {
         </span>
         <h2 className="mt-5 text-xl font-medium">Bookings start once you&apos;re live</h2>
         <p className="mx-auto mt-2 max-w-md text-body">
-          After your meeting, checks and trial booking, requests that match your craft and city show up here.
+          After your review and trial booking, requests that match your craft and city show up here.
         </p>
         <Link href="/artists/dashboard" className="mt-6 inline-flex text-sm font-medium text-brand underline underline-offset-4">
           See your onboarding steps

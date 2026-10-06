@@ -38,10 +38,10 @@ export function DocumentsPanel() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-medium text-ink">Artist agreement</h2>
-                <Badge tone="wait">After your meeting</Badge>
+                <Badge tone="wait">After approval</Badge>
               </div>
               <p className="mt-1 text-sm text-body">
-                Rates, cancellations and conduct, signed digitally once we&apos;ve met. You&apos;ll find a copy here.
+                Rates, cancellations and conduct, signed digitally once you&apos;re approved. You&apos;ll find a copy here.
               </p>
             </div>
           </div>

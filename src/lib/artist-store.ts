@@ -15,11 +15,8 @@ export type ArtistProfile = {
   services: string[];
   experience: string;
   languages: string[];
-  citiesServed: string[];
-  startingPrice: string; // rupees, digits only
   bio: string;
   links: string[];
-  agreeMeeting: boolean;
   agreeTerms: boolean;
 };
 
@@ -32,11 +29,8 @@ export const emptyProfile: ArtistProfile = {
   services: [],
   experience: "",
   languages: [],
-  citiesServed: [],
-  startingPrice: "",
   bio: "",
   links: [],
-  agreeMeeting: false,
   agreeTerms: false,
 };
 

@@ -15,7 +15,7 @@ import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
 import { LinkEditor } from "./LinkEditor";
 
-type Files = { samples: PickedFile[]; photo: PickedFile[]; resume: PickedFile[]; gst: PickedFile[] };
+type Files = { samples: PickedFile[]; resume: PickedFile[]; gst: PickedFile[] };
 
 const phoneDigits = (v: string) => v.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
 const validPhone = (v: string) => /^[6-9]\d{9}$/.test(phoneDigits(v));
@@ -38,7 +38,6 @@ function problems(step: number, p: ArtistProfile, files: Files, phoneVerified: b
     else if (p.services.length === 0) e.services = "Pick at least one service.";
     if (!p.experience) e.experience = "Choose your experience.";
     if (p.languages.length === 0) e.languages = "Pick at least one language.";
-    if (p.citiesServed.length === 0) e.citiesServed = "Pick at least one city.";
     if (p.bio.trim().length < BIO_MIN) e.bio = `Write at least ${BIO_MIN} characters about your work.`;
   }
   if (step === 2) {
@@ -47,7 +46,6 @@ function problems(step: number, p: ArtistProfile, files: Files, phoneVerified: b
     }
   }
   if (step === 3) {
-    if (!p.agreeMeeting) e.agreeMeeting = "Please agree to the in-person meeting.";
     if (!p.agreeTerms) e.agreeTerms = "Please accept the terms.";
   }
   return e;
@@ -61,7 +59,7 @@ export function ApplyForm() {
   const profile = profileStore.use() ?? emptyProfile;
   const [step, setStep] = useState(0);
   const [tried, setTried] = useState<Record<number, boolean>>({});
-  const [files, setFiles] = useState<Files>({ samples: [], photo: [], resume: [], gst: [] });
+  const [files, setFiles] = useState<Files>({ samples: [], resume: [], gst: [] });
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -89,7 +87,6 @@ export function ApplyForm() {
       `City: ${profile.city}`,
       `Services: ${profile.services.join(", ")}`,
       `Experience: ${profile.experience}`,
-      `Works in: ${profile.citiesServed.join(", ")}`,
       profile.links.length > 0 && `Portfolio: ${profile.links.join(" ")}`,
     ]
       .filter(Boolean)
@@ -102,7 +99,7 @@ export function ApplyForm() {
         <h2 className="mt-6 text-2xl font-normal sm:text-3xl">Your application is ready, but not sent</h2>
         <p className="mt-3 text-body">
           This portal is a preview, so nothing has been sent to AOD. When it goes live, submitting saves your application and our
-          team contacts you on WhatsApp to set up your in-person meeting.
+          team contacts you on WhatsApp about the next steps.
         </p>
         <p className="mt-3 text-body">To apply today, send your details to the AOD team on WhatsApp:</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -350,7 +347,7 @@ function AboutStep({
       <Field label="Your city" error={errors.city}>
         <select
           value={profile.city}
-          onChange={(e) => set({ city: e.target.value, citiesServed: profile.citiesServed.length ? profile.citiesServed : [e.target.value] })}
+          onChange={(e) => set({ city: e.target.value })}
           aria-invalid={!!errors.city}
           className={inputClass}
         >
@@ -401,28 +398,14 @@ function CraftStep({ profile, set, errors }: StepProps) {
         </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="Experience" error={errors.experience}>
-          <select value={profile.experience} onChange={(e) => set({ experience: e.target.value })} aria-invalid={!!errors.experience} className={inputClass}>
-            <option value="">Choose…</option>
-            {experienceLevels.map((x) => (
-              <option key={x}>{x}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Starting price" optional hint="Your usual minimum for one booking. Customers see quotes, not this number.">
-          <div className="mt-1.5 flex">
-            <span className="flex items-center rounded-l-xl border border-r-0 border-line bg-wash px-3 text-sm text-muted">₹</span>
-            <input
-              value={profile.startingPrice}
-              onChange={(e) => set({ startingPrice: e.target.value.replace(/\D/g, "").slice(0, 7) })}
-              inputMode="numeric"
-              placeholder="15000"
-              className={`${inputBase} rounded-l-none`}
-            />
-          </div>
-        </Field>
-      </div>
+      <Field label="Experience" error={errors.experience} className="sm:max-w-sm">
+        <select value={profile.experience} onChange={(e) => set({ experience: e.target.value })} aria-invalid={!!errors.experience} className={inputClass}>
+          <option value="">Choose…</option>
+          {experienceLevels.map((x) => (
+            <option key={x}>{x}</option>
+          ))}
+        </select>
+      </Field>
 
       <div>
         <p className="text-sm font-medium text-ink">Languages you speak with clients</p>
@@ -430,11 +413,6 @@ function CraftStep({ profile, set, errors }: StepProps) {
         {errors.languages && <p className="mt-1.5 text-xs text-red-600">{errors.languages}</p>}
       </div>
 
-      <div>
-        <p className="text-sm font-medium text-ink">Cities you can work in</p>
-        <ChipGroup label="Cities" options={cities} value={profile.citiesServed} onChange={(c) => set({ citiesServed: c })} />
-        {errors.citiesServed && <p className="mt-1.5 text-xs text-red-600">{errors.citiesServed}</p>}
-      </div>
 
       <Field
         label="About your work"
@@ -513,22 +491,8 @@ function VerifyStep({
   return (
     <>
       <div>
-        <p className="text-sm font-medium text-ink">
-          Profile photo <span className="font-normal text-muted">(optional now, needed before you go live)</span>
-        </p>
-        <FileDrop
-          label="Profile photo"
-          variant="single"
-          files={files.photo}
-          onChange={(photo) => setFiles((f) => ({ ...f, photo }))}
-          limits={uploadRules.photo}
-          hint={uploadRules.photo.hint}
-        />
-      </div>
-
-      <div>
         <p className="mb-2 text-sm font-medium text-ink">
-          Identity <span className="font-normal text-muted">(now or after your meeting)</span>
+          Identity <span className="font-normal text-muted">(now or later, before you go live)</span>
         </p>
         <DigiLockerCard />
       </div>
@@ -548,10 +512,6 @@ function VerifyStep({
       </div>
 
       <div className="space-y-3 rounded-xl border border-line p-5">
-        <CheckRow checked={profile.agreeMeeting} onChange={(agreeMeeting) => set({ agreeMeeting })}>
-          I&apos;ll meet the AOD team in person before going live, and bring samples of my work.
-        </CheckRow>
-        {errors.agreeMeeting && <p className="pl-7 text-xs text-red-600">{errors.agreeMeeting}</p>}
         <CheckRow checked={profile.agreeTerms} onChange={(agreeTerms) => set({ agreeTerms })}>
           I agree to the AOD artist terms and privacy policy{" "}
           <span className="text-muted">(published before the portal goes live)</span>, and confirm the work I&apos;ve shared is my own.
@@ -582,9 +542,7 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
         ["Category", category?.name ?? "—"],
         ["Services", profile.services.join(", ")],
         ["Experience", profile.experience],
-        ["Starting price", profile.startingPrice ? `₹${Number(profile.startingPrice).toLocaleString("en-IN")}` : "—"],
         ["Languages", profile.languages.join(", ")],
-        ["Works in", profile.citiesServed.join(", ")],
         ["About", profile.bio],
       ],
     },
@@ -613,9 +571,8 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       step: 3,
       title: "Verification",
       items: [
-        ["Photo", files.photo[0] ? "Added" : "Not yet"],
         ["Identity", "Not verified yet (DigiLocker)"],
-        ["Agreements", profile.agreeMeeting && profile.agreeTerms ? "Accepted" : "Not accepted"],
+        ["Agreements", profile.agreeTerms ? "Accepted" : "Not accepted"],
       ],
     },
   ];

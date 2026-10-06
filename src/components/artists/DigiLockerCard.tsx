@@ -59,7 +59,7 @@ export function DigiLockerCard() {
           </ol>
           <p className="mt-3 text-xs text-muted">
             Preview: DigiLocker isn&apos;t connected yet, so nothing happens and your status stays &ldquo;Not verified&rdquo;. You can
-            also verify after your in-person meeting.
+            also verify later, before you go live.
           </p>
         </div>
       )}

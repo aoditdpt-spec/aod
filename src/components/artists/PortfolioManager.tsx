@@ -19,7 +19,7 @@ const tips = [
 // photos and videos stay in this tab until uploads go live.
 export function PortfolioManager() {
   const saved = profileStore.use();
-  const profile: ArtistProfile = saved ?? { ...sampleArtist, agreeMeeting: true, agreeTerms: true };
+  const profile: ArtistProfile = saved ?? { ...sampleArtist, agreeTerms: true };
   const [files, setFiles] = useState<PickedFile[]>([]);
 
   return (

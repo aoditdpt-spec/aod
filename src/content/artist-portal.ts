@@ -20,7 +20,7 @@ export const portal = {
     points: [
       "Reply to booking requests with your quote",
       "Keep your portfolio and availability up to date",
-      "Track your onboarding, from meeting to going live",
+      "Track your onboarding, from application to going live",
     ],
   },
   apply: {
@@ -42,10 +42,9 @@ export const applySteps = [
   { id: "review", title: "Review", text: "Check and send" },
 ] as const;
 
-// Joining AOD, from application to live. Matches the "How joining works" steps on /for-artists.
+// Joining AOD, from application to live.
 export const onboardingStages = [
   { title: "Application", text: "Your details, portfolio and links reach the AOD team." },
-  { title: "In-person meeting", text: "Meet the team at our Ahmedabad office. Bring your work." },
   { title: "Portfolio & background check", text: "Our creative team reviews your style; your identity and references are verified." },
   { title: "Trial booking", text: "One supervised booking to confirm professionalism and punctuality." },
   { title: "Live on AOD", text: "You appear in curated matches and start getting booking requests." },
@@ -61,7 +60,6 @@ export const uploadRules = {
     max: 30,
     hint: "JPG, PNG, WebP or HEIC photos up to 15 MB; MP4 or MOV videos up to 200 MB. At least 6, up to 30.",
   },
-  photo: { accept: "image/jpeg,image/png,image/webp", maxMb: 5, hint: "A clear, recent photo of your face. JPG, PNG or WebP up to 5 MB." },
   resume: { accept: "application/pdf", maxMb: 5, hint: "PDF up to 5 MB. Optional, but it helps for corporate and expo work." },
   gst: { accept: "application/pdf,image/jpeg,image/png", maxMb: 5, hint: "Only if you invoice as a registered business. PDF or image up to 5 MB." },
 };
@@ -86,15 +84,12 @@ export const sampleArtist = {
   services: ["Wedding photography", "Candid photography", "Pre-wedding shoot"],
   experience: "3–5 years",
   languages: ["Gujarati", "Hindi", "English"],
-  citiesServed: ["Ahmedabad", "Gandhinagar", "Vadodara"],
-  startingPrice: "25000",
   bio: "Candid wedding and pre-wedding photographer. I like quiet, unposed moments and warm colour. I shoot with a second shooter for weddings over 300 guests.",
   links: ["https://www.instagram.com/kavya.frames/", "https://www.youtube.com/@kavyadesaifilms"],
 };
 
 // Where the sample applicant is in onboarding (index into onboardingStages).
 export const sampleStage = 1;
-export const sampleMeeting = { when: "Thu, 15 Oct · 11:00 am", where: "AOD office, Ahmedabad" };
 
 export type BookingStatus = "new" | "quoted" | "confirmed" | "completed" | "declined";
 
