@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { portal } from "@/content/artist-portal";
-import { PreviewBanner } from "@/components/artists/PortalChrome";
 
 const description = "Sign in or apply to join Artists on Demand: booking requests, your profile, portfolio and availability in one place.";
 
@@ -17,7 +16,6 @@ export const metadata: Metadata = {
 export default function ArtistsLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-wash">
-      <PreviewBanner />
       {children}
     </div>
   );

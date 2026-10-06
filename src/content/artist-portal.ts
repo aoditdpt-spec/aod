@@ -13,7 +13,6 @@ export const mainSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "/";
 export const portal = {
   name: "AOD for Artists",
   host: "artists.aod.co.in",
-  previewNote: "Preview: nothing you enter here is saved or sent yet. Sign-in, uploads and verification go live with the backend.",
   signIn: {
     title: "Your bookings, profile and portfolio, in one place.",
     subtitle: "Sign in with the phone number you joined AOD with. We'll send a one-time code on WhatsApp.",

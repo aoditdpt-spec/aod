@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { applySteps, experienceLevels, languages, portal, uploadRules } from "@/content/artist-portal";
+import { applySteps, experienceLevels, languages, uploadRules } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
@@ -579,10 +579,6 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
 
   return (
     <>
-      <p className="flex items-start gap-2 rounded-xl bg-wash p-4 text-sm text-ink">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
-        {portal.previewNote}
-      </p>
       {rows.map((r) => (
         <div key={r.title} className="rounded-xl border border-line p-5">
           <div className="flex items-center justify-between">

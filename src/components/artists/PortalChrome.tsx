@@ -1,18 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Info } from "lucide-react";
 import type { ReactNode } from "react";
 import { portal } from "@/content/artist-portal";
-
-// Thin strip on every portal page: this is a preview and nothing is saved or sent.
-export function PreviewBanner() {
-  return (
-    <p className="flex items-center justify-center gap-2 bg-night px-4 py-2 text-center text-xs text-white/85 sm:text-sm">
-      <Info className="h-4 w-4 shrink-0 text-tangerine" aria-hidden />
-      {portal.previewNote}
-    </p>
-  );
-}
 
 // "AOD. for Artists" mark. Links to the portal's start page.
 export function PortalLogo({ href = "/artists" }: { href?: string }) {
