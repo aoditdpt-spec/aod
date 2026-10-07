@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
-import { InstagramIcon, WhatsAppIcon } from "@/components/ui/Icon";
+import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { Logo } from "./Navbar";
 
@@ -77,6 +77,11 @@ export function Footer() {
           <a href={brand.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label={`Instagram ${brand.instagramHandle}`} className="hover:text-apricot">
             <InstagramIcon />
           </a>
+          {brand.linkedinUrl && (
+            <a href={brand.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-apricot">
+              <LinkedInIcon />
+            </a>
+          )}
           <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="hover:text-apricot">
             <WhatsAppIcon />
           </a>

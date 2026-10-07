@@ -21,15 +21,18 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
         </Reveal>
 
         <Reveal delay={0.15}>
-          <ul className="mx-auto mt-8 flex max-w-5xl flex-wrap justify-center gap-2">
+          {/* Equal-size buttons: 2 per row on phones, 5 per row (two even rows of the 10) on laptops. */}
+          <ul className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
             {categories.map((c) => (
               <li key={c.slug}>
                 <Link
                   href={`/categories/${c.slug}`}
-                  className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
+                  className="group flex h-14 w-full items-center gap-3 rounded-xl border border-line bg-white px-3 text-[0.9375rem] font-medium text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand sm:h-16 sm:px-4 sm:text-base"
                 >
-                  <Icon name={c.icon} className="h-4 w-4 text-brand-bright" />
-                  {c.name}
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-peach/60 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                    <Icon name={c.icon} className="h-5 w-5 text-brand" />
+                  </span>
+                  <span className="leading-tight">{c.name}</span>
                 </Link>
               </li>
             ))}

@@ -18,6 +18,8 @@ export const brand = {
     `https://mail.google.com/mail/?view=cm&fs=1&to=communication.aod@gmail.com&su=${encodeURIComponent(subject)}`,
   instagramHandle: "@artistsondemand.in",
   instagramUrl: "https://www.instagram.com/artistsondemand.in/",
+  // AOD's LinkedIn company page (the footer icon hides if this is empty).
+  linkedinUrl: "https://www.linkedin.com/company/artists-on-demand-pvt-ltd/",
   domain: "aod.co.in",
 };
 
