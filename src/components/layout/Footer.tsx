@@ -14,7 +14,7 @@ const columns = [
   {
     title: "For clients",
     links: [
-      { href: "/book", label: "Get 3 curated matches" },
+      { href: "/book", label: "Get curated matches" },
       { href: "/#how-it-works", label: "How it works" },
       { href: "/#categories", label: "Browse services" },
       { href: "/business", label: "AOD for Business" },

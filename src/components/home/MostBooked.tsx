@@ -3,9 +3,9 @@ import { ArrowRight } from "lucide-react";
 import { getCategory, mostBooked } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/motion/Reveal";
-import { MostBookedRing, type ServiceItem } from "./MostBookedRing";
+import { MostBookedCoverflow, type ServiceItem } from "./MostBookedCoverflow";
 
-// The most-booked services on a rotating 3D globe.
+// The most-booked services in the sliding coverflow carousel (the same one the categories use).
 export function MostBooked() {
   const items: ServiceItem[] = mostBooked.map(({ service, category }) => {
     const cat = getCategory(category)!;
@@ -27,7 +27,7 @@ export function MostBooked() {
           </Link>
         </Reveal>
         <Reveal delay={0.1} className="mt-8">
-          <MostBookedRing items={items} />
+          <MostBookedCoverflow items={items} />
         </Reveal>
       </Container>
     </section>

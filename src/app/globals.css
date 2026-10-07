@@ -24,8 +24,8 @@
   --color-peach: #fed7aa; /* call-out highlight */
   --color-tangerine: #fb923c; /* icons on dark backgrounds */
 
-  --color-whatsapp: #075e54; /* dark WhatsApp green, for the chat button */
-  --color-whatsapp-hover: #054a42;
+  --color-whatsapp: #25d366; /* WhatsApp's own brand green */
+  --color-whatsapp-hover: #1ebe5d;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 

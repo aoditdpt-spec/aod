@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { bookingChoice, type Audience } from "@/content/site";
 import { Container } from "@/components/ui/Container";
-import { MetInPerson } from "@/components/ui/MetInPerson";
+import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { MatchQuiz } from "@/components/home/MatchQuiz";
 
 const audiences: Audience[] = ["personal", "business"];
@@ -43,10 +43,10 @@ export default async function BookAudiencePage({ params }: PageProps<"/book/[aud
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{choice.label}</p>
           <h1 className="mt-3 text-3xl font-normal leading-[1.1] sm:text-4xl">Tell us what you need</h1>
           <p className="mt-5 max-w-sm text-body">
-            {choice.text} Three quick questions — then we&apos;ll send 3 curated matches on WhatsApp.
+            {choice.text} Three quick questions — then we&apos;ll send curated matches on WhatsApp.
           </p>
           <div className="mt-8 max-w-md">
-            <MetInPerson variant="card" />
+            <VerifiedArtists variant="card" />
           </div>
         </div>
         <MatchQuiz audience={audience} />

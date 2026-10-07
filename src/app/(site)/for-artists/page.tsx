@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CalendarCheck, Handshake, IndianRupee, Target } from "lucide-react";
+import { ArrowRight, BadgeCheck, CalendarCheck, IndianRupee, ShieldCheck, Target } from "lucide-react";
 import { artistJoinMessage, categories, forArtists, howItWorks } from "@/content/site";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Icon, WhatsAppIcon, type AnyIconName } from "@/components/ui/Icon";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
   title: "Join as an artist with AOD",
   description:
-    "Your talent and potential, put in the right place at the right rate. Join Artists on Demand — zero joining fees, in-person meeting required.",
+    "Your talent and potential, put in the right place at the right rate. Join Artists on Demand — zero joining fees, every artist verified.",
   alternates: { canonical: "/for-artists" },
 };
 
 const whyIcons = [Target, IndianRupee, CalendarCheck, BadgeCheck];
-const stepIcons: AnyIconName[] = ["handshake", "camera", "video"];
+const stepIcons: AnyIconName[] = ["user", "camera", "video"];
 
 // Artists apply online in the portal (/artists/apply, a preview until the backend exists) or,
 // as today, by sending a WhatsApp message to the AOD team.
@@ -58,31 +60,33 @@ export default function ForArtistsPage() {
 
       <Container className="py-16">
         <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.whyTitle}</h2>
-        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {forArtists.why.map((w, i) => {
             const I = whyIcons[i];
             return (
-              <li key={w.title} className="rounded-[1.25rem] border border-line p-7">
-                <I className="h-9 w-9 text-brand-bright" strokeWidth={1.25} aria-hidden />
-                <h3 className="mt-6 text-xl font-normal">{w.title}</h3>
-                <p className="mt-2 text-body">{w.text}</p>
-              </li>
+              <StaggerItem key={w.title}>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7 ${cardHover}`}>
+                  <I className={`h-9 w-9 text-brand-bright ${iconHover}`} strokeWidth={1.25} aria-hidden />
+                  <h3 className="mt-6 text-xl font-normal">{w.title}</h3>
+                  <p className="mt-2 text-body">{w.text}</p>
+                </TiltCard>
+              </StaggerItem>
             );
           })}
-        </ul>
+        </StaggerList>
       </Container>
 
       <Container>
         <section className="flex flex-col gap-6 rounded-[1.5rem] bg-peach/50 p-8 sm:flex-row sm:items-center sm:p-12">
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white">
-            <Handshake className="h-8 w-8 text-brand" strokeWidth={1.5} aria-hidden />
+            <ShieldCheck className="h-8 w-8 text-brand" strokeWidth={1.5} aria-hidden />
           </span>
           <div className="flex-1">
             <h2 className="text-2xl font-medium sm:text-3xl">{forArtists.meetTitle}</h2>
             <p className="mt-2 max-w-3xl text-body">{forArtists.meetText}</p>
           </div>
-          <ButtonLink href={join} variant="outline" className="shrink-0 bg-white">
-            Set up a meeting
+          <ButtonLink href="/artists/apply" variant="outline" className="shrink-0 bg-white">
+            {forArtists.applyCta}
           </ButtonLink>
         </section>
       </Container>

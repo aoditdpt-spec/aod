@@ -5,6 +5,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { FinalCta } from "@/components/home/FinalCta";
+import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -38,18 +40,20 @@ export default function BusinessPage() {
 
       <Container className="py-16">
         <h2 className="text-3xl font-normal sm:text-[2.5rem]">Built for recurring creative needs</h2>
-        <ul className="mt-8 grid gap-6 md:grid-cols-3">
+        <StaggerList className="mt-8 grid gap-6 md:grid-cols-3">
           {business.segments.map((s, i) => {
             const I = segmentIcons[i];
             return (
-              <li key={s.title} className="rounded-[1.25rem] border border-line p-7">
-                <I className="h-9 w-9 text-brand-bright" strokeWidth={1.25} aria-hidden />
-                <h3 className="mt-6 text-xl font-normal">{s.title}</h3>
-                <p className="mt-2 text-body">{s.text}</p>
-              </li>
+              <StaggerItem key={s.title}>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7 ${cardHover}`}>
+                  <I className={`h-9 w-9 text-brand-bright ${iconHover}`} strokeWidth={1.25} aria-hidden />
+                  <h3 className="mt-6 text-xl font-normal">{s.title}</h3>
+                  <p className="mt-2 text-body">{s.text}</p>
+                </TiltCard>
+              </StaggerItem>
             );
           })}
-        </ul>
+        </StaggerList>
       </Container>
 
       <Container className="pb-4">

@@ -5,10 +5,12 @@ import { ArrowRight, ChevronRight } from "lucide-react";
 import { categories, getCategory, guarantees } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { MetInPerson } from "@/components/ui/MetInPerson";
+import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { Icon } from "@/components/ui/Icon";
 import { Rating } from "@/components/ui/Rating";
 import { FinalCta } from "@/components/home/FinalCta";
+import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 // One static page per category, built at deploy time.
@@ -53,13 +55,13 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
               <p className="mt-4 max-w-2xl text-base text-white/90 sm:text-lg">{category.description}</p>
               <div className="mt-5">
-                <MetInPerson variant="inline" dark />
+                <VerifiedArtists variant="inline" dark />
               </div>
             </div>
           </div>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link href="/book" className={buttonClasses("white", "lg")}>
-              Get 3 curated matches <ArrowRight className="h-4 w-4" aria-hidden />
+              Get curated matches <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <span className="text-sm text-white/70">Verified professionals · transparent quotes · no negotiation</span>
           </div>
@@ -68,10 +70,11 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
 
       <Container className="py-16">
         <h2 className="text-3xl font-normal sm:text-[2.5rem]">What you can book</h2>
-        <p className="mt-3 text-body">Pick a service and ask for a quote — we&apos;ll reply with 3 curated matches.</p>
-        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <p className="mt-3 text-body">Pick a service and ask for a quote — we&apos;ll reply with curated matches.</p>
+        <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {category.services.map((s) => (
-            <li key={s.name} className="flex flex-col rounded-[1.25rem] border border-line bg-white p-6">
+            <StaggerItem key={s.name}>
+            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6 ${cardHover}`}>
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-lg font-medium">{s.name}</h3>
                 {s.popular && (
@@ -91,9 +94,10 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               >
                 Request a quote
               </a>
-            </li>
+            </TiltCard>
+            </StaggerItem>
           ))}
-        </ul>
+        </StaggerList>
         <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 rounded-card bg-wash px-6 py-4 text-sm text-ink">
           {guarantees.map((g) => (
             <li key={g.label} className="flex items-center gap-2">
@@ -105,20 +109,19 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
 
       <Container className="pt-16">
         <h2 className="text-3xl font-normal sm:text-[2.5rem]">People also book</h2>
-        <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <StaggerList className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {others.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/categories/${c.slug}`}
-                className="flex h-full flex-col gap-4 rounded-card border border-line p-5 transition hover:border-brand"
-              >
-                <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
-                <span className="font-medium text-ink">{c.name}</span>
-                <span className="text-sm text-muted">{c.short}</span>
+            <StaggerItem key={c.slug}>
+              <Link href={`/categories/${c.slug}`} className="block h-full rounded-card outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                <TiltCard className={`flex flex-col gap-4 rounded-card border border-line bg-white p-5 ${cardHover}`}>
+                  <Icon name={c.icon} className={`h-7 w-7 text-brand-bright ${iconHover}`} strokeWidth={1.25} />
+                  <span className="font-medium text-ink">{c.name}</span>
+                  <span className="text-sm text-muted">{c.short}</span>
+                </TiltCard>
               </Link>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </StaggerList>
       </Container>
 
       <FinalCta />

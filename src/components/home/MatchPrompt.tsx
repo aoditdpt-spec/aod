@@ -24,7 +24,7 @@ export function MatchPrompt() {
       />
       <div className="flex justify-end">
         <a
-          href={ready ? whatsappUrl(`Hi Artists on Demand! I'd like 3 curated matches.\n${text.trim()}`) : undefined}
+          href={ready ? whatsappUrl(`Hi Artists on Demand! I'd like curated matches.\n${text.trim()}`) : undefined}
           target="_blank"
           rel="noopener noreferrer"
           aria-disabled={!ready}

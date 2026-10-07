@@ -3,11 +3,13 @@ import Link from "next/link";
 import { ArrowRight, Briefcase, PartyPopper } from "lucide-react";
 import { bookingChoice } from "@/content/site";
 import { Container } from "@/components/ui/Container";
-import { MetInPerson } from "@/components/ui/MetInPerson";
+import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
+import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { TiltCard, iconHover } from "@/components/motion/TiltCard";
 
 export const metadata: Metadata = {
   title: "Book an artist",
-  description: "Booking for a personal event or for your business? Pick one and get 3 curated artist matches.",
+  description: "Booking for a personal event or for your business? Pick one and get curated artist matches.",
   alternates: { canonical: "/book" },
 };
 
@@ -24,18 +26,19 @@ export default function BookPage() {
         <h1 className="text-3xl font-normal sm:text-5xl">{bookingChoice.title}</h1>
         <p className="mt-4 text-lg text-body">{bookingChoice.subtitle}</p>
         <div className="mt-6">
-          <MetInPerson variant="inline" />
+          <VerifiedArtists variant="inline" />
         </div>
       </div>
 
-      <ul className="mt-12 grid gap-6 md:grid-cols-2">
+      <StaggerList className="mt-12 grid gap-6 md:grid-cols-2">
         {options.map(({ href, icon: I, label, text }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              className="group flex h-full flex-col rounded-[1.5rem] border-2 border-line bg-white p-8 transition hover:-translate-y-0.5 hover:border-brand hover:shadow-[0_8px_24px_rgba(249,115,22,0.15)] sm:p-10"
-            >
-              <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-peach/60">
+          <StaggerItem key={href}>
+            <Link href={href} className="block h-full rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4">
+              <TiltCard
+                max={5}
+                className="flex flex-col rounded-[1.5rem] border-2 border-line bg-white p-8 transition-[border-color,box-shadow] duration-300 hover:border-brand hover:shadow-[0_8px_24px_rgba(249,115,22,0.15)] sm:p-10"
+              >
+              <span className={`flex h-14 w-14 items-center justify-center rounded-xl bg-peach/60 ${iconHover}`}>
                 <I className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />
               </span>
               <span className="mt-8 text-2xl font-medium text-ink sm:text-3xl">{label}</span>
@@ -44,10 +47,11 @@ export default function BookPage() {
                 {label}
                 <ArrowRight className="h-5 w-5" aria-hidden />
               </span>
+              </TiltCard>
             </Link>
-          </li>
+          </StaggerItem>
         ))}
-      </ul>
+      </StaggerList>
     </Container>
   );
 }

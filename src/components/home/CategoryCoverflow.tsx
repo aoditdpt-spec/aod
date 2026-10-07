@@ -5,7 +5,7 @@ import { categories } from "@/content/site";
 import { Icon } from "@/components/ui/Icon";
 import { Coverflow } from "@/components/motion/Coverflow";
 
-// The 10 categories in the same 3D coverflow as "Most booked services".
+// The 10 categories in the 3D coverflow carousel (Most booked services uses the same one).
 export function CategoryCoverflow() {
   return (
     <Coverflow

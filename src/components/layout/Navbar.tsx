@@ -3,13 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Ticket, X } from "lucide-react";
 import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { SearchBox } from "@/components/search/SearchBox";
 import { CityChips, CityPicker } from "@/components/location/CityPicker";
-import { whatsappUrl } from "@/lib/whatsapp";
 
 const links = [
   { href: "/business", label: "For Business" },
@@ -87,14 +86,16 @@ export function Navbar() {
         </div>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:gap-4">
-          <a
-            href={whatsappUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden whitespace-nowrap text-[0.9375rem] hover:text-brand xl:inline"
+          {/* Customers' own bookings: a quiet outlined button, icon-only where space is tight. */}
+          <Link
+            href="/my-bookings"
+            aria-label="My bookings"
+            title="My bookings"
+            className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-2.5 text-[0.9375rem] text-ink transition-colors hover:border-brand hover:text-brand"
           >
-            Chat on WhatsApp
-          </a>
+            <Ticket className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+            <span className="hidden sm:inline lg:hidden xl:inline">My bookings</span>
+          </Link>
           <Link href="/book" className={buttonClasses("primary", "md", "hidden lg:inline-flex")}>
             Get your artist
           </Link>
@@ -149,9 +150,16 @@ export function Navbar() {
             ))}
           </ul>
           <Link
+            href="/my-bookings"
+            onClick={() => setMenuOpen(false)}
+            className="mt-4 flex items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:border-brand"
+          >
+            <Ticket className="h-4 w-4 text-brand" aria-hidden /> My bookings
+          </Link>
+          <Link
             href="/book"
             onClick={() => setMenuOpen(false)}
-            className={buttonClasses("primary", "lg", "mt-4 w-full")}
+            className={buttonClasses("primary", "lg", "mt-3 w-full")}
           >
             Get your artist
           </Link>

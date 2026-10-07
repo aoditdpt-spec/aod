@@ -3,6 +3,8 @@ import { Check } from "lucide-react";
 import { bookingOptions } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 type Option = (typeof bookingOptions)[keyof typeof bookingOptions];
 
@@ -18,10 +20,14 @@ export function BookingOptions() {
         <h2 className="text-center text-3xl font-normal sm:text-[2.5rem]">Choose how you want to book</h2>
         <p className="mt-6 text-center text-lg text-ink">One-off celebrations or a year of brand shoots — we&apos;ve got both.</p>
 
-        <div className="mt-12 grid gap-8 md:grid-cols-2">
-          <OptionCard option={bookingOptions.personal} href="/book/personal" />
-          <OptionCard option={bookingOptions.business} href="/book/business" featured />
-        </div>
+        <StaggerList className="mt-12 grid gap-8 md:grid-cols-2">
+          <StaggerItem>
+            <OptionCard option={bookingOptions.personal} href="/book/personal" />
+          </StaggerItem>
+          <StaggerItem>
+            <OptionCard option={bookingOptions.business} href="/book/business" featured />
+          </StaggerItem>
+        </StaggerList>
       </Container>
     </section>
   );
@@ -29,9 +35,10 @@ export function BookingOptions() {
 
 function OptionCard({ option, href, featured = false }: { option: Option; href: string; featured?: boolean }) {
   return (
-    <article
-      className={`relative flex flex-col rounded-[1.25rem] bg-white p-8 ${
-        featured ? "border border-apricot shadow-[0_8px_24px_rgba(249,115,22,0.15)]" : "border border-line"
+    <TiltCard
+      max={4}
+      className={`flex flex-col rounded-[1.25rem] bg-white p-8 transition-colors duration-300 ${
+        featured ? "border border-apricot shadow-[0_8px_24px_rgba(249,115,22,0.15)] hover:border-brand/60" : "border border-line hover:border-brand/40"
       }`}
     >
       {featured && (
@@ -55,6 +62,6 @@ function OptionCard({ option, href, featured = false }: { option: Option; href: 
       <Link href={href} className={buttonClasses(featured ? "primary" : "outline", "md", "mt-8 w-full")}>
         {option.cta}
       </Link>
-    </article>
+    </TiltCard>
   );
 }

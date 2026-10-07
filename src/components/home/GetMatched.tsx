@@ -16,7 +16,7 @@ export function GetMatched() {
           </p>
           <h2 className="mt-6 text-4xl font-normal leading-[1.1] sm:text-5xl">Not sure who to book?</h2>
           <p className="mt-6 max-w-sm text-body">
-            Tell us your need — event type, date, details — takes 2 minutes. We&apos;ll send 3 curated matches.
+            Tell us your need — event type, date, details — takes 2 minutes. We&apos;ll send curated matches.
           </p>
         </div>
         <MatchQuiz />

@@ -7,6 +7,7 @@ import { Check, MapPin } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
+import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const audienceLabel: Record<Audience, string> = {
@@ -74,7 +75,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
   const missing = !occasion ? "Pick the occasion." : needs.length === 0 ? "Pick who you need." : !city ? "Choose your city." : !dateOk ? "Choose a date from tomorrow onwards." : null;
 
   const message = [
-    "Hi Artists on Demand! I'd like 3 curated matches.",
+    "Hi Artists on Demand! I'd like curated matches.",
     audience && `Booking for: ${audienceLabel[audience]}`,
     `Occasion: ${occasion}`,
     `Looking for: ${needs.join(", ")}`,
@@ -213,14 +214,23 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
         <motion.div variants={pop} data-reveal className="border-t border-line pt-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted" aria-live="polite">
-              {missing ?? "All set. We'll reply with 3 curated matches."}
+              {missing ?? "All set. We'll reply with curated matches."}
             </p>
             <a
               href={canSend ? whatsappUrl(message) : undefined}
               target="_blank"
               rel="noopener noreferrer"
               aria-disabled={!canSend}
-              onClick={(e) => (canSend ? setOpened(true) : e.preventDefault())}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!canSend) return;
+                // Remember the request in this browser so it shows under My bookings, and give it a
+                // reference the team can quote back. (The backend will save it to the database.)
+                const ref = newRequestRef();
+                addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs, date, city: city ?? "", details });
+                window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
+                setOpened(true);
+              }}
               className={`inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white ${
                 canSend ? "hover:bg-brand-hover" : "cursor-not-allowed opacity-40"
               }`}
@@ -245,7 +255,12 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
           </p>
           {opened && (
             <p className="mt-4 rounded-xl bg-wash p-4 text-sm text-ink" role="status">
-              WhatsApp opened with your request pre-filled — just tap <strong>send</strong> to reach our team.
+              WhatsApp opened with your request pre-filled — just tap <strong>send</strong> to reach our team. You can find this request
+              later under{" "}
+              <Link href="/my-bookings" className="font-medium text-brand underline underline-offset-2">
+                My bookings
+              </Link>
+              .
             </p>
           )}
         </motion.div>

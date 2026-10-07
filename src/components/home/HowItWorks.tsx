@@ -6,6 +6,8 @@ import { howItWorks } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import type { AnyIconName } from "@/components/ui/Icon";
+import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 const tabs = [
   { id: "clients", label: "For booking", icons: ["sparkles", "camera", "signature"] },
@@ -41,18 +43,21 @@ export function HowItWorks() {
           </div>
         </div>
 
-        <ol className="mt-12 grid gap-8 md:grid-cols-3">
+        {/* Keyed by tab so switching tabs plays the wave again. */}
+        <StaggerList key={tab} className="mt-12 grid gap-8 md:grid-cols-3">
           {steps.map((s, i) => (
-            <li key={s.title}>
-              <PhotoPlaceholder icon={active.icons[i] as AnyIconName} label={s.title} className="aspect-[3/2]" />
+            <StaggerItem key={s.title}>
+              <TiltCard fill={false} className="rounded-card">
+                <PhotoPlaceholder icon={active.icons[i] as AnyIconName} label={s.title} className="aspect-[3/2]" />
+              </TiltCard>
               <h3 className="mt-6 text-xl font-normal">
                 <span className="mr-2 text-brand-bright">{i + 1}.</span>
                 {s.title}
               </h3>
               <p className="mt-2 text-body">{s.text}</p>
-            </li>
+            </StaggerItem>
           ))}
-        </ol>
+        </StaggerList>
 
         {tab === "clients" && (
           <p className="mt-10 flex items-start gap-3 rounded-card bg-wash p-5 text-ink">

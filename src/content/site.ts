@@ -225,15 +225,15 @@ export const mostBooked: { service: string; category: string }[] = [
 ];
 
 // Sample data — see note at top.
-// `animation` picks how each number animates in (see src/components/motion/StatCounters.tsx).
 export const stats = [
-  { value: "150+", label: "verified artists", animation: "odometer" },
-  { value: "4.9", label: "average rating", animation: "rating" },
-  { value: "10", label: "talent categories", animation: "flip" },
-  { value: "Zero", label: "negotiation drama", animation: "zero" },
+  // `visual` picks the small graphic under the number (drawn in src/components/home/Stats.tsx).
+  { value: "150+", label: "verified artists", visual: "artists" },
+  { value: "4.9", label: "average rating", visual: "stars" },
+  { value: "10", label: "talent categories", visual: "categories" },
+  { value: "Zero", label: "negotiation drama", visual: "handshake" },
 ] as const;
 
-// Brands AOD has worked with, shown in the scrolling strip under the stats.
+// Brands that trust AOD, shown in the scrolling strip under the stats ("Trusted by renowned brands").
 // Logos live in public/brands/: cut out of their backgrounds, cropped tight, 160–240px tall.
 // `width` / `height` are the image's real pixel size (the strip uses them for the shape).
 export const clientBrands = [
@@ -263,27 +263,22 @@ export const guarantees = [
 
 export const hero = {
   eyebrow: "Artists On Demand",
-  // Each line is shown on its own row; the second pair is highlighted in orange.
-  title: [
-    ["Our services", "Your location"],
-    ["Our artists", "Your demand"],
-  ],
   // Each entry is shown on its own line.
   subtitle: ["Get yours now or browse categories", "and find your perfect match."],
   primaryCta: "Get yours now",
   secondaryCta: "Browse categories",
   searchPlaceholder: "Search for 'wedding photographer'",
-  chips: ["Wedding photography", "Bridal makeup", "Wedding film", "Wedding / sangeet DJ"],
   // Animated walk-through of a booking shown beside the headline. Illustrative steps, not real customers.
   demo: [
     { icon: "camera", title: "Request sent", text: "Wedding photographer · Surat · 14 Oct" },
-    { icon: "sparkles", title: "3 curated matches ready", text: "Verified, with clear quotes" },
+    { icon: "sparkles", title: "Curated matches ready", text: "Verified, with clear quotes" },
     { icon: "signature", title: "Booking confirmed", text: "Digital contract shared on WhatsApp" },
   ],
 };
 
-// Booking features shown on the homepage. Cancellation, rescheduling and meeting the
-// artist are new promises for the relaunch — confirm the exact policy before launch.
+// Booking features shown on the homepage. Cancellation, rescheduling and meeting the artist
+// (customers can meet their artist before booking) are new promises for the relaunch —
+// confirm the exact policy before launch.
 export const features = [
   {
     icon: "calendar-x",
@@ -350,7 +345,7 @@ export type Audience = "personal" | "business";
 // The choosing screen at /book.
 export const bookingChoice = {
   title: "How are you booking?",
-  subtitle: "Pick one — we'll ask a few quick questions and send 3 curated matches.",
+  subtitle: "Pick one — we'll ask a few quick questions and send curated matches.",
   personal: {
     label: "For personal events",
     text: "Weddings, sangeets, parties, pre-wedding and portrait shoots.",
@@ -361,14 +356,14 @@ export const bookingChoice = {
   },
 };
 
-// Trust message shown on the homepage and booking pages: every artist has met the team in person.
-export const metInPerson = {
-  short: "Every AOD artist has met our team in person",
-  title: "Only artists we've met in person.",
-  text: "We don't list strangers. Every artist on AOD has sat down with our team face to face, shown us their work and earned our trust — before they're ever sent to your event.",
+// Trust message shown on the homepage, booking and category pages: every artist is verified.
+export const verifiedArtists = {
+  short: "Every AOD artist has been verified thoroughly",
+  title: "Only thoroughly verified artists.",
+  text: "We don't list strangers. Every artist on AOD is checked by our team, from their portfolio and past work to their background and references, before they're ever sent to your event.",
   points: [
-    "Met face to face by the AOD team",
-    "Portfolio and background checked",
+    "Portfolio and past work reviewed",
+    "Background and references checked",
     "Trial booking before going live",
   ],
 };
@@ -380,16 +375,16 @@ export const howItWorks = {
   clients: [
     { title: "Tell us your need", text: "Event type, date, details — takes 2 minutes." },
     {
-      title: "Get 3 curated matches",
+      title: "Get curated matches",
       text: "Verified artists with clear quotes. No scrolling through 500 profiles.",
     },
     { title: "Book & relax", text: "Secure payment, digital contract, on-time delivery." },
   ],
-  // Joining AOD: meeting in person is required before anyone goes live.
+  // Joining AOD: every artist is verified before going live.
   artists: [
     {
-      title: "Meet us in person",
-      text: "Every artist meets the AOD team face to face before joining. Bring your work — we want to know you and your art.",
+      title: "Apply with your work",
+      text: "Share your portfolio, links and experience online. Our team reviews every application.",
     },
     {
       title: "Portfolio & background check",
@@ -405,7 +400,7 @@ export const howItWorks = {
 };
 
 export const differentiators = {
-  title: ["They hand you a directory.", "We deliver the match."],
+  title: ["Others hand you a long list.", "We deliver the curated match."],
   items: [
     {
       title: "Instant booking",
@@ -429,7 +424,7 @@ export const bookingOptions = {
     text: "Photographers, DJs, anchors, makeup artists & more — booked as easily as a cab.",
     includesLabel: "Every booking includes:",
     features: [
-      "3 curated matches — verified artists with clear quotes",
+      "Curated matches — verified artists with clear quotes",
       "Transparent upfront quotes — no haggling, no surprises",
       "Escrowed payments — released after delivery",
       "Replacement guarantee — never stranded if an artist cancels",
@@ -494,8 +489,8 @@ export const forArtists = {
   title: "Join as an artist with AOD.",
   subtitle:
     "Your talent and potential, put in the right place at the right rate. We bring you real bookings — weddings, corporate events, expos — so you can focus on your art.",
-  note: "Zero joining fees · An in-person meeting is required to join",
-  cta: "Join AOD on WhatsApp",
+  note: "Zero joining fees · Every artist is verified before going live",
+  cta: "Join AOD",
   // The artist portal (/artists, later artists.aod.co.in) is reached only from this page.
   applyCta: "Apply online",
   signInText: "Already with AOD?",
@@ -519,17 +514,17 @@ export const forArtists = {
       text: "A verified badge, reviews and a portfolio that grows with every booking you deliver.",
     },
   ],
-  meetTitle: "We meet every artist in person",
+  meetTitle: "We verify every artist thoroughly",
   meetText:
-    "No one joins AOD from a form alone. Meeting face to face is how we get to know you and your art — and how clients know exactly who is walking into their event.",
+    "No one joins AOD from a form alone. Our team reviews your work, checks your background and references, and runs a trial booking — so clients know exactly who is walking into their event.",
   verificationTitle: "How joining works",
-  verificationIntro: "Three steps, starting with a meeting. Once you're through, you appear in curated matches and category listings.",
+  verificationIntro: "Three steps, starting with your application. Once you're through, you appear in curated matches and category listings.",
   ctaTitle: "Ready to put your talent to work?",
-  ctaText: "Message us on WhatsApp and we'll set up your in-person meeting.",
+  ctaText: "Apply in a few minutes. Our team reviews every application.",
   ctaNote: "Zero joining fees — we only earn when you do.",
 };
 
 export const finalCta = {
   title: ["stop hunting.", "start booking."],
-  text: "Tell us what you need — we'll send 3 curated matches.",
+  text: "Tell us what you need — we'll send curated matches.",
 };

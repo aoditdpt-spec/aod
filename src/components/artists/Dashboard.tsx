@@ -168,7 +168,7 @@ export function Dashboard() {
           <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
             <Panel
               title="New booking requests"
-              text="Reply with your quote. The customer sees 3 matched artists."
+              text="Reply with your quote. The customer picks from a shortlist of matched artists."
               action={
                 <Link href="/artists/bookings" className="text-sm font-medium text-brand hover:text-brand-hover">
                   All bookings
