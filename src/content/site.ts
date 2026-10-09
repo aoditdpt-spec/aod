@@ -254,6 +254,16 @@ export const clientBrands = [
   { name: "Power Hydrotech", logo: "/brands/power-hydrotech-logo.png", width: 910, height: 240 },
   { name: "Ayodhya", logo: "/brands/ayodhya-logo.png", width: 353, height: 240 },
   { name: "Shree Ramji Buildcon Group", logo: "/brands/shree-ramji-logo.png", width: 330, height: 240 },
+  { name: "Concord Biotech", logo: "/brands/concord-biotech.png", width: 876, height: 160 },
+  { name: "Arvind Smartspaces", logo: "/brands/arvind-smartspaces.png", width: 527, height: 204 },
+  { name: "Gujarat Chamber of Commerce & Industry", logo: "/brands/gcci.png", width: 220, height: 220 },
+  { name: "Ganesh Housing", logo: "/brands/ganesh-housing.png", width: 476, height: 220 },
+  { name: "HoneyVeda", logo: "/brands/honeyveda.png", width: 582, height: 185 },
+  { name: "House of Starts", logo: "/brands/house-of-starts.png", width: 440, height: 220 },
+  { name: "Aegis Infoware", logo: "/brands/aegis-infoware.png", width: 396, height: 220 },
+  { name: "NeeRain", logo: "/brands/neerain.png", width: 585, height: 185 },
+  { name: "KYB Conmat", logo: "/brands/kyb-conmat.png", width: 667, height: 161 },
+  { name: "Organilicious", logo: "/brands/organilicious.png", width: 1081, height: 160 },
 ];
 
 export const guarantees = [

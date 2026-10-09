@@ -33,7 +33,8 @@
   --radius-panel: 2rem;
 
   /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
-  --animate-marquee: marquee 45s linear infinite;
+  /* 75s for 25 logos; lengthen it in proportion when adding logos so the speed stays the same. */
+  --animate-marquee: marquee 75s linear infinite;
   @keyframes marquee {
     to {
       transform: translateX(-50%);
