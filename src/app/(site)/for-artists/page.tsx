@@ -5,7 +5,7 @@ import { artistJoinMessage, categories, forArtists, howItWorks } from "@/content
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Icon, WhatsAppIcon, type AnyIconName } from "@/components/ui/Icon";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { StepFlow } from "@/components/ui/StepFlow";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -95,18 +95,9 @@ export default function ForArtistsPage() {
         <section id="verification" className="scroll-mt-24">
           <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.verificationTitle}</h2>
           <p className="mt-3 max-w-2xl text-body">{forArtists.verificationIntro}</p>
-          <ol className="mt-10 grid gap-8 md:grid-cols-3">
-            {howItWorks.artists.map((s, i) => (
-              <li key={s.title}>
-                <PhotoPlaceholder icon={stepIcons[i]} label={s.title} className="aspect-[3/2]" />
-                <h3 className="mt-6 text-xl font-normal">
-                  <span className="mr-2 text-brand-bright">{i + 1}.</span>
-                  {s.title}
-                </h3>
-                <p className="mt-2 text-body">{s.text}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="mt-10">
+            <StepFlow steps={howItWorks.artists} icons={stepIcons} />
+          </div>
         </section>
       </Container>
 

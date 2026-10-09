@@ -4,17 +4,14 @@ import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { howItWorks } from "@/content/site";
 import { Container } from "@/components/ui/Container";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
-import type { AnyIconName } from "@/components/ui/Icon";
-import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { TiltCard } from "@/components/motion/TiltCard";
+import { StepFlow } from "@/components/ui/StepFlow";
 
 const tabs = [
   { id: "clients", label: "For booking", icons: ["sparkles", "camera", "signature"] },
   { id: "artists", label: "For artists", icons: ["handshake", "camera", "video"] },
 ] as const;
 
-// Three photo cards that switch between the booking and the artist journey.
+// Three numbered steps (no photos) that switch between the booking and the artist journey.
 export function HowItWorks() {
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("clients");
   const active = tabs.find((t) => t.id === tab)!;
@@ -44,20 +41,9 @@ export function HowItWorks() {
         </div>
 
         {/* Keyed by tab so switching tabs plays the wave again. */}
-        <StaggerList key={tab} className="mt-12 grid gap-8 md:grid-cols-3">
-          {steps.map((s, i) => (
-            <StaggerItem key={s.title}>
-              <TiltCard fill={false} className="rounded-card">
-                <PhotoPlaceholder icon={active.icons[i] as AnyIconName} label={s.title} className="aspect-[3/2]" />
-              </TiltCard>
-              <h3 className="mt-6 text-xl font-normal">
-                <span className="mr-2 text-brand-bright">{i + 1}.</span>
-                {s.title}
-              </h3>
-              <p className="mt-2 text-body">{s.text}</p>
-            </StaggerItem>
-          ))}
-        </StaggerList>
+        <div key={tab} className="mt-12">
+          <StepFlow steps={steps} icons={active.icons} />
+        </div>
 
         {tab === "clients" && (
           <p className="mt-10 flex items-start gap-3 rounded-card bg-wash p-5 text-ink">

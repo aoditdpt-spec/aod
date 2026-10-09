@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight } from "lucide-react";
@@ -39,31 +40,44 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
   return (
     <>
       <Container className="pt-8">
-        <section className="rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-14">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-white/70">
-            <Link href="/" className="hover:text-white">
-              Home
-            </Link>
-            <ChevronRight className="h-4 w-4" aria-hidden />
-            <span className="text-white">{category.name}</span>
-          </nav>
-          <div className="mt-6 flex items-start gap-5">
-            <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-tangerine/15 sm:flex">
-              <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
-            </span>
-            <div>
-              <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
-              <p className="mt-4 max-w-2xl text-base text-white/90 sm:text-lg">{category.description}</p>
-              <div className="mt-5">
-                <VerifiedArtists variant="inline" dark />
+        <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-14">
+          {/* The category photo on the right, fully visible at the right edge and fading into the dark
+              towards the left; past where it reaches, the plain dark background. A little see-through,
+              and fainter on phones, where the text runs over it. */}
+          {category.image && (
+            <div
+              aria-hidden
+              className="absolute inset-y-0 right-0 w-full opacity-40 [mask-image:linear-gradient(to_left,black_30%,transparent)] sm:w-[75%] sm:opacity-80 lg:w-[62%]"
+            >
+              <Image src={category.image} alt="" fill preload sizes="(min-width: 1024px) 62vw, (min-width: 640px) 75vw, 100vw" className="object-cover" />
+            </div>
+          )}
+          <div className="relative">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-white/70">
+              <Link href="/" className="hover:text-white">
+                Home
+              </Link>
+              <ChevronRight className="h-4 w-4" aria-hidden />
+              <span className="text-white">{category.name}</span>
+            </nav>
+            <div className="mt-6 flex items-start gap-5">
+              <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-tangerine/15 sm:flex">
+                <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
+              </span>
+              <div>
+                <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
+                <p className="mt-4 max-w-2xl text-base text-white/90 sm:text-lg">{category.description}</p>
+                <div className="mt-5">
+                  <VerifiedArtists variant="inline" dark />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Link href="/book" className={buttonClasses("white", "lg")}>
-              Get curated matches <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-            <span className="text-sm text-white/70">Verified professionals · transparent quotes · no negotiation</span>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link href="/book" className={buttonClasses("white", "lg")}>
+                Get curated matches <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+              <span className="text-sm text-white/70">Verified professionals · transparent quotes · no negotiation</span>
+            </div>
           </div>
         </section>
       </Container>
