@@ -14,7 +14,12 @@ const links = [
   { href: "/business", label: "For Business" },
   { href: "/for-artists", label: "For Artists" },
   { href: "/#how-it-works", label: "How it works" },
+  { href: "/about", label: "About us" },
 ];
+
+// Links that drop out of the desktop bar between 1024 and 1280px to make room for the search box
+// (they stay in the phone menu).
+const wideOnly = new Set(["/#how-it-works", "/about"]);
 
 // The AOD. wordmark in the brand orange, on a transparent background (public/aod-wordmark.png).
 export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {
@@ -69,8 +74,7 @@ export function Navbar() {
             </div>
           </li>
           {links.map((l) => (
-            // "How it works" drops out between 1024 and 1280px to make room for the search box.
-            <li key={l.href} className={l.href === "/#how-it-works" ? "hidden xl:block" : undefined}>
+            <li key={l.href} className={wideOnly.has(l.href) ? "hidden xl:block" : undefined}>
               <Link href={l.href} className="whitespace-nowrap rounded-md px-3 py-2 hover:text-brand">
                 {l.label}
               </Link>

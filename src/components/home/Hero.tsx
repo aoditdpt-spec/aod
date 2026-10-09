@@ -15,36 +15,39 @@ import { HeroVideo } from "./HeroVideo";
 // appears behind the hero. Without the file the hero keeps its plain dotted background.
 const hasFile = (name: string) => existsSync(join(process.cwd(), "public", "media", name));
 
-// Light, editorial hero over the background footage: the brand name set huge as the page
-// heading, the promise and actions on the left, and the live booking steps on the right.
+// Full-screen hero in the style of a brand campaign page: the footage fills the whole first
+// screen edge to edge (under the sticky navbar), a dark gradient keeps the white text readable
+// on the left, and the live booking steps float on the right in a frosted-glass panel.
 export function Hero() {
   const video = hasFile("hero.mp4");
   const poster = hasFile("hero-poster.jpg") ? "/media/hero-poster.jpg" : undefined;
   return (
-    <Container className="pt-8">
-      <section
-        className="relative overflow-hidden rounded-[2rem] bg-wash px-6 py-12 sm:px-14 sm:py-16"
-        style={
-          video
-            ? undefined
-            : { backgroundImage: "radial-gradient(rgba(194,65,12,0.14) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
-        }
-      >
-        {video && (
-          <>
-            <HeroVideo src="/media/hero.mp4" poster={poster} />
-            {/* Light veil only behind the text on the left; the footage shows clearly on the right. */}
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-wash/90 from-15% via-wash/65 via-45% to-transparent to-70% max-lg:bg-wash/75" />
-          </>
-        )}
-        <HeroGlow />
-        <div className="relative grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+    <section
+      // Fills the screen under the sticky navbar: about 4.1rem tall from 1024px up, 7.3rem below that (it adds the search bar).
+      className="relative flex min-h-[calc(100svh-7.3rem)] items-center overflow-hidden bg-night lg:min-h-[calc(100svh-4.1rem)]"
+      style={
+        video
+          ? undefined
+          : { backgroundImage: "radial-gradient(rgba(249,115,22,0.18) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
+      }
+    >
+      {video && (
+        <>
+          <HeroVideo src="/media/hero.mp4" poster={poster} />
+          {/* Dark veil, strongest behind the text on the left, plus a soft fade at the bottom. */}
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 via-50% to-black/15 max-lg:bg-black/55" />
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent" />
+        </>
+      )}
+      <HeroGlow />
+      <Container className="relative py-16 sm:py-20">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div>
             {/* The brand name is the page heading and the largest text in the hero. */}
-            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight !text-brand sm:text-7xl">
+            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight !text-brand-bright sm:text-7xl lg:text-8xl">
               <ScrambleText text={hero.eyebrow} delay={0.1} />
             </h1>
-            <p className="mt-6 max-w-[35rem] text-base text-body sm:text-lg sm:leading-snug">
+            <p className="mt-6 max-w-[35rem] text-lg text-white/90 sm:text-xl sm:leading-snug">
               {hero.subtitle.map((line) => (
                 <span key={line} className="block">
                   {line}
@@ -52,7 +55,7 @@ export function Hero() {
               ))}
             </p>
             <div className="mt-6">
-              <VerifiedArtists variant="inline" />
+              <VerifiedArtists variant="inline" dark />
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
@@ -60,30 +63,30 @@ export function Hero() {
                 {hero.primaryCta}
                 <ArrowRight className="h-5 w-5" aria-hidden />
               </Link>
-              <Link href="/#categories" className={buttonClasses("outline", "lg", "sm:min-w-[12.5rem]")}>
+              <Link href="/#categories" className={buttonClasses("ghost-light", "lg", "backdrop-blur-sm sm:min-w-[12.5rem]")}>
                 {hero.secondaryCta}
               </Link>
             </div>
 
-            <p className="mt-10 text-sm text-muted">
+            <p className="mt-10 text-sm text-white/70">
               Are you an artist?{" "}
               <a
                 href={whatsappUrl(artistJoinMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover"
+                className="font-medium text-apricot underline underline-offset-4 hover:text-white"
               >
                 Join AOD
               </a>
             </p>
           </div>
 
-          {/* Live booking steps (laptops and up). */}
-          <div className="hidden min-h-[20rem] rounded-[1.5rem] bg-night/85 p-6 backdrop-blur-md lg:block">
+          {/* Live booking steps on frosted glass (laptops and up). */}
+          <div className="hidden rounded-[1.5rem] border border-white/25 bg-white/10 p-6 shadow-[0_8px_40px_rgba(0,0,0,0.3)] backdrop-blur-xl backdrop-saturate-150 lg:block">
             <HeroDemo />
           </div>
         </div>
-      </section>
-    </Container>
+      </Container>
+    </section>
   );
 }

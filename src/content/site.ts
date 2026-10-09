@@ -486,6 +486,35 @@ export const business = {
   ctaText: "Tell us your annual creative calendar — we'll come back with a contract proposal in 48 hours.",
 };
 
+// The About us page (/about).
+export const about = {
+  eyebrow: "About AOD",
+  title: "Artists, on demand.",
+  intro:
+    "Artists on Demand (AOD) is an Ahmedabad company that makes booking event talent as easy as booking a cab. Photographers, cinematographers, DJs, anchors, makeup artists and more — verified, matched to your event and booked with one clear quote.",
+  storyTitle: "Why we started AOD",
+  story: [
+    "Finding the right artist for a wedding, a launch or a shoot usually means scrolling through hundreds of profiles, chasing replies, haggling over prices and hoping they turn up on the day.",
+    "We started AOD to take that guesswork away. You tell us what you need, and we send curated matches: artists we have verified, with clear quotes and a digital contract on every booking.",
+    "For artists, AOD means the right bookings at the right rate, with zero joining fees and a team that handles the back-and-forth.",
+  ],
+  valuesTitle: "What we stand for",
+  values: [
+    { title: "Verified, not just listed", text: "Portfolio review, background checks and a trial booking before any artist goes live." },
+    { title: "One clear price", text: "One clear quote per curated match. The price you agree is the price you pay." },
+    { title: "Never stranded", text: "If an artist cancels, we send a verified substitute." },
+    { title: "Fair to artists", text: "Zero joining fees, and bookings that suit each artist's craft and rate." },
+  ],
+  // Names and titles from the founders' public eChai listings — confirm before launch, and add photos.
+  teamTitle: "The people behind AOD",
+  team: [
+    { name: "Vaibhav Patel", role: "Co-founder & CEO" },
+    { name: "Dhruvi Thakkar", role: "Co-founder" },
+  ],
+  contactTitle: "Talk to us",
+  contactText: "Questions, partnerships or press — reach the AOD team directly.",
+};
+
 export const forArtists = {
   eyebrow: "For artists",
   title: "Join as an artist with AOD.",

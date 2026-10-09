@@ -18,6 +18,7 @@ const columns = [
       { href: "/#how-it-works", label: "How it works" },
       { href: "/#categories", label: "Browse services" },
       { href: "/business", label: "AOD for Business" },
+      { href: "/about", label: "About us" },
     ],
   },
   {
@@ -51,6 +52,11 @@ export function Footer() {
               <li>
                 <a href={`mailto:${brand.email}`} className="inline-flex items-center gap-2 hover:text-apricot">
                   <Mail className="h-4 w-4" aria-hidden /> {brand.email}
+                </a>
+              </li>
+              <li>
+                <a href={brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-apricot">
+                  <InstagramIcon className="h-4 w-4" /> {brand.instagramHandle}
                 </a>
               </li>
             </ul>

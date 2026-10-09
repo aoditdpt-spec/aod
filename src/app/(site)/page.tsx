@@ -19,9 +19,9 @@ import { Reveal } from "@/components/motion/Reveal";
 export default function Home() {
   return (
     <>
-      <AnnouncementBar />
-      {/* 1. The promise and the main actions */}
+      {/* 1. The promise and the main actions, filling the first screen */}
       <Hero />
+      <AnnouncementBar />
       {/* 2. Instant proof: numbers and the brands that trust us */}
       <Stats />
       {/* 3. "Do they have what I need?" — every category, one tap away */}

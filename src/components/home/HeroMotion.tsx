@@ -57,25 +57,25 @@ export function HeroDemo() {
 
   return (
     <div ref={ref} aria-hidden className="relative w-full">
-      <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-white/50">How a booking flows</p>
+      <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-white/75">How a booking flows</p>
       <ul className="flex flex-col gap-3">
         {steps.map((step, i) => {
           const lit = reduce || i === active;
           return (
             <motion.li
               key={step.title}
-              animate={lit ? { opacity: 1, scale: 1.03 } : { opacity: 0.35, scale: 0.97 }}
+              animate={lit ? { opacity: 1, scale: 1.03 } : { opacity: 0.55, scale: 0.97 }}
               transition={{ type: "spring", stiffness: 420, damping: 22 }}
               className={`flex items-center gap-3 rounded-2xl border p-4 backdrop-blur transition-[background-color,border-color,box-shadow,filter] duration-300 ${
-                lit ? "border-tangerine/60 bg-white/[0.12] shadow-[0_10px_30px_rgba(249,115,22,0.2)]" : "border-white/10 bg-white/[0.04] grayscale"
+                lit ? "border-white/50 bg-white/25 shadow-[0_10px_30px_rgba(0,0,0,0.25)]" : "border-white/15 bg-white/[0.06] grayscale"
               }`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-bright/20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
                 <Icon name={step.icon as AnyIconName} className="h-5 w-5 text-tangerine" />
               </span>
               <span>
                 <span className="block text-sm font-medium text-white">{step.title}</span>
-                <span className="block text-xs text-white/60">{step.text}</span>
+                <span className="block text-xs text-white/75">{step.text}</span>
               </span>
               {i === steps.length - 1 && <span className="ml-auto rounded-md bg-brand-bright px-2 py-0.5 text-[0.7rem] font-semibold text-white">Done</span>}
             </motion.li>

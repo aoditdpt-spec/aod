@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 
-// Soft peach-to-apricot promo strip above the hero.
+// Soft peach-to-apricot promo strip, just below the full-screen hero.
 export function AnnouncementBar() {
   return (
     <Container className="pt-6">

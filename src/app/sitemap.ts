@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/book/business`, priority: 0.8 },
     { url: `${base}/business`, priority: 0.8 },
     { url: `${base}/for-artists`, priority: 0.8 },
+    { url: `${base}/about`, priority: 0.6 },
     { url: `${base}/privacy`, priority: 0.3 },
     { url: `${base}/terms`, priority: 0.3 },
     { url: `${base}/refund-policy`, priority: 0.3 },
