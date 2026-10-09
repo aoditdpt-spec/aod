@@ -14,7 +14,7 @@ export function BookingOptions() {
     <section className="relative py-20">
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-[26.25rem] bg-gradient-to-b from-wash to-transparent bg-[repeating-linear-gradient(135deg,transparent_0_14px,rgba(194,65,12,0.05)_14px_15px)]"
+        className="absolute inset-x-0 top-0 h-[26.25rem] bg-gradient-to-b from-wash to-transparent bg-[repeating-linear-gradient(135deg,transparent_0_14px,rgba(161,74,43,0.05)_14px_15px)]"
       />
       <Container className="relative">
         <h2 className="text-center text-3xl font-normal sm:text-[2.5rem]">Choose how you want to book</h2>
@@ -38,7 +38,7 @@ function OptionCard({ option, href, featured = false }: { option: Option; href: 
     <TiltCard
       max={4}
       className={`flex flex-col rounded-[1.25rem] bg-white p-8 transition-colors duration-300 ${
-        featured ? "border border-apricot shadow-[0_8px_24px_rgba(249,115,22,0.15)] hover:border-brand/60" : "border border-line hover:border-brand/40"
+        featured ? "border border-apricot shadow-[0_8px_24px_rgba(208,97,57,0.15)] hover:border-brand/60" : "border border-line hover:border-brand/40"
       }`}
     >
       {featured && (

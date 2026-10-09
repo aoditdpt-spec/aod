@@ -35,10 +35,11 @@ const columns = [
   },
 ];
 
+// Full-width dark band; the content lines up with the page column (max-w-page).
 export function Footer() {
   return (
-    <footer className="px-4 pb-4 pt-16 sm:px-6 sm:pb-6 lg:px-8">
-      <div className="rounded-[1.25rem] bg-night px-6 py-12 text-white sm:px-16 sm:py-14">
+    <footer className="mt-16 bg-night text-white">
+      <div className="mx-auto max-w-page px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
             <Logo size="footer" />

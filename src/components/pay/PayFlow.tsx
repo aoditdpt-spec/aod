@@ -135,7 +135,7 @@ export function PayFlow() {
         </ol>
       )}
 
-      <div className="mt-6 rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(38,18,0,0.06)] sm:p-8">
+      <div className="mt-6 rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8">
         {step === "details" && (
           <form
             noValidate

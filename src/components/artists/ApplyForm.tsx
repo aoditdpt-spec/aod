@@ -186,7 +186,7 @@ export function ApplyForm() {
           if (step < applySteps.length - 1) next();
           else setSubmitted(true);
         }}
-        className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(38,18,0,0.06)] sm:p-10"
+        className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-10"
       >
         <h2 className="text-2xl font-normal sm:text-[2rem] sm:leading-tight">{applySteps[step].title}</h2>
         <p className="mt-2 text-sm text-muted">{applySteps[step].text}</p>

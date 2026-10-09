@@ -286,12 +286,15 @@ function CoverflowCard({
   const scale = useTransform(offset, (o) => round(1 - Math.min(Math.abs(o), 3) * 0.1, 3));
   const opacity = useTransform(offset, (o) => round(Math.max(0, Math.min(1, 1 - Math.abs(o) * 0.3 - (Math.abs(o) > 2 ? (Math.abs(o) - 2) * 0.8 : 0))), 3));
   const zIndex = useTransform(offset, (o) => Math.round(100 - Math.abs(o) * 10));
+  // Side cards also sit further back in 3D, so their tilted near edge never cuts into the front card
+  // (z-index alone doesn't decide what's in front once cards are rotated in 3D).
+  const z = useTransform(offset, (o) => Math.round(-Math.min(Math.abs(o), 3) * 90));
   const far = Math.abs(wrapOffset(index, Math.round(position.get()), count)) > 2;
 
   return (
     <motion.li
       className="absolute left-1/2 top-3 w-[17rem] sm:w-[19rem]"
-      style={{ marginLeft: "-8.5rem", x, rotateY, scale, opacity, zIndex }}
+      style={{ marginLeft: "-8.5rem", x, z, rotateY, scale, opacity, zIndex }}
       aria-hidden={far}
     >
       <Link
@@ -306,7 +309,7 @@ function CoverflowCard({
           }
         }}
         className={`group block rounded-[1.25rem] border bg-white p-3 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-brand ${
-          isActive ? "border-brand/40 shadow-[0_30px_60px_-25px_rgba(194,65,12,0.45)]" : "border-line shadow-md"
+          isActive ? "border-brand/40 shadow-[0_30px_60px_-25px_rgba(161,74,43,0.45)]" : "border-line shadow-md"
         }`}
       >
         {children}

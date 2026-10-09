@@ -28,7 +28,7 @@ export function Hero() {
       style={
         video
           ? undefined
-          : { backgroundImage: "radial-gradient(rgba(249,115,22,0.18) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
+          : { backgroundImage: "radial-gradient(rgba(234,153,123,0.18) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
       }
     >
       {video && (
@@ -44,7 +44,7 @@ export function Hero() {
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div>
             {/* The brand name is the page heading and the largest text in the hero. */}
-            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight !text-brand-bright sm:text-7xl lg:text-8xl">
+            <h1 className="bg-gradient-to-r from-apricot via-tangerine to-sheen-light bg-clip-text pb-2 text-5xl font-semibold leading-[0.95] tracking-tight !text-transparent sm:text-7xl lg:text-8xl">
               <ScrambleText text={hero.eyebrow} delay={0.1} />
             </h1>
             <p className="mt-6 max-w-[35rem] text-lg text-white/90 sm:text-xl sm:leading-snug">
@@ -81,8 +81,9 @@ export function Hero() {
             </p>
           </div>
 
-          {/* Live booking steps on frosted glass (laptops and up). */}
-          <div className="hidden rounded-[1.5rem] border border-white/25 bg-white/10 p-6 shadow-[0_8px_40px_rgba(0,0,0,0.3)] backdrop-blur-xl backdrop-saturate-150 lg:block">
+          {/* Live booking steps on dark, lightly blurred glass (laptops and up): narrower than the
+              column, set to its right edge and a little below centre. */}
+          <div className="hidden w-full max-w-[38rem] justify-self-end rounded-[1.5rem] border border-white/15 bg-black/30 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-[5px] lg:mt-20 lg:block">
             <HeroDemo />
           </div>
         </div>

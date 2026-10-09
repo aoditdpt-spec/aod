@@ -73,7 +73,7 @@ function CustomerSignIn() {
   const field = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none focus:border-brand";
 
   return (
-    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(38,18,0,0.06)] sm:p-8">
+    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8">
       <h2 className="text-2xl font-normal">{myBookingsCopy.signInTitle}</h2>
       <p className="mt-2 text-sm text-body">{myBookingsCopy.signInText}</p>
       <form

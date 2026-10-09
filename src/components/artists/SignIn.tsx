@@ -41,7 +41,7 @@ export function SignIn() {
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(38,18,0,0.06)] sm:p-8">
+    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8">
       <h2 className="text-2xl font-normal">Sign in</h2>
 
       <div role="tablist" aria-label="Sign in with" className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-wash p-1">

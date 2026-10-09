@@ -40,7 +40,7 @@ export default function AboutPage() {
       <Container className="pt-8">
         <section
           className="rounded-[1.5rem] bg-wash px-6 py-12 sm:px-16 sm:py-20"
-          style={{ backgroundImage: "radial-gradient(rgba(194,65,12,0.12) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
+          style={{ backgroundImage: "radial-gradient(rgba(161,74,43,0.12) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
         >
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">{about.eyebrow}</p>
           <h1 className="mt-4 text-5xl font-semibold leading-[0.95] tracking-tight !text-brand sm:text-7xl">{about.title}</h1>

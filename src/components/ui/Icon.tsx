@@ -1,4 +1,5 @@
 import {
+  BadgeCheck,
   Briefcase,
   Brush,
   CalendarSync,
@@ -46,6 +47,7 @@ const icons = {
   "calendar-x": CalendarX,
   "calendar-sync": CalendarSync,
   handshake: Handshake,
+  "badge-check": BadgeCheck,
   heart: Heart,
   party: PartyPopper,
   user: User,

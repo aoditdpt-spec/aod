@@ -23,7 +23,7 @@ export function VerifiedSection() {
       <motion.div
         data-reveal
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/3 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.25),transparent_65%)]"
+        className="pointer-events-none absolute left-1/2 top-1/3 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(208,97,57,0.25),transparent_65%)]"
         style={{ opacity: dark }}
       />
       <Container className="relative">

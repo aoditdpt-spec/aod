@@ -36,7 +36,7 @@ export default function BookPage() {
             <Link href={href} className="block h-full rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4">
               <TiltCard
                 max={5}
-                className="flex flex-col rounded-[1.5rem] border-2 border-line bg-white p-8 transition-[border-color,box-shadow] duration-300 hover:border-brand hover:shadow-[0_8px_24px_rgba(249,115,22,0.15)] sm:p-10"
+                className="flex flex-col rounded-[1.5rem] border-2 border-line bg-white p-8 transition-[border-color,box-shadow] duration-300 hover:border-brand hover:shadow-[0_8px_24px_rgba(208,97,57,0.15)] sm:p-10"
               >
               <span className={`flex h-14 w-14 items-center justify-center rounded-xl bg-peach/60 ${iconHover}`}>
                 <I className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />

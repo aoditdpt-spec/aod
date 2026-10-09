@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, type Variants } from "motion/react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -43,11 +43,12 @@ const item: Variants = {
 };
 
 // A list whose items appear one after another in a wave (staggered grid).
-export function StaggerList({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function StaggerList({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
   return (
     <motion.ul
       data-reveal
       className={className}
+      style={style}
       variants={group}
       initial="hidden"
       whileInView="shown"

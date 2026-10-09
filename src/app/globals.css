@@ -1,40 +1,50 @@
 @import "tailwindcss";
 
 /*
- * AOD design tokens — orange / white / black, laid out in the style of the
- * Upwork homepage saved in context/. Use these via Tailwind classes such as
- * bg-brand, text-ink, border-line — never raw hex values in components.
+ * AOD design tokens — terracotta & cream with espresso text: warm, welcoming and
+ * professional. Laid out in the style of the Upwork homepage saved in context/.
+ * Use these via Tailwind classes such as bg-brand, text-ink, border-line — never
+ * raw hex values in components. The token names (peach, apricot, tangerine…)
+ * date from the first orange theme; their values are now terracotta shades.
  */
 @theme {
-  --color-ink: #1f1208; /* warm near-black: headings */
+  --color-ink: #281c15; /* espresso: headings */
   --color-body: #1a1a1a; /* body text */
-  --color-muted: #6b5d52; /* secondary text */
-  --color-line: #eedfd3; /* borders, dividers */
-  --color-surface: #ffffff;
-  --color-wash: #fff6ef; /* soft section background */
+  --color-muted: #6d5e54; /* secondary text */
+  --color-line: #f0e5db; /* borders, dividers */
+  --color-surface: #fffdfa; /* page background: the faintest cream */
+  --color-wash: #fcf8f3; /* cream: soft section background */
 
   --color-night: #181818; /* dark hero / footer cards */
   --color-night-soft: #2a2a2a; /* panels on dark cards */
   --color-night-line: #3d3d3d;
 
-  --color-brand: #c2410c; /* primary buttons, links (dark enough for white text) */
-  --color-brand-hover: #9a3412;
-  --color-brand-bright: #f97316; /* icons, highlights, badges */
-  --color-apricot: #fdba74; /* accents on dark backgrounds */
-  --color-peach: #fed7aa; /* call-out highlight */
-  --color-tangerine: #fb923c; /* icons on dark backgrounds */
+  --color-brand: #a14a2b; /* terracotta: primary buttons, links (5.9:1 with white text) */
+  --color-brand-hover: #833b21;
+  --color-brand-bright: #d06139; /* bright clay: icons, highlights, badges (large text only) */
+  --color-apricot: #f2baa6; /* light clay: accents on dark backgrounds */
+  --color-peach: #f7dacf; /* call-out highlight, icon tiles */
+  --color-tangerine: #ea997b; /* icons on dark backgrounds */
+
+  /* A soft warm sheen (sand → clay) for feature bands, with optional film grain. */
+  --color-sheen-light: #f1d7c5;
+  --color-sheen: #e6af94;
+  --color-sheen-deep: #c97b5e;
 
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
   --color-whatsapp-hover: #1ebe5d;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
+  /* Widest the page content gets (about 1600px); wider screens and zoomed-out views centre it. */
+  --container-page: 124rem;
+
   --radius-card: 1rem;
   --radius-panel: 2rem;
 
   /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
-  /* 75s for 25 logos; lengthen it in proportion when adding logos so the speed stays the same. */
-  --animate-marquee: marquee 75s linear infinite;
+  /* 78s for 26 logos; lengthen it in proportion when adding logos so the speed stays the same. */
+  --animate-marquee: marquee 78s linear infinite;
   @keyframes marquee {
     to {
       transform: translateX(-50%);
@@ -71,5 +81,51 @@
   h3 {
     color: var(--color-ink);
     letter-spacing: -0.02em;
+  }
+}
+
+/* Warm sheen: soft diagonal light bands from sand to clay.
+   `bg-sheen` is the light version (use ink text on it); `bg-sheen-deep` keeps the middle
+   terracotta so white text stays readable. Add `grain` for a fine film-grain texture. */
+@utility bg-sheen {
+  background-color: var(--color-sheen);
+  background-image: linear-gradient(
+    115deg,
+    var(--color-sheen-light) 0%,
+    var(--color-sheen) 30%,
+    var(--color-sheen-light) 55%,
+    var(--color-sheen) 78%,
+    var(--color-sheen-deep) 100%
+  );
+}
+
+@utility bg-sheen-deep {
+  background-color: var(--color-brand);
+  background-image: linear-gradient(
+    115deg,
+    var(--color-sheen) 0%,
+    var(--color-sheen-deep) 22%,
+    var(--color-brand) 45%,
+    var(--color-brand) 58%,
+    var(--color-sheen-deep) 80%,
+    var(--color-sheen) 100%
+  );
+}
+
+/* Film grain drawn in CSS (SVG noise), so it stays crisp at any size. It sits between the
+   element's background and its content. */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    pointer-events: none;
   }
 }

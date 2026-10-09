@@ -54,7 +54,7 @@ export function AdminSignIn() {
             signIn({ name: `${name} (${roles.find((r) => r.id === role)?.label})`, email: email.trim(), role });
             router.replace("/admin/dashboard");
           }}
-          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(38,18,0,0.06)] sm:p-8"
+          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8"
         >
           {step === "password" ? (
             <>

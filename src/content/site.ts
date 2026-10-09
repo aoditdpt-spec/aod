@@ -49,6 +49,8 @@ export type Category = {
   name: string;
   singular: string;
   icon: IconName;
+  // Category photo. These are mock photos for the preview — replace them with real AOD artists' work before launch.
+  image?: string;
   short: string;
   description: string;
   services: Service[];
@@ -58,6 +60,7 @@ export type Category = {
 export const categories: Category[] = [
   {
     slug: "photographers",
+    image: "/categories/photographers.jpg",
     name: "Photographers",
     singular: "Photographer",
     icon: "camera",
@@ -76,6 +79,7 @@ export const categories: Category[] = [
   },
   {
     slug: "cinematographers",
+    image: "/categories/cinematographers.jpg",
     name: "Cinematographers",
     singular: "Cinematographer",
     icon: "video",
@@ -92,6 +96,7 @@ export const categories: Category[] = [
   },
   {
     slug: "drone-pilots",
+    image: "/categories/drone-pilots.jpg",
     name: "Drone Pilots",
     singular: "Drone Pilot",
     icon: "drone",
@@ -107,11 +112,12 @@ export const categories: Category[] = [
   },
   {
     slug: "anchors-hosts",
+    image: "/categories/anchors-hosts.jpg",
     name: "Anchors & Hosts",
     singular: "Anchor / Host",
     icon: "mic",
     keywords: ["anchor", "host", "emcee", "mc", "compere", "presenter"],
-    short: "Emcees for weddings, corporate & expos",
+    short: "Corporate & private events, weddings & expos",
     description:
       "Bilingual anchors and emcees who keep your event moving — sangeets, award nights, product launches and exhibition booths.",
     services: [
@@ -122,6 +128,7 @@ export const categories: Category[] = [
   },
   {
     slug: "editors",
+    image: "/categories/editors.jpg",
     name: "Editors",
     singular: "Editor",
     icon: "film",
@@ -137,6 +144,7 @@ export const categories: Category[] = [
   },
   {
     slug: "musicians-djs",
+    image: "/categories/musicians-djs.jpg",
     name: "Musicians & DJs",
     singular: "Musician / DJ",
     icon: "music",
@@ -152,6 +160,7 @@ export const categories: Category[] = [
   },
   {
     slug: "comedians",
+    image: "/categories/comedians.jpg",
     name: "Stand-up Comedians",
     singular: "Comedian",
     icon: "ticket",
@@ -166,6 +175,7 @@ export const categories: Category[] = [
   },
   {
     slug: "singers",
+    image: "/categories/singers.jpg",
     name: "Singers & Vocalists",
     singular: "Singer",
     icon: "mic-vocal",
@@ -181,6 +191,7 @@ export const categories: Category[] = [
   },
   {
     slug: "makeup-artists",
+    image: "/categories/makeup-artists.jpg",
     name: "Makeup Artists",
     singular: "Makeup Artist",
     icon: "brush",
@@ -197,6 +208,7 @@ export const categories: Category[] = [
   },
   {
     slug: "models",
+    image: "/categories/models.jpg",
     name: "Models",
     singular: "Model",
     icon: "sparkles",
@@ -243,6 +255,8 @@ export const clientBrands = [
   { name: "ATOA Technologies", logo: "/brands/atoa-technologies.png", width: 491, height: 160 },
   { name: "Meraki", logo: "/brands/meraki.png", width: 280, height: 160 },
   { name: "GTZ", logo: "/brands/gtz.png", width: 219, height: 160 },
+  // GATE (GCCI's trade expo) sits half a loop away from the round GCCI badge further down, so the two never appear side by side.
+  { name: "GATE 2026 – GCCI Annual Trade Expo", logo: "/brands/gate-gcci-expo.png", width: 300, height: 240 },
   { name: "Lalaji", logo: "/brands/lalaji.png", width: 269, height: 160 },
   { name: "HI Interior Hardware", logo: "/brands/hi-interior-hardware.png", width: 181, height: 160 },
   { name: "Ralco Extrusion", logo: "/brands/ralco-extrusion.png", width: 276, height: 160 },
@@ -288,9 +302,9 @@ export const hero = {
   ],
 };
 
-// Booking features shown on the homepage. Cancellation, rescheduling and meeting the artist
-// (customers can meet their artist before booking) are new promises for the relaunch —
-// confirm the exact policy before launch.
+// Booking features shown on the homepage ("Book with confidence"). Cancellation and
+// rescheduling are new promises for the relaunch — confirm the exact policy before launch.
+// AOD doesn't offer meeting artists in person; the trust promise is that every artist is verified.
 export const features = [
   {
     icon: "calendar-x",
@@ -303,9 +317,9 @@ export const features = [
     text: "Event date moved? Shift your booking to another day instead of losing it.",
   },
   {
-    icon: "handshake",
-    title: "Meet the artist in person",
-    text: "Not sure yet? Meet them, see their work and get to know their art before you book.",
+    icon: "badge-check",
+    title: "Every artist verified thoroughly",
+    text: "Portfolio review, background checks and a trial booking before any artist goes live.",
   },
   {
     icon: "refresh",
@@ -383,6 +397,16 @@ export const verifiedArtists = {
 // Artists join over WhatsApp until the online registration system is built.
 export const artistJoinMessage = "Hi Artists on Demand! I am an artist and I want to join AOD.";
 
+// "Not sure who to book?" on the homepage: the intro beside the booking questions.
+// Its "What happens next" steps reuse howItWorks.clients.
+export const getMatched = {
+  eyebrow: "Free curated matching",
+  title: "Not sure who to book?",
+  text: "Tell us your need — event type, date, details — takes 2 minutes. We'll send curated matches.",
+  nextTitle: "What happens next",
+  talkTitle: "Prefer to talk?",
+};
+
 export const howItWorks = {
   clients: [
     { title: "Tell us your need", text: "Event type, date, details — takes 2 minutes." },
@@ -441,7 +465,7 @@ export const bookingOptions = {
       "Escrowed payments — released after delivery",
       "Replacement guarantee — never stranded if an artist cancels",
       "Last-minute cancellation or reschedule to another day",
-      "Meet the artist in person before you book",
+      "Every artist verified thoroughly",
       "Digital contract on every booking",
     ],
     cta: "Get yours now",

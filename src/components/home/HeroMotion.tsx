@@ -12,7 +12,7 @@ export function HeroGlow() {
   const y = useMotionValue(45);
   const sx = useSpring(x, { stiffness: 60, damping: 20 });
   const sy = useSpring(y, { stiffness: 60, damping: 20 });
-  const background = useMotionTemplate`radial-gradient(38rem circle at ${sx}% ${sy}%, rgba(249,115,22,0.16), transparent 60%)`;
+  const background = useMotionTemplate`radial-gradient(38rem circle at ${sx}% ${sy}%, rgba(208,97,57,0.16), transparent 60%)`;
 
   useEffect(() => {
     const card = ref.current?.parentElement;
@@ -67,10 +67,10 @@ export function HeroDemo() {
               animate={lit ? { opacity: 1, scale: 1.03 } : { opacity: 0.55, scale: 0.97 }}
               transition={{ type: "spring", stiffness: 420, damping: 22 }}
               className={`flex items-center gap-3 rounded-2xl border p-4 backdrop-blur transition-[background-color,border-color,box-shadow,filter] duration-300 ${
-                lit ? "border-white/50 bg-white/25 shadow-[0_10px_30px_rgba(0,0,0,0.25)]" : "border-white/15 bg-white/[0.06] grayscale"
+                lit ? "border-white/35 bg-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)]" : "border-white/10 bg-white/[0.03] grayscale"
               }`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
                 <Icon name={step.icon as AnyIconName} className="h-5 w-5 text-tangerine" />
               </span>
               <span>

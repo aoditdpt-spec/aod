@@ -31,7 +31,7 @@ export default function ForArtistsPage() {
         <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-20">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[32.5rem] w-[32.5rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.3)_0%,rgba(249,115,22,0)_65%)] lg:block"
+            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[32.5rem] w-[32.5rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(234,153,123,0.3)_0%,rgba(234,153,123,0)_65%)] lg:block"
           />
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{forArtists.eyebrow}</p>
@@ -122,7 +122,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container>
-        <section className="rounded-[1.25rem] bg-gradient-to-r from-brand-bright via-brand to-brand-bright px-6 py-14 text-center">
+        <section className="grain bg-sheen-deep rounded-[1.25rem] px-6 py-14 text-center">
           <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
