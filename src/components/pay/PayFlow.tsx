@@ -5,8 +5,10 @@ import { ArrowLeft, ArrowRight, Check, Clock, CreditCard, Lock, Printer, ShieldC
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { bank, payCopy, payee, purposes, upiApps } from "@/content/payments";
 import { amountProblem, cleanUtr, formatINR, isUpiId, isUtr, parseAmount, UPI_MAX, upiUrl } from "@/lib/upi";
+import { backendEnabled } from "@/lib/backend";
 import { siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { reportPayment } from "@/server/actions/public";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { CopyButton } from "./CopyButton";
 import { UpiQr } from "./UpiQr";
@@ -47,6 +49,10 @@ export function PayFlow() {
   const [phone, setPhone] = useState("");
   const [utr, setUtr] = useState("");
   const [tried, setTried] = useState(false);
+  // Live: the saved payment's reference, or why saving failed (the WhatsApp message still carries it all).
+  const [savedAs, setSavedAs] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const amount = parseAmount(amountText);
   const ready = isUpiId(payee.upiId);
@@ -358,11 +364,27 @@ export function PayFlow() {
         {step === "confirm" && (
           <form
             noValidate
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               setTried(true);
-              if (!isUtr(utr)) return;
-              window.open(whatsappUrl(summary), "_blank", "noopener,noreferrer");
+              if (!isUtr(utr) || saving) return;
+              if (!backendEnabled) {
+                window.open(whatsappUrl(summary), "_blank", "noopener,noreferrer");
+                setStep("sent");
+                return;
+              }
+              // Live: open the WhatsApp tab inside the click (so it isn't blocked), save the
+              // transaction ID for AOD's finance team to verify, then show WhatsApp in that tab.
+              const tab = window.open("", "_blank");
+              setSaving(true);
+              const res = await reportPayment({ amount: amount ?? 0, utr, name, phone, bookingRef, purpose });
+              setSaving(false);
+              if (res.ok) setSavedAs(res.id);
+              else setSaveError(res.error);
+              if (tab) {
+                tab.opener = null;
+                tab.location.href = whatsappUrl(summary);
+              } else window.open(whatsappUrl(summary), "_blank", "noopener,noreferrer");
               setStep("sent");
             }}
           >
@@ -403,9 +425,15 @@ export function PayFlow() {
             </span>
             <h2 className="mt-4 text-xl font-medium">{payCopy.notConfirmed}</h2>
             <p className="mt-2 text-sm text-body">
-              Your payment details are ready in WhatsApp. Once we&apos;ve matched the transaction ID with our bank account, we&apos;ll confirm
-              there. Keep the transaction ID until then.
+              {savedAs
+                ? "AOD has your transaction ID. Once it's matched with AOD's bank account, you'll get a confirmation by email and on WhatsApp. Keep the transaction ID until then."
+                : "Your payment details are ready in WhatsApp. Once we've matched the transaction ID with our bank account, we'll confirm there. Keep the transaction ID until then."}
             </p>
+            {saveError && (
+              <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" role="alert">
+                {saveError}
+              </p>
+            )}
             <dl className="mt-5 space-y-2 rounded-xl bg-wash p-4 text-sm">
               <Row label="Amount">{formatINR(amount)}</Row>
               <Row label="For">
@@ -415,6 +443,7 @@ export function PayFlow() {
               {bookingRef && <Row label="Booking ref">{bookingRef}</Row>}
               <Row label="Name">{name.trim()}</Row>
               <Row label="Transaction ID">{cleanUtr(utr)}</Row>
+              {savedAs && <Row label="Payment ref">{savedAs}</Row>}
               <Row label="Paid to">{payee.upiId}</Row>
               <Row label="Status">{payCopy.notConfirmed}</Row>
             </dl>

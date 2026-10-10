@@ -22,7 +22,7 @@ export function CategoryCoverflow() {
             {c.image ? (
               <>
                 <Image
-                  src={c.image}
+                  src={c.image.src}
                   alt={c.name}
                   fill
                   sizes="(min-width: 640px) 19rem, 17rem"

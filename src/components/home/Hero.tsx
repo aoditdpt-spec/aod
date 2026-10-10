@@ -7,45 +7,52 @@ import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { whatsappUrl } from "@/lib/whatsapp";
-import { ScrambleText } from "@/components/motion/ScrambleText";
 import { HeroDemo, HeroGlow } from "./HeroMotion";
 import { HeroVideo } from "./HeroVideo";
 
-// Background footage: drop hero.mp4 (and optionally hero-poster.jpg) into public/media/ and it
-// appears behind the hero. Without the file the hero keeps its plain dotted background.
-const hasFile = (name: string) => existsSync(join(process.cwd(), "public", "media", name));
+// Background footage (the files HeroVideo lists): served from public/media/, or from a storage
+// bucket / CDN when NEXT_PUBLIC_MEDIA_URL is set (the same file names at that address). Without
+// either, the hero keeps its plain dotted background.
+const mediaUrl = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, "");
+const mediaBase = mediaUrl || "/media";
+const hasVideo = Boolean(mediaUrl) || existsSync(join(process.cwd(), "public", "media", "hero-1080.mp4"));
 
 // Full-screen hero in the style of a brand campaign page: the footage fills the whole first
 // screen edge to edge (under the sticky navbar), a dark gradient keeps the white text readable
 // on the left, and the live booking steps float on the right in a frosted-glass panel.
 export function Hero() {
-  const video = hasFile("hero.mp4");
-  const poster = hasFile("hero-poster.jpg") ? "/media/hero-poster.jpg" : undefined;
   return (
     <section
       // Fills the screen under the sticky navbar: about 4.1rem tall from 1024px up, 7.3rem below that (it adds the search bar).
       className="relative flex min-h-[calc(100svh-7.3rem)] items-center overflow-hidden bg-night lg:min-h-[calc(100svh-4.1rem)]"
       style={
-        video
+        hasVideo
           ? undefined
           : { backgroundImage: "radial-gradient(rgba(234,153,123,0.18) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
       }
     >
-      {video && (
+      {hasVideo && (
         <>
-          <HeroVideo src="/media/hero.mp4" poster={poster} />
-          {/* Dark veil, strongest behind the text on the left, plus a soft fade at the bottom. */}
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 via-50% to-black/15 max-lg:bg-black/55" />
-          <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent" />
+          <HeroVideo base={mediaBase} />
+          {/* A light veil (the footage stays about 90% visible), a touch darker behind the text on the
+              left; the text itself carries soft shadows so it reads on bright frames. */}
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 via-45% to-transparent max-lg:bg-black/30" />
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/25 to-transparent" />
         </>
       )}
       <HeroGlow />
       <Container className="relative py-16 sm:py-20">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-          <div>
+          {/* A soft shadow under all the text in this column keeps it readable over the brighter video.
+              (The heading is embossed chrome instead: `text-emboss-edge` / `text-emboss-face` in globals.css.) */}
+          <div className="[text-shadow:0_1px_12px_rgba(0,0,0,0.55)]">
             {/* The brand name is the page heading and the largest text in the hero. */}
-            <h1 className="bg-gradient-to-r from-apricot via-tangerine to-sheen-light bg-clip-text pb-2 text-5xl font-semibold leading-[0.95] tracking-tight !text-transparent sm:text-7xl lg:text-8xl">
-              <ScrambleText text={hero.eyebrow} delay={0.1} />
+            <h1 className="relative w-fit max-w-full pb-2 text-5xl font-bold leading-[0.95] tracking-[-0.035em] [text-shadow:none] sm:text-7xl lg:text-[clamp(3.5rem,5.1vw,5.6rem)]">
+              {/* Embossed: the edge layer gives the raised bevel and shadow; the chrome face sits exactly on top. */}
+              <span className="text-emboss-edge">{hero.eyebrow}</span>
+              <span aria-hidden className="text-emboss-face absolute inset-x-0 top-0">
+                {hero.eyebrow}
+              </span>
             </h1>
             <p className="mt-6 max-w-[35rem] text-lg text-white/90 sm:text-xl sm:leading-snug">
               {hero.subtitle.map((line) => (

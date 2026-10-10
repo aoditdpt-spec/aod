@@ -7,8 +7,11 @@ import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
+import { backendEnabled } from "@/lib/backend";
+import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { createBookingRequest } from "@/server/actions/public";
 
 const audienceLabel: Record<Audience, string> = {
   personal: "Personal event",
@@ -38,7 +41,9 @@ const slide: Variants = {
 // Picking the occasion moves straight on; the answers so far show as chips that jump back to edit.
 // `audience` picks the occasion list (personal or business); without it a mixed list is shown.
 // The city comes from the navbar picker (src/lib/city.ts); if it's already chosen, it isn't asked again.
-// Nothing is saved yet — once Supabase is set up, save the request before opening WhatsApp.
+// With the backend set up, "Send" saves the request first (createBookingRequest) and only then
+// says "received" and opens WhatsApp with its reference. Without it (preview) the request is kept
+// in this browser for My bookings and WhatsApp opens straight away.
 export function MatchQuiz({ audience }: { audience?: Audience }) {
   const occasionList = occasions[audience ?? "any"];
   const [step, setStep] = useState(0);
@@ -46,16 +51,50 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
   const [occasion, setOccasion] = useState("");
   const [needs, setNeeds] = useState<string[]>([]);
   const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const city = useCity();
   const minDate = tomorrowISO();
-  // YYYY-MM-DD strings compare correctly as text. An empty date means "not fixed yet", which is allowed.
-  const dateOk = date === "" || date >= minDate;
+  // YYYY-MM-DD strings compare correctly as text. Every detail is required.
+  const dateOk = date !== "" && date >= minDate;
+  const length = eventMinutes(startTime, endTime);
   const [changingCity, setChangingCity] = useState(false);
   const [details, setDetails] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot: hidden, only bots fill it in
   const [opened, setOpened] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null); // the request reference, once saved
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const canSend = Boolean(occasion) && needs.length > 0 && Boolean(city) && dateOk;
-  const missing = !city ? "Choose your city." : !dateOk ? "Choose a date from tomorrow onwards." : null;
+  const phoneDigits = phone.replace(/\D/g, "");
+  const nameOk = name.trim().length >= 2;
+  const phoneOk = phoneDigits.length >= 10 && phoneDigits.length <= 15;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  const detailsOk = details.trim().length >= 3;
+  const canSend =
+    Boolean(occasion) && needs.length > 0 && Boolean(city) && dateOk && length !== null && detailsOk && nameOk && phoneOk && emailOk && !sending;
+  const missing = !dateOk
+    ? date
+      ? "Choose a date from tomorrow onwards."
+      : "Choose the event date."
+    : !city
+      ? "Choose your city."
+      : !startTime || !endTime
+        ? "Add the start and end time."
+        : length === null
+          ? "Start and end can't be the same time."
+          : !detailsOk
+            ? "Add a few event details."
+            : !nameOk
+              ? "Add your name."
+              : !phoneOk
+                ? "Add your phone number."
+                : !emailOk
+                  ? "Add your email address."
+                  : null;
 
   // When the question changes (not on first load), keyboard focus moves to the new question
   // once it has slid in (it only mounts after the old one has slid out).
@@ -74,8 +113,11 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
     `Occasion: ${occasion}`,
     `Looking for: ${needs.join(", ")}`,
     `Date: ${date || "Not fixed yet"}`,
+    startTime && endTime && `Time: ${timeRange(startTime, endTime)}`,
     `City: ${city ?? "Not selected"}`,
     details && `Details: ${details}`,
+    name.trim() && `Name: ${name.trim()}`,
+    email.trim() && `Email: ${email.trim()}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -192,17 +234,17 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
             <>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm font-medium text-ink">
-                  Event date <span className="font-normal text-muted">(optional)</span>
+                  Event date
                   <input
                     type="date"
                     value={date}
                     min={minDate}
                     onChange={(e) => setDate(e.target.value)}
-                    aria-invalid={!dateOk}
-                    aria-describedby={dateOk ? undefined : "event-date-error"}
-                    className={`mt-1.5 w-full rounded-xl border px-4 py-3 font-normal outline-none focus:border-brand ${dateOk ? "border-line" : "border-red-500"}`}
+                    aria-invalid={date !== "" && !dateOk}
+                    aria-describedby={date !== "" && !dateOk ? "event-date-error" : undefined}
+                    className={`mt-1.5 w-full rounded-xl border px-4 py-3 font-normal outline-none focus:border-brand ${date === "" || dateOk ? "border-line" : "border-red-500"}`}
                   />
-                  {!dateOk && (
+                  {date !== "" && !dateOk && (
                     <span id="event-date-error" className="mt-1.5 block text-xs font-normal text-red-600">
                       Choose a date from tomorrow onwards.
                     </span>
@@ -241,16 +283,87 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                     </select>
                   </label>
                 )}
+                <label className="text-sm font-medium text-ink">
+                  Start time
+                  <input
+                    type="time"
+                    step={900}
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
+                <label className="text-sm font-medium text-ink">
+                  End time
+                  <input
+                    type="time"
+                    step={900}
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
+                {length !== null && (
+                  <p className="-mt-2 text-sm text-ink sm:col-span-2" aria-live="polite">
+                    {timeRange(startTime, endTime).replace(/ \(.*\)$/, "")} ·{" "}
+                    <strong className="font-medium">
+                      {durationText(length)}
+                      {endsNextDay(startTime, endTime) ? ", ends next day" : ""}
+                    </strong>
+                  </p>
+                )}
                 <label className="text-sm font-medium text-ink sm:col-span-2">
-                  Anything else? <span className="font-normal text-muted">(optional)</span>
+                  Event details
                   <textarea
                     value={details}
                     onChange={(e) => setDetails(e.target.value)}
                     rows={2}
-                    placeholder="Guest count, venue, timings, budget…"
+                    placeholder="Guest count, venue, budget…"
                     className="mt-1.5 w-full resize-none rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
                   />
                 </label>
+                <label className="text-sm font-medium text-ink">
+                  Your name
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
+                <label className="text-sm font-medium text-ink">
+                  Phone (WhatsApp)
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="98765 43210"
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
+                <label className="text-sm font-medium text-ink sm:col-span-2">
+                  Email <span className="font-normal text-muted">(for updates and My bookings)</span>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
+                {/* Honeypot for bots: hidden from people and screen readers. */}
+                <input
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden
+                  className="absolute -left-[9999px] h-px w-px opacity-0"
+                />
               </div>
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
@@ -259,21 +372,39 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                 </button>
                 <div className="flex flex-wrap items-center justify-end gap-4">
                   <p className="text-sm text-muted" aria-live="polite">
-                    {missing ?? "All set. We'll reply with curated matches."}
+                    {sending ? "Saving your request…" : (missing ?? "All set. AOD will reply with curated matches.")}
                   </p>
                   <a
                     href={canSend ? whatsappUrl(message) : undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-disabled={!canSend}
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
                       if (!canSend) return;
-                      // Remember the request in this browser so it shows under My bookings, and give it a
-                      // reference the team can quote back. (The backend will save it to the database.)
-                      const ref = newRequestRef();
-                      addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs, date, city: city ?? "", details });
-                      window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
+                      if (!backendEnabled) {
+                        // Preview: remember the request in this browser so it shows under My bookings,
+                        // with a reference the team can quote back.
+                        const ref = newRequestRef();
+                        addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs, date, city: city ?? "", details });
+                        window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
+                        setOpened(true);
+                        return;
+                      }
+                      // Live: open the WhatsApp tab now (inside the click, so it isn't blocked as a pop-up),
+                      // save the request, then point the tab at WhatsApp with the saved reference.
+                      const tab = window.open("", "_blank");
+                      setSending(true);
+                      setSaveError(null);
+                      const res = await createBookingRequest({ audience, occasion, needs, date, startTime, endTime, city: city ?? "", details, name, phone, email, website });
+                      setSending(false);
+                      const url = whatsappUrl(res.ok ? [message, `Ref: ${res.ref}`].join("\n") : message);
+                      if (res.ok) setSaved(res.ref);
+                      else setSaveError(res.error);
+                      if (tab) {
+                        tab.opener = null;
+                        tab.location.href = url;
+                      } else window.open(url, "_blank", "noopener,noreferrer");
                       setOpened(true);
                     }}
                     className={`inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white ${
@@ -299,7 +430,23 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                 </Link>
                 .
               </p>
-              {opened && (
+              {saved && (
+                <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-ink" role="status">
+                  <strong>Request received · Ref {saved}.</strong> WhatsApp opened with it pre-filled; tap <strong>send</strong> to chat with
+                  the AOD team.{" "}
+                  Track it under{" "}
+                  <Link href="/my-bookings" className="font-medium text-brand underline underline-offset-2">
+                    My bookings
+                  </Link>{" "}
+                  by signing in with {email.trim()}.
+                </p>
+              )}
+              {saveError && (
+                <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-ink" role="alert">
+                  {saveError} WhatsApp opened with your request; tap <strong>send</strong> so the AOD team gets it.
+                </p>
+              )}
+              {opened && !backendEnabled && (
                 <p className="mt-4 rounded-xl bg-wash p-4 text-sm text-ink" role="status">
                   WhatsApp opened with your request pre-filled — just tap <strong>send</strong> to reach our team. You can find this
                   request later under{" "}

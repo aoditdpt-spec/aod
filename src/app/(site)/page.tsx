@@ -1,7 +1,6 @@
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { BookingOptions } from "@/components/home/BookingOptions";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
-import { Differentiators } from "@/components/home/Differentiators";
 import { FinalCta } from "@/components/home/FinalCta";
 import { GetMatched } from "@/components/home/GetMatched";
 import { Features } from "@/components/home/Features";
@@ -9,6 +8,7 @@ import { VerifiedSection } from "@/components/home/VerifiedSection";
 import { Hero } from "@/components/home/Hero";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { MostBooked } from "@/components/home/MostBooked";
+import { Portals } from "@/components/home/Portals";
 import { Stats } from "@/components/home/Stats";
 import { Reveal } from "@/components/motion/Reveal";
 
@@ -30,9 +30,11 @@ export default function Home() {
       <MostBooked />
       {/* 5. The trust differentiator: every artist verified */}
       <VerifiedSection />
-      {/* 6. Why AOD beats a long list of names, with a quick request box for ready buyers */}
+      {/* 6. Where everyone goes: artists join or sign in, customers find My bookings, payments,
+          the Resolution Centre and AOD for Business. Straight after trust, so an artist who
+          landed here (or a customer with a problem) finds their way before the booking pitch. */}
       <Reveal>
-        <Differentiators />
+        <Portals />
       </Reveal>
       {/* 7. Three simple steps */}
       <Reveal>

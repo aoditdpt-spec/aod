@@ -34,6 +34,13 @@
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
   --color-whatsapp-hover: #1ebe5d;
 
+  /* Brushed steel for the hero's chrome lettering (text-chrome below). */
+  --color-chrome-hi: #f6f8fa;
+  --color-chrome-light: #d9dee3;
+  --color-chrome-mid: #a7afb7;
+  --color-chrome-low: #6c747c;
+  --color-chrome-deep: #3d434a;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* Widest the page content gets (about 1600px); wider screens and zoomed-out views centre it. */
@@ -43,8 +50,9 @@
   --radius-panel: 2rem;
 
   /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
-  /* 78s for 26 logos; lengthen it in proportion when adding logos so the speed stays the same. */
-  --animate-marquee: marquee 78s linear infinite;
+  /* 63s for 26 logos at their current size; lengthen it in proportion when adding logos (or
+     making them bigger) so the speed stays the same. */
+  --animate-marquee: marquee 63s linear infinite;
   @keyframes marquee {
     to {
       transform: translateX(-50%);
@@ -114,6 +122,43 @@
 
 /* Film grain drawn in CSS (SVG noise), so it stays crisp at any size. It sits between the
    element's background and its content. */
+/* Embossed chrome lettering for the hero's "Artists On Demand": raised letters with a lit
+   top-left edge, a shaded bottom-right edge and a soft shadow on the surface, and a brushed-steel
+   face (after the polished-titanium look of Apple's product titles). Two layers of the same
+   text: `text-emboss-edge` underneath (its shadows show around the letters as the bevel), and
+   `text-emboss-face` exactly on top. Sizes are in em, so it scales with the heading. */
+@utility text-emboss-edge {
+  color: var(--color-chrome-low);
+  text-shadow:
+    -0.018em -0.018em 0 rgb(255 255 255 / 0.85),
+    0.022em 0.022em 0 rgb(0 0 0 / 0.55),
+    0.04em 0.07em 0.14em rgb(0 0 0 / 0.5);
+}
+
+@utility text-emboss-face {
+  color: transparent;
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.35) 0%, transparent 45%, rgb(0 0 0 / 0.15) 100%),
+    linear-gradient(100deg, transparent 18%, rgb(255 205 180 / 0.35) 27%, transparent 36%, transparent 60%, rgb(180 210 255 / 0.32) 70%, transparent 80%),
+    linear-gradient(
+      105deg,
+      var(--color-chrome-light) 0%,
+      var(--color-chrome-hi) 8%,
+      var(--color-chrome-light) 16%,
+      var(--color-chrome-mid) 27%,
+      var(--color-chrome-low) 36%,
+      var(--color-chrome-hi) 47%,
+      var(--color-chrome-light) 54%,
+      var(--color-chrome-mid) 63%,
+      var(--color-chrome-low) 71%,
+      var(--color-chrome-light) 82%,
+      var(--color-chrome-hi) 92%,
+      var(--color-chrome-light) 100%
+    );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 @utility grain {
   position: relative;
   isolation: isolate;

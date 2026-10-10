@@ -46,6 +46,16 @@ export const leadStatuses = [
   { id: "lost", label: "Lost", tone: "neutral" },
 ] as const;
 
+// Resolution Centre cases (the public side's wording is in src/content/resolution.ts).
+export const caseStages = [
+  { id: "received", label: "Received", tone: "brand" },
+  { id: "acknowledged", label: "Acknowledged", tone: "wait" },
+  { id: "investigating", label: "Being looked into", tone: "wait" },
+  { id: "resolved", label: "Resolved", tone: "good" },
+  { id: "escalated", label: "Escalated", tone: "bad" },
+  { id: "closed", label: "Closed", tone: "neutral" },
+] as const;
+
 export const leadSources = ["Website", "WhatsApp", "Business form", "Instagram", "Phone call", "Referral"] as const;
 
 export type Tone = "brand" | "wait" | "good" | "bad" | "neutral";
@@ -72,6 +82,7 @@ export const permissions = {
   "export": ["owner", "ops", "finance"],
   "team.edit": ["owner"],
   "settings.edit": ["owner"],
+  "cases.edit": ["owner", "ops"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof permissions;

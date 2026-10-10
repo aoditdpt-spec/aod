@@ -6,6 +6,7 @@ import { useState, type DragEvent } from "react";
 import { activeBookingStages, bookingStages, paymentStatuses, templates, type TemplateId } from "@/content/admin";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
+import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { CopyButton } from "@/components/pay/CopyButton";
 import { payLink, usePayBase } from "@/components/pay/PayLinkBuilder";
@@ -296,7 +297,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             ["Customer", `${b.customer.name} (${b.audience})`],
             ["Phone", b.customer.phone],
             ["Email", b.customer.email],
-            ["Event", `${b.event} · ${fmtDate(b.date)}, ${b.time}`],
+            ["Event", `${b.event} · ${fmtDate(b.date)}, ${timeRange(b.time, b.endTime)}`],
             ["Venue", `${b.venue}, ${b.city}`],
             ["Service", `${categoryName(b.category)} · ${b.service}`],
             ["Budget", b.budget],
@@ -600,6 +601,7 @@ export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; 
     event: "",
     date: "",
     time: "",
+    endTime: "",
     city: from?.city && (cities as string[]).includes(from.city) ? from.city : cities[0],
     venue: "",
     budget: "",
@@ -607,14 +609,25 @@ export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; 
   });
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
   const cat = categories.find((c) => c.slug === f.category)!;
-  const ok = f.name.trim() && f.phone.replace(/\D/g, "").length >= 10 && f.date && f.event.trim();
+  // Every detail is required, including the event's start and end time.
+  const length = eventMinutes(f.time, f.endTime);
+  const ok =
+    f.name.trim().length >= 2 &&
+    f.phone.replace(/\D/g, "").length >= 10 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim()) &&
+    f.event.trim() &&
+    f.date &&
+    length !== null &&
+    f.venue.trim() &&
+    f.budget.trim() &&
+    f.notes.trim();
 
   return (
     <Drawer
       open
       onClose={onClose}
       title={from ? `New booking from lead ${from.leadId}` : "New booking"}
-      subtitle="For requests that came by phone, WhatsApp or in person. Website requests arrive here by themselves once the backend is connected."
+      subtitle="For requests that came by phone, WhatsApp or in person. Every field is required. Website requests arrive here by themselves."
       footer={
         <ActionButton
           permission="bookings.edit"
@@ -635,10 +648,11 @@ export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; 
                   service: f.service,
                   event: f.event.trim(),
                   date: f.date,
-                  time: f.time || "—",
+                  time: f.time,
+                  endTime: f.endTime,
                   city: f.city,
-                  venue: f.venue.trim() || "—",
-                  budget: f.budget.trim() || "—",
+                  venue: f.venue.trim(),
+                  budget: f.budget.trim(),
                   notes: f.notes.trim(),
                   status: "new",
                   shortlist: [],
@@ -708,9 +722,19 @@ export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; 
         <Labelled label="Date">
           <input type="date" value={f.date} min={todayKey()} onChange={set("date")} className={fieldClass} />
         </Labelled>
-        <Labelled label="Time">
-          <input type="time" value={f.time} onChange={set("time")} className={fieldClass} />
+        <Labelled label="Start time">
+          <input type="time" step={900} value={f.time} onChange={set("time")} className={fieldClass} />
         </Labelled>
+        <Labelled label="End time">
+          <input type="time" step={900} value={f.endTime} onChange={set("endTime")} className={fieldClass} />
+        </Labelled>
+        <p className="-mt-2 text-xs text-muted sm:col-span-2" aria-live="polite">
+          {length !== null
+            ? `${timeRange(f.time, f.endTime).replace(/ \(.*\)$/, "")} · ${durationText(length)}${endsNextDay(f.time, f.endTime) ? ", ends next day" : ""}`
+            : f.time && f.endTime
+              ? "Start and end can't be the same time."
+              : "When the artist is needed, from start to end."}
+        </p>
         <Labelled label="City">
           <select value={f.city} onChange={set("city")} className={fieldClass}>
             {cities.map((c) => (

@@ -3,7 +3,7 @@
 // portfolio links point to example.com, so nothing here can reach a real person.
 // Dates are relative to "now", so the calendar and reminders always look current.
 
-import type { Application, Artist, Booking, BookingStatus, Db, Lead, Member, Payment, Payout } from "@/lib/admin-store";
+import type { Application, Artist, Booking, BookingStatus, Db, Lead, Member, Payment, Payout, ResolutionCase } from "@/lib/admin-store";
 
 export function createSampleDb(now: Date): Db {
   const day = (offset: number, hour = 11) => {
@@ -236,6 +236,69 @@ export function createSampleDb(now: Date): Db {
     { id: "U-4", name: "Intern (Viewer)", email: "intern@example.com", role: "viewer", active: true, twoFactor: false, lastActive: iso(-3, 12) },
   ];
 
+  const cases: ResolutionCase[] = [
+    {
+      id: "RC-1003",
+      createdAt: iso(0, 8),
+      role: "customer",
+      name: "Kavita Shah",
+      email: email("Kavita Shah"),
+      phone: phone(61),
+      bookingRef: "B-1207",
+      issue: "Files not delivered or incomplete",
+      incidentDate: date(-12),
+      description: "The wedding film was promised in 10 days. It's been 12 and the photographer isn't answering calls.",
+      outcome: "Replacement artist or re-shoot",
+      evidence: [],
+      status: "received",
+      history: [{ at: iso(0, 8), by: "Website", status: "received" }],
+      notes: [],
+    },
+    {
+      id: "RC-1002",
+      createdAt: iso(-2, 15),
+      role: "artist",
+      name: "Rohan Bhatt",
+      email: email("Rohan Bhatt"),
+      phone: phone(62),
+      bookingRef: "B-1196",
+      issue: "Payout not received or short",
+      incidentDate: date(-9),
+      description: "The payout for the sangeet on the 3rd was ₹4,000 less than agreed.",
+      outcome: "Payout released",
+      evidence: ["https://example.com/chat-screenshot"],
+      status: "investigating",
+      history: [
+        { at: iso(-2, 15), by: "Website", status: "received" },
+        { at: iso(-1, 10), by: "Priya (Ops)", status: "acknowledged" },
+        { at: iso(-1, 16), by: "Priya (Ops)", status: "investigating" },
+      ],
+      notes: [{ at: iso(-1, 16), by: "Priya (Ops)", text: "Checking the overtime the customer approved on the day." }],
+    },
+    {
+      id: "RC-1001",
+      createdAt: iso(-11, 11),
+      role: "customer",
+      name: "Imran Qureshi",
+      email: email("Imran Qureshi"),
+      phone: phone(63),
+      bookingRef: "B-1188",
+      issue: "Artist arrived late or left early",
+      incidentDate: date(-14),
+      description: "The anchor arrived 90 minutes late for the reception.",
+      outcome: "Partial refund",
+      evidence: [],
+      status: "resolved",
+      resolution: "AOD refunded ₹3,000 (a third of the fee) on the 2nd. The artist has been warned.",
+      history: [
+        { at: iso(-11, 11), by: "Website", status: "received" },
+        { at: iso(-10, 9), by: "Priya (Ops)", status: "acknowledged" },
+        { at: iso(-8, 12), by: "Aditya (Owner)", status: "resolved" },
+      ],
+      notes: [],
+    },
+  ];
+
   return {
     version: 1,
     applications,
@@ -244,6 +307,7 @@ export function createSampleDb(now: Date): Db {
     payments,
     payouts,
     leads,
+    cases,
     team,
     activity: [
       { id: "ACT-3", at: iso(-1, 12), by: "Priya (Ops)", area: "Applications", text: "Added a note to Harsh Vyas", target: "APP-1042" },
@@ -258,6 +322,7 @@ export function createSampleDb(now: Date): Db {
       notify: {
         "New booking request": true,
         "Payment reported": true,
+        "New resolution case": true,
         "New artist application": true,
         "Event tomorrow": true,
         "Delivery link expiring": true,

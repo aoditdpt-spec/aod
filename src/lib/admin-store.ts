@@ -3,11 +3,17 @@
 import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
 import { createSampleDb } from "@/content/admin-sample";
+import { backendEnabled } from "@/lib/backend";
+import { adminSession, loadAdminDb, saveAdminChanges, type AdminChanges, type Collection } from "@/server/actions/admin";
+import { signOutAction } from "@/server/actions/auth";
 
-// The admin panel's data for the preview: one object kept in this browser (localStorage) and
-// seeded with sample records (src/content/admin-sample.ts) on first use. Every change goes through `update()`, which also
-// writes the activity log. When Supabase is added, these actions become database calls and the
-// activity log moves to a table; the screens stay the same.
+// The admin panel's data: one `Db` object the screens read with `useDb()` and change with `update()`,
+// which also writes the activity log. Two modes, picked by `backendEnabled` (src/lib/backend.ts):
+//   - live (Supabase keys set): the data is loaded from the database for the signed-in staff
+//     member, and each `update()` saves just the records it changed (server actions in
+//     src/server/actions/admin.ts, checked against the person's role). If a save is refused,
+//     the data is reloaded and the reason shown.
+//   - preview (no keys): sample records (src/content/admin-sample.ts) kept in this browser.
 
 export type Note = { at: string; by: string; text: string };
 
@@ -63,6 +69,7 @@ export type BookingStatus =
   | "rescheduled";
 export type Booking = {
   id: string;
+  requestRef?: string; // AOD-1048: the website request it came from (one request can need several categories)
   createdAt: string;
   audience: "Personal" | "Business";
   customer: { name: string; phone: string; email: string };
@@ -70,7 +77,8 @@ export type Booking = {
   service: string;
   event: string;
   date: string; // yyyy-mm-dd
-  time: string;
+  time: string; // start, HH:MM
+  endTime?: string; // end, HH:MM (earlier than the start = ends after midnight)
   city: string;
   venue: string;
   budget: string;
@@ -124,6 +132,27 @@ export type Lead = {
   bookingId?: string;
 };
 
+// A Resolution Centre case: a problem with a booking, raised by a customer, business or artist.
+export type CaseStatus = "received" | "acknowledged" | "investigating" | "resolved" | "escalated" | "closed";
+export type ResolutionCase = {
+  id: string; // RC-1001
+  createdAt: string;
+  role: "customer" | "business" | "artist";
+  name: string;
+  email: string;
+  phone: string;
+  bookingRef: string;
+  issue: string;
+  incidentDate: string; // yyyy-mm-dd
+  description: string;
+  outcome: string; // what they'd like done
+  evidence: string[]; // links to photos, chats or files
+  status: CaseStatus;
+  resolution?: string; // AOD's decision, shown to the person when they track the case
+  history: { at: string; by: string; status: CaseStatus }[];
+  notes: Note[]; // internal, never shown to the person
+};
+
 export type Member = { id: string; name: string; email: string; role: Role; active: boolean; twoFactor: boolean; lastActive: string };
 
 export type Activity = { id: string; at: string; by: string; area: string; text: string; target?: string };
@@ -144,6 +173,7 @@ export type Db = {
   payments: Payment[];
   payouts: Payout[];
   leads: Lead[];
+  cases: ResolutionCase[];
   team: Member[];
   activity: Activity[];
   settings: Settings;
@@ -162,6 +192,7 @@ const emit = () => listeners.forEach((l) => l());
 
 function subscribe(l: Listener) {
   listeners.add(l);
+  if (backendEnabled && live.status === "idle") void loadLive();
   const onStorage = (e: StorageEvent) => {
     if (e.key === DB_KEY || e.key === SESSION_KEY) {
       cache.clear();
@@ -214,68 +245,165 @@ function readJson<T>(key: string): T | null {
   return value;
 }
 
+// ---- Live mode (Supabase) ----
+
+type Live = { status: "idle" | "loading" | "ready" | "signed-out" | "error"; db: Db | null; session: Session | null; error?: string };
+let live: Live = { status: "idle", db: null, session: null };
+const setLive = (patch: Partial<Live>) => {
+  live = { ...live, ...patch };
+  emit();
+};
+
+// Load (or reload) the signed-in staff member and all the data. `quiet` keeps the current data on
+// screen while reloading.
+async function loadLive(quiet = false) {
+  if (!quiet) setLive({ status: "loading" });
+  try {
+    const session = await adminSession();
+    if (!session) return setLive({ status: "signed-out", session: null, db: null });
+    const db = await loadAdminDb();
+    setLive(db ? { status: "ready", session, db, error: undefined } : { status: "signed-out", session: null, db: null });
+  } catch (e) {
+    setLive({ status: "error", error: e instanceof Error ? e.message : "Couldn't load the data." });
+  }
+}
+
+// Called after signing in with the emailed code.
+export const reloadAdmin = () => loadLive();
+
+const collections: Collection[] = ["applications", "artists", "bookings", "payments", "payouts", "leads", "cases", "team"];
+
+// What an action changed: records added, changed or removed in each list, and the settings.
+function diff(before: Db, after: Db): AdminChanges {
+  const changes: AdminChanges = { added: {}, changed: {}, removed: {}, activity: [] };
+  for (const key of collections) {
+    const old = new Map<string, unknown>(before[key].map((x) => [x.id, x]));
+    const now = new Map<string, unknown>(after[key].map((x) => [x.id, x]));
+    const added = [...now].filter(([id]) => !old.has(id)).map(([, x]) => x);
+    const changed = [...now].filter(([id, x]) => old.has(id) && JSON.stringify(x) !== JSON.stringify(old.get(id))).map(([, x]) => x);
+    const removed = [...old.keys()].filter((id) => !now.has(id));
+    if (added.length) changes.added[key] = added;
+    if (changed.length) changes.changed[key] = changed;
+    if (removed.length) changes.removed[key] = removed;
+  }
+  if (JSON.stringify(before.settings) !== JSON.stringify(after.settings)) changes.settings = after.settings;
+  return changes;
+}
+
 // ---- Database ----
 
-function getDb(): Db {
+function getPreviewDb(): Db {
   const db = readJson<Db>(DB_KEY);
-  if (db && db.version === 1) return db;
+  if (db && db.version === 1) {
+    if (Array.isArray(db.cases)) return db;
+    // Saved before Resolution Centre cases existed: add the sample cases, keep everything else.
+    store(DB_KEY, JSON.stringify({ ...db, cases: createSampleDb(new Date()).cases }));
+    return readJson<Db>(DB_KEY)!;
+  }
   // First visit (or an old format): seed sample data. Stored without notifying, because this
   // runs while React reads the snapshot.
   store(DB_KEY, JSON.stringify(createSampleDb(new Date())));
   return readJson<Db>(DB_KEY)!;
 }
 
-// null during server rendering and until the browser data is ready.
+// The data the screens work on (live: only called once it has loaded).
+function getDb(): Db {
+  return backendEnabled ? live.db! : getPreviewDb();
+}
+
+const getLiveDb = () => live.db;
+
+// null during server rendering and until the data is ready.
 export function useDb(): Db | null {
-  return useSyncExternalStore(subscribe, getDb, () => null);
+  return useSyncExternalStore(subscribe, backendEnabled ? getLiveDb : getPreviewDb, () => null);
 }
 
 // Next number in a series: B-1215 after B-1214, PAY-3102 after PAY-3101.
 export function newId(prefix: string): string {
   const db = getDb();
-  const ids = [db.applications, db.artists, db.bookings, db.payments, db.payouts, db.leads, db.team].flat().map((x) => x.id);
+  const ids = [db.applications, db.artists, db.bookings, db.payments, db.payouts, db.leads, db.cases, db.team].flat().map((x) => x.id);
   const nums = ids.filter((id) => id.startsWith(`${prefix}-`)).map((id) => Number(id.slice(prefix.length + 1))).filter(Number.isFinite);
   return `${prefix}-${(nums.length ? Math.max(...nums) : 100) + 1}`;
 }
 
 // Apply a change and log it. `fn` gets a copy of the data to change in place.
 export function update(area: string, text: string, fn: (db: Db) => void, target?: string) {
-  const db: Db = structuredClone(getDb());
+  const before = getDb();
+  const db: Db = structuredClone(before);
   fn(db);
-  const by = getSession()?.name ?? "Someone";
-  db.activity.unshift({ id: `ACT-${Date.now()}-${db.activity.length}`, at: new Date().toISOString(), by, area, text, target });
+  const entry: Activity = {
+    id: `ACT-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    at: new Date().toISOString(),
+    by: getSession()?.name ?? "Someone",
+    area,
+    text,
+    target,
+  };
+  db.activity.unshift(entry);
   db.activity = db.activity.slice(0, 500);
-  writeRaw(DB_KEY, JSON.stringify(db));
+
+  if (!backendEnabled) {
+    writeRaw(DB_KEY, JSON.stringify(db));
+    return;
+  }
+  // Live: show the change straight away, save it, and reload if the save is refused.
+  const changes = { ...diff(before, db), activity: [entry] };
+  setLive({ db });
+  saveAdminChanges(changes)
+    .then((res) => {
+      if (!res.ok) {
+        window.alert(res.error);
+        void loadLive(true);
+      }
+    })
+    .catch(() => {
+      window.alert("Couldn't save the change. Check your connection; the page has been refreshed.");
+      void loadLive(true);
+    });
 }
 
-// Start over with fresh sample data.
+// Start over with fresh sample data (preview only).
 export function resetDb() {
+  if (backendEnabled) return;
   writeRaw(DB_KEY, JSON.stringify(createSampleDb(new Date())));
 }
 
 // The signed-in person's name, for notes and history entries.
 export const currentUser = () => getSession()?.name ?? "Someone";
 
-// ---- Session (preview sign-in) ----
+// ---- Session ----
 
 export function getSession(): Session | null {
-  return readJson<Session>(SESSION_KEY);
+  return backendEnabled ? live.session : readJson<Session>(SESSION_KEY);
 }
 
 export function useSession(): Session | null {
   return useSyncExternalStore(subscribe, getSession, () => null);
 }
 
+// Preview only: sign in as anyone, with any role.
 export function signIn(session: Session) {
+  if (backendEnabled) return;
   writeRaw(SESSION_KEY, JSON.stringify(session));
 }
 
 export function signOut() {
-  writeRaw(SESSION_KEY, null);
+  if (!backendEnabled) return writeRaw(SESSION_KEY, null);
+  setLive({ status: "signed-out", session: null, db: null });
+  void signOutAction();
 }
 
-// Server snapshot is "not ready", so pages can wait for the browser before deciding to redirect.
+// Whether the admin knows yet if someone is signed in (live: after the first load; preview: once
+// the browser has its data), so pages can wait before deciding to redirect.
 const noop = () => () => {};
+const always = () => true;
+const liveReady = () => live.status !== "idle" && live.status !== "loading";
 export function useBrowserReady() {
-  return useSyncExternalStore(noop, () => true, () => false);
+  return useSyncExternalStore(backendEnabled ? subscribe : noop, backendEnabled ? liveReady : always, () => false);
+}
+
+// Live mode: the last loading error, if any (shown instead of the panel).
+const liveError = () => (backendEnabled && live.status === "error" ? (live.error ?? "Couldn't load the data.") : null);
+export function useAdminError() {
+  return useSyncExternalStore(subscribe, liveError, () => null);
 }

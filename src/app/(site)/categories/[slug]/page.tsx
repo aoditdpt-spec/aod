@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -42,14 +43,16 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       <Container className="pt-8">
         <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-14">
           {/* The category photo on the right, fully visible at the right edge and fading into the dark
-              towards the left; past where it reaches, the plain dark background. A little see-through,
-              and fainter on phones, where the text runs over it. */}
+              towards the left; past where it reaches, the plain dark background. From tablets up the
+              photo box takes the photo's own shape at the header's full height, so nothing is cropped.
+              On phones it fills the header faintly behind the text. */}
           {category.image && (
             <div
               aria-hidden
-              className="absolute inset-y-0 right-0 w-full opacity-40 [mask-image:linear-gradient(to_left,black_30%,transparent)] sm:w-[75%] sm:opacity-80 lg:w-[62%]"
+              style={{ "--photo-ratio": `${category.image.width} / ${category.image.height}` } as CSSProperties}
+              className="absolute inset-y-0 right-0 w-full opacity-40 [mask-image:linear-gradient(to_left,black_55%,transparent)] sm:w-auto sm:max-w-[85%] sm:opacity-85 sm:[aspect-ratio:var(--photo-ratio)]"
             >
-              <Image src={category.image} alt="" fill preload sizes="(min-width: 1024px) 62vw, (min-width: 640px) 75vw, 100vw" className="object-cover" />
+              <Image src={category.image.src} alt="" fill preload sizes="(min-width: 640px) 60vw, 100vw" className="object-cover" />
             </div>
           )}
           <div className="relative">

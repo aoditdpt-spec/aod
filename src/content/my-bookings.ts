@@ -27,13 +27,15 @@ export const customerSteps: { id: BookingStatus; label: string; text: string }[]
 
 export type CustomerOrder = {
   id: string;
+  ref?: string; // AOD-1215: the request reference the customer got when sending it
   sample: boolean;
   createdAt: string;
   status: BookingStatus | "sent";
   occasion: string;
   services: string[];
   date: string; // yyyy-mm-dd, or "" if not fixed
-  time?: string;
+  time?: string; // start, HH:MM
+  endTime?: string; // end, HH:MM
   city: string;
   venue?: string;
   notes?: string;

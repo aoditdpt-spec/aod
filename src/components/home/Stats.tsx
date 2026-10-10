@@ -55,7 +55,7 @@ export function Stats() {
   return (
     <Container className="py-16">
       <Reveal>
-        <h2 className="text-center text-3xl font-semibold sm:text-[2.5rem]">Relied on across Gujarat</h2>
+        <h2 className="text-center text-2xl font-medium sm:text-3xl">Relied on across Gujarat</h2>
       </Reveal>
       <StaggerList className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (

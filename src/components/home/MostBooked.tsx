@@ -6,8 +6,8 @@ import { Icon } from "@/components/ui/Icon";
 import { Rating } from "@/components/ui/Rating";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
 
-// The most-booked services as a ranked list (01, 02 …): no photos and no cards, just rows
-// with the service, its category, the rating and a link to the category. Two columns on laptops.
+// The most-booked services as a list: no photos and no cards, just rows with a diamond bullet,
+// the service, its category, the rating and a link to the category. Two columns on laptops.
 export function MostBooked() {
   const items = mostBooked.map(({ service, category }) => {
     const cat = getCategory(category)!;
@@ -29,18 +29,18 @@ export function MostBooked() {
           </Link>
         </Reveal>
 
-        {/* Top to bottom, then the second column, so the ranking reads in order. */}
+        {/* Top to bottom, then the second column, so the list reads in order of popularity. */}
         <StaggerList
           className="mt-10 grid border-t border-line lg:grid-flow-col lg:grid-cols-2 lg:gap-x-16"
           style={{ gridTemplateRows: `repeat(${Math.ceil(items.length / 2)}, auto)` }}
         >
-          {items.map((item, i) => (
+          {items.map((item) => (
             <StaggerItem key={item.service} className="border-b border-line">
               <Link
                 href={`/categories/${item.slug}`}
                 className="group -mx-3 flex items-center gap-5 rounded-lg px-3 py-5 transition-colors hover:bg-white sm:gap-6"
               >
-                <span className="w-12 shrink-0 text-3xl font-light tabular-nums text-brand-bright sm:text-4xl">{String(i + 1).padStart(2, "0")}</span>
+                <span aria-hidden className="ml-1 h-2.5 w-2.5 shrink-0 rotate-45 rounded-[2px] bg-brand-bright" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-lg font-medium text-ink group-hover:text-brand">{item.service}</span>
                   <span className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">

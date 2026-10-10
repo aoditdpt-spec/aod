@@ -5,6 +5,7 @@ import { useState } from "react";
 import { legalDocs } from "@/content/legal";
 import { payee } from "@/content/payments";
 import { siteHref } from "@/lib/site-url";
+import { backendEnabled } from "@/lib/backend";
 import { resetDb, update, useDb, type Settings } from "@/lib/admin-store";
 import { buildXlsx, download, XLSX_TYPE } from "@/lib/xlsx";
 import { usePayBase } from "@/components/pay/PayLinkBuilder";
@@ -144,15 +145,19 @@ export function SettingsPage() {
                 <Download className="h-4 w-4" aria-hidden /> Export everything
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => window.confirm("Replace everything with fresh sample data? Changes made in this browser will be lost.") && resetDb()}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3.5 text-sm font-medium text-red-700 hover:bg-red-50"
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden /> Reset sample data
-            </button>
+            {!backendEnabled && (
+              <button
+                type="button"
+                onClick={() => window.confirm("Replace everything with fresh sample data? Changes made in this browser will be lost.") && resetDb()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3.5 text-sm font-medium text-red-700 hover:bg-red-50"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden /> Reset sample data
+              </button>
+            )}
           </div>
-          <p className="mt-3 text-xs text-muted">This preview keeps its data in this browser only. Each person sees their own copy.</p>
+          <p className="mt-3 text-xs text-muted">
+            {backendEnabled ? "Everything is saved in AOD's database and shared by the whole team." : "This preview keeps its data in this browser only. Each person sees their own copy."}
+          </p>
         </Card>
       </div>
     </div>

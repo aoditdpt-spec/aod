@@ -15,8 +15,9 @@ const columns = [
     title: "For clients",
     links: [
       { href: "/book", label: "Get curated matches" },
+      { href: "/my-bookings", label: "My bookings" },
+      { href: "/pay", label: "Pay AOD" },
       { href: "/#how-it-works", label: "How it works" },
-      { href: "/#categories", label: "Browse services" },
       { href: "/business", label: "AOD for Business" },
       { href: "/about", label: "About us" },
     ],
@@ -25,13 +26,14 @@ const columns = [
     title: "For artists",
     links: [
       { href: "/for-artists", label: "Join as an artist" },
-      { href: "/for-artists", label: "Zero joining fees" },
+      { href: "/artists/apply", label: "Apply online" },
+      { href: "/artists", label: "Artist portal sign-in" },
       { href: "/for-artists#verification", label: "How verification works" },
     ],
   },
   {
-    title: "Policies",
-    links: legalDocs.map((d) => ({ href: `/${d.slug}`, label: d.title })),
+    title: "Policies & help",
+    links: [...legalDocs.map((d) => ({ href: `/${d.slug}`, label: d.title })), { href: "/resolve", label: "Resolution Centre" }],
   },
 ];
 

@@ -6,10 +6,12 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide
 import { useState, type ReactNode } from "react";
 import { applySteps, experienceLevels, languages, uploadRules } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
+import { backendEnabled } from "@/lib/backend";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { createApplication } from "@/server/actions/public";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { DigiLockerCard } from "./DigiLockerCard";
 import { FileDrop, type PickedFile } from "./FileDrop";
@@ -30,8 +32,9 @@ function problems(step: number, p: ArtistProfile, files: Files, phoneVerified: b
   if (step === 0) {
     if (p.fullName.trim().length < 2) e.fullName = "Enter your full name.";
     if (!validPhone(p.phone)) e.phone = "Enter a 10-digit Indian mobile number.";
-    else if (!phoneVerified) e.phone = "Verify your number with the code.";
-    if (p.email && !validEmail(p.email)) e.email = "Check your email address.";
+    else if (!phoneVerified && !backendEnabled) e.phone = "Verify your number with the code.";
+    if (backendEnabled && !validEmail(p.email)) e.email = "Enter your email address; AOD replies by email.";
+    else if (p.email && !validEmail(p.email)) e.email = "Check your email address.";
     if (!p.city) e.city = "Choose your city.";
   }
   if (step === 1) {
@@ -42,7 +45,9 @@ function problems(step: number, p: ArtistProfile, files: Files, phoneVerified: b
     if (p.bio.trim().length < BIO_MIN) e.bio = `Write at least ${BIO_MIN} characters about your work.`;
   }
   if (step === 2) {
-    if (files.samples.length < uploadRules.samples.min && p.links.length === 0) {
+    if (backendEnabled && p.links.length === 0) {
+      e.samples = "Add at least one portfolio link (Instagram, YouTube, Drive…). Uploaded files aren't sent to AOD yet.";
+    } else if (files.samples.length < uploadRules.samples.min && p.links.length === 0) {
       e.samples = `Add at least ${uploadRules.samples.min} samples of your work, or at least one portfolio link.`;
     }
   }
@@ -63,6 +68,9 @@ export function ApplyForm() {
   const [files, setFiles] = useState<Files>({ samples: [], resume: [], gst: [] });
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null); // live: the saved application's reference
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Merge into the latest saved draft, so quick successive edits never undo each other.
   const set = (patch: Partial<ArtistProfile>) => profileStore.set({ ...(profileStore.get() ?? emptyProfile), ...patch });
@@ -78,6 +86,23 @@ export function ApplyForm() {
   }
 
   const category = categories.find((c) => c.slug === profile.category);
+
+  if (submitted && savedId) {
+    return (
+      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-white p-6 text-center sm:p-10">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+          <CheckCircle2 className="h-7 w-7" aria-hidden />
+        </span>
+        <h2 className="mt-6 text-2xl font-normal sm:text-3xl">Application received</h2>
+        <p className="mt-3 text-body">
+          Your reference is <strong>{savedId}</strong>. AOD&apos;s team reviews every application and will reply by email at {profile.email}.
+        </p>
+        <Link href="/for-artists" className="mt-8 inline-flex h-12 items-center justify-center rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash">
+          Back to For Artists
+        </Link>
+      </div>
+    );
+  }
 
   if (submitted) {
     const summary = [
@@ -98,10 +123,14 @@ export function ApplyForm() {
           <Info className="h-7 w-7" aria-hidden />
         </span>
         <h2 className="mt-6 text-2xl font-normal sm:text-3xl">Your application is ready, but not sent</h2>
-        <p className="mt-3 text-body">
-          This portal is a preview, so nothing has been sent to AOD. When it goes live, submitting saves your application and our
-          team contacts you on WhatsApp about the next steps.
-        </p>
+        {saveError ? (
+          <p className="mt-3 text-body">{saveError} Nothing has reached AOD yet.</p>
+        ) : (
+          <p className="mt-3 text-body">
+            This portal is a preview, so nothing has been sent to AOD. When it goes live, submitting saves your application and our
+            team contacts you on WhatsApp about the next steps.
+          </p>
+        )}
         <p className="mt-3 text-body">To apply today, send your details to the AOD team on WhatsApp:</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <a
@@ -183,8 +212,22 @@ export function ApplyForm() {
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          if (step < applySteps.length - 1) next();
-          else setSubmitted(true);
+          if (step < applySteps.length - 1) return next();
+          if (!backendEnabled) return setSubmitted(true);
+          if (sending) return;
+          setSending(true);
+          setSaveError(null);
+          void createApplication({ ...profile, phone: `+91 ${phoneDigits(profile.phone)}` })
+            .then((res) => {
+              if (res.ok) setSavedId(res.id);
+              else setSaveError(res.error);
+              setSubmitted(true);
+            })
+            .catch(() => {
+              setSaveError("Couldn't send your application just now.");
+              setSubmitted(true);
+            })
+            .finally(() => setSending(false));
         }}
         className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-10"
       >
@@ -220,6 +263,8 @@ export function ApplyForm() {
               <>
                 Continue <ArrowRight className="h-4 w-4" aria-hidden />
               </>
+            ) : sending ? (
+              "Sending…"
             ) : (
               "Submit application"
             )}
@@ -279,7 +324,7 @@ function AboutStep({
                 className={`${inputBase} rounded-l-none`}
               />
             </div>
-            {phoneVerified ? (
+            {backendEnabled ? null : phoneVerified ? (
               <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-50 px-4 text-sm font-medium text-emerald-700">
                 <CheckCircle2 className="h-4 w-4" aria-hidden /> Verified
               </span>
@@ -299,7 +344,7 @@ function AboutStep({
             )}
           </div>
         </Field>
-        {codeSent && !phoneVerified && (
+        {!backendEnabled && codeSent && !phoneVerified && (
           <div className="mt-3 rounded-xl bg-wash p-4">
             <label className="block text-sm font-medium text-ink">
               Code sent on WhatsApp
@@ -334,7 +379,7 @@ function AboutStep({
         )}
       </div>
 
-      <Field label="Email" optional error={errors.email}>
+      <Field label="Email" optional={!backendEnabled} error={errors.email}>
         <input
           value={profile.email}
           onChange={(e) => set({ email: e.target.value })}

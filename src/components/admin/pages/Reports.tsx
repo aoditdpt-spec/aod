@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, FileSpreadsheet, RefreshCw } from "lucide-react";
-import { applicationStages, bookingStages, leadStatuses, paymentStatuses } from "@/content/admin";
+import { applicationStages, bookingStages, caseStages, leadStatuses, paymentStatuses } from "@/content/admin";
 import { useDb, type Db } from "@/lib/admin-store";
 import { buildXlsx, download, XLSX_TYPE, type Sheet } from "@/lib/xlsx";
 import { artistName, Card, categoryName, inr, PageHeader, Stat, useCan } from "../ui";
@@ -9,7 +9,7 @@ import { artistName, Card, categoryName, inr, PageHeader, Stat, useCan } from ".
 const stageLabel = (list: readonly { id: string; label: string }[], id: string) => list.find((s) => s.id === id)?.label ?? id;
 
 // The master workbook: one sheet per list (artists, bookings, payments, payouts, leads,
-// applications, activity), plus "which customer booked which artist".
+// applications, resolution cases, activity), plus "which customer booked which artist".
 export function masterWorkbook(db: Db): Sheet[] {
   return [
     {
@@ -45,6 +45,10 @@ export function masterWorkbook(db: Db): Sheet[] {
     {
       name: "Applications",
       rows: [["ID", "Submitted", "Name", "Phone", "Email", "Category", "City", "Experience", "Status", "Meeting", "Links"], ...db.applications.map((a) => [a.id, a.submittedAt.slice(0, 10), a.name, a.phone, a.email, categoryName(a.category), a.city, a.experience, stageLabel(applicationStages, a.status), a.meeting?.at.slice(0, 16).replace("T", " "), a.links.join(" ")])],
+    },
+    {
+      name: "Resolution cases",
+      rows: [["Case", "Raised", "Raised by", "Role", "Phone", "Email", "Booking", "Issue", "Happened on", "Wants", "Status", "Decision"], ...db.cases.map((c) => [c.id, c.createdAt.slice(0, 10), c.name, c.role, c.phone, c.email, c.bookingRef, c.issue, c.incidentDate, c.outcome, stageLabel(caseStages, c.status), c.resolution])],
     },
     { name: "Activity", rows: [["When", "Who", "Area", "What", "Record"], ...db.activity.map((a) => [a.at.slice(0, 16).replace("T", " "), a.by, a.area, a.text, a.target])] },
   ];

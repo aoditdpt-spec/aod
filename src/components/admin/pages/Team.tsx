@@ -1,5 +1,6 @@
 "use client";
 
+import { backendEnabled } from "@/lib/backend";
 import { Check, Minus, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { can, permissions, roles, type Permission, type Role } from "@/content/admin";
@@ -13,6 +14,7 @@ const permissionLabels: Record<Permission, string> = {
   "payments.verify": "Verify customer payments",
   "payouts.pay": "Pay artists, edit payout details",
   "leads.edit": "Add and update leads",
+  "cases.edit": "Handle resolution cases",
   "messages.send": "Send WhatsApp messages",
   export: "Download Excel / CSV",
   "team.edit": "Invite people and change roles",
@@ -29,8 +31,9 @@ export function Team() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Team & roles" text="Who can sign in, and what each role can do. Every login needs 2-step verification once real accounts are switched on." />
+      <PageHeader title="Team & roles" text={backendEnabled ? "Who can sign in, and what each role can do. Each person signs in with a code emailed to the address listed here." : "Who can sign in, and what each role can do. Every login needs 2-step verification once real accounts are switched on."} />
 
+      {!backendEnabled && (
       <Card title="Preview as another role">
         <div className="flex flex-wrap gap-2">
           {roles.map((r) => (
@@ -48,6 +51,7 @@ export function Team() {
         </div>
         <p className="mt-3 text-xs text-muted">Every role can open every page; the role decides which buttons work.</p>
       </Card>
+      )}
 
       <Card title="Members">
         <div className="overflow-x-auto">

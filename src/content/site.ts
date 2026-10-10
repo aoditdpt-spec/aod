@@ -49,8 +49,9 @@ export type Category = {
   name: string;
   singular: string;
   icon: IconName;
-  // Category photo. These are mock photos for the preview — replace them with real AOD artists' work before launch.
-  image?: string;
+  // Category photo, with its pixel size (pages use it to show the whole photo without cropping).
+  // These are mock photos for the preview — replace them with real AOD artists' work before launch.
+  image?: { src: string; width: number; height: number };
   short: string;
   description: string;
   services: Service[];
@@ -60,7 +61,7 @@ export type Category = {
 export const categories: Category[] = [
   {
     slug: "photographers",
-    image: "/categories/photographers.jpg",
+    image: { src: "/categories/photographers.jpg", width: 655, height: 449 },
     name: "Photographers",
     singular: "Photographer",
     icon: "camera",
@@ -79,7 +80,7 @@ export const categories: Category[] = [
   },
   {
     slug: "cinematographers",
-    image: "/categories/cinematographers.jpg",
+    image: { src: "/categories/cinematographers.jpg", width: 900, height: 619 },
     name: "Cinematographers",
     singular: "Cinematographer",
     icon: "video",
@@ -96,7 +97,7 @@ export const categories: Category[] = [
   },
   {
     slug: "drone-pilots",
-    image: "/categories/drone-pilots.jpg",
+    image: { src: "/categories/drone-pilots.jpg", width: 655, height: 358 },
     name: "Drone Pilots",
     singular: "Drone Pilot",
     icon: "drone",
@@ -112,7 +113,7 @@ export const categories: Category[] = [
   },
   {
     slug: "anchors-hosts",
-    image: "/categories/anchors-hosts.jpg",
+    image: { src: "/categories/anchors-hosts.jpg", width: 995, height: 684 },
     name: "Anchors & Hosts",
     singular: "Anchor / Host",
     icon: "mic",
@@ -128,7 +129,7 @@ export const categories: Category[] = [
   },
   {
     slug: "editors",
-    image: "/categories/editors.jpg",
+    image: { src: "/categories/editors.jpg", width: 720, height: 495 },
     name: "Editors",
     singular: "Editor",
     icon: "film",
@@ -144,7 +145,7 @@ export const categories: Category[] = [
   },
   {
     slug: "musicians-djs",
-    image: "/categories/musicians-djs.jpg",
+    image: { src: "/categories/musicians-djs.jpg", width: 1000, height: 688 },
     name: "Musicians & DJs",
     singular: "Musician / DJ",
     icon: "music",
@@ -160,7 +161,7 @@ export const categories: Category[] = [
   },
   {
     slug: "comedians",
-    image: "/categories/comedians.jpg",
+    image: { src: "/categories/comedians.jpg", width: 1000, height: 688 },
     name: "Stand-up Comedians",
     singular: "Comedian",
     icon: "ticket",
@@ -175,7 +176,7 @@ export const categories: Category[] = [
   },
   {
     slug: "singers",
-    image: "/categories/singers.jpg",
+    image: { src: "/categories/singers.jpg", width: 535, height: 291 },
     name: "Singers & Vocalists",
     singular: "Singer",
     icon: "mic-vocal",
@@ -191,7 +192,7 @@ export const categories: Category[] = [
   },
   {
     slug: "makeup-artists",
-    image: "/categories/makeup-artists.jpg",
+    image: { src: "/categories/makeup-artists.jpg", width: 655, height: 449 },
     name: "Makeup Artists",
     singular: "Makeup Artist",
     icon: "brush",
@@ -208,7 +209,7 @@ export const categories: Category[] = [
   },
   {
     slug: "models",
-    image: "/categories/models.jpg",
+    image: { src: "/categories/models.jpg", width: 1000, height: 688 },
     name: "Models",
     singular: "Model",
     icon: "sparkles",
@@ -256,7 +257,7 @@ export const clientBrands = [
   { name: "Meraki", logo: "/brands/meraki.png", width: 280, height: 160 },
   { name: "GTZ", logo: "/brands/gtz.png", width: 219, height: 160 },
   // GATE (GCCI's trade expo) sits half a loop away from the round GCCI badge further down, so the two never appear side by side.
-  { name: "GATE 2026 – GCCI Annual Trade Expo", logo: "/brands/gate-gcci-expo.png", width: 300, height: 240 },
+  { name: "GATE 2026 – GCCI Annual Trade Expo", logo: "/brands/gate-2026-expo.png", width: 439, height: 160 },
   { name: "Lalaji", logo: "/brands/lalaji.png", width: 269, height: 160 },
   { name: "HI Interior Hardware", logo: "/brands/hi-interior-hardware.png", width: 181, height: 160 },
   { name: "Ralco Extrusion", logo: "/brands/ralco-extrusion.png", width: 276, height: 160 },
@@ -435,20 +436,68 @@ export const howItWorks = {
     "Replacement guarantee: if an artist cancels, AOD sends a verified substitute — you are never stranded.",
 };
 
-export const differentiators = {
-  title: ["Others hand you a long list.", "We deliver the curated match."],
-  items: [
+// The homepage's "Everything in one place" section: the artist portal up front, then the
+// separate places customers use (each its own page, some planned for their own subdomain).
+export const portals = {
+  eyebrow: "Everything in one place",
+  title: "One AOD, a place for everyone.",
+  text: "Booking an artist, following a booking, paying, sorting out a problem or joining as an artist: each has its own place. Here's where to go.",
+  artist: {
+    eyebrow: "For artists",
+    title: "Are you an artist? Join AOD.",
+    text: "Photographers, cinematographers, DJs, anchors, makeup artists, musicians and more. AOD brings you real bookings at a fair rate, so you can focus on your art.",
+    perks: ["Zero joining fees", "Real bookings across Gujarat", "Rates agreed upfront", "Verified badge and reviews"],
+    join: {
+      label: "New to AOD",
+      title: "Join as an artist",
+      text: "Apply online in a few minutes. AOD's team reviews every application.",
+      href: "/artists/apply",
+    },
+    signIn: {
+      label: "Already an AOD artist",
+      title: "Sign in to the artist portal",
+      text: "Your booking requests, availability, profile, portfolio and documents.",
+      href: "/artists",
+    },
+    more: "How joining works",
+    whatsapp: "Prefer WhatsApp?",
+  },
+  places: [
     {
-      title: "Instant booking",
-      text: "Request to confirmed in minutes — not the industry-average 72 hours.",
+      id: "bookings",
+      who: "For customers",
+      title: "My bookings",
+      text: "Every request you've sent and every booking, in one list.",
+      points: ["Follow each booking's progress", "Pay the advance or balance", "Download your photos and films"],
+      cta: "Open My bookings",
+      href: "/my-bookings",
     },
     {
-      title: "Verified professionals",
-      text: "Portfolio review, background checks and trial shoots before anyone goes live.",
+      id: "pay",
+      who: "Payments",
+      title: "Pay AOD",
+      text: "Pay an advance or balance by UPI, with no extra charges.",
+      points: ["Scan the QR or open your UPI app", "Share the 12-digit transaction ID", "AOD confirms once it's checked"],
+      cta: "Make a payment",
+      href: "/pay",
     },
     {
-      title: "Transparent quotes",
-      text: "One clear quote per curated match — no haggling, no surprises. The price you agree is the price you pay.",
+      id: "resolve",
+      who: "If something goes wrong",
+      title: "Resolution Centre",
+      text: "A formal place to raise a problem with a booking, for customers and artists.",
+      points: ["Get a case number straight away", "A reply within 48 hours", "Track it, and escalate if needed"],
+      cta: "Raise or track a case",
+      href: "/resolve",
+    },
+    {
+      id: "business",
+      who: "For companies",
+      title: "AOD for Business",
+      text: "Corporate events, brand shoots and expos, on one contract.",
+      points: ["Monthly or yearly retainers", "Digital contracts and one invoice", "One point of contact"],
+      cta: "See AOD for Business",
+      href: "/business",
     },
   ],
 };
@@ -523,20 +572,21 @@ export const business = {
 // The About us page (/about).
 export const about = {
   eyebrow: "About AOD",
-  title: "Artists, on demand.",
+  title: "Artists on demand.",
   intro:
     "Artists on Demand (AOD) is an Ahmedabad company that makes booking event talent as easy as booking a cab. Photographers, cinematographers, DJs, anchors, makeup artists and more — verified, matched to your event and booked with one clear quote.",
-  storyTitle: "Why we started AOD",
+  storyTitle: "Vision of AOD",
   story: [
+    "AOD's vision is simple: booking talent for any event in Gujarat should be as easy and as trustworthy as booking a cab — every artist verified, every price clear.",
     "Finding the right artist for a wedding, a launch or a shoot usually means scrolling through hundreds of profiles, chasing replies, haggling over prices and hoping they turn up on the day.",
-    "We started AOD to take that guesswork away. You tell us what you need, and we send curated matches: artists we have verified, with clear quotes and a digital contract on every booking.",
+    "You tell AOD what you need, and AOD sends curated matches: artists AOD has verified, with clear quotes and a digital contract on every booking.",
     "For artists, AOD means the right bookings at the right rate, with zero joining fees and a team that handles the back-and-forth.",
   ],
-  valuesTitle: "What we stand for",
+  valuesTitle: "What AOD stands for",
   values: [
     { title: "Verified, not just listed", text: "Portfolio review, background checks and a trial booking before any artist goes live." },
     { title: "One clear price", text: "One clear quote per curated match. The price you agree is the price you pay." },
-    { title: "Never stranded", text: "If an artist cancels, we send a verified substitute." },
+    { title: "Never stranded", text: "If an artist cancels, AOD sends a verified substitute." },
     { title: "Fair to artists", text: "Zero joining fees, and bookings that suit each artist's craft and rate." },
   ],
   // Names and titles from the founders' public eChai listings — confirm before launch, and add photos.
@@ -545,7 +595,7 @@ export const about = {
     { name: "Vaibhav Patel", role: "Co-founder & CEO" },
     { name: "Dhruvi Thakkar", role: "Co-founder" },
   ],
-  contactTitle: "Talk to us",
+  contactTitle: "Talk to AOD",
   contactText: "Questions, partnerships or press — reach the AOD team directly.",
 };
 

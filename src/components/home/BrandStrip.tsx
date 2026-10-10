@@ -3,8 +3,8 @@ import { clientBrands } from "@/content/site";
 
 // Logos have very different shapes (a long exhibition banner next to a square crest),
 // so instead of one fixed height each gets the same visual area, capped at MAX_HEIGHT.
-const AREA = 270 * 100; // in px at the 16px rem
-const MAX_HEIGHT = 110;
+const AREA = 216 * 80; // in px at the 16px rem
+const MAX_HEIGHT = 88;
 
 function logoSize(width: number, height: number) {
   const aspect = width / height;
@@ -18,7 +18,7 @@ function LogoList({ copy = false }: { copy?: boolean }) {
       // The second copy only exists to make the loop seamless: hidden from screen readers,
       // and dropped entirely when the strip doesn't move.
       aria-hidden={copy || undefined}
-      className={`flex shrink-0 items-center gap-x-24 pr-24 motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8 motion-reduce:pr-0 ${
+      className={`flex shrink-0 items-center gap-x-20 pr-20 motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8 motion-reduce:pr-0 ${
         copy ? "motion-reduce:hidden" : ""
       }`}
     >

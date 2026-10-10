@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, Star, UserRound } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, Scale, Star, UserRound } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
 import { brand } from "@/content/site";
+import { backendEnabled } from "@/lib/backend";
+import { timeRange } from "@/lib/event-time";
 import { customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
 import { useHydrated } from "@/lib/motion-safe";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
+import { requestCode, signOutAction, verifyCode } from "@/server/actions/auth";
+import { myOrders, submitReview, type MyOrders } from "@/server/actions/customer";
 
 const inr = (n?: number) => (n === undefined ? "—" : `₹${n.toLocaleString("en-IN")}`);
 const fmt = (s: string, time = false) => {
@@ -56,20 +60,72 @@ const fromRequest = (r: SentRequest): CustomerOrder => ({
 });
 
 // Customer bookings: sign in by email code, then every booking with its status, payments,
-// artist and delivery. Preview: any code works, and the bookings are samples plus the
-// requests sent from this browser.
+// artist and delivery.
+// Live (backend set up): a real emailed code, and the bookings made with that email (the
+// database only returns the customer's own). Preview: any code works, and the bookings are
+// samples plus the requests sent from this browser.
 export function MyBookings() {
-  const hydrated = useHydrated();
-  const session = customerSessionStore.use();
-  if (!hydrated) return <div className="mx-auto h-96 max-w-5xl animate-pulse rounded-[1.5rem] bg-wash" />;
-  return session ? <BookingsView email={session.email} /> : <CustomerSignIn />;
+  return backendEnabled ? <LiveMyBookings /> : <PreviewMyBookings />;
 }
 
-function CustomerSignIn() {
+function PreviewMyBookings() {
+  const hydrated = useHydrated();
+  const session = customerSessionStore.use();
+  const sentRequests = sentRequestsStore.use();
+  const [samples] = useState(() => sampleOrders(new Date()));
+  if (!hydrated) return <div className="mx-auto h-96 max-w-5xl animate-pulse rounded-[1.5rem] bg-wash" />;
+  return session ? (
+    <BookingsView email={session.email} orders={[...sentRequests.map(fromRequest), ...samples]} onSignOut={() => customerSessionStore.clear()} />
+  ) : (
+    <CustomerSignIn />
+  );
+}
+
+function LiveMyBookings() {
+  const [data, setData] = useState<MyOrders | null | undefined>(undefined); // undefined = loading
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => {
+    myOrders()
+      .then((d) => {
+        setData(d);
+        setError(null);
+      })
+      .catch(() => setError("Couldn't load your bookings just now. Please try again."));
+  }, []);
+  useEffect(load, [load]);
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 text-center text-sm text-body">
+        {error}{" "}
+        <button type="button" onClick={load} className="font-medium text-brand underline underline-offset-2">
+          Try again
+        </button>
+      </div>
+    );
+  }
+  if (data === undefined) return <div className="mx-auto h-96 max-w-5xl animate-pulse rounded-[1.5rem] bg-wash" />;
+  if (data === null) return <CustomerSignIn onSignedIn={load} />;
+  return (
+    <BookingsView
+      email={data.email}
+      orders={data.orders}
+      onSignOut={() => void signOutAction().then(() => setData(null))}
+      onReview={async (id, rating, text) => {
+        const res = await submitReview(id, rating, text);
+        if (res.ok) load();
+        return res.ok ? null : res.error;
+      }}
+    />
+  );
+}
+
+function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const field = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none focus:border-brand";
 
   return (
@@ -79,16 +135,28 @@ function CustomerSignIn() {
       <form
         noValidate
         className="mt-6 space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          if (busy) return;
           if (!sent) {
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError("Enter a valid email address.");
             setError(null);
+            if (backendEnabled) {
+              setBusy(true);
+              const res = await requestCode(email, "customer");
+              setBusy(false);
+              if (!res.ok) return setError(res.error);
+            }
             setSent(true);
             return;
           }
           if (!/^\d{6}$/.test(code)) return setError("Enter the 6-digit code.");
-          customerSessionStore.set({ email: email.trim() });
+          if (!backendEnabled) return customerSessionStore.set({ email: email.trim() });
+          setBusy(true);
+          const res = await verifyCode(email, code);
+          setBusy(false);
+          if (!res.ok) return setError(res.error);
+          onSignedIn?.();
         }}
       >
         <label className="block text-sm font-medium text-ink">
@@ -127,16 +195,15 @@ function CustomerSignIn() {
             </>
           )}
         </button>
-        {sent && <p className="rounded-lg bg-wash p-3 text-xs text-muted">Preview: no email is sent yet. Enter any 6 digits.</p>}
+        {sent && !backendEnabled && <p className="rounded-lg bg-wash p-3 text-xs text-muted">Preview: no email is sent yet. Enter any 6 digits.</p>}
       </form>
     </div>
   );
 }
 
-function BookingsView({ email }: { email: string }) {
-  const sentRequests = sentRequestsStore.use();
-  const [samples] = useState(() => sampleOrders(new Date()));
-  const orders = [...sentRequests.map(fromRequest), ...samples];
+type ReviewFn = (id: string, rating: number, text: string) => Promise<string | null>; // null = saved, else the error
+
+function BookingsView({ email, orders, onSignOut, onReview }: { email: string; orders: CustomerOrder[]; onSignOut: () => void; onReview?: ReviewFn }) {
   const [tab, setTab] = useState<"active" | "past">("active");
   const [openId, setOpenId] = useState<string | null>(null);
   const isPast = (o: CustomerOrder) => ["delivered", "reviewed", "cancelled"].includes(o.status) || (o.date !== "" && o.date < todayKey());
@@ -150,7 +217,7 @@ function BookingsView({ email }: { email: string }) {
           <h1 className="text-3xl font-medium sm:text-4xl">{myBookingsCopy.title}</h1>
           <p className="mt-1 text-sm text-muted">
             Signed in as {email} ·{" "}
-            <button type="button" onClick={() => customerSessionStore.clear()} className="font-medium text-brand underline underline-offset-2">
+            <button type="button" onClick={onSignOut} className="font-medium text-brand underline underline-offset-2">
               Sign out
             </button>
           </p>
@@ -198,7 +265,7 @@ function BookingsView({ email }: { email: string }) {
                     >
                       <span className="flex items-center justify-between gap-2 text-xs text-muted">
                         <span>
-                          {o.id}
+                          {o.ref ? `${o.ref} · ${o.id}` : o.id}
                           {o.sample && <span className="ml-2 rounded bg-wash px-1.5 py-0.5">Sample</span>}
                         </span>
                         <span className={`rounded-md px-2 py-0.5 font-medium ${s.tone}`}>{s.label}</span>
@@ -224,7 +291,7 @@ function BookingsView({ email }: { email: string }) {
         </div>
 
         {open ? (
-          <OrderDetail order={open} onBack={() => setOpenId(null)} />
+          <OrderDetail key={open.id} order={open} onBack={() => setOpenId(null)} onReview={onReview} />
         ) : (
           <div className="hidden min-h-[20rem] items-center justify-center rounded-2xl border border-dashed border-line text-sm text-muted lg:flex">
             Choose a booking to see everything about it.
@@ -235,10 +302,11 @@ function BookingsView({ email }: { email: string }) {
   );
 }
 
-function OrderDetail({ order: o, onBack }: { order: CustomerOrder; onBack: () => void }) {
+function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onBack: () => void; onReview?: ReviewFn }) {
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
   const [reviewed, setReviewed] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const s = statusInfo(o);
   const action = nextAction(o);
   const current = customerSteps.findIndex((x) => x.id === o.status);
@@ -320,7 +388,7 @@ function OrderDetail({ order: o, onBack }: { order: CustomerOrder; onBack: () =>
           <h3 className="font-medium text-ink">Event</h3>
           <dl className="mt-3 space-y-2 text-sm">
             {[
-              ["Date", `${fmt(o.date)}${o.time ? `, ${o.time}` : ""}`],
+              ["Date", `${fmt(o.date)}${o.time ? `, ${timeRange(o.time, o.endTime)}` : ""}`],
               ["Place", [o.venue, o.city].filter(Boolean).join(", ") || "—"],
               ["Services", o.services.join(", ")],
               ["Notes", o.notes || "—"],
@@ -396,6 +464,9 @@ function OrderDetail({ order: o, onBack }: { order: CustomerOrder; onBack: () =>
             <a href={changeMail} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
               <Mail className="h-4 w-4 text-brand" aria-hidden /> Change or cancel by email
             </a>
+            <Link href={`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
+              <Scale className="h-4 w-4 text-brand" aria-hidden /> Something went wrong? Raise a case
+            </Link>
             <Link href="/refund-policy" className="text-xs text-muted underline underline-offset-2 hover:text-ink">
               Cancellation & refund policy
             </Link>
@@ -423,13 +494,19 @@ function OrderDetail({ order: o, onBack }: { order: CustomerOrder; onBack: () =>
         <div className={box}>
           <h3 className="font-medium text-ink">How was it?</h3>
           {reviewed ? (
-            <p className="mt-3 text-sm text-body">Thanks for your review! (Preview: reviews are saved once the backend is live.)</p>
+            <p className="mt-3 text-sm text-body">
+              Thanks for your review!{onReview ? "" : " (Preview: reviews are saved once the backend is live.)"}
+            </p>
           ) : (
             <form
               className="mt-3"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                if (review.trim()) setReviewed(true);
+                if (!review.trim()) return;
+                if (!onReview) return setReviewed(true);
+                const err = await onReview(o.id, rating, review);
+                if (err) setReviewError(err);
+                else setReviewed(true);
               }}
             >
               <div className="flex gap-1" role="radiogroup" aria-label="Rating">
@@ -449,6 +526,11 @@ function OrderDetail({ order: o, onBack }: { order: CustomerOrder; onBack: () =>
               <button type="submit" disabled={!review.trim()} className="mt-2 inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-40">
                 Send review
               </button>
+              {reviewError && (
+                <p className="mt-2 text-sm text-red-600" role="alert">
+                  {reviewError}
+                </p>
+              )}
             </form>
           )}
         </div>

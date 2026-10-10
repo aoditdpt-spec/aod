@@ -9,7 +9,8 @@
     "lint": "eslint",
     "check:search": "node --experimental-strip-types --no-warnings scripts/search-check.mts",
     "check:links": "node --experimental-strip-types --no-warnings scripts/links-check.mts",
-    "check:pay": "node --experimental-strip-types --no-warnings scripts/pay-check.mts"
+    "check:pay": "node --experimental-strip-types --no-warnings scripts/pay-check.mts",
+    "check:db": "node --experimental-strip-types --no-warnings scripts/db-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -22,6 +23,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",

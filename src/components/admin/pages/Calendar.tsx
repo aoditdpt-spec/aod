@@ -6,6 +6,7 @@ import { useState } from "react";
 import { bookingStages } from "@/content/admin";
 import { categories } from "@/content/site";
 import { useDb } from "@/lib/admin-store";
+import { time12 } from "@/lib/event-time";
 import { artistName, fieldBase, PageHeader, todayKey } from "../ui";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -97,7 +98,7 @@ export function Calendar() {
                     return (
                       <li key={b.id}>
                         <Link href={`/admin/bookings?open=${b.id}`} title={`${b.id} · ${b.service} · ${b.customer.name} · ${artistName(db, b.artistId)}`} className={`block truncate rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${chip[tone]}`}>
-                          {b.time !== "—" ? `${b.time} ` : ""}
+                          {b.time !== "—" ? `${time12(b.time)} ` : ""}
                           {b.service}
                         </Link>
                       </li>

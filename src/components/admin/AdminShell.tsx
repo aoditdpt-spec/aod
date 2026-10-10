@@ -16,6 +16,7 @@ import {
   Menu,
   MessageSquare,
   RotateCcw,
+  Scale,
   Search,
   Settings,
   Ticket,
@@ -25,7 +26,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { roles } from "@/content/admin";
-import { resetDb, signOut, useBrowserReady, useDb, useSession, type Db } from "@/lib/admin-store";
+import { backendEnabled } from "@/lib/backend";
+import { resetDb, signOut, useAdminError, useBrowserReady, useDb, useSession, type Db } from "@/lib/admin-store";
+import { caseDue } from "./pages/Resolution";
 import { daysUntil, fieldClass, inr } from "./ui";
 
 const nav = [
@@ -36,6 +39,7 @@ const nav = [
   { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/admin/payments", label: "Payments", icon: CreditCard, count: (db: Db) => db.payments.filter((p) => p.status === "pending").length },
   { href: "/admin/leads", label: "Leads", icon: Inbox, count: (db: Db) => db.leads.filter((l) => l.status === "new").length },
+  { href: "/admin/resolution", label: "Resolution cases", icon: Scale, count: (db: Db) => db.cases.filter((c) => c.status === "received" || c.status === "escalated").length },
   { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/reports", label: "Reports & exports", icon: FileSpreadsheet },
   { href: "/admin/team", label: "Team & roles", icon: ClipboardList },
@@ -63,6 +67,11 @@ export function useAlerts(db: Db | null) {
     for (const a of db.applications.filter((a) => a.status === "meeting" && a.meeting && daysUntil(a.meeting.at.slice(0, 10)) <= 2 && daysUntil(a.meeting.at.slice(0, 10)) >= 0)) {
       out.push({ text: `Meeting with ${a.name} soon`, href: `/admin/applications?open=${a.id}`, tone: "wait" });
     }
+    for (const c of db.cases.filter((c) => c.status === "received" || c.status === "escalated")) {
+      const due = caseDue(c);
+      const text = c.status === "escalated" ? `Case ${c.id} escalated to the grievance officer` : `Case ${c.id} needs a reply${due ? ` (${due.text.toLowerCase()})` : ""}`;
+      out.push({ text, href: `/admin/resolution?open=${c.id}`, tone: c.status === "escalated" || due?.overdue ? "brand" : "wait" });
+    }
     const dues = db.payouts.filter((p) => p.status === "due");
     if (dues.length) out.push({ text: `${dues.length} artist payout${dues.length > 1 ? "s" : ""} due`, href: "/admin/payments?tab=payouts", tone: "wait" });
     return out;
@@ -82,6 +91,7 @@ function GlobalSearch({ db }: { db: Db }) {
       ...db.artists.filter((a) => hit(a.id, a.name, a.city)).map((a) => ({ href: `/admin/artists?open=${a.id}`, label: a.name, hint: "Artist" })),
       ...db.applications.filter((a) => hit(a.id, a.name)).map((a) => ({ href: `/admin/applications?open=${a.id}`, label: a.name, hint: "Application" })),
       ...db.leads.filter((l) => hit(l.id, l.name, l.need)).map((l) => ({ href: `/admin/leads?open=${l.id}`, label: l.name, hint: "Lead" })),
+      ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.issue)).map((c) => ({ href: `/admin/resolution?open=${c.id}`, label: `${c.id} · ${c.name}`, hint: "Case" })),
       ...db.payments.filter((p) => hit(p.id, p.utr, p.payer, p.bookingId)).map((p) => ({ href: `/admin/payments?open=${p.id}`, label: `${p.id} · ${p.payer}`, hint: "Payment" })),
     ].slice(0, 8);
   }, [q, db]);
@@ -175,11 +185,24 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const ready = useBrowserReady();
   const session = useSession();
   const db = useDb();
+  const loadError = useAdminError();
   const [menu, setMenu] = useState(false);
 
   useEffect(() => {
-    if (ready && !session) router.replace("/admin");
-  }, [ready, session, router]);
+    if (ready && !session && !loadError) router.replace("/admin");
+  }, [ready, session, loadError, router]);
+
+  if (loadError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center text-sm text-muted">
+        <p className="text-base font-medium text-ink">Couldn&apos;t load the admin data.</p>
+        <p>{loadError}</p>
+        <button type="button" onClick={() => window.location.reload()} className="rounded-lg border border-line bg-white px-4 py-2 font-medium text-ink hover:border-ink">
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (!ready || !session || !db) {
     return <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted">Loading…</div>;
@@ -209,15 +232,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
         })}
       </ul>
       <div className="mt-auto space-y-1 border-t border-line pt-3 text-sm">
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm("Replace everything with fresh sample data? Your changes in this browser will be lost.")) resetDb();
-          }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-body hover:bg-wash"
-        >
-          <RotateCcw className="h-4 w-4 text-muted" aria-hidden /> Reset sample data
-        </button>
+        {!backendEnabled && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm("Replace everything with fresh sample data? Your changes in this browser will be lost.")) resetDb();
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-body hover:bg-wash"
+          >
+            <RotateCcw className="h-4 w-4 text-muted" aria-hidden /> Reset sample data
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -246,9 +271,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <GlobalSearch db={db} />
         </div>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          <span className="hidden rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 sm:inline" title="Sample data kept in this browser">
-            Sample data
-          </span>
+          {!backendEnabled && (
+            <span className="hidden rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 sm:inline" title="Sample data kept in this browser">
+              Sample data
+            </span>
+          )}
           <Alerts db={db} />
           <span className="hidden text-right sm:block">
             <span className="block text-sm font-medium leading-tight text-ink">{session.name}</span>
