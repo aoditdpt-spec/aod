@@ -21,6 +21,7 @@ import {
   Labelled,
   NotesBox,
   PageHeader,
+  PortfolioFiles,
   StageBadge,
   StatusBadge,
   todayKey,
@@ -127,6 +128,22 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
             ["Reviews", reviews.length ? `${reviews.length}, average ${(reviews.reduce((n, b) => n + b.review!.rating, 0) / reviews.length).toFixed(1)} / 5` : "None yet"],
           ]}
         />
+      </DrawerSection>
+
+      <DrawerSection title="Their work">
+        {artist.bio && <p className="mb-3 whitespace-pre-line text-sm text-ink">{artist.bio}</p>}
+        {(artist.links ?? []).length > 0 && (
+          <ul className="mb-3 space-y-1 text-sm">
+            {artist.links!.map((l) => (
+              <li key={l}>
+                <a href={l} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+                  {l}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <PortfolioFiles files={artist.portfolio} />
       </DrawerSection>
 
       <DrawerSection title="Bookings">

@@ -26,6 +26,15 @@ export async function requestCode(rawEmail: string, who: "staff" | "customer" | 
   const email = clean(rawEmail);
   if (!emailOk(email)) return { ok: false, error: "Enter a valid email address." };
 
+  if (who === "artist") {
+    const db = createAdminClient();
+    const [{ data: artist }, { data: app }] = await Promise.all([
+      db.from("artists").select("id").eq("email", email).limit(1).maybeSingle(),
+      db.from("applications").select("id").eq("email", email).limit(1).maybeSingle(),
+    ]);
+    if (!artist && !app) return { ok: false, error: "AOD has no artist or application with this email. Use the email you applied with, or apply to join." };
+  }
+
   if (who === "staff") {
     const { data, error } = await createAdminClient().from("staff").select("id").eq("email", email).eq("active", true).maybeSingle();
     if (error) return { ok: false, error: "Couldn't check the team list just now. Please try again." };

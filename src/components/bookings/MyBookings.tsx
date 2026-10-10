@@ -13,6 +13,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { requestCode, signOutAction, verifyCode } from "@/server/actions/auth";
 import { myOrders, submitReview, type MyOrders } from "@/server/actions/customer";
+import { useLiveRefresh } from "@/lib/live";
 
 const inr = (n?: number) => (n === undefined ? "—" : `₹${n.toLocaleString("en-IN")}`);
 const fmt = (s: string, time = false) => {
@@ -93,6 +94,8 @@ function LiveMyBookings() {
       .catch(() => setError("Couldn't load your bookings just now. Please try again."));
   }, []);
   useEffect(load, [load]);
+  // Status changes, quotes, payments and delivery links appear without refreshing the page.
+  useLiveRefresh(data?.topic ? [data.topic] : null, load);
 
   if (error) {
     return (

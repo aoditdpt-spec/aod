@@ -1,4 +1,4 @@
-import type { Activity, Application, Artist, Booking, Lead, Member, Payment, Payout, ResolutionCase, Settings } from "@/lib/admin-store";
+import type { Activity, Application, Artist, ArtistReply, Booking, Lead, Member, Payment, Payout, PortfolioFile, ResolutionCase, Settings } from "@/lib/admin-store";
 
 // Converts between database rows (snake_case columns, see supabase/migrations) and the records
 // the admin screens use (src/lib/admin-store.ts). Missing values become safe defaults, so an
@@ -32,6 +32,7 @@ export const fromRow = {
     kyc: str(r.kyc) as Application["kyc"],
     notes: json(r.notes, []),
     artistId: opt(r.artist_id),
+    portfolio: json<PortfolioFile[]>(r.portfolio, []),
   }),
   artist: (r: Row): Artist => ({
     id: str(r.id),
@@ -49,6 +50,17 @@ export const fromRow = {
     payoutUpi: str(r.payout_upi),
     blockedDates: list(r.blocked_dates),
     notes: json(r.notes, []),
+    bio: str(r.bio),
+    links: list(r.links),
+    portfolio: json<PortfolioFile[]>(r.portfolio, []),
+  }),
+  reply: (r: Row): ArtistReply & { bookingId: string } => ({
+    bookingId: str(r.booking_id),
+    artistId: str(r.artist_id),
+    status: str(r.status) === "declined" ? "declined" : "quoted",
+    quote: num(r.quote),
+    note: str(r.note),
+    at: str(r.at),
   }),
   booking: (r: Row): Booking => ({
     id: str(r.id),
@@ -166,6 +178,7 @@ export const toRow = {
     kyc: a.kyc,
     notes: a.notes,
     artist_id: nul(a.artistId),
+    portfolio: a.portfolio ?? [],
   }),
   artist: (a: Artist): Row => ({
     id: a.id,
@@ -183,6 +196,9 @@ export const toRow = {
     payout_upi: a.payoutUpi,
     blocked_dates: a.blockedDates,
     notes: a.notes,
+    bio: a.bio ?? "",
+    links: a.links ?? [],
+    portfolio: a.portfolio ?? [],
   }),
   booking: (b: Booking): Row => ({
     id: b.id,

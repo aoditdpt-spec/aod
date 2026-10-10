@@ -3,7 +3,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useHydrated } from "@/lib/motion-safe";
-import { blockedDatesStore } from "@/lib/artist-store";
+import { backendEnabled } from "@/lib/backend";
+import { setBlockedDates, useBlockedDates } from "@/lib/artist-live";
 import { Panel } from "./form";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -12,12 +13,13 @@ const iso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 // Month calendar: tap days to mark them unavailable (tap again to free them). Past days are
-// locked. Saved in this browser for the preview. Rendered after hydration, because "today"
-// depends on the visitor's clock.
+// locked. Live: saved to the artist's record (the team's matching skips these days). Preview:
+// saved in this browser. Rendered after hydration, because "today" depends on the visitor's clock.
 export function AvailabilityCalendar() {
   const hydrated = useHydrated();
-  const blocked = blockedDatesStore.use();
+  const blocked = useBlockedDates();
   const [offset, setOffset] = useState(0); // months from the current one
+  const [error, setError] = useState<string | null>(null);
 
   if (!hydrated) return <div className="mt-8 h-[28rem] animate-pulse rounded-[1.25rem] bg-white" />;
 
@@ -34,7 +36,8 @@ export function AvailabilityCalendar() {
   const upcomingBlocked = blocked.filter((d) => d >= iso(today)).sort();
 
   function toggle(day: string) {
-    blockedDatesStore.set(blocked.includes(day) ? blocked.filter((d) => d !== day) : [...blocked, day]);
+    setError(null);
+    void setBlockedDates(blocked.includes(day) ? blocked.filter((d) => d !== day) : [...blocked, day]).then((err) => err && setError(err));
   }
 
   return (
@@ -126,7 +129,8 @@ export function AvailabilityCalendar() {
             ))}
           </ul>
         )}
-        <p className="mt-5 text-xs text-muted">Preview: saved in this browser only.</p>
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        <p className="mt-5 text-xs text-muted">{backendEnabled ? "Saved to your AOD profile as you tap." : "Preview: saved in this browser only."}</p>
       </Panel>
     </div>
   );

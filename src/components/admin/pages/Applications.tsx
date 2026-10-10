@@ -22,6 +22,7 @@ import {
   Labelled,
   NotesBox,
   PageHeader,
+  PortfolioFiles,
   StageBadge,
   StatusBadge,
   toLocalInput,
@@ -120,6 +121,9 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
           payoutUpi: "",
           blockedDates: [],
           notes: [{ at: new Date().toISOString(), by: currentUser(), text: `Approved from application ${a.id}.` }],
+          bio: a.bio,
+          links: a.links,
+          portfolio: a.portfolio ?? [],
         });
       },
       app.id,
@@ -199,7 +203,9 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
             );
           })}
         </ul>
-        <p className="mt-2 text-xs text-muted">Uploaded photos, videos and resumes will open here from private storage once the backend is connected.</p>
+        <div className="mt-3">
+          <PortfolioFiles files={app.portfolio} />
+        </div>
       </DrawerSection>
 
       {app.status !== "approved" && app.status !== "rejected" && (

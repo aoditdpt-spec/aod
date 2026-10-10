@@ -22,6 +22,16 @@ await db.exec(`
   grant usage on schema auth to anon, authenticated;
   grant usage on schema public to anon, authenticated;
   grant execute on function auth.jwt() to anon, authenticated;
+
+  -- Realtime: realtime.send() stores the message, realtime.topic() is the channel being joined.
+  create schema realtime;
+  create table realtime.messages (id bigserial primary key, topic text, extension text, payload jsonb, event text, private boolean);
+  create function realtime.topic() returns text language sql stable as $$ select current_setting('realtime.topic', true) $$;
+  create function realtime.send(payload jsonb, event text, topic text, private boolean default true) returns void
+    language sql as $$ insert into realtime.messages (topic, extension, payload, event, private) values (topic, 'broadcast', payload, event, private) $$;
+  alter table realtime.messages enable row level security;
+  grant usage on schema realtime to authenticated;
+  grant select on realtime.messages to authenticated;
 `);
 await db.exec(migration);
 console.log("migration ran OK");
@@ -40,6 +50,9 @@ await db.exec(`
     ('B-3', 'Phone only', '', 'editors', 'new');
   insert into payments (id, booking_id, amount, utr) values ('PAY-1', 'B-1', 5000, '111122223333'), ('PAY-2', 'B-2', 9000, '444455556666');
   insert into leads (id, name) values ('L-1', 'Lead');
+  insert into artists (id, name, email) values ('ART-1', 'Kavya', 'kavya@x.test'), ('ART-2', 'Rohan', 'rohan@x.test');
+  update bookings set shortlist = '{ART-1}' where id = 'B-2';
+  insert into artist_replies (booking_id, artist_id, status, quote) values ('B-2', 'ART-1', 'quoted', 25000);
   insert into cases (id, role, name, email, issue, description) values ('RC-1', 'customer', 'Asha', 'asha@x.test', 'Quality of the work', 'x');
 `);
 
@@ -113,8 +126,8 @@ await as("gone@aod.test", async () => {
 
 // Customer: only their own booking and its payment; nothing else.
 await as("Asha@X.test".toLowerCase(), async () => {
-  check("customer sees only their booking", (await count("select count(*) n from bookings")) === 1);
-  check("customer sees only their payment", (await count("select count(*) n from payments")) === 1);
+  check("customer cannot read booking rows directly (My bookings goes through the server)", (await count("select count(*) n from bookings")) === 0);
+  check("customer cannot read payment rows directly", (await count("select count(*) n from payments")) === 0);
   check("customer sees no leads", (await count("select count(*) n from leads")) === 0);
   check("customer cannot read cases directly (tracking goes through the server)", (await count("select count(*) n from cases")) === 0);
   check("customer sees no staff", (await count("select count(*) n from staff")) === 0);
@@ -136,6 +149,48 @@ await as(null, async () => {
   const o = await tries("select * from outbox");
   check("signed-out visitor cannot read the outbox", !o.ok);
 });
+
+// ---- Artists ----
+await as("kavya@x.test", async () => {
+  check("artist cannot read the artists table directly", (await count("select count(*) n from artists")) === 0);
+  check("artist cannot read replies directly", (await count("select count(*) n from artist_replies")) === 0);
+  check("artist cannot write a reply directly (goes through the server)", !(await tries("insert into artist_replies (booking_id, artist_id, status) values ('B-1','ART-1','declined')")).ok);
+});
+await as("owner@aod.test", async () => {
+  check("staff read artist replies", (await count("select count(*) n from artist_replies")) === 1);
+});
+
+// ---- Live updates: who hears about a change, and who may listen ----
+const key = async (email: string) => (await db.query<{ k: string }>("select public.email_key($1) k", [email])).rows[0].k;
+const sentTo = (topic: string) => count("select count(*) n from realtime.messages where topic = $1", [topic]);
+await db.exec("delete from realtime.messages");
+await as("ops@aod.test", async () => {
+  await db.exec("update bookings set status = 'matched' where id = 'B-2'");
+  await db.exec("reset role"); // count the messages as the database owner (listening rules are checked below)
+  check("a booking change reaches the staff channel", (await sentTo("staff")) >= 1);
+  check("…and its customer's channel", (await sentTo(`customer:${await key("ravi@x.test")}`)) === 1);
+  check("…and the shortlisted artist's channel", (await sentTo("artist:ART-1")) === 1);
+  check("…but not other customers or artists", (await sentTo(`customer:${await key("asha@x.test")}`)) === 0 && (await sentTo("artist:ART-2")) === 0);
+  check("the message carries the table and id, never the record", (await count("select count(*) n from realtime.messages where payload - 'table' - 'id' <> '{}'::jsonb")) === 0);
+  await db.exec("insert into payments (id, booking_id, amount, utr) values ('PAY-7', 'B-1', 100, '121212121212')");
+  check("a payment reaches its booking's customer", (await sentTo(`customer:${await key("asha@x.test")}`)) === 1);
+});
+
+// Joining a channel = reading realtime.messages with realtime.topic() set to it (as Realtime does).
+const channels = ["staff", "artist:ART-1", "artist:ART-2", `customer:${await key("asha@x.test")}`, `customer:${await key("ravi@x.test")}`];
+for (const t of channels) await db.query("insert into realtime.messages (topic, extension) values ($1, 'broadcast')", [t]);
+const canJoin = (email: string, topic: string) =>
+  as(email, async () => {
+    await db.query("select set_config('realtime.topic', $1, true)", [topic]);
+    return (await count("select count(*) n from realtime.messages where topic = $1", [topic])) > 0;
+  });
+check("staff can join the staff channel", await canJoin("viewer@aod.test", "staff"));
+check("deactivated staff cannot join the staff channel", !(await canJoin("gone@aod.test", "staff")));
+check("a customer cannot join the staff channel", !(await canJoin("asha@x.test", "staff")));
+check("a customer can join their own channel", await canJoin("asha@x.test", channels[3]));
+check("a customer cannot join someone else's channel", !(await canJoin("asha@x.test", channels[4])));
+check("an artist can join their own channel", await canJoin("kavya@x.test", "artist:ART-1"));
+check("an artist cannot join another artist's channel", !(await canJoin("kavya@x.test", "artist:ART-2")));
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

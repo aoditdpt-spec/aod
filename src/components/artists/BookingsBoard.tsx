@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { CalendarCheck2 } from "lucide-react";
 import { useState } from "react";
-import { modeStore } from "@/lib/artist-store";
+import { backendEnabled } from "@/lib/backend";
+import { usePortalMode } from "@/lib/artist-live";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge } from "./form";
 
 const tabs = [
   { id: "requests", label: "Requests", match: ["new", "quoted"] },
-  { id: "upcoming", label: "Upcoming", match: ["confirmed"] },
-  { id: "past", label: "Past", match: ["completed", "declined"] },
+  { id: "upcoming", label: "Upcoming", match: ["selected", "confirmed"] },
+  { id: "past", label: "Past", match: ["completed", "declined", "cancelled"] },
 ] as const;
 
 // Booking requests and bookings, in three tabs. New applicants see an empty state.
 export function BookingsBoard() {
-  const mode = modeStore.use();
+  const mode = usePortalMode();
   const bookings = useBookings();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("requests");
 
@@ -59,7 +60,7 @@ export function BookingsBoard() {
             );
           })}
         </div>
-        <Badge>Sample data</Badge>
+        {!backendEnabled && <Badge>Sample data</Badge>}
       </div>
 
       {list.length === 0 ? (

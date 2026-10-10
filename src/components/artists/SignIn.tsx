@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Mail, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { WhatsAppIcon } from "@/components/ui/Icon";
+import { backendEnabled } from "@/lib/backend";
+import { reloadPortal, usePortalState } from "@/lib/artist-live";
+import { requestCode, verifyCode } from "@/server/actions/auth";
 import { Field, inputBase, inputClass } from "./form";
 
 type Method = "phone" | "email";
@@ -12,9 +15,126 @@ type Method = "phone" | "email";
 const validPhone = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, ""));
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 
-// One-time-code sign-in, by WhatsApp to the artist's phone or by email.
-// Preview: no code is sent and any 6 digits open the dashboard.
+// One-time-code sign-in. Live: a code emailed to the address the artist applied with (only
+// emails AOD knows, as an artist or an applicant). Preview: by WhatsApp or email, but no code is
+// sent and any 6 digits open the dashboard.
 export function SignIn() {
+  return backendEnabled ? <LiveSignIn /> : <PreviewSignIn />;
+}
+
+function LiveSignIn() {
+  const router = useRouter();
+  const portal = usePortalState();
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  if (portal.status === "ready" && portal.data) {
+    return (
+      <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8">
+        <h2 className="text-2xl font-normal">Welcome back</h2>
+        <p className="mt-2 text-sm text-body">Signed in as {portal.data.email}.</p>
+        <Link href="/artists/dashboard" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
+          Open your portal <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8">
+      <h2 className="text-2xl font-normal">Sign in</h2>
+      <form
+        noValidate
+        className="mt-6 space-y-5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (busy) return;
+          setError(null);
+          setBusy(true);
+          if (!sent) {
+            const res = await requestCode(email, "artist");
+            setBusy(false);
+            if (res.ok) setSent(true);
+            else setError(res.error);
+            return;
+          }
+          const res = await verifyCode(email, code);
+          if (!res.ok) {
+            setBusy(false);
+            setError(res.error);
+            return;
+          }
+          await reloadPortal();
+          router.push("/artists/dashboard");
+        }}
+      >
+        <Field label="Email address" error={!sent ? error : null} hint={!sent ? "The email you applied with." : undefined}>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={sent}
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            aria-invalid={!sent && !!error}
+            className={`${inputClass} disabled:bg-wash`}
+          />
+        </Field>
+        {sent && (
+          <Field
+            label="6-digit code"
+            error={error}
+            hint={
+              <>
+                Sent to {email}. Check spam if it isn&apos;t there in a minute.{" "}
+                <button type="button" onClick={() => (setSent(false), setCode(""))} className="font-medium text-brand underline underline-offset-2">
+                  Change
+                </button>
+              </>
+            }
+          >
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="••••••"
+              autoFocus
+              aria-invalid={!!error}
+              className={`${inputClass} text-center text-xl tracking-[0.5em]`}
+            />
+          </Field>
+        )}
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover disabled:opacity-60"
+        >
+          {busy ? "Please wait…" : sent ? (
+            <>
+              Verify and sign in <ArrowRight className="h-4 w-4" aria-hidden />
+            </>
+          ) : (
+            <>
+              <Mail className="h-4 w-4" aria-hidden /> Send code by email
+            </>
+          )}
+        </button>
+      </form>
+      <p className="mt-6 border-t border-line pt-5 text-sm text-body">
+        New to AOD?{" "}
+        <Link href="/artists/apply" className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+          Apply to join
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function PreviewSignIn() {
   const router = useRouter();
   const [method, setMethod] = useState<Method>("phone");
   const [contact, setContact] = useState("");

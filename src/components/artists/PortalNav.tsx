@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CalendarCheck2, CalendarDays, FileCheck2, Images, LayoutDashboard, LogOut, UserRound } from "lucide-react";
-import { modeStore } from "@/lib/artist-store";
+import { portalSignOut, usePortalMode } from "@/lib/artist-live";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { useBookings } from "./BookingCard";
@@ -22,7 +22,8 @@ const helpUrl = whatsappUrl("Hi AOD, I need help with the artist portal.");
 // Signed-in navigation: a sidebar from 1024px up, a scrollable tab row below that.
 export function PortalNav() {
   const pathname = usePathname();
-  const mode = modeStore.use();
+  const router = useRouter();
+  const mode = usePortalMode();
   const bookings = useBookings();
   const newRequests = mode === "live" ? bookings.filter((b) => b.status === "new").length : 0;
 
@@ -81,9 +82,13 @@ export function PortalNav() {
           >
             <WhatsAppIcon className="h-[1.125rem] w-[1.125rem] text-whatsapp" /> Help on WhatsApp
           </a>
-          <Link href="/artists" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] text-body hover:bg-wash">
+          <button
+            type="button"
+            onClick={() => void portalSignOut().then(() => router.push("/artists"))}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] text-body hover:bg-wash"
+          >
             <LogOut className="h-[1.125rem] w-[1.125rem] text-muted" aria-hidden /> Sign out
-          </Link>
+          </button>
         </div>
       </nav>
     </>

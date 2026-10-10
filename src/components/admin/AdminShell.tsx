@@ -27,7 +27,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { roles } from "@/content/admin";
 import { backendEnabled } from "@/lib/backend";
-import { resetDb, signOut, useAdminError, useBrowserReady, useDb, useSession, type Db } from "@/lib/admin-store";
+import { resetDb, signOut, useAdminError, useBrowserReady, useDb, useLiveConnection, useSession, type Db } from "@/lib/admin-store";
 import { caseDue } from "./pages/Resolution";
 import { daysUntil, fieldClass, inr } from "./ui";
 
@@ -46,6 +46,22 @@ const nav = [
   { href: "/admin/activity", label: "Activity log", icon: Activity },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
+
+// Live mode: a green "Live" dot while changes arrive by themselves; amber while reconnecting
+// (the panel still reloads when the tab comes back into view).
+function LiveBadge() {
+  const connection = useLiveConnection();
+  const on = connection === "live";
+  return (
+    <span
+      className={`hidden items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium sm:inline-flex ${on ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}
+      title={on ? "Changes by anyone appear here by themselves" : "Reconnecting to live updates"}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-emerald-500" : "animate-pulse bg-amber-500"}`} aria-hidden />
+      {on ? "Live" : "Connecting…"}
+    </span>
+  );
+}
 
 // Things that need someone's attention, worked out from the data.
 export function useAlerts(db: Db | null) {
@@ -271,10 +287,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <GlobalSearch db={db} />
         </div>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          {!backendEnabled && (
+          {!backendEnabled ? (
             <span className="hidden rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 sm:inline" title="Sample data kept in this browser">
               Sample data
             </span>
+          ) : (
+            <LiveBadge />
           )}
           <Alerts db={db} />
           <span className="hidden text-right sm:block">

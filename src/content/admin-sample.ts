@@ -322,6 +322,7 @@ export function createSampleDb(now: Date): Db {
       notify: {
         "New booking request": true,
         "Payment reported": true,
+        "Artist replied to a request": true,
         "New resolution case": true,
         "New artist application": true,
         "Event tomorrow": true,

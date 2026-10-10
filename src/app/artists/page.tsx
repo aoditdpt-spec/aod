@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { mainSiteUrl, portal } from "@/content/artist-portal";
 import { categories } from "@/content/site";
+import { backendEnabled } from "@/lib/backend";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
 import { PortalHeader } from "@/components/artists/PortalChrome";
@@ -30,7 +31,7 @@ export default function ArtistsHome() {
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-brand">{portal.name}</p>
             <h1 className="mt-4 text-4xl font-medium leading-[1.08] sm:text-5xl">{portal.signIn.title}</h1>
-            <p className="mt-5 max-w-xl text-lg text-body">{portal.signIn.subtitle}</p>
+            <p className="mt-5 max-w-xl text-lg text-body">{backendEnabled ? portal.signIn.subtitleLive : portal.signIn.subtitle}</p>
             <ul className="mt-8 space-y-3">
               {portal.signIn.points.map((p) => (
                 <li key={p} className="flex items-center gap-3 text-ink">

@@ -5,12 +5,14 @@ import type { CustomerOrder } from "@/content/my-bookings";
 import { backendEnabled } from "@/lib/backend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { customerTopic } from "@/server/live";
 import { fromRow } from "@/server/rows";
 
-// My bookings for the signed-in customer. The database only returns bookings made with their
-// email (row-level security), so nobody can read someone else's.
+// My bookings for the signed-in customer: only bookings made with the email they signed in with
+// (checked here), and only what a customer should see (no internal notes or shortlists).
+// Customers can't read the tables directly. `topic` is their live-update channel.
 
-export type MyOrders = { email: string; orders: CustomerOrder[] };
+export type MyOrders = { email: string; orders: CustomerOrder[]; topic: string };
 
 const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
@@ -20,25 +22,35 @@ export async function myOrders(): Promise<MyOrders | null> {
   const { data: auth } = await supabase.auth.getUser();
   const email = auth.user?.email?.toLowerCase();
   if (!email) return null;
+  if (!process.env.SUPABASE_SECRET_KEY) throw new Error("My bookings isn't set up yet (SUPABASE_SECRET_KEY).");
+  const db = createAdminClient();
+  const topic = customerTopic(email);
 
-  const { data: rows, error } = await supabase.from("bookings").select("*").eq("customer_email", email).order("created_at", { ascending: false });
+  const { data: rows, error } = await db.from("bookings").select("*").eq("customer_email", email).order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   const bookings = (rows ?? []).map(fromRow.booking);
-  if (!bookings.length) return { email, orders: [] };
+  if (!bookings.length) return { email, orders: [], topic };
 
-  const { data: payRows } = await supabase.from("payments").select("*").in("booking_id", bookings.map((b) => b.id));
+  // Payments name a booking id, or the request reference for the whole request.
+  const refs = [...new Set(bookings.flatMap((b) => [b.id, b.requestRef]).filter((x): x is string => Boolean(x)))];
+  const { data: payRows } = await db.from("payments").select("*").in("booking_id", refs);
   const payments = (payRows ?? []).map(fromRow.payment);
+  // Request AOD-1215 starts with booking B-1215 (src/server/actions/public.ts).
+  const firstOfRequest = (b: (typeof bookings)[number]) => !b.requestRef || b.id === `B-${b.requestRef.replace(/^AOD-/, "")}`;
 
-  // Artist name and craft for matched bookings (customers can't read the artists table themselves).
+  // Artist name and craft for matched bookings.
   const artistIds = [...new Set(bookings.map((b) => b.artistId).filter((x): x is string => Boolean(x)))];
   const artists = new Map<string, { name: string; craft: string; city: string }>();
-  if (artistIds.length && process.env.SUPABASE_SECRET_KEY) {
-    const { data } = await createAdminClient().from("artists").select("id, name, category, city").in("id", artistIds);
+  if (artistIds.length) {
+    const { data } = await db.from("artists").select("id, name, category, city").in("id", artistIds);
     for (const a of data ?? []) artists.set(String(a.id), { name: String(a.name), craft: categoryName(String(a.category)), city: String(a.city) });
   }
 
   const orders = bookings.map((b): CustomerOrder => {
-    const own = payments.filter((p) => p.bookingId === b.id && p.status !== "rejected");
+    // A payment made against the request reference counts once, on the request's first booking.
+    const own = payments.filter(
+      (p) => p.status !== "rejected" && (p.bookingId === b.id || (b.requestRef && p.bookingId === b.requestRef && firstOfRequest(b))),
+    );
     const verified = own.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
     const remaining = b.quote ? b.quote - verified : 0;
     return {
@@ -65,7 +77,7 @@ export async function myOrders(): Promise<MyOrders | null> {
       history: b.history.map((h) => ({ status: h.status, at: h.at })),
     };
   });
-  return { email, orders };
+  return { email, orders, topic };
 }
 
 export async function submitReview(bookingId: string, rating: number, text: string): Promise<{ ok: true } | { ok: false; error: string }> {

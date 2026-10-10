@@ -16,6 +16,8 @@ export const portal = {
   signIn: {
     title: "Your bookings, profile and portfolio, in one place.",
     subtitle: "Sign in with the phone number you joined AOD with. We'll send a one-time code on WhatsApp.",
+    // With the backend on, codes go by email (WhatsApp codes need the WhatsApp Business API).
+    subtitleLive: "Sign in with the email you applied with. AOD sends you a 6-digit code.",
     points: [
       "Reply to booking requests with your quote",
       "Keep your portfolio and availability up to date",
@@ -48,6 +50,16 @@ export const onboardingStages = [
   { title: "Trial booking", text: "One supervised booking to confirm professionalism and punctuality." },
   { title: "Live on AOD", text: "You appear in curated matches and start getting booking requests." },
 ];
+
+// What an applicant sees on the overview at each step of their application (live mode).
+export const applicantStatusText: Record<string, { title: string; text: string }> = {
+  submitted: { title: "Your application is in the queue", text: "AOD's team reviews every application, usually within a few days." },
+  review: { title: "Our team is reviewing your portfolio", text: "We'll message you if we need anything else." },
+  meeting: { title: "Meeting with the AOD team", text: "Details are below and in your email." },
+  trial: { title: "Your trial booking is being arranged", text: "AOD will share the event details with you directly." },
+  approved: { title: "You're approved", text: "Welcome to AOD. Your bookings appear here." },
+  rejected: { title: "Application closed", text: "AOD's team has emailed you about the decision. Questions? Message us." },
+};
 
 // Uploads: what the portal accepts. Checked in the browser before anything is sent.
 export const uploadRules = {
@@ -90,7 +102,8 @@ export const sampleArtist = {
 // Where the sample applicant is in onboarding (index into onboardingStages).
 export const sampleStage = 1;
 
-export type BookingStatus = "new" | "quoted" | "confirmed" | "completed" | "declined";
+// "selected": the customer chose this artist and AOD is waiting for the advance payment.
+export type BookingStatus = "new" | "quoted" | "selected" | "confirmed" | "completed" | "declined" | "cancelled";
 
 export type SampleBooking = {
   id: string;

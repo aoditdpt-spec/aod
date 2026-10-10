@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
 import { createSampleDb } from "@/content/admin-sample";
 import { backendEnabled } from "@/lib/backend";
+import { listenLive, type LiveStatus } from "@/lib/live";
 import { adminSession, loadAdminDb, saveAdminChanges, type AdminChanges, type Collection } from "@/server/actions/admin";
 import { signOutAction } from "@/server/actions/auth";
 
@@ -12,7 +13,9 @@ import { signOutAction } from "@/server/actions/auth";
 //   - live (Supabase keys set): the data is loaded from the database for the signed-in staff
 //     member, and each `update()` saves just the records it changed (server actions in
 //     src/server/actions/admin.ts, checked against the person's role). If a save is refused,
-//     the data is reloaded and the reason shown.
+//     the data is reloaded and the reason shown. While signed in it listens on the "staff" live
+//     channel (src/lib/live.ts) and reloads whenever anyone (another staff member, a website form,
+//     an artist in the portal) changes something.
 //   - preview (no keys): sample records (src/content/admin-sample.ts) kept in this browser.
 
 export type Note = { at: string; by: string; text: string };
@@ -36,7 +39,11 @@ export type Application = {
   kyc: "not_started" | "verified";
   notes: Note[];
   artistId?: string; // set when approved
+  portfolio?: PortfolioFile[]; // uploaded from the artist portal while applying (live mode)
 };
+
+// A photo or video in the `portfolio` storage bucket (live mode).
+export type PortfolioFile = { path: string; name: string; type: string; size: number; at: string };
 
 export type Artist = {
   id: string;
@@ -54,7 +61,14 @@ export type Artist = {
   payoutUpi: string;
   blockedDates: string[];
   notes: Note[];
+  // Kept up to date by the artist in the portal (live mode).
+  bio?: string;
+  links?: string[];
+  portfolio?: PortfolioFile[];
 };
+
+// An artist's answer to a booking request they were shortlisted for (sent from the artist portal).
+export type ArtistReply = { artistId: string; status: "quoted" | "declined"; quote?: number; note: string; at: string };
 
 export type BookingStatus =
   | "new"
@@ -92,6 +106,7 @@ export type Booking = {
   review?: { rating: number; text: string };
   history: { at: string; by: string; status: BookingStatus }[];
   notesLog: Note[];
+  replies?: ArtistReply[]; // read-only here: written by artists through the portal
 };
 
 export type Payment = {
@@ -247,8 +262,14 @@ function readJson<T>(key: string): T | null {
 
 // ---- Live mode (Supabase) ----
 
-type Live = { status: "idle" | "loading" | "ready" | "signed-out" | "error"; db: Db | null; session: Session | null; error?: string };
-let live: Live = { status: "idle", db: null, session: null };
+type Live = {
+  status: "idle" | "loading" | "ready" | "signed-out" | "error";
+  db: Db | null;
+  session: Session | null;
+  error?: string;
+  connection: LiveStatus;
+};
+let live: Live = { status: "idle", db: null, session: null, connection: "off" };
 const setLive = (patch: Partial<Live>) => {
   live = { ...live, ...patch };
   emit();
@@ -260,9 +281,17 @@ async function loadLive(quiet = false) {
   if (!quiet) setLive({ status: "loading" });
   try {
     const session = await adminSession();
-    if (!session) return setLive({ status: "signed-out", session: null, db: null });
+    if (!session) {
+      stopListening();
+      return setLive({ status: "signed-out", session: null, db: null });
+    }
     const db = await loadAdminDb();
-    setLive(db ? { status: "ready", session, db, error: undefined } : { status: "signed-out", session: null, db: null });
+    if (!db) {
+      stopListening();
+      return setLive({ status: "signed-out", session: null, db: null });
+    }
+    setLive({ status: "ready", session, db, error: undefined });
+    startListening();
   } catch (e) {
     setLive({ status: "error", error: e instanceof Error ? e.message : "Couldn't load the data." });
   }
@@ -270,6 +299,34 @@ async function loadLive(quiet = false) {
 
 // Called after signing in with the emailed code.
 export const reloadAdmin = () => loadLive();
+
+// Live updates: reload quietly when the database says something changed. While this browser is
+// saving, wait until the save is done, so a half-saved change never replaces what's on screen.
+let saving = 0;
+let reloadAfterSave = false;
+let stopLive: (() => void) | null = null;
+function startListening() {
+  if (stopLive) return;
+  stopLive = listenLive(
+    ["staff"],
+    () => {
+      if (saving) reloadAfterSave = true;
+      else void loadLive(true);
+    },
+    { onStatus: (connection) => setLive({ connection }) },
+  );
+}
+function stopListening() {
+  stopLive?.();
+  stopLive = null;
+}
+function saveFinished() {
+  saving--;
+  if (!saving && reloadAfterSave) {
+    reloadAfterSave = false;
+    void loadLive(true);
+  }
+}
 
 const collections: Collection[] = ["applications", "artists", "bookings", "payments", "payouts", "leads", "cases", "team"];
 
@@ -280,7 +337,7 @@ function diff(before: Db, after: Db): AdminChanges {
     const old = new Map<string, unknown>(before[key].map((x) => [x.id, x]));
     const now = new Map<string, unknown>(after[key].map((x) => [x.id, x]));
     const added = [...now].filter(([id]) => !old.has(id)).map(([, x]) => x);
-    const changed = [...now].filter(([id, x]) => old.has(id) && JSON.stringify(x) !== JSON.stringify(old.get(id))).map(([, x]) => x);
+    const changed = [...now].filter(([id, x]) => old.has(id) && JSON.stringify(x) !== JSON.stringify(old.get(id))).map(([id, x]) => ({ before: old.get(id), after: x }));
     const removed = [...old.keys()].filter((id) => !now.has(id));
     if (added.length) changes.added[key] = added;
     if (changed.length) changes.changed[key] = changed;
@@ -349,17 +406,19 @@ export function update(area: string, text: string, fn: (db: Db) => void, target?
   // Live: show the change straight away, save it, and reload if the save is refused.
   const changes = { ...diff(before, db), activity: [entry] };
   setLive({ db });
+  saving++;
   saveAdminChanges(changes)
     .then((res) => {
       if (!res.ok) {
         window.alert(res.error);
-        void loadLive(true);
+        reloadAfterSave = true;
       }
     })
     .catch(() => {
       window.alert("Couldn't save the change. Check your connection; the page has been refreshed.");
-      void loadLive(true);
-    });
+      reloadAfterSave = true;
+    })
+    .finally(saveFinished);
 }
 
 // Start over with fresh sample data (preview only).
@@ -389,6 +448,7 @@ export function signIn(session: Session) {
 
 export function signOut() {
   if (!backendEnabled) return writeRaw(SESSION_KEY, null);
+  stopListening();
   setLive({ status: "signed-out", session: null, db: null });
   void signOutAction();
 }
@@ -400,6 +460,13 @@ const always = () => true;
 const liveReady = () => live.status !== "idle" && live.status !== "loading";
 export function useBrowserReady() {
   return useSyncExternalStore(backendEnabled ? subscribe : noop, backendEnabled ? liveReady : always, () => false);
+}
+
+// Live mode: whether the live-update channel is connected (shown in the header).
+const liveConnection = () => live.connection;
+const offConnection = () => "off" as const;
+export function useLiveConnection(): LiveStatus {
+  return useSyncExternalStore(backendEnabled ? subscribe : noop, backendEnabled ? liveConnection : offConnection, offConnection);
 }
 
 // Live mode: the last loading error, if any (shown instead of the panel).

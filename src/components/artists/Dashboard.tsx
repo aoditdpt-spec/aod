@@ -3,24 +3,27 @@
 import Link from "next/link";
 import { ArrowRight, Check, Search } from "lucide-react";
 import type { ReactNode } from "react";
-import { onboardingStages, sampleArtist, sampleStage } from "@/content/artist-portal";
-import { blockedDatesStore, modeStore, profileStore, type ArtistProfile, type PreviewMode } from "@/lib/artist-store";
+import { applicantStatusText, onboardingStages, sampleStage } from "@/content/artist-portal";
+import { backendEnabled } from "@/lib/backend";
+import { useArtistProfile, useBlockedDates, usePortalMode, usePortalState } from "@/lib/artist-live";
+import { modeStore, type PreviewMode } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge, Panel } from "./form";
 import { OnboardingTimeline } from "./OnboardingTimeline";
 
-// Profile checklist: what's left before the profile is complete. Uploads and identity can't be
-// checked yet (nothing is uploaded in the preview), so they always show as to-do.
+// Profile checklist: what's left before the profile is complete. In the preview, uploads and
+// identity can't be checked (nothing is uploaded), so they show as to-do.
 export function useProfileChecks(): { label: string; done: boolean; href: string }[] {
-  const profile: ArtistProfile = profileStore.use() ?? { ...sampleArtist, agreeTerms: true };
-  const blocked = blockedDatesStore.use();
+  const { profile } = useArtistProfile();
+  const blocked = useBlockedDates();
+  const live = usePortalState().data;
   return [
     { label: "Services and experience", done: profile.services.length > 0 && !!profile.experience, href: "/artists/profile" },
     { label: "About your work", done: profile.bio.trim().length >= 40, href: "/artists/profile" },
     { label: "Portfolio links", done: profile.links.length > 0, href: "/artists/portfolio" },
-    { label: "Portfolio photos and videos", done: false, href: "/artists/portfolio" },
-    { label: "Identity (DigiLocker)", done: false, href: "/artists/documents" },
+    { label: "Portfolio photos and videos", done: (live?.portfolio.length ?? 0) > 0, href: "/artists/portfolio" },
+    { label: "Identity (DigiLocker)", done: live?.kycVerified ?? false, href: "/artists/documents" },
     { label: "Days you're unavailable", done: blocked.length > 0, href: "/artists/availability" },
   ];
 }
@@ -56,8 +59,10 @@ function ProfileStrength() {
   );
 }
 
+// Preview only: switch between the two sides of the portal.
 export function ModeSwitch() {
   const mode = modeStore.use();
+  if (backendEnabled) return null;
   const options: [PreviewMode, string][] = [
     ["live", "Live artist"],
     ["applicant", "New applicant"],
@@ -93,16 +98,19 @@ function Stat({ label, value, note }: { label: string; value: ReactNode; note?: 
   );
 }
 
-const sampleTag = <Badge>Sample data</Badge>;
+const sampleTag = backendEnabled ? undefined : <Badge>Sample data</Badge>;
 
 export function Dashboard() {
-  const mode = modeStore.use();
-  const profile = profileStore.use();
+  const mode = usePortalMode();
+  const { profile } = useArtistProfile();
+  const live = usePortalState().data;
   const bookings = useBookings();
-  const name = (profile?.fullName || sampleArtist.fullName).split(/\s+/)[0];
+  const name = profile.fullName.split(/\s+/)[0] || "there";
+  const stage = live ? live.stage : sampleStage;
+  const status = live?.applicationStatus ? applicantStatusText[live.applicationStatus] : undefined;
   const requests = bookings.filter((b) => b.status === "new");
   const quoted = bookings.filter((b) => b.status === "quoted");
-  const upcoming = bookings.filter((b) => b.status === "confirmed");
+  const upcoming = bookings.filter((b) => b.status === "confirmed" || b.status === "selected");
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -118,15 +126,21 @@ export function Dashboard() {
 
       {mode === "applicant" ? (
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <Panel title="Your onboarding" text={`Step ${sampleStage + 1} of ${onboardingStages.length}`} action={sampleTag}>
+          <Panel title="Your onboarding" text={`Step ${stage + 1} of ${onboardingStages.length}`} action={sampleTag}>
             <OnboardingTimeline
-              current={sampleStage}
+              current={stage}
               detail={
                 <div className="rounded-xl bg-peach/40 p-4">
                   <p className="flex items-center gap-2 text-sm font-medium text-ink">
-                    <Search className="h-4 w-4 text-brand" aria-hidden /> Our team is reviewing your portfolio
+                    <Search className="h-4 w-4 text-brand" aria-hidden /> {status?.title ?? "Our team is reviewing your portfolio"}
                   </p>
-                  <p className="mt-1 text-sm text-body">We&apos;ll message you on WhatsApp if we need anything else.</p>
+                  <p className="mt-1 text-sm text-body">{status?.text ?? "We'll message you on WhatsApp if we need anything else."}</p>
+                  {live?.meeting && live.applicationStatus === "meeting" && (
+                    <p className="mt-2 text-sm font-medium text-ink">
+                      {new Date(live.meeting.at).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                      {live.meeting.place && ` · ${live.meeting.place}`}
+                    </p>
+                  )}
                   <a
                     href={whatsappUrl("Hi AOD, I have a question about my artist application.")}
                     target="_blank"
@@ -162,7 +176,11 @@ export function Dashboard() {
             <Stat label="New requests" value={requests.length} note="Waiting for your reply" />
             <Stat label="Quotes sent" value={quoted.length} note="Waiting for the customer" />
             <Stat label="Upcoming bookings" value={upcoming.length} note="Confirmed" />
-            <Stat label="Reply time" value="2 hrs" note="Sample: your average" />
+            {backendEnabled ? (
+              <Stat label="Completed" value={bookings.filter((b) => b.status === "completed").length} note="Events done with AOD" />
+            ) : (
+              <Stat label="Reply time" value="2 hrs" note="Sample: your average" />
+            )}
           </div>
 
           <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">

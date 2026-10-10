@@ -14,9 +14,12 @@ import { fromRow, settingsFromRow, toRow } from "@/server/rows";
 
 export type Collection = "applications" | "artists" | "bookings" | "payments" | "payouts" | "leads" | "cases" | "team";
 
+// `changed` carries each record before and after the action, so only the fields that actually
+// changed are written: two people (or the team and an artist in the portal) editing different
+// parts of the same record at the same time don't undo each other.
 export type AdminChanges = {
   added: Partial<Record<Collection, unknown[]>>;
-  changed: Partial<Record<Collection, unknown[]>>;
+  changed: Partial<Record<Collection, { before: unknown; after: unknown }[]>>;
   removed: Partial<Record<Collection, string[]>>;
   settings?: Settings;
   activity: Activity[];
@@ -86,7 +89,7 @@ export async function loadAdminDb(): Promise<Db | null> {
   const me = await currentStaff();
   if (!me) return null;
   const s = me.supabase;
-  const [applications, artists, bookings, payments, payouts, leads, cases, team, activity, settings] = await Promise.all([
+  const [applications, artists, bookings, payments, payouts, leads, cases, team, activity, settings, replies] = await Promise.all([
     s.from("applications").select("*").order("submitted_at", { ascending: false }),
     s.from("artists").select("*").order("joined_at", { ascending: false }),
     s.from("bookings").select("*").order("created_at", { ascending: false }),
@@ -97,15 +100,21 @@ export async function loadAdminDb(): Promise<Db | null> {
     s.from("staff").select("*").order("created_at", { ascending: true }),
     s.from("activity").select("*").order("at", { ascending: false }).limit(500),
     s.from("settings").select("*").eq("id", 1).maybeSingle(),
+    s.from("artist_replies").select("*"),
   ]);
-  const failed = [applications, artists, bookings, payments, payouts, leads, cases, team, activity, settings].find((r) => r.error);
+  const failed = [applications, artists, bookings, payments, payouts, leads, cases, team, activity, settings, replies].find((r) => r.error);
   if (failed?.error) throw new Error(failed.error.message);
 
   return {
     version: 1,
     applications: (applications.data ?? []).map(fromRow.application),
     artists: (artists.data ?? []).map(fromRow.artist),
-    bookings: (bookings.data ?? []).map(fromRow.booking),
+    // Each booking carries the shortlisted artists' replies from the portal.
+    bookings: (bookings.data ?? []).map((r) => {
+      const b = fromRow.booking(r);
+      const own = (replies.data ?? []).map(fromRow.reply).filter((x) => x.bookingId === b.id);
+      return own.length ? { ...b, replies: own.map((x) => ({ artistId: x.artistId, status: x.status, quote: x.quote, note: x.note, at: x.at })) } : b;
+    }),
     payments: (payments.data ?? []).map(fromRow.payment),
     payouts: (payouts.data ?? []).map(fromRow.payout),
     leads: (leads.data ?? []).map(fromRow.lead),
@@ -136,7 +145,7 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
   if (touched.has("team")) {
     const { data } = await me.supabase.from("staff").select("*");
     const byId = new Map((data ?? []).map((r) => [String(r.id), fromRow.member(r)]));
-    for (const m of [...(changes.added.team ?? []), ...(changes.changed.team ?? [])] as ReturnType<typeof fromRow.member>[]) byId.set(m.id, m);
+    for (const m of [...(changes.added.team ?? []), ...(changes.changed.team ?? []).map((c) => c.after)] as ReturnType<typeof fromRow.member>[]) byId.set(m.id, m);
     for (const id of changes.removed.team ?? []) byId.delete(id);
     if (![...byId.values()].some((m) => m.role === "owner" && m.active)) return { ok: false, error: "The team needs at least one active owner." };
   }
@@ -146,7 +155,7 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
   for (const key of Object.keys(tables) as Collection[]) {
     const { table, toRow: convert } = tables[key];
     const added = (changes.added[key] ?? []) as Parameters<typeof convert>[0][];
-    const changed = (changes.changed[key] ?? []) as Parameters<typeof convert>[0][];
+    const changed = (changes.changed[key] ?? []) as { before: Parameters<typeof convert>[0]; after: Parameters<typeof convert>[0] }[];
     const removed = changes.removed[key] ?? [];
 
     if (added.length) {
@@ -157,8 +166,11 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
       }
     }
     for (const item of changed) {
-      const row = convert(item as never);
-      const { error, count } = await s.from(table).update(row, { count: "exact" }).eq("id", row.id as string);
+      const now = convert(item.after as never) as Record<string, unknown>;
+      const was = convert(item.before as never) as Record<string, unknown>;
+      const patch = Object.fromEntries(Object.entries(now).filter(([k, v]) => k !== "id" && JSON.stringify(v) !== JSON.stringify(was[k])));
+      if (!Object.keys(patch).length) continue;
+      const { error, count } = await s.from(table).update(patch, { count: "exact" }).eq("id", now.id as string);
       if (error) return { ok: false, error: `Couldn't save ${labels[key]}: ${error.message}` };
       if (count === 0) return { ok: false, error: `Couldn't save ${labels[key]}: it may have been deleted, or your role can't change it.` };
     }

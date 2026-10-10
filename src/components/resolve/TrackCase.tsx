@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, Check } from "lucide-react";
 import { caseSteps, resolution } from "@/content/resolution";
 import { backendEnabled } from "@/lib/backend";
@@ -50,6 +50,25 @@ export function TrackCase() {
     if (res.ok) setFound({ c: res.case, sample: false });
     else setError(res.error);
   }
+
+  // Keep a tracked case up to date while it's open: check again every minute, and when the tab
+  // comes back into view. (Cases have no live channel: the person tracking isn't signed in.)
+  const foundId = found && !found.sample ? found.c.id : null;
+  useEffect(() => {
+    if (!foundId) return;
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      void trackCase(foundId, email).then((res) => {
+        if (res.ok) setFound({ c: res.case, sample: false });
+      });
+    };
+    const timer = setInterval(refresh, 60_000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [foundId, email]);
 
   if (found) {
     return (

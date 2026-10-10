@@ -14,6 +14,7 @@ import { DataTable, type Column } from "../DataTable";
 import {
   ActionButton,
   addDays,
+  ago,
   artistName,
   categoryName,
   daysUntil,
@@ -324,11 +325,19 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
           {candidates.length === 0 && <li className="p-3 text-sm text-muted">No active {categoryName(b.category).toLowerCase()} yet.</li>}
           {candidates.map(({ a, free, why }) => {
             const listed = b.shortlist.includes(a.id);
+            // The artist's answer from the portal, once shortlisted.
+            const reply = b.replies?.find((r) => r.artistId === a.id);
             return (
               <li key={a.id} className="flex items-center gap-3 px-3 py-2 text-sm">
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-ink">{a.name}</span>
                   <span className={`block text-xs ${free ? "text-emerald-700" : "text-red-700"}`}>{why}</span>
+                  {reply && (
+                    <span className={`mt-0.5 block text-xs font-medium ${reply.status === "quoted" ? "text-brand" : "text-muted"}`}>
+                      {reply.status === "quoted" ? `Quoted ${inr(reply.quote)}` : "Declined"} in the portal · {ago(reply.at)}
+                      {reply.note && <span className="block font-normal text-muted">&ldquo;{reply.note}&rdquo;</span>}
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"

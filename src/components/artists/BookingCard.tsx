@@ -3,15 +3,20 @@
 import { CalendarDays, Clock, IndianRupee, MapPin, Users } from "lucide-react";
 import { useState } from "react";
 import { sampleBookings, type BookingStatus, type SampleBooking } from "@/content/artist-portal";
+import { backendEnabled } from "@/lib/backend";
+import { answerRequest, usePortalState } from "@/lib/artist-live";
 import { bookingActionsStore } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { Badge, inputBase } from "./form";
 
 export type Booking = SampleBooking & { quote?: string };
 
-// The sample bookings with whatever the artist has done to them in this browser.
+// Live: the artist's real requests and bookings. Preview: the sample bookings with whatever the
+// artist has done to them in this browser.
 export function useBookings(): Booking[] {
+  const live = usePortalState();
   const actions = bookingActionsStore.use();
+  if (backendEnabled) return live.data?.bookings ?? [];
   return sampleBookings.map((b) => {
     const a = actions[b.id];
     return a && b.status === "new" ? { ...b, status: a.status, quote: a.quote } : b;
@@ -21,9 +26,11 @@ export function useBookings(): Booking[] {
 const statusBadge: Record<BookingStatus, { tone: "neutral" | "brand" | "good" | "wait"; label: string }> = {
   new: { tone: "brand", label: "New request" },
   quoted: { tone: "wait", label: "Quote sent · waiting for customer" },
+  selected: { tone: "good", label: "You're chosen · waiting for the advance" },
   confirmed: { tone: "good", label: "Confirmed" },
   completed: { tone: "neutral", label: "Completed" },
   declined: { tone: "neutral", label: "Declined" },
+  cancelled: { tone: "neutral", label: "Cancelled" },
 };
 
 // One booking request or booking. New requests can be answered with a quote or declined.
@@ -34,7 +41,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
   const badge = statusBadge[booking.status];
 
   function act(status: "quoted" | "declined", quote?: string) {
-    bookingActionsStore.set({ ...bookingActionsStore.get(), [booking.id]: { status, quote } });
+    void answerRequest(booking.id, status, quote).then((err) => err && setError(err));
   }
 
   return (
@@ -110,7 +117,9 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
                 Cancel
               </button>
               {error && <p className="w-full text-xs text-red-600">{error}</p>}
-              <p className="w-full text-xs text-muted">Preview: the quote isn&apos;t sent to anyone; it only changes this card.</p>
+              <p className="w-full text-xs text-muted">
+                {backendEnabled ? "AOD sees your quote straight away and shares the shortlist with the customer." : "Preview: the quote isn't sent to anyone; it only changes this card."}
+              </p>
             </form>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -133,7 +142,9 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
         </div>
       )}
 
-      {booking.status === "confirmed" && !compact && (
+      {error && !quoting && <p className="mt-3 text-xs text-red-600">{error}</p>}
+
+      {(booking.status === "confirmed" || booking.status === "selected") && !compact && (
         <a
           href={whatsappUrl(`Hi AOD, about booking ${booking.id} (${booking.event}, ${booking.date}).`)}
           target="_blank"

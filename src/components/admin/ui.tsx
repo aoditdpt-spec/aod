@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { can, templates, type Permission, type TemplateId, type Tone } from "@/content/admin";
 import { categories } from "@/content/site";
-import { useSession, type Db } from "@/lib/admin-store";
+import { useSession, type Db, type PortfolioFile } from "@/lib/admin-store";
 
 // ---- Formatting ----
 
@@ -267,6 +267,30 @@ export function NotesBox({ notes, onAdd, permission }: { notes: { at: string; by
         </form>
       )}
     </div>
+  );
+}
+
+// Photos and videos an artist uploaded in the portal (the public `portfolio` storage bucket).
+export const portfolioUrl = (path: string) =>
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/portfolio/${path.split("/").map(encodeURIComponent).join("/")}`;
+
+export function PortfolioFiles({ files }: { files?: PortfolioFile[] }) {
+  if (!files?.length) return <p className="text-sm text-muted">No photos or videos uploaded in the portal yet.</p>;
+  return (
+    <ul className="grid grid-cols-3 gap-2">
+      {files.map((f) => (
+        <li key={f.path}>
+          <a href={portfolioUrl(f.path)} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg border border-line bg-wash hover:border-brand" title={f.name}>
+            {f.type.startsWith("image/") && f.type !== "image/heic" ? (
+              // eslint-disable-next-line @next/next/no-img-element -- files from the storage bucket
+              <img src={portfolioUrl(f.path)} alt={f.name} loading="lazy" className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full items-center justify-center p-2 text-center text-xs text-muted">{f.type.startsWith("video/") ? "Video" : "Photo"} · open</span>
+            )}
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }
 

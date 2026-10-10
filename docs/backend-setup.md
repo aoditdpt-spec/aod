@@ -12,7 +12,11 @@ the whole team. You can do steps 1–4 alone to start; email and the sheet can f
    database password somewhere safe.
 2. **SQL Editor → New query**: paste all of `supabase/migrations/20261009000000_init.sql`, then
    **Run**. It creates the tables, the role rules and the default settings.
-3. Still in the SQL Editor, add yourself as the first owner (use your real email):
+3. **New query** again: paste all of `supabase/migrations/20261010000000_live_and_artists.sql`,
+   then **Run**. It adds live updates, artists' replies and profiles, and the `portfolio` storage
+   bucket for artists' photos and videos. (Always run the files in `supabase/migrations/` in
+   date order, each once.)
+4. Still in the SQL Editor, add yourself as the first owner (use your real email):
 
    ```sql
    insert into public.staff (id, name, email, role)
@@ -65,6 +69,10 @@ In **Vercel → Settings → Functions**, set the region to **Mumbai (bom1)**, c
 3. Sign in to `/my-bookings` with the email you used in the request: it's listed there.
 4. Send a test payment reference on `/pay` and an application on `/artists/apply`; they appear
    under **Payments** and **Applications**.
+5. The admin header shows a green **Live** dot: changes made anywhere (another browser, a form,
+   an artist) appear without refreshing.
+
+`docs/testing.md` walks through testing everything, including live updates across two browsers.
 
 ## 5. Emails (Resend)
 
@@ -136,10 +144,16 @@ from those addresses back to the main site work.
 ## What's live, and what isn't yet
 
 Live with these steps: booking requests, artist applications, payment references, My bookings
-(with reviews), Resolution Centre cases (raise, track, escalate), and the whole admin panel on
-shared data, with each role's limits enforced by the database.
+(with reviews), Resolution Centre cases (raise, track, escalate), the whole admin panel on
+shared data (each role's limits enforced by the database), the artist portal (sign-in, profile,
+portfolio uploads, availability, quoting or declining shortlisted requests, onboarding status),
+and live updates on every signed-in page.
 
-Not yet: the artist portal's signed-in pages (profile, availability, quotes) still run on
-sample data in the browser; uploaded portfolio files aren't stored (artists add links instead);
-staff sign in with an emailed code rather than an authenticator app; identity checks
-(DigiLocker) and card payments (Razorpay) come later.
+Not yet: artists sign in by email code only (WhatsApp codes need the WhatsApp Business API);
+the application form doesn't upload files (applicants add photos from the portal after
+signing in); staff sign in with an emailed code rather than an authenticator app; identity
+checks (DigiLocker) and card payments (Razorpay) come later.
+
+Free-plan limits to keep in mind: Supabase Storage holds 1 GB in total and takes files up to
+50 MB (photos are shrunk in the browser before upload, so most are under 1 MB); the database
+holds 500 MB; Realtime allows 200 open connections at once (each open signed-in page is one).
