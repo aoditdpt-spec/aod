@@ -386,6 +386,7 @@ export const bookingChoice = {
 // Trust message shown on the homepage, booking and category pages: every artist is verified.
 export const verifiedArtists = {
   short: "Every AOD artist has been verified thoroughly",
+  eyebrow: "Our promise",
   title: "Only thoroughly verified artists.",
   text: "We don't list strangers. Every artist on AOD is checked by our team, from their portfolio and past work to their background and references, before they're ever sent to your event.",
   points: [
@@ -571,10 +572,10 @@ export const business = {
 
 // The About us page (/about).
 export const about = {
-  eyebrow: "About AOD",
-  title: "Artists on demand.",
+  eyebrow: "Artists on Demand",
+  title: "About us",
   intro:
-    "Artists on Demand (AOD) is an Ahmedabad company that makes booking event talent as easy as booking a cab. Photographers, cinematographers, DJs, anchors, makeup artists and more — verified, matched to your event and booked with one clear quote.",
+    "Artists on Demand is a premier artist booking platform where you can book verified, professional artists with ease — just as you book a cab. AOD provides artists across a wide range of categories, including Photographers, Videographers & Cinematographers, Hosts & Anchors, Models, Musicians, and more. You can book the artists at your convenience.",
   storyTitle: "Vision of AOD",
   story: [
     "AOD's vision is simple: booking talent for any event in Gujarat should be as easy and as trustworthy as booking a cab — every artist verified, every price clear.",

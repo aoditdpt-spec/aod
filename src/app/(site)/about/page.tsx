@@ -13,7 +13,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 export const metadata: Metadata = {
   title: "About us",
   description:
-    "Artists on Demand (AOD) is an Ahmedabad company that makes booking verified photographers, DJs, anchors, makeup artists and more as easy as booking a cab.",
+    "Artists on Demand is a premier artist booking platform: book verified, professional photographers, videographers, hosts, models, musicians and more, just as you book a cab.",
   alternates: { canonical: "/about" },
 };
 
