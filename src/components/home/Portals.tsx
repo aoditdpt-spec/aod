@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Briefcase, Check, IndianRupee, LogIn, Scale, Sparkles, Ticket, UserPlus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Briefcase, Check, LogIn, Scale, Sparkles, Ticket, UserPlus } from "lucide-react";
 import { artistJoinMessage, brand, portals } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { WhatsAppIcon } from "@/components/ui/Icon";
@@ -7,11 +7,11 @@ import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
 import { whatsappUrl } from "@/lib/whatsapp";
 
-const icons = { bookings: Ticket, pay: IndianRupee, resolve: Scale, business: Briefcase };
+const icons = { bookings: Ticket, resolve: Scale, business: Briefcase };
 
 // "Everything in one place": where each kind of visitor goes. Artists first, in a dark band with
 // the two ways in (apply / sign in to the portal), then the customer places as cards: My bookings,
-// payments, the Resolution Centre and AOD for Business. Each card shows its address too.
+// the Resolution Centre and AOD for Business. Each card shows its address too.
 export function Portals() {
   const a = portals.artist;
   return (
@@ -76,7 +76,7 @@ export function Portals() {
       </section>
 
       {/* Customers and companies */}
-      <StaggerList className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <StaggerList className="mt-6 grid gap-5 md:grid-cols-3">
         {portals.places.map((p) => {
           const I = icons[p.id as keyof typeof icons];
           return (

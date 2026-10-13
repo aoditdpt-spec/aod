@@ -442,7 +442,7 @@ export const howItWorks = {
 export const portals = {
   eyebrow: "Everything in one place",
   title: "One AOD, a place for everyone.",
-  text: "Booking an artist, following a booking, paying, sorting out a problem or joining as an artist: each has its own place. Here's where to go.",
+  text: "Booking an artist, following a booking, sorting out a problem or joining as an artist: each has its own place. Here's where to go.",
   artist: {
     eyebrow: "For artists",
     title: "Are you an artist? Join AOD.",
@@ -472,15 +472,6 @@ export const portals = {
       points: ["Follow each booking's progress", "Pay the advance or balance", "Download your photos and films"],
       cta: "Open My bookings",
       href: "/my-bookings",
-    },
-    {
-      id: "pay",
-      who: "Payments",
-      title: "Pay AOD",
-      text: "Pay an advance or balance by UPI, with no extra charges.",
-      points: ["Scan the QR or open your UPI app", "Share the 12-digit transaction ID", "AOD confirms once it's checked"],
-      cta: "Make a payment",
-      href: "/pay",
     },
     {
       id: "resolve",
