@@ -18,11 +18,12 @@ const lowData = () => {
 };
 
 // Looping background video for the hero, kept light for the page:
-// - The poster (the clip's first frame as WebP, 85–165 KB) renders on the server and is what
+// - The poster (the clip's first frame as WebP, 80–210 KB) renders on the server and is what
 //   visitors see first. The video only starts downloading once the rest of the page has loaded,
 //   then fades in over the poster when it plays.
-// - Each screen shape gets its own cut (680×1210 for phones, 1920×1080 otherwise), as AV1 (about
-//   40% smaller; Chrome, Edge, Firefox, newer Safari) with H.264 as the fallback. 30 fps, no sound.
+// - Each screen shape gets its own cut (608×1080, the middle of the frame, for phones; 1920×1080
+//   otherwise), as AV1 (about 60% smaller; Chrome, Edge, Firefox, newer Safari) with H.264 as the
+//   fallback. 30 fps, no sound.
 // - No video for visitors who prefer reduced motion or are on Data Saver / 2G.
 // The files are in public/media/, or wherever NEXT_PUBLIC_MEDIA_URL points (see Hero.tsx).
 export function HeroVideo({ base }: { base: string }) {
@@ -48,10 +49,10 @@ export function HeroVideo({ base }: { base: string }) {
           onPlaying={() => setPlaying(true)}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${playing ? "opacity-100" : "opacity-0"}`}
         >
-          <source media={PHONE} src={`${base}/hero-portrait-av1.mp4`} type='video/mp4; codecs="av01.0.05M.08"' />
+          <source media={PHONE} src={`${base}/hero-portrait-av1.mp4`} type='video/mp4; codecs="av01.0.04M.08"' />
           <source media={PHONE} src={`${base}/hero-portrait.mp4`} type='video/mp4; codecs="avc1.640028"' />
           <source src={`${base}/hero-1080-av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-          <source src={`${base}/hero-1080.mp4`} type='video/mp4; codecs="avc1.640028"' />
+          <source src={`${base}/hero-1080.mp4`} type='video/mp4; codecs="avc1.640032"' />
         </video>
       )}
     </>
