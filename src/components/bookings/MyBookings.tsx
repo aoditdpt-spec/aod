@@ -38,9 +38,10 @@ const statusInfo = (o: CustomerOrder) => {
 // What the customer should do next, if anything.
 function nextAction(o: CustomerOrder): { text: string; href?: string; cta?: string } | null {
   const forText = `${o.services[0]}, ${fmt(o.date)}`;
-  const pay = (amount: number) => `/pay?${new URLSearchParams({ amount: String(amount), ref: o.id, for: forText })}`;
-  if (o.status === "quoted" && o.advance) return { text: `Pay the ${inr(o.advance)} advance to lock your date.`, href: pay(o.advance), cta: `Pay ${inr(o.advance)}` };
-  if (o.status === "confirmed" && o.balance) return { text: `Balance of ${inr(o.balance.amount)} due by ${fmt(o.balance.dueBy)}.`, href: pay(o.balance.amount), cta: `Pay ${inr(o.balance.amount)}` };
+  // Payment details come from AOD on WhatsApp; the message says what's being paid.
+  const pay = (amount: number, what: string) => whatsappUrl(`Hi AOD, I'd like to pay the ${what} of ${inr(amount)} for booking ${o.id} (${forText}). Please share the payment details.`);
+  if (o.status === "quoted" && o.advance) return { text: `Pay the ${inr(o.advance)} advance to lock your date. AOD sends the payment details on WhatsApp.`, href: pay(o.advance, "advance"), cta: "Get payment details" };
+  if (o.status === "confirmed" && o.balance) return { text: `Balance of ${inr(o.balance.amount)} due by ${fmt(o.balance.dueBy)}. AOD sends the payment details on WhatsApp.`, href: pay(o.balance.amount, "balance"), cta: "Get payment details" };
   if (o.status === "payment_pending") return { text: "We're checking your payment. You'll get an email once it's confirmed." };
   if (o.status === "delivered" && o.delivery) return { text: `Your files are ready. Download them before ${fmt(o.delivery.expires)}.`, href: o.delivery.link, cta: "Open your files" };
   return null;

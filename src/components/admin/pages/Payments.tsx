@@ -5,11 +5,9 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { paymentStatuses } from "@/content/admin";
-import { payee } from "@/content/payments";
 import { currentUser, newId, update, useDb, type Db, type Payment, type Payout } from "@/lib/admin-store";
 import { WhatsAppIcon } from "@/components/ui/Icon";
-import { CopyButton } from "@/components/pay/CopyButton";
-import { PayLinkBuilder } from "@/components/pay/PayLinkBuilder";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { DataTable, type Column } from "../DataTable";
 import { ActionButton, ago, artistName, Card, Details, Drawer, DrawerSection, Empty, fieldBase, fillTemplate, fmtDate, inr, PageHeader, StageBadge, Stat, whatsappTo } from "../ui";
 import { useOpen } from "../useOpen";
@@ -18,7 +16,6 @@ const tabs = [
   { id: "verify", label: "To verify" },
   { id: "all", label: "All payments" },
   { id: "payouts", label: "Artist payouts" },
-  { id: "links", label: "Payment links" },
 ] as const;
 
 // Verifying a payment confirms its booking (if it was waiting for payment) and logs both.
@@ -77,8 +74,8 @@ export function Payments() {
         title="Payments"
         text={
           <>
-            Customers pay by UPI to <strong className="font-medium text-ink">{payee.upiId || "(UPI ID not set)"}</strong> and share the transaction ID. Check each one
-            against the bank statement before verifying; verifying confirms the booking.
+            Payments recorded on a booking (with the UPI transaction ID the customer shared) wait here. Check each one against the
+            bank statement before verifying; verifying confirms the booking.
           </>
         }
       />
@@ -105,10 +102,9 @@ export function Payments() {
         ))}
       </div>
 
-      {tab === "verify" && (pending.length === 0 ? <Empty>No payments waiting. New ones appear when customers share a transaction ID.</Empty> : <div className="grid gap-4 xl:grid-cols-2">{pending.map((p) => <VerifyCard key={p.id} p={p} db={db} />)}</div>)}
+      {tab === "verify" && (pending.length === 0 ? <Empty>No payments waiting. New ones appear when the team records a payment on a booking.</Empty> : <div className="grid gap-4 xl:grid-cols-2">{pending.map((p) => <VerifyCard key={p.id} p={p} db={db} />)}</div>)}
       {tab === "all" && <AllPayments db={db} onOpen={(id) => setOpen(id)} />}
       {tab === "payouts" && <Payouts db={db} />}
-      {tab === "links" && <PayLinkBuilder />}
       {open && <PaymentDrawer key={open.id} p={open} db={db} onClose={() => setOpen(null)} />}
     </div>
   );

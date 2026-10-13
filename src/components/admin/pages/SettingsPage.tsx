@@ -3,13 +3,11 @@
 import { Check, Circle, Download, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { legalDocs } from "@/content/legal";
-import { payee } from "@/content/payments";
 import { siteHref } from "@/lib/site-url";
 import { backendEnabled } from "@/lib/backend";
 import { resetDb, update, useDb, type Settings } from "@/lib/admin-store";
 import { buildXlsx, download, XLSX_TYPE } from "@/lib/xlsx";
-import { usePayBase } from "@/components/pay/PayLinkBuilder";
-import { ActionButton, Card, Details, fieldBase, Labelled, PageHeader, StatusBadge, useCan } from "../ui";
+import { ActionButton, Card, fieldBase, Labelled, PageHeader, useCan } from "../ui";
 import { masterWorkbook } from "./Reports";
 
 const numbers: { key: keyof Omit<Settings, "notify">; label: string; suffix: string; hint: string }[] = [
@@ -23,7 +21,6 @@ const numbers: { key: keyof Omit<Settings, "notify">; label: string; suffix: str
 const launch = [
   { label: "Privacy, terms and refund pages drafted (/privacy, /terms, /refund-policy)", done: true },
   { label: "Policies confirmed by the founder and checked by a lawyer; entity name, GSTIN and grievance officer added", done: false },
-  { label: "Business UPI ID set (NEXT_PUBLIC_UPI_ID)", done: !!payee.upiId },
   { label: "Staff accounts with 2-step verification (backend)", done: false },
   { label: "WhatsApp Business Platform provider connected", done: false },
   { label: "Razorpay for cards, netbanking and automatic confirmation", done: false },
@@ -32,7 +29,6 @@ const launch = [
 export function SettingsPage() {
   const db = useDb();
   const allowed = useCan();
-  const payBase = usePayBase();
   const [draft, setDraft] = useState<Partial<Settings>>({});
   if (!db) return null;
   const s = { ...db.settings, ...draft };
@@ -97,17 +93,6 @@ export function SettingsPage() {
           <p className="mt-3 text-xs text-muted">Alerts show in the bell now; WhatsApp and email alerts start with the backend.</p>
         </Card>
 
-        <Card title="Payments">
-          <Details
-            rows={[
-              ["UPI ID", payee.upiId ? <span key="u" className="font-mono">{payee.upiId}</span> : <StatusBadge key="u" tone="bad">Not set</StatusBadge>],
-              ["Name shown", payee.name],
-              ["Payment page", payBase || "—"],
-              ["Card payments", "Razorpay, coming later"],
-            ]}
-          />
-          <p className="mt-3 text-xs text-muted">The UPI ID and name are set on Vercel (NEXT_PUBLIC_UPI_ID, NEXT_PUBLIC_UPI_NAME). Use a business UPI account.</p>
-        </Card>
 
         <Card title="Before taking real payments">
           <ul className="space-y-2 text-sm">
@@ -131,7 +116,7 @@ export function SettingsPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-muted">Text lives in src/content/legal.ts. Linked from the site footer, booking request, payment page and artist portal.</p>
+          <p className="mt-3 text-xs text-muted">Text lives in src/content/legal.ts. Linked from the site footer, booking request and artist portal.</p>
         </Card>
 
         <Card title="Data">

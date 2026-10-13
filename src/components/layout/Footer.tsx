@@ -16,7 +16,6 @@ const columns = [
     links: [
       { href: "/book", label: "Get curated matches" },
       { href: "/my-bookings", label: "My bookings" },
-      { href: "/pay", label: "Pay AOD" },
       { href: "/#how-it-works", label: "How it works" },
       { href: "/business", label: "AOD for Business" },
       { href: "/about", label: "About us" },

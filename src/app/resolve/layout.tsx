@@ -9,7 +9,7 @@ import { siteHref } from "@/lib/site-url";
 const description = "Raise a problem with an AOD booking, get a case number, follow it and escalate it. For customers, businesses and AOD artists.";
 
 // The Resolution Centre. Lives at /resolve for now and moves to resolve.aod.co.in (see
-// src/proxy.ts). Its own small header and footer, like the payment page, so it reads as a
+// src/proxy.ts). Its own small header and footer, so it reads as a
 // separate, formal place rather than part of the booking site. Links inside use /resolve/…,
 // which works on both hosts; links back to the customer site go through siteHref().
 export const metadata: Metadata = {

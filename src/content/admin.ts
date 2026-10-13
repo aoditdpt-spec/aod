@@ -98,19 +98,19 @@ export const templates = [
     id: "quote",
     to: "customer",
     name: "Quote",
-    text: "Hi {customer}, here's your quote for {service} on {date} in {city}: {quote}, with an advance of {amount} to confirm. Reply YES and we'll send the payment link. – Team AOD",
+    text: "Hi {customer}, here's your quote for {service} on {date} in {city}: {quote}, with an advance of {amount} to confirm. Reply YES and we'll send the payment details. – Team AOD",
   },
   {
     id: "payment_link",
     to: "customer",
-    name: "Payment link",
-    text: "Hi {customer}, to confirm booking {ref} please pay {amount} here: {paylink}. After paying, share the 12-digit UPI transaction ID. – Team AOD",
+    name: "Payment request",
+    text: "Hi {customer}, to confirm booking {ref} please pay {amount} to AOD. After paying, share the 12-digit UPI transaction ID here. – Team AOD",
   },
   {
     id: "payment_reminder",
     to: "customer",
     name: "Payment reminder",
-    text: "Hi {customer}, a reminder that booking {ref} is held for you until the payment of {amount} is made: {paylink}. – Team AOD",
+    text: "Hi {customer}, a reminder that booking {ref} is held for you until the payment of {amount} is made. – Team AOD",
   },
   {
     id: "confirmed",

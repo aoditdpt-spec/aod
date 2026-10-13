@@ -5,8 +5,7 @@ import { useMemo, useState } from "react";
 import { templates, type TemplateId } from "@/content/admin";
 import { useDb } from "@/lib/admin-store";
 import { WhatsAppIcon } from "@/components/ui/Icon";
-import { CopyButton } from "@/components/pay/CopyButton";
-import { payLink, usePayBase } from "@/components/pay/PayLinkBuilder";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { artistName, Card, fieldClass, fmtDate, inr, Labelled, PageHeader, useCan, whatsappTo } from "../ui";
 
 const groups = [
@@ -34,7 +33,6 @@ const automatic = [
 export function Messages() {
   const db = useDb();
   const allowed = useCan();
-  const base = usePayBase();
   const [templateId, setTemplateId] = useState<TemplateId>("quote");
   const [recordId, setRecordId] = useState("");
   const [edited, setEdited] = useState<string | null>(null);
@@ -61,7 +59,6 @@ export function Messages() {
       amount: inr(due),
       quote: inr(b.quote),
       budget: b.budget,
-      paylink: base ? payLink(base, { amount: due, forText: `${b.service}, ${fmtDate(b.date)}`, ref: b.id, name: b.customer.name }) : "",
       artist: artistName(db, b.artistId),
       delivery: b.delivery?.link ?? "{delivery}",
       expiry: b.delivery ? fmtDate(b.delivery.expires) : "{expiry}",
@@ -69,7 +66,7 @@ export function Messages() {
     return t.to === "artist"
       ? { id: b.id, name: artist?.name ?? "No artist assigned", phone: artist?.phone ?? "", email: artist?.email ?? "", vars }
       : { id: b.id, name: b.customer.name, phone: b.customer.phone, email: b.customer.email, vars };
-  }, [db, t, recordId, base]);
+  }, [db, t, recordId]);
 
   if (!db) return null;
   const filled = recipient ? t.text.replace(/\{(\w+)\}/g, (_, k: string) => recipient.vars[k] ?? `{${k}}`) : t.text;

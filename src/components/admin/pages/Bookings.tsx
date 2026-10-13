@@ -1,15 +1,13 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { CalendarDays, Columns3, ExternalLink, List, MapPin, Plus, Star, Users } from "lucide-react";
+import { CalendarDays, Columns3, List, MapPin, Plus, Star, Users } from "lucide-react";
 import { useState, type DragEvent } from "react";
 import { activeBookingStages, bookingStages, paymentStatuses, templates, type TemplateId } from "@/content/admin";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { WhatsAppIcon } from "@/components/ui/Icon";
-import { CopyButton } from "@/components/pay/CopyButton";
-import { payLink, usePayBase } from "@/components/pay/PayLinkBuilder";
 import { DataTable, type Column } from "../DataTable";
 import {
   ActionButton,
@@ -207,7 +205,6 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
 function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; onClose: () => void }) {
   const allowed = useCan();
   const editable = allowed("bookings.edit");
-  const base = usePayBase();
   const [quote, setQuote] = useState(b.quote ? String(b.quote) : "");
   const [advance, setAdvance] = useState(b.advance ? String(b.advance) : "");
   const [delivery, setDelivery] = useState(b.delivery?.link ?? "");
@@ -222,7 +219,6 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   const payments = db.payments.filter((p) => p.bookingId === b.id);
   const verified = payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
   const due = (b.advance ?? b.quote ?? 0) - verified;
-  const link = base ? payLink(base, { amount: due > 0 ? due : b.quote, forText: `${b.service}, ${fmtDate(b.date)}`, ref: b.id, name: b.customer.name }) : "";
   const expiry = addDays(todayKey(), db.settings.deliveryLinkDays);
 
   // Artists who could take this: same category, active, free that day. Same city first.
@@ -245,7 +241,6 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
     amount: inr(due > 0 ? due : b.quote),
     quote: inr(b.quote),
     budget: b.budget,
-    paylink: link,
     artist: artist?.name ?? "your artist",
     delivery: b.delivery?.link ?? delivery,
     expiry: fmtDate(b.delivery?.expires ?? expiry),
@@ -406,10 +401,10 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
                 href={send("payment_link", "customer")}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => b.status === "quoted" && editable && moveTo(b, "payment_pending", undefined, `Sent the payment link for ${b.id}`)}
+                onClick={() => b.status === "quoted" && editable && moveTo(b, "payment_pending", undefined, `Asked the customer to pay for ${b.id}`)}
                 className={waBtn}
               >
-                <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Send payment link
+                <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Ask for payment
               </a>
               {b.status === "payment_pending" && (
                 <a href={send("payment_reminder", "customer")} target="_blank" rel="noopener noreferrer" className={waBtn}>
@@ -417,15 +412,6 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
                 </a>
               )}
             </div>
-            {link && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-wash p-2.5 text-xs">
-                <span className="min-w-0 flex-1 truncate font-mono text-muted">{link}</span>
-                <CopyButton text={link} label="Copy" className="py-1" />
-                <a href={link} target="_blank" rel="noopener noreferrer" aria-label="Open payment page" className="rounded p-1 text-muted hover:text-ink">
-                  <ExternalLink className="h-4 w-4" aria-hidden />
-                </a>
-              </div>
-            )}
           </>
         )}
         <div className="mt-4 rounded-lg border border-line p-3">

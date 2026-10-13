@@ -21,7 +21,7 @@ export const privacy: LegalDoc = {
   title: "Privacy policy",
   description: "How Artists on Demand collects, uses, shares and protects personal data, and the rights you have under India's Digital Personal Data Protection Act, 2023.",
   updated,
-  intro: `This policy explains what personal data ${brand.fullName} ("AOD", "we") collects when you use ${brand.domain}, our artist portal and payment page, or talk to us on WhatsApp, and what we do with it. We follow India's Digital Personal Data Protection Act, 2023 (the DPDP Act).`,
+  intro: `This policy explains what personal data ${brand.fullName} ("AOD", "we") collects when you use ${brand.domain}, our artist portal, or talk to us on WhatsApp, and what we do with it. We follow India's Digital Personal Data Protection Act, 2023 (the DPDP Act).`,
   sections: [
     {
       id: "who",
@@ -114,7 +114,7 @@ export const terms: LegalDoc = {
   title: "Terms of service",
   description: "The terms for booking artists through Artists on Demand: our role, quotes and payments, bookings, deliverables, conduct and liability.",
   updated,
-  intro: `These terms apply when you use ${brand.domain}, our artist portal or payment page, or book an artist through ${brand.fullName} ("AOD", "we"). By making a booking request or paying, you agree to them. Our Cancellation & refund policy and Privacy policy are part of these terms.`,
+  intro: `These terms apply when you use ${brand.domain} or our artist portal, or book an artist through ${brand.fullName} ("AOD", "we"). By making a booking request or paying, you agree to them. Our Cancellation & refund policy and Privacy policy are part of these terms.`,
   sections: [
     {
       id: "role",
@@ -141,7 +141,7 @@ export const terms: LegalDoc = {
       id: "payment",
       heading: "Prices and payment",
       body: [
-        { list: ["Prices are in Indian rupees. Each quote states whether GST is included. AOD's GSTIN: [to add].", "Pay only to AOD's official UPI ID or bank account shown on our payment page or in our messages. Don't pay artists directly for a booking made through AOD; we can't protect payments made outside AOD.", "The balance (if any) is due by the date shown on your quote, before the event unless agreed otherwise.", "Card, netbanking and wallet payments will be added through a payment gateway; until then we accept UPI and bank transfer."] },
+        { list: ["Prices are in Indian rupees. Each quote states whether GST is included. AOD's GSTIN: [to add].", "Pay only to AOD's official UPI ID or bank account, as shared in AOD's messages. Don't pay artists directly for a booking made through AOD; we can't protect payments made outside AOD.", "The balance (if any) is due by the date shown on your quote, before the event unless agreed otherwise.", "Card, netbanking and wallet payments will be added through a payment gateway; until then we accept UPI and bank transfer."] },
       ],
     },
     {

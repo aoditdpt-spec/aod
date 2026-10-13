@@ -5,7 +5,6 @@ import { categories, cities, type Audience } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eventMinutes, timeRange } from "@/lib/event-time";
-import { cleanUtr, isUtr } from "@/lib/upi";
 import { insertWithNextId } from "@/server/ids";
 import { ALL_ORDERS_TAB, istNow, notifyEnabled, runOrQueue, teamEmails, type Job } from "@/server/notify";
 
@@ -247,59 +246,5 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   } catch (e) {
     console.error("[application]", e);
     return { ok: false, error: "Couldn't save your application just now. Please try again, or send it on WhatsApp." };
-  }
-}
-
-// ---- Payment reported on /pay (the customer's UPI transaction ID) ----
-
-export type PaymentReportInput = {
-  amount: number;
-  utr: string;
-  name: string;
-  phone: string;
-  bookingRef: string;
-  purpose: string;
-  website?: string;
-};
-
-export async function reportPayment(input: PaymentReportInput): Promise<SaveResult<{ id: string }>> {
-  if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return notSetUp;
-  if (text(input.website, 200)) return { ok: true, id: "PAY-0" };
-
-  const amount = Math.round(Number(input.amount));
-  const utr = cleanUtr(text(input.utr, 40));
-  const payer = text(input.name, 80);
-  const phone = text(input.phone, 20);
-  const bookingRef = text(input.bookingRef, 30);
-  const purpose = text(input.purpose, 60);
-
-  if (!Number.isFinite(amount) || amount < 1 || amount > 10_000_000) return { ok: false, error: "Enter the amount you paid." };
-  if (!isUtr(utr)) return { ok: false, error: "Enter the 12-digit UPI transaction ID." };
-  if (payer.length < 2) return { ok: false, error: "Enter your name." };
-
-  try {
-    const db = createAdminClient();
-    // The same transaction reported twice (e.g. a double tap) is saved once.
-    const { data: existing } = await db.from("payments").select("id").eq("utr", utr).neq("status", "rejected").maybeSingle();
-    if (existing) return { ok: true, id: String(existing.id) };
-
-    const [payment] = await insertWithNextId(db, "payments", "PAY", 3101, (n) => [
-      { id: `PAY-${n}`, booking_id: bookingRef, amount, utr, payer, payer_phone: phone, purpose, status: "pending" },
-    ]);
-    after(async () => {
-      if (await notifyEnabled("Payment reported"))
-        await runOrQueue([
-          {
-            kind: "email",
-            to: teamEmails(),
-            subject: `Payment to verify: ₹${amount.toLocaleString("en-IN")} from ${payer}`,
-            text: `${payer} reports paying ₹${amount.toLocaleString("en-IN")}${bookingRef ? ` for ${bookingRef}` : ""} (${purpose || "payment"}).\nUPI transaction ID: ${utr}\nPhone: ${phone || "—"}\n\nCheck it against the bank statement, then verify it in the admin: ${site()}/admin/payments?open=${payment.id}`,
-          },
-        ]);
-    });
-    return { ok: true, id: String(payment.id) };
-  } catch (e) {
-    console.error("[payment report]", e);
-    return { ok: false, error: "Couldn't save your payment details just now. Please send them on WhatsApp instead." };
   }
 }
