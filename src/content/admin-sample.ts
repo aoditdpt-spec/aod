@@ -99,7 +99,7 @@ export function createSampleDb(now: Date): Db {
       links: ["https://example.com/harshvyas-photos", "https://example.com/videos/harsh-reel"],
       submittedAt: iso(-2, 15),
       status: "review",
-      notes: [{ at: iso(-1, 12), by: "Priya (Ops)", text: "Strong low-light work. Ask about second shooter rates." }],
+      notes: [{ at: iso(-1, 12), by: "Priya (Developer)", text: "Strong low-light work. Ask about second shooter rates." }],
     }),
     application(3, {
       name: "Zoya Mirza",
@@ -126,7 +126,7 @@ export function createSampleDb(now: Date): Db {
       submittedAt: iso(-12, 10),
       status: "trial",
       kyc: "verified",
-      notes: [{ at: iso(-6, 16), by: "Aditya (Owner)", text: "Met in person. Trial booking on the next Surat wedding." }],
+      notes: [{ at: iso(-6, 16), by: "Aditya (Admin)", text: "Met in person. Trial booking on the next Surat wedding." }],
     }),
     application(5, {
       name: "Neel Doshi",
@@ -139,7 +139,7 @@ export function createSampleDb(now: Date): Db {
       links: ["https://example.com/neel-mixes"],
       submittedAt: iso(-20, 13),
       status: "rejected",
-      notes: [{ at: iso(-15, 11), by: "Priya (Ops)", text: "Not enough event experience yet. Suggested reapplying in 3 months." }],
+      notes: [{ at: iso(-15, 11), by: "Priya (Developer)", text: "Not enough event experience yet. Suggested reapplying in 3 months." }],
     }),
     application(6, {
       name: "Kavish Patel",
@@ -192,11 +192,11 @@ export function createSampleDb(now: Date): Db {
     if (upTo > 0) {
       b.history = order.slice(0, upTo + 1).map((status, i) => ({
         at: new Date(new Date(b.createdAt).getTime() + i * 26 * 3600 * 1000).toISOString(),
-        by: i === 0 ? "Website" : i % 2 ? "Priya (Ops)" : "Aditya (Owner)",
+        by: i === 0 ? "Website" : i % 2 ? "Priya (Developer)" : "Aditya (Admin)",
         status,
       }));
     } else if (b.status === "cancelled" || b.status === "rescheduled") {
-      b.history.push({ at: iso(-6, 12), by: "Priya (Ops)", status: b.status });
+      b.history.push({ at: iso(-6, 12), by: "Priya (Developer)", status: b.status });
     }
   }
 
@@ -205,7 +205,7 @@ export function createSampleDb(now: Date): Db {
     { id: "PAY-3100", bookingId: "B-1206", amount: 15000, utr: "426918220471", payer: "Northwind Pharma", reportedAt: iso(-2, 13), status: "verified", checkedBy: "Neha (Finance)", checkedAt: iso(-2, 17) },
     { id: "PAY-3099", bookingId: "B-1207", amount: 10000, utr: "426855102938", payer: "Pooja Bhatia", reportedAt: iso(-5, 10), status: "verified", checkedBy: "Neha (Finance)", checkedAt: iso(-5, 12) },
     { id: "PAY-3098", bookingId: "B-1208", amount: 15000, utr: "426744019283", payer: "Karan Sethi", reportedAt: iso(-11, 19), status: "verified", checkedBy: "Neha (Finance)", checkedAt: iso(-10, 10) },
-    { id: "PAY-3097", bookingId: "B-1209", amount: 8000, utr: "426610938475", payer: "Divya Nair", reportedAt: iso(-20, 9), status: "verified", checkedBy: "Aditya (Owner)", checkedAt: iso(-20, 15) },
+    { id: "PAY-3097", bookingId: "B-1209", amount: 8000, utr: "426610938475", payer: "Divya Nair", reportedAt: iso(-20, 9), status: "verified", checkedBy: "Aditya (Admin)", checkedAt: iso(-20, 15) },
     { id: "PAY-3096", bookingId: "B-1204", amount: 13000, utr: "426590012345", payer: "Sneha Iyer", reportedAt: iso(-1, 22), status: "pending" },
     { id: "PAY-3095", bookingId: "B-1211", amount: 5000, utr: "426401118899", payer: "R Varma", reportedAt: iso(-9, 11), status: "rejected", checkedBy: "Neha (Finance)", checkedAt: iso(-9, 16), reason: "No matching credit in the bank statement." },
   ];
@@ -221,19 +221,17 @@ export function createSampleDb(now: Date): Db {
   const leads: Lead[] = [
     lead(1, { createdAt: iso(0, 10), name: "Hetal Shah", source: "WhatsApp", type: "Personal", need: "Mehendi artist for 40 guests", city: "Ahmedabad", status: "new" }),
     lead(2, { createdAt: iso(-1, 11), name: "Crestline Realty", source: "Business form", type: "Business", need: "Monthly site photography and walkthrough films", city: "Ahmedabad", status: "new" }),
-    lead(3, { createdAt: iso(-1, 19), name: "Manav Gohil", source: "Website", type: "Personal", need: "DJ + anchor for a 25th anniversary", city: "Surat", status: "contacted", notes: [{ at: iso(0, 9), by: "Priya (Ops)", text: "Called. Wants quotes by Friday." }] }),
+    lead(3, { createdAt: iso(-1, 19), name: "Manav Gohil", source: "Website", type: "Personal", need: "DJ + anchor for a 25th anniversary", city: "Surat", status: "contacted", notes: [{ at: iso(0, 9), by: "Priya (Developer)", text: "Called. Wants quotes by Friday." }] }),
     lead(4, { createdAt: iso(-3, 16), name: "Bloom Events", source: "Instagram", type: "Business", need: "Photographers for 6 weddings this season", city: "Vadodara", status: "contacted" }),
     lead(5, { createdAt: iso(-4, 12), name: "Ritu Agarwal", source: "Website", type: "Personal", need: "Wedding photography, two days", city: "Ahmedabad", status: "converted", bookingId: "B-1201" }),
-    lead(6, { createdAt: iso(-6, 15), name: "Sahil Modi", source: "Phone call", type: "Personal", need: "Birthday magician", city: "Rajkot", status: "lost", notes: [{ at: iso(-5, 10), by: "Priya (Ops)", text: "We don't onboard magicians yet." }] }),
+    lead(6, { createdAt: iso(-6, 15), name: "Sahil Modi", source: "Phone call", type: "Personal", need: "Birthday magician", city: "Rajkot", status: "lost", notes: [{ at: iso(-5, 10), by: "Priya (Developer)", text: "We don't onboard magicians yet." }] }),
     lead(7, { createdAt: iso(-2, 9), name: "Kiran Joshi", source: "Referral", type: "Personal", need: "Pre-wedding shoot in Kutch", city: "Ahmedabad", status: "new" }),
     lead(8, { createdAt: iso(-7, 14), name: "Northwind Pharma", source: "Business form", type: "Business", need: "Annual day emcee", city: "Gandhinagar", status: "converted", bookingId: "B-1206" }),
   ];
 
   const team: Member[] = [
-    { id: "U-1", name: "Aditya (Owner)", email: "owner@example.com", role: "owner", active: true, twoFactor: true, lastActive: iso(0, 10) },
-    { id: "U-2", name: "Priya (Ops)", email: "ops@example.com", role: "ops", active: true, twoFactor: true, lastActive: iso(0, 9) },
-    { id: "U-3", name: "Neha (Finance)", email: "finance@example.com", role: "finance", active: true, twoFactor: false, lastActive: iso(-1, 18) },
-    { id: "U-4", name: "Intern (Viewer)", email: "intern@example.com", role: "viewer", active: true, twoFactor: false, lastActive: iso(-3, 12) },
+    { id: "U-1", name: "Aditya (Admin)", email: "owner@example.com", role: "owner", active: true, twoFactor: true, lastActive: iso(0, 10) },
+    { id: "U-2", name: "Priya (Developer)", email: "dev@example.com", role: "developer", active: true, twoFactor: true, lastActive: iso(0, 9) },
   ];
 
   const cases: ResolutionCase[] = [
@@ -270,10 +268,10 @@ export function createSampleDb(now: Date): Db {
       status: "investigating",
       history: [
         { at: iso(-2, 15), by: "Website", status: "received" },
-        { at: iso(-1, 10), by: "Priya (Ops)", status: "acknowledged" },
-        { at: iso(-1, 16), by: "Priya (Ops)", status: "investigating" },
+        { at: iso(-1, 10), by: "Priya (Developer)", status: "acknowledged" },
+        { at: iso(-1, 16), by: "Priya (Developer)", status: "investigating" },
       ],
-      notes: [{ at: iso(-1, 16), by: "Priya (Ops)", text: "Checking the overtime the customer approved on the day." }],
+      notes: [{ at: iso(-1, 16), by: "Priya (Developer)", text: "Checking the overtime the customer approved on the day." }],
     },
     {
       id: "RC-1001",
@@ -292,8 +290,8 @@ export function createSampleDb(now: Date): Db {
       resolution: "AOD refunded ₹3,000 (a third of the fee) on the 2nd. The artist has been warned.",
       history: [
         { at: iso(-11, 11), by: "Website", status: "received" },
-        { at: iso(-10, 9), by: "Priya (Ops)", status: "acknowledged" },
-        { at: iso(-8, 12), by: "Aditya (Owner)", status: "resolved" },
+        { at: iso(-10, 9), by: "Priya (Developer)", status: "acknowledged" },
+        { at: iso(-8, 12), by: "Aditya (Admin)", status: "resolved" },
       ],
       notes: [],
     },
@@ -310,9 +308,9 @@ export function createSampleDb(now: Date): Db {
     cases,
     team,
     activity: [
-      { id: "ACT-3", at: iso(-1, 12), by: "Priya (Ops)", area: "Applications", text: "Added a note to Harsh Vyas", target: "APP-1042" },
+      { id: "ACT-3", at: iso(-1, 12), by: "Priya (Developer)", area: "Applications", text: "Added a note to Harsh Vyas", target: "APP-1042" },
       { id: "ACT-2", at: iso(-2, 17), by: "Neha (Finance)", area: "Payments", text: "Verified ₹15,000 from Northwind Pharma", target: "PAY-3100" },
-      { id: "ACT-1", at: iso(-3, 10), by: "Aditya (Owner)", area: "Bookings", text: "Sent the quote for B-1204", target: "B-1204" },
+      { id: "ACT-1", at: iso(-3, 10), by: "Aditya (Admin)", area: "Bookings", text: "Sent the quote for B-1204", target: "B-1204" },
     ],
     settings: {
       commissionPct: 15,

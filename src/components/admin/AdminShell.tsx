@@ -7,10 +7,9 @@ import {
   Activity,
   Bell,
   CalendarDays,
-  ClipboardList,
   CreditCard,
+  ClipboardList,
   FileSpreadsheet,
-  Inbox,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -39,7 +38,6 @@ const nav = [
   { href: "/admin/bookings", label: "Bookings", icon: Ticket, count: (db: Db) => db.bookings.filter((b) => b.status === "new").length },
   { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/admin/payments", label: "Payments", icon: CreditCard, count: (db: Db) => db.payments.filter((p) => p.status === "pending").length },
-  { href: "/admin/leads", label: "Leads", icon: Inbox, count: (db: Db) => db.leads.filter((l) => l.status === "new").length },
   { href: "/admin/resolution", label: "Resolution cases", icon: Scale, count: (db: Db) => db.cases.filter((c) => c.status === "received" || c.status === "escalated").length },
   { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/reports", label: "Reports & exports", icon: FileSpreadsheet },
@@ -107,7 +105,6 @@ function GlobalSearch({ db }: { db: Db }) {
       ...db.bookings.filter((b) => hit(b.id, b.customer.name, b.service, b.city)).map((b) => ({ href: sectionLink(`/admin/bookings?open=${b.id}`), label: `${b.id} · ${b.customer.name}`, hint: "Booking" })),
       ...db.artists.filter((a) => hit(a.id, a.name, a.city)).map((a) => ({ href: sectionLink(`/admin/artists?open=${a.id}`), label: a.name, hint: "Artist" })),
       ...db.applications.filter((a) => hit(a.id, a.name)).map((a) => ({ href: sectionLink(`/admin/applications?open=${a.id}`), label: a.name, hint: "Application" })),
-      ...db.leads.filter((l) => hit(l.id, l.name, l.need)).map((l) => ({ href: sectionLink(`/admin/leads?open=${l.id}`), label: l.name, hint: "Lead" })),
       ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.issue)).map((c) => ({ href: sectionLink(`/admin/resolution?open=${c.id}`), label: `${c.id} · ${c.name}`, hint: "Case" })),
       ...db.payments.filter((p) => hit(p.id, p.utr, p.payer, p.bookingId)).map((p) => ({ href: sectionLink(`/admin/payments?open=${p.id}`), label: `${p.id} · ${p.payer}`, hint: "Payment" })),
     ].slice(0, 8);
@@ -124,7 +121,7 @@ function GlobalSearch({ db }: { db: Db }) {
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
-        placeholder="Search bookings, artists, leads, UTR…"
+        placeholder="Search bookings, artists, UTR…"
         aria-label="Search everything"
         className={`${fieldClass} pl-9`}
       />

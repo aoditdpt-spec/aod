@@ -585,22 +585,22 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   );
 }
 
-export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; onCreated: (id: string) => void; from?: { name: string; phone: string; need: string; city: string; type: "Personal" | "Business"; leadId: string } }) {
+export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const [f, setF] = useState({
-    name: from?.name ?? "",
-    phone: from?.phone ?? "",
+    name: "",
+    phone: "",
     email: "",
-    audience: from?.type ?? ("Personal" as "Personal" | "Business"),
+    audience: "Personal" as "Personal" | "Business",
     category: categories[0].slug,
     service: categories[0].services[0].name,
     event: "",
     date: "",
     time: "",
     endTime: "",
-    city: from?.city && (cities as string[]).includes(from.city) ? from.city : cities[0],
+    city: cities[0],
     venue: "",
     budget: "",
-    notes: from?.need ?? "",
+    notes: "",
   });
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
   const cat = categories.find((c) => c.slug === f.category)!;
@@ -621,7 +621,7 @@ export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; 
     <Drawer
       open
       onClose={onClose}
-      title={from ? `New booking from lead ${from.leadId}` : "New booking"}
+      title="New booking"
       subtitle="For requests that came by phone, WhatsApp or in person. Every field is required. Website requests arrive here by themselves."
       footer={
         <ActionButton
@@ -654,13 +654,6 @@ export function NewBooking({ onClose, onCreated, from }: { onClose: () => void; 
                   history: [{ at: now, by: currentUser(), status: "new" }],
                   notesLog: [],
                 });
-                if (from) {
-                  const lead = db.leads.find((l) => l.id === from.leadId);
-                  if (lead) {
-                    lead.status = "converted";
-                    lead.bookingId = id;
-                  }
-                }
               },
               id,
             );

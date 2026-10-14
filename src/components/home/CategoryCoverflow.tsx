@@ -6,7 +6,7 @@ import { categories } from "@/content/site";
 import { Icon } from "@/components/ui/Icon";
 import { Coverflow } from "@/components/motion/Coverflow";
 
-// The 10 categories in the 3D coverflow carousel, each with its photo (mock photos for now,
+// Every category in the 3D coverflow carousel, each with its photo (mock photos for now,
 // see `image` in site.ts) and the category icon on a small tile; without a photo, the icon alone.
 export function CategoryCoverflow() {
   return (

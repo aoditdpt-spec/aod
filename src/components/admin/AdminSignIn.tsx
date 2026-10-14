@@ -213,12 +213,12 @@ function PreviewSignIn() {
         <button
           type="button"
           onClick={() => {
-            signIn({ name: "AOD Team (Owner)", email: "owner@example.com", role: "owner" });
+            signIn({ name: "AOD Team (Admin)", email: "owner@example.com", role: "owner" });
             router.replace(sectionLink("/admin/dashboard"));
           }}
           className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-medium text-ink hover:border-ink"
         >
-          Open the admin as Owner (see everything)
+          Open the admin as Admin (see everything)
         </button>
         <p className="mt-4 flex items-start gap-2 text-xs text-muted">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />

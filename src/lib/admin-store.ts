@@ -1,5 +1,6 @@
 "use client";
 
+import type { WorkDetails } from "./artist-store";
 import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
 import { createSampleDb } from "@/content/admin-sample";
@@ -40,6 +41,7 @@ export type Application = {
   notes: Note[];
   artistId?: string; // set when approved
   portfolio?: PortfolioFile[]; // uploaded from the artist portal while applying (live mode)
+  details?: WorkDetails; // "Your work details" answers, by question id
 };
 
 // A photo or video in the `portfolio` storage bucket (live mode).

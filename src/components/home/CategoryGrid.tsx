@@ -12,7 +12,7 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
     <Container className="py-12">
       <section id="categories" className="scroll-mt-24">
         <Reveal className="text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">10 categories · one booking</p>
+          <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{categories.length} categories · one booking</p>
           <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{title}</h2>
         </Reveal>
 

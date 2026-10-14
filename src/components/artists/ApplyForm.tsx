@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { applySteps, experienceLevels, languages, uploadRules } from "@/content/artist-portal";
+import { applySteps, bothLinksCategories, experienceLevels, languages, uploadRules, workQuestionsFor } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
@@ -23,13 +23,17 @@ type Files = { samples: PickedFile[]; resume: PickedFile[]; gst: PickedFile[] };
 const phoneDigits = (v: string) => v.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
 const validPhone = (v: string) => /^[6-9]\d{9}$/.test(phoneDigits(v));
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
-const BIO_MIN = 40;
 const BIO_MAX = 600;
 
+type StepId = (typeof applySteps)[number]["id"];
+const needsBothLinks = (p: ArtistProfile) => bothLinksCategories.includes(p.category);
+const isInstagram = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
+const answered = (v: string | string[] | undefined) => (Array.isArray(v) ? v.length > 0 : !!v?.trim());
+
 // What's missing on each step. An empty list means the step is complete.
-function problems(step: number, p: ArtistProfile, files: Files, phoneVerified: boolean): Record<string, string> {
+function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: boolean): Record<string, string> {
   const e: Record<string, string> = {};
-  if (step === 0) {
+  if (step === "about") {
     if (p.fullName.trim().length < 2) e.fullName = "Enter your full name.";
     if (!validPhone(p.phone)) e.phone = "Enter a 10-digit Indian mobile number.";
     else if (!phoneVerified && !backendEnabled) e.phone = "Verify your number with the code.";
@@ -37,34 +41,41 @@ function problems(step: number, p: ArtistProfile, files: Files, phoneVerified: b
     else if (p.email && !validEmail(p.email)) e.email = "Check your email address.";
     if (!p.city) e.city = "Choose your city.";
   }
-  if (step === 1) {
+  if (step === "craft") {
     if (!p.category) e.category = "Choose what you do.";
     else if (p.services.length === 0) e.services = "Pick at least one service.";
     if (!p.experience) e.experience = "Choose your experience.";
     if (p.languages.length === 0) e.languages = "Pick at least one language.";
-    if (p.bio.trim().length < BIO_MIN) e.bio = `Write at least ${BIO_MIN} characters about your work.`;
   }
-  if (step === 2) {
-    if (backendEnabled && p.links.length === 0) {
+  if (step === "work") {
+    if (!p.category) e.category = "Choose what you do on the Your craft step first.";
+    for (const q of workQuestionsFor(p.category)) {
+      if (!answered(p.work?.[q.id])) e[q.id] = q.kind === "text" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
+    }
+  }
+  if (step === "portfolio") {
+    if (needsBothLinks(p) && (!p.links.some(isInstagram) || !p.links.some((l) => !isInstagram(l)))) {
+      e.samples = "Add both links: your Instagram profile, and a portfolio link (website, YouTube, Vimeo, Behance or Google Drive).";
+    } else if (backendEnabled && p.links.length === 0) {
       e.samples = "Add at least one portfolio link (Instagram, YouTube, Drive…). Uploaded files aren't sent to AOD yet.";
     } else if (files.samples.length < uploadRules.samples.min && p.links.length === 0) {
       e.samples = `Add at least ${uploadRules.samples.min} samples of your work, or at least one portfolio link.`;
     }
   }
-  if (step === 3) {
+  if (step === "verify") {
     if (!p.agreeTerms) e.agreeTerms = "Please accept the terms.";
   }
   return e;
 }
 
-// The application, in five steps. Answers are kept in this browser as a draft (so a refresh
+// The application, in six steps. Answers are kept in this browser as a draft (so a refresh
 // doesn't lose them); files stay in the tab only. Submitting doesn't send anything in the
 // preview: it says so, and offers to send the details on WhatsApp, which is how artists join today.
 export function ApplyForm() {
   const router = useRouter();
   const profile = profileStore.use() ?? emptyProfile;
   const [step, setStep] = useState(0);
-  const [tried, setTried] = useState<Record<number, boolean>>({});
+  const [tried, setTried] = useState<Partial<Record<StepId, boolean>>>({});
   const [files, setFiles] = useState<Files>({ samples: [], resume: [], gst: [] });
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -74,14 +85,17 @@ export function ApplyForm() {
 
   // Merge into the latest saved draft, so quick successive edits never undo each other.
   const set = (patch: Partial<ArtistProfile>) => profileStore.set({ ...(profileStore.get() ?? emptyProfile), ...patch });
-  const errs = problems(step, profile, files, phoneVerified);
-  const shown = tried[step] ? errs : {};
-  const complete = (i: number) => i < 4 && Object.keys(problems(i, profile, files, phoneVerified)).length === 0;
+  const steps = applySteps;
+  const current = steps[Math.min(step, steps.length - 1)];
+  const errs = problems(current.id, profile, files, phoneVerified);
+  const shown = tried[current.id] ? errs : {};
+  const complete = (i: number) => steps[i].id !== "review" && Object.keys(problems(steps[i].id, profile, files, phoneVerified)).length === 0;
+  const goTo = (id: StepId) => setStep(Math.max(0, steps.findIndex((s) => s.id === id)));
 
   function next() {
-    setTried((t) => ({ ...t, [step]: true }));
+    setTried((t) => ({ ...t, [current.id]: true }));
     if (Object.keys(errs).length > 0) return;
-    setStep((s) => Math.min(s + 1, applySteps.length - 1));
+    setStep((s) => Math.min(s + 1, steps.length - 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -170,18 +184,18 @@ export function ApplyForm() {
       {/* Steps: a sidebar on laptops, a progress bar on phones. */}
       <nav aria-label="Application steps" className="lg:sticky lg:top-24">
         <p className="text-sm text-muted lg:hidden">
-          Step {step + 1} of {applySteps.length}: <span className="font-medium text-ink">{applySteps[step].title}</span>
+          Step {step + 1} of {steps.length}: <span className="font-medium text-ink">{current.title}</span>
         </p>
         <div className="mt-2 flex gap-1.5 lg:hidden" aria-hidden>
-          {applySteps.map((s, i) => (
+          {steps.map((s, i) => (
             <span key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-brand" : "bg-line"}`} />
           ))}
         </div>
         <ol className="hidden space-y-1 lg:block">
-          {applySteps.map((s, i) => {
+          {steps.map((s, i) => {
             const done = complete(i) && i < step;
             const now = i === step;
-            const reachable = i <= step || applySteps.slice(0, i).every((_, j) => complete(j));
+            const reachable = i <= step || steps.slice(0, i).every((_, j) => complete(j));
             return (
               <li key={s.id}>
                 <button
@@ -218,12 +232,12 @@ export function ApplyForm() {
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          if (step < applySteps.length - 1) return next();
+          if (step < steps.length - 1) return next();
           if (!backendEnabled) return setSubmitted(true);
           if (sending) return;
           setSending(true);
           setSaveError(null);
-          void createApplication({ ...profile, phone: `+91 ${phoneDigits(profile.phone)}` })
+          void createApplication({ ...profile, phone: `+91 ${phoneDigits(profile.phone)}`, work: profile.work ?? {} })
             .then((res) => {
               if (res.ok) setSavedId(res.id);
               else setSaveError(res.error);
@@ -237,17 +251,18 @@ export function ApplyForm() {
         }}
         className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10"
       >
-        <h2 className="text-2xl font-normal sm:text-[2rem] sm:leading-tight">{applySteps[step].title}</h2>
-        <p className="mt-2 text-sm text-muted">{applySteps[step].text}</p>
+        <h2 className="text-2xl font-normal sm:text-[2rem] sm:leading-tight">{current.title}</h2>
+        <p className="mt-2 text-sm text-muted">{current.text}</p>
 
         <div className="mt-8 space-y-6">
-          {step === 0 && (
+          {current.id === "about" && (
             <AboutStep profile={profile} set={set} errors={shown} phoneVerified={phoneVerified} setPhoneVerified={setPhoneVerified} />
           )}
-          {step === 1 && <CraftStep profile={profile} set={set} errors={shown} />}
-          {step === 2 && <PortfolioStep profile={profile} set={set} errors={shown} files={files} setFiles={setFiles} />}
-          {step === 3 && <VerifyStep profile={profile} set={set} errors={shown} files={files} setFiles={setFiles} />}
-          {step === 4 && <ReviewStep profile={profile} files={files} goTo={setStep} />}
+          {current.id === "craft" && <CraftStep profile={profile} set={set} errors={shown} />}
+          {current.id === "work" && <WorkStep profile={profile} set={set} errors={shown} />}
+          {current.id === "portfolio" && <PortfolioStep profile={profile} set={set} errors={shown} files={files} setFiles={setFiles} />}
+          {current.id === "verify" && <VerifyStep profile={profile} set={set} errors={shown} files={files} setFiles={setFiles} />}
+          {current.id === "review" && <ReviewStep profile={profile} files={files} goTo={goTo} />}
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
@@ -265,7 +280,7 @@ export function ApplyForm() {
             </Link>
           )}
           <button type="submit" className="inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
-            {step < applySteps.length - 1 ? (
+            {step < steps.length - 1 ? (
               <>
                 Continue <ArrowRight className="h-4 w-4" aria-hidden />
               </>
@@ -276,7 +291,7 @@ export function ApplyForm() {
             )}
           </button>
         </div>
-        {tried[step] && Object.keys(errs).length > 0 && (
+        {tried[current.id] && Object.keys(errs).length > 0 && (
           <p className="mt-3 text-right text-sm text-red-600" role="alert">
             Fill in the highlighted fields to continue.
           </p>
@@ -468,6 +483,7 @@ function CraftStep({ profile, set, errors }: StepProps) {
 
       <Field
         label="About your work"
+        optional
         error={errors.bio}
         hint={`${profile.bio.trim().length}/${BIO_MAX} characters. Your style, the events you love, your gear or team.`}
       >
@@ -479,6 +495,47 @@ function CraftStep({ profile, set, errors }: StepProps) {
           className={`${inputClass} resize-none`}
         />
       </Field>
+    </>
+  );
+}
+
+// The questions for the applicant's category (workQuestions in artist-portal.ts).
+function WorkStep({ profile, set, errors }: StepProps) {
+  const d = profile.work ?? {};
+  // Merge into the latest saved answers, like `set`, so quick successive taps never undo each other.
+  const setAnswer = (id: string, v: string | string[]) => set({ work: { ...(profileStore.get()?.work ?? {}), [id]: v } });
+  if (!profile.category) return <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{errors.category ?? "Choose what you do on the Your craft step first."}</p>;
+  return (
+    <>
+      {workQuestionsFor(profile.category).map((q) => {
+        const v = d[q.id];
+        if (q.kind === "text")
+          return (
+            <Field key={q.id} label={q.label} error={errors[q.id]} hint={q.hint} className="sm:max-w-sm">
+              <input
+                value={typeof v === "string" ? v : ""}
+                onChange={(e) => setAnswer(q.id, e.target.value.slice(0, 80))}
+                aria-invalid={!!errors[q.id]}
+                className={inputClass}
+              />
+            </Field>
+          );
+        const list = Array.isArray(v) ? v : v ? [v] : [];
+        return (
+          <div key={q.id}>
+            <p className="text-sm font-medium text-ink">{q.label}</p>
+            {q.hint && <p className="mt-1 text-xs text-muted">{q.hint}</p>}
+            <ChipGroup
+              label={q.short}
+              multiple={q.kind === "many"}
+              options={q.options ?? []}
+              value={list}
+              onChange={(next) => setAnswer(q.id, q.kind === "many" ? next : (next[0] ?? ""))}
+            />
+            {errors[q.id] && <p className="mt-1.5 text-xs text-red-600">{errors[q.id]}</p>}
+          </div>
+        );
+      })}
     </>
   );
 }
@@ -507,7 +564,11 @@ function PortfolioStep({
 
       <div>
         <p className="text-sm font-medium text-ink">Portfolio links</p>
-        <p className="mt-1 text-xs text-muted">Instagram, YouTube, Vimeo, Behance, Google Drive or your website. Each link is checked as you add it.</p>
+        <p className="mt-1 text-xs text-muted">
+          {needsBothLinks(profile)
+            ? "Both are needed: your Instagram profile, and a portfolio link (your website, YouTube, Vimeo, Behance or Google Drive). Each link is checked as you add it."
+            : "Instagram, YouTube, Vimeo, Behance, Google Drive or your website. Each link is checked as you add it."}
+        </p>
         <LinkEditor links={profile.links} onChange={(links) => set({ links })} />
       </div>
       {errors.samples && (
@@ -581,11 +642,11 @@ function VerifyStep({
   );
 }
 
-function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: Files; goTo: (step: number) => void }) {
+function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: Files; goTo: (step: StepId) => void }) {
   const category = categories.find((c) => c.slug === profile.category);
-  const rows: { step: number; title: string; items: [string, ReactNode][] }[] = [
+  const rows: { step: StepId; title: string; items: [string, ReactNode][] }[] = [
     {
-      step: 0,
+      step: "about",
       title: "About you",
       items: [
         ["Name", profile.fullName],
@@ -595,18 +656,23 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       ],
     },
     {
-      step: 1,
+      step: "craft",
       title: "Your craft",
       items: [
         ["Category", category?.name ?? "—"],
         ["Services", profile.services.join(", ")],
         ["Experience", profile.experience],
         ["Languages", profile.languages.join(", ")],
-        ["About", profile.bio],
+        ["About", profile.bio || "—"],
       ],
     },
     {
-      step: 2,
+      step: "work",
+      title: "Your work details",
+      items: workQuestionsFor(profile.category).map((q): [string, ReactNode] => [q.short, [profile.work?.[q.id] ?? "—"].flat().join(", ")]),
+    },
+    {
+      step: "portfolio",
       title: "Portfolio",
       items: [
         ["Samples", `${files.samples.length} file${files.samples.length === 1 ? "" : "s"}`],
@@ -627,7 +693,7 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       ],
     },
     {
-      step: 3,
+      step: "verify",
       title: "Verification",
       items: [
         ["Identity", "Not verified yet (DigiLocker)"],

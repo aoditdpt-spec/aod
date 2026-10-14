@@ -13,7 +13,6 @@ const hrefFor = (target?: string) => {
   if (target.startsWith("APP-")) return sectionLink(`/admin/applications?open=${target}`);
   if (target.startsWith("ART-")) return sectionLink(`/admin/artists?open=${target}`);
   if (target.startsWith("PAY-")) return sectionLink(`/admin/payments?tab=all&open=${target}`);
-  if (target.startsWith("L-")) return sectionLink(`/admin/leads?open=${target}`);
   return null;
 };
 

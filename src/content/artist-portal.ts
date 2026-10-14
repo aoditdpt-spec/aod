@@ -36,10 +36,128 @@ export const languages = ["Gujarati", "Hindi", "English", "Marathi", "Punjabi", 
 
 export const experienceLevels = ["Less than 1 year", "1–3 years", "3–5 years", "5–10 years", "10+ years"];
 
+// "Your work details": a step of the application with questions for the applicant's category.
+// Every question is required. Answers are saved by question id in `applications.details`, and the
+// admin shows them with each question's `short` label.
+export type WorkQuestion = {
+  id: string;
+  label: string;
+  short: string; // the label in the review step and the admin
+  kind: "one" | "many" | "text";
+  options?: string[];
+  hint?: string;
+};
+
+const yesNo = ["Yes", "No"];
+const one = (id: string, label: string, short: string, options = yesNo): WorkQuestion => ({ id, label, short, kind: "one", options });
+const many = (id: string, label: string, short: string, options: string[]): WorkQuestion => ({ id, label, short, kind: "many", options, hint: "Pick all that apply." });
+const typed = (id: string, label: string, short: string, hint: string): WorkQuestion => ({ id, label, short, kind: "text", hint });
+
+const levels = ["Full-time Professional", "Freelance", "Part-time", "Student / Beginner"];
+const level = (who: string) => one("level", `Are you a professional ${who}?`, "Works as", levels);
+const travel = (what: string) => one("travel", `Are you willing to travel to other cities for ${what} if required?`, "Travels to other cities");
+const brandWork = one("brandWork", "Have you worked with brands, artists or events before?", "Worked with brands");
+const camera = (who: string, what: string, specialisations: string[]): WorkQuestion[] => [
+  level(who),
+  many("specialisations", `Your ${what} specialisation`, "Specialisation", specialisations),
+  one("editor", "Are you an editor as well, or do you have an editor with you?", "Edits / has an editor"),
+  travel("shoots"),
+  many("equipment", "Equipment you use", "Equipment", ["DSLR", "Mirrorless", "Gimbal", "Drone", "Studio lights"]),
+  typed("cameraBrand", "Camera brand", "Camera brand", "E.g. Sony, Canon, Nikon, Fujifilm."),
+  brandWork,
+];
+const shootTypes = ["Wedding", "Pre-wedding", "Fashion", "Portrait", "Product", "Event", "Corporate", "Lifestyle", "Travel", "Creative / Cinematic", "Other"];
+
+export const workQuestions: Record<string, WorkQuestion[]> = {
+  photographers: camera("photographer", "photography", shootTypes),
+  cinematographers: camera("cinematographer", "cinematography", shootTypes),
+  "drone-pilots": [
+    level("drone pilot"),
+    many("specialisations", "What do you fly for?", "Specialisation", ["Wedding", "Event", "Real estate", "Construction / progress", "Corporate", "Tourism / travel", "FPV", "Other"]),
+    one("licence", "Do you have a DGCA remote pilot certificate?", "DGCA certificate"),
+    typed("drones", "Drones you fly", "Drones", "E.g. DJI Mini 4 Pro, Air 3, Mavic 3."),
+    one("editor", "Do you edit the footage as well, or have an editor with you?", "Edits / has an editor"),
+    travel("shoots"),
+    brandWork,
+  ],
+  "anchors-hosts": [
+    level("anchor"),
+    many("specialisations", "Events you host", "Events", ["Wedding / Sangeet", "Corporate", "Award shows", "Concerts / Live shows", "Garba / Navratri", "Product launches", "College fests", "Kids' parties", "Other"]),
+    one("script", "Do you write your own script?", "Writes own script"),
+    one("games", "Do you run games and audience activities?", "Runs games"),
+    one("bigCrowd", "Have you hosted for an audience of over 500?", "Hosted 500+ audience"),
+    travel("events"),
+    brandWork,
+  ],
+  editors: [
+    level("editor"),
+    many("specialisations", "What you edit", "Specialisation", ["Wedding films", "Reels / short-form", "YouTube", "Corporate videos", "Ads / commercials", "Music videos", "Photo retouching / albums", "Other"]),
+    many("software", "Software you use", "Software", ["Premiere Pro", "Final Cut Pro", "DaVinci Resolve", "After Effects", "Lightroom", "Photoshop", "CapCut", "Other"]),
+    one("colour", "Do you do colour grading?", "Colour grading"),
+    one("turnaround", "Your usual turnaround for an event film", "Turnaround", ["Same day", "2–3 days", "About a week", "More than a week"]),
+    one("onSite", "Can you edit on site at events (same-day edits)?", "Edits on site"),
+    brandWork,
+  ],
+  "musicians-djs": [
+    level("musician or DJ"),
+    many("specialisations", "What you play", "Specialisation", ["Wedding / Sangeet", "Club / Lounge", "Corporate", "Bollywood", "Garba / Dandiya", "Live band", "Sufi / Ghazal", "Instrumental", "Other"]),
+    one("lineUp", "Do you perform solo or with a band?", "Line-up", ["Solo", "Duo", "Band (3 or more)"]),
+    many("equipment", "Equipment you bring", "Equipment", ["DJ controller / CDJs", "Speakers / PA", "Microphones", "Lights", "Smoke / effects", "Instruments", "None"]),
+    travel("events"),
+    brandWork,
+  ],
+  comedians: [
+    level("comedian"),
+    many("specialisations", "Your style", "Style", ["Stand-up", "Improv", "Mimicry", "Hosting with comedy", "Gujarati comedy", "Hindi comedy", "Other"]),
+    one("clean", "Can you perform a clean, family-friendly set?", "Clean set"),
+    one("setLength", "Longest set you can perform", "Longest set", ["Up to 15 min", "15–30 min", "30–60 min", "Over an hour"]),
+    travel("shows"),
+    brandWork,
+  ],
+  singers: [
+    level("singer"),
+    many("specialisations", "Genres you sing", "Genres", ["Bollywood", "Ghazal", "Sufi", "Devotional / Bhajan", "Garba / Folk", "Western", "Classical", "Retro", "Other"]),
+    one("liveWith", "How do you perform?", "Performs with", ["With a live band", "With karaoke tracks", "Both"]),
+    one("sound", "Do you bring your own sound system?", "Own sound system"),
+    travel("events"),
+    brandWork,
+  ],
+  "makeup-artists": [
+    level("makeup artist"),
+    many("specialisations", "Your specialisation", "Specialisation", ["Bridal", "Party", "Engagement", "HD / Airbrush", "Editorial / shoot", "Hair styling", "Saree draping", "Other"]),
+    typed("products", "Main makeup brands you use", "Products", "E.g. MAC, Huda Beauty, Kryolan."),
+    one("team", "Do you have a team for large weddings?", "Has a team"),
+    travel("bookings"),
+    brandWork,
+  ],
+  models: [
+    level("model"),
+    many("specialisations", "Kind of modelling", "Specialisation", ["Fashion / Ramp", "Print / Catalogue", "Commercial / Ads", "Ethnic / Bridal", "Fitness", "Promotional / Hostess", "Other"]),
+    typed("height", "Your height", "Height", "E.g. 5′7″ or 170 cm."),
+    one("portfolioShoot", "Do you have a professional portfolio shoot?", "Portfolio shoot"),
+    travel("shoots"),
+    brandWork,
+  ],
+  "content-creators": [
+    level("content creator"),
+    many("specialisations", "Content you make", "Content", ["Instagram reels", "Brand content", "Event reels (same day)", "UGC / product videos", "Food", "Fashion / Lifestyle", "Travel", "Other"]),
+    one("process", "Do you shoot and edit yourself?", "Shoots / edits", ["Shoot and edit", "Shoot only", "Edit only"]),
+    one("onCamera", "Do you appear on camera?", "On camera"),
+    many("equipment", "Equipment you use", "Equipment", ["Phone", "Mirrorless / DSLR", "Gimbal", "Microphone", "Lights", "Drone"]),
+    one("followers", "Your Instagram followers", "Followers", ["Under 1K", "1K–10K", "10K–50K", "50K–1L", "Over 1L"]),
+    brandWork,
+  ],
+};
+export const workQuestionsFor = (category: string) => workQuestions[category] ?? [level("artist"), travel("events"), brandWork];
+
+// Photographers and cinematographers give both an Instagram link and a portfolio link.
+export const bothLinksCategories = ["photographers", "cinematographers"];
+
 // The steps of the application form, in order.
 export const applySteps = [
   { id: "about", title: "About you", text: "Name, contact and city" },
   { id: "craft", title: "Your craft", text: "What you do and where" },
+  { id: "work", title: "Your work details", text: "Questions about how you work" },
   { id: "portfolio", title: "Portfolio", text: "Your best work and links" },
   { id: "verify", title: "Verification", text: "Identity and agreements" },
   { id: "review", title: "Review", text: "Check and send" },

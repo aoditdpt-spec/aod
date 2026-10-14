@@ -2,7 +2,9 @@
 
 import { after } from "next/server";
 import { categories, cities, type Audience } from "@/content/site";
+import { bothLinksCategories, workQuestionsFor } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
+import type { WorkDetails } from "@/lib/artist-store";
 import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eventMinutes, timeRange } from "@/lib/event-time";
@@ -175,6 +177,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
 // ---- Artist application ----
 
 export type ApplicationInput = {
+  work?: WorkDetails; // "Your work details": answers by question id
   fullName: string;
   phone: string;
   email: string;
@@ -206,6 +209,29 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   if (!category) return { ok: false, error: "Pick your category." };
   if (!input.agreeTerms) return { ok: false, error: "Please accept the terms." };
 
+  // "Your work details": every question for the category answered (only the listed choices are kept).
+  // Photographers and cinematographers also give both an Instagram link and a portfolio link.
+  const links = strings(input.links, 10, 300);
+  const questions = workQuestionsFor(category.slug);
+  const given = input.work ?? {};
+  const details: WorkDetails = {};
+  for (const q of questions) {
+    const v = given[q.id];
+    const answer =
+      q.kind === "text"
+        ? text(v, 80)
+        : q.kind === "one"
+          ? (q.options?.find((o) => o === v) ?? "")
+          : strings(v, q.options?.length ?? 0, 60).filter((x) => q.options?.includes(x));
+    if (!answer.length) return { ok: false, error: `Answer "${q.label}" on the Your work details step.` };
+    details[q.id] = answer;
+  }
+  if (bothLinksCategories.includes(category.slug)) {
+    const insta = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
+    if (!links.some(insta) || !links.some((l) => !insta(l)))
+      return { ok: false, error: "Add both your Instagram link and a portfolio link." };
+  }
+
   try {
     const db = createAdminClient();
     const [app] = await insertWithNextId(db, "applications", "APP", 201, (n) => [
@@ -220,7 +246,8 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         experience: text(input.experience, 40),
         languages: strings(input.languages, 10, 30),
         bio: text(input.bio, 2000),
-        links: strings(input.links, 10, 300),
+        links,
+        details,
         status: "submitted",
       },
     ]);
@@ -231,7 +258,9 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
           kind: "email",
           to: teamEmails(),
           subject: `New artist application ${app.id}: ${name} (${category.name})`,
-          text: `${name}, ${category.name}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
+          text: `${name}, ${category.name}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}${
+            "\n\n" + questions.map((q) => `${q.short}: ${[details[q.id]].flat().join(", ")}`).join("\n")
+          }\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
           replyTo: email,
         });
       jobs.push({

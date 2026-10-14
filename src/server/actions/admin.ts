@@ -1,11 +1,14 @@
 "use server";
 
-import type { Role } from "@/content/admin";
-import type { Activity, Db, Session, Settings } from "@/lib/admin-store";
+import { after } from "next/server";
+import { roles, type Role } from "@/content/admin";
+import type { Activity, Db, Member, Session, Settings } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { fromRow, settingsFromRow, toRow } from "@/server/rows";
+import { runOrQueue } from "@/server/notify";
+import { sectionUrl } from "@/lib/site-url";
 
 // The admin panel's data on the real database. The screens keep working on one `Db` object
 // (src/lib/admin-store.ts): `loadAdminDb` fills it, and `saveAdminChanges` writes back just the
@@ -29,15 +32,15 @@ export type SaveResult = { ok: true } | { ok: false; error: string };
 
 // Which roles may change each kind of record (matches the buttons' permissions in src/content/admin.ts).
 const writeRoles: Record<Collection | "settings", Role[]> = {
-  applications: ["owner", "ops"],
-  artists: ["owner", "ops"],
-  bookings: ["owner", "ops", "finance"], // finance confirms bookings when verifying payments
-  payments: ["owner", "ops", "finance"], // ops records payments from a booking
-  payouts: ["owner", "finance"],
-  leads: ["owner", "ops"],
-  cases: ["owner", "ops"],
-  team: ["owner"],
-  settings: ["owner"],
+  applications: ["owner", "developer"],
+  artists: ["owner", "developer"],
+  bookings: ["owner", "developer"],
+  payments: ["owner", "developer"],
+  payouts: ["owner", "developer"],
+  leads: ["owner", "developer"],
+  cases: ["owner", "developer"],
+  team: ["owner", "developer"],
+  settings: ["owner", "developer"],
 };
 
 const tables = {
@@ -141,13 +144,13 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
     if (!writeRoles[key].includes(role)) return { ok: false, error: `Your role can't change ${labels[key]}.` };
   }
 
-  // 2. The team must keep at least one active owner.
+  // 2. The team must keep at least one active admin (role "owner").
   if (touched.has("team")) {
     const { data } = await me.supabase.from("staff").select("*");
     const byId = new Map((data ?? []).map((r) => [String(r.id), fromRow.member(r)]));
     for (const m of [...(changes.added.team ?? []), ...(changes.changed.team ?? []).map((c) => c.after)] as ReturnType<typeof fromRow.member>[]) byId.set(m.id, m);
     for (const id of changes.removed.team ?? []) byId.delete(id);
-    if (![...byId.values()].some((m) => m.role === "owner" && m.active)) return { ok: false, error: "The team needs at least one active owner." };
+    if (![...byId.values()].some((m) => m.role === "owner" && m.active)) return { ok: false, error: "The team needs at least one active admin." };
   }
 
   // 3. Write. Row-level security checks the role again on every row.
@@ -190,6 +193,27 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
     const rows = changes.activity.map((a) => toRow.activity({ ...a, by: me.staff.name }));
     const { error } = await s.from("activity").insert(rows);
     if (error) console.error("[admin] activity log", error.message);
+  }
+
+  // People just added in Team & roles get an email telling them how to sign in.
+  const invited = (changes.added.team ?? []) as Member[];
+  if (invited.length) {
+    after(() =>
+      runOrQueue(
+        invited.map((m) => ({
+          kind: "email",
+          to: [m.email],
+          subject: "You've been added to the AOD admin",
+          text: `Hi ${m.name},
+
+${me.staff.name} has added you to the Artists on Demand admin as ${roles.find((r) => r.id === m.role)?.label ?? m.role}.
+
+Sign in at ${sectionUrl("admin", "/")} with this email address (${m.email}). We'll email you a 6-digit code each time; there's no password.
+
+– Team AOD`,
+        })),
+      ),
+    );
   }
 
   return { ok: true };

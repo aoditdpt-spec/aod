@@ -35,7 +35,8 @@ export type IconName =
   | "ticket"
   | "mic-vocal"
   | "brush"
-  | "sparkles";
+  | "sparkles"
+  | "smartphone";
 
 export type Service = {
   name: string;
@@ -223,6 +224,23 @@ export const categories: Category[] = [
       { name: "Promotional event", rating: 4.82, bookings: 67 },
     ],
   },
+  {
+    // No photo yet: the carousel and the category page show the icon instead.
+    slug: "content-creators",
+    name: "Content & Instagram Reels",
+    singular: "Content & reels creator",
+    icon: "smartphone",
+    keywords: ["content", "content creator", "creator", "reels", "reel", "instagram", "insta", "ugc", "influencer", "social media", "shorts"],
+    short: "Instagram reels, brand content & UGC",
+    description:
+      "Verified creators who plan, shoot and edit scroll-stopping reels and social content for brands, launches and events.",
+    services: [
+      { name: "Instagram reels", rating: 4.87, bookings: 64, popular: true },
+      { name: "Brand content shoot", rating: 4.85, bookings: 41 },
+      { name: "Event reels (same day)", rating: 4.86, bookings: 37 },
+      { name: "UGC / product videos", rating: 4.83, bookings: 29 },
+    ],
+  },
 ];
 
 export function getCategory(slug: string) {
@@ -244,7 +262,7 @@ export const stats = [
   // `visual` picks the small graphic under the number (drawn in src/components/home/Stats.tsx).
   { value: "150+", label: "verified artists", visual: "artists" },
   { value: "4.9", label: "average rating", visual: "stars" },
-  { value: "10", label: "talent categories", visual: "categories" },
+  { value: String(categories.length), label: "talent categories", visual: "categories" },
   { value: "Zero", label: "negotiation drama", visual: "handshake" },
 ] as const;
 

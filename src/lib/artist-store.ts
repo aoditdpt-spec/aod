@@ -6,6 +6,10 @@ import { createStore } from "./local-store";
 // src/lib/city.ts keeps the visitor's city. Nothing here reaches AOD. When Supabase is added,
 // these stores are replaced by the artist's real profile, bookings and availability.
 
+// "Your work details" in the application: answers by question id (`workQuestions` in
+// src/content/artist-portal.ts), a string for one choice or typed text, a list for several choices.
+export type WorkDetails = Record<string, string | string[]>;
+
 export type ArtistProfile = {
   fullName: string;
   phone: string;
@@ -17,6 +21,7 @@ export type ArtistProfile = {
   languages: string[];
   bio: string;
   links: string[];
+  work?: WorkDetails; // the application only; absent elsewhere
   agreeTerms: boolean;
 };
 
@@ -31,6 +36,7 @@ export const emptyProfile: ArtistProfile = {
   languages: [],
   bio: "",
   links: [],
+  work: {},
   agreeTerms: false,
 };
 
@@ -39,7 +45,9 @@ const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string =>
 // The artist's profile: filled in by the application form, edited on the Profile page.
 // null until something is saved, so pages can show the sample profile instead.
 export const profileStore = createStore<ArtistProfile | null>("aod-artist-profile", null, (v) =>
-  v && typeof v === "object" ? { ...emptyProfile, ...(v as Partial<ArtistProfile>) } : null,
+  v && typeof v === "object"
+    ? { ...emptyProfile, ...(v as Partial<ArtistProfile>), work: { ...((v as Partial<ArtistProfile>).work ?? {}) } }
+    : null,
 );
 
 // Which side of the preview to show: a new applicant going through onboarding, or a live artist.

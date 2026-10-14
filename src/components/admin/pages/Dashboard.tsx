@@ -32,14 +32,9 @@ export function Dashboard() {
         title={`${greeting}, ${session.name.split(" ")[0]}`}
         text={now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         actions={
-          <>
-            <Link href={sectionLink("/admin/bookings?new=1")} className="inline-flex h-9 items-center rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-brand-hover">
-              New booking
-            </Link>
-            <Link href={sectionLink("/admin/leads?new=1")} className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink">
-              Add lead
-            </Link>
-          </>
+          <Link href={sectionLink("/admin/bookings?new=1")} className="inline-flex h-9 items-center rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-brand-hover">
+            New booking
+          </Link>
         }
       />
 

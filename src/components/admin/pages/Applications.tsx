@@ -3,6 +3,7 @@
 import { CalendarClock, CheckCircle2, ExternalLink, ShieldCheck, XCircle } from "lucide-react";
 import { useState } from "react";
 import { applicationStages } from "@/content/admin";
+import { workQuestionsFor } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Application, type ApplicationStatus } from "@/lib/admin-store";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
@@ -183,8 +184,14 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
             ],
           ]}
         />
-        <p className="mt-4 rounded-lg bg-wash p-3 text-sm text-body">{app.bio}</p>
+        {app.bio && <p className="mt-4 rounded-lg bg-wash p-3 text-sm text-body">{app.bio}</p>}
       </DrawerSection>
+
+      {app.details && Object.keys(app.details).length > 0 && (
+        <DrawerSection title="Work details">
+          <Details rows={workRows(app)} />
+        </DrawerSection>
+      )}
 
       <DrawerSection title="Portfolio">
         <ul className="space-y-2">
@@ -302,4 +309,18 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
       </DrawerSection>
     </Drawer>
   );
+}
+
+// "Your work details" answers, in the order and with the labels of the category's questions;
+// answers to questions no longer asked follow under their id.
+function workRows(app: Application): [string, string][] {
+  const d = app.details ?? {};
+  const show = (v: string | string[]) => (Array.isArray(v) ? v.join(", ") : v) || "—";
+  const qs = workQuestionsFor(app.category);
+  return [
+    ...qs.filter((q) => q.id in d).map((q): [string, string] => [q.short, show(d[q.id])]),
+    ...Object.keys(d)
+      .filter((k) => !qs.some((q) => q.id === k))
+      .map((k): [string, string] => [k, show(d[k])]),
+  ];
 }

@@ -33,6 +33,7 @@ export const fromRow = {
     notes: json(r.notes, []),
     artistId: opt(r.artist_id),
     portfolio: json<PortfolioFile[]>(r.portfolio, []),
+    details: json<Application["details"]>(r.details, {}),
   }),
   artist: (r: Row): Artist => ({
     id: str(r.id),
@@ -179,6 +180,7 @@ export const toRow = {
     notes: a.notes,
     artist_id: nul(a.artistId),
     portfolio: a.portfolio ?? [],
+    details: a.details ?? {},
   }),
   artist: (a: Artist): Row => ({
     id: a.id,

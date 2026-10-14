@@ -40,9 +40,8 @@ console.log("migration ran OK");
 await db.exec(`
   insert into staff (id, name, email, role) values
     ('U-1', 'Owner', 'owner@aod.test', 'owner'),
-    ('U-2', 'Ops', 'ops@aod.test', 'ops'),
-    ('U-3', 'Viewer', 'viewer@aod.test', 'viewer'),
-    ('U-4', 'Gone', 'gone@aod.test', 'ops');
+    ('U-5', 'Dev', 'dev@aod.test', 'developer'),
+    ('U-4', 'Gone', 'gone@aod.test', 'developer');
   update staff set active = false where id = 'U-4';
   insert into bookings (id, customer_name, customer_email, category, status) values
     ('B-1', 'Asha', 'asha@x.test', 'photographers', 'new'),
@@ -93,30 +92,32 @@ const tries = async (sql: string): Promise<{ ok: boolean; rows?: number; err?: s
 // Owner: sees and changes everything.
 await as("owner@aod.test", async () => {
   check("owner sees all bookings", (await count("select count(*) n from bookings")) === 3);
-  check("owner can add a team member", (await tries("insert into staff (id,name,email,role) values ('U-9','New','new@aod.test','ops')")).ok);
+  check("owner can add a team member", (await tries("insert into staff (id,name,email,role) values ('U-9','New','new@aod.test','developer')")).ok);
   check("owner can change settings", (await tries("update settings set data = data || '{\"advancePct\": 40}'")).rows === 1);
 });
 
-// Ops: bookings yes, team and payouts no.
-await as("ops@aod.test", async () => {
-  check("ops can update a booking", (await tries("update bookings set status='matched' where id='B-1'")).rows === 1);
-  check("ops can record a payment", (await tries("insert into payments (id,booking_id,amount,utr) values ('PAY-9','B-1',100,'999988887777')")).ok);
-  check("ops cannot add a team member", !(await tries("insert into staff (id,name,email,role) values ('U-8','X','x@aod.test','owner')")).ok);
-  check("ops cannot create a payout", !(await tries("insert into payouts (id,artist_id,booking_id,amount) values ('PO-1','ART-1','B-1',100)")).ok);
-  check("ops cannot change settings", (await tries("update settings set data = '{}'")).rows === 0);
-  check("ops can update a resolution case", (await tries("update cases set status='acknowledged' where id='RC-1'")).rows === 1);
-  check("ops can write the activity log", (await tries("insert into activity (id,\"by\",area,text) values ('A-1','Ops','Bookings','x')")).ok);
+// Developer: everything an owner can do.
+await as("dev@aod.test", async () => {
+  check("developer sees all bookings", (await count("select count(*) n from bookings")) === 3);
+  check("developer can add a team member", (await tries("insert into staff (id,name,email,role) values ('U-7','Dev 2','dev2@aod.test','developer')")).ok);
+  check("developer can change settings", (await tries("update settings set data = data || '{\"advancePct\": 40}'")).rows === 1);
+  check("developer can create a payout", (await tries("insert into payouts (id,artist_id,booking_id,amount) values ('PO-2','ART-1','B-1',100)")).ok);
+  check("developer can update a booking", (await tries("update bookings set notes='x' where id='B-2'")).rows === 1);
 });
 
-// Viewer: reads everything, changes nothing.
-await as("viewer@aod.test", async () => {
-  check("viewer sees all bookings", (await count("select count(*) n from bookings")) === 3);
-  check("viewer sees leads", (await count("select count(*) n from leads")) === 1);
-  check("viewer cannot update a booking", (await tries("update bookings set status='matched' where id='B-1'")).rows === 0);
-  check("viewer cannot add a lead", !(await tries("insert into leads (id,name) values ('L-9','x')")).ok);
-  check("viewer sees resolution cases", (await count("select count(*) n from cases")) === 1);
-  check("viewer cannot update a resolution case", (await tries("update cases set status='closed' where id='RC-1'")).rows === 0);
-  check("viewer cannot write the activity log", !(await tries("insert into activity (id,\"by\") values ('A-2','x')")).ok);
+// Developer: the day-to-day work too.
+await as("dev@aod.test", async () => {
+  check("developer can update a booking's status", (await tries("update bookings set status='matched' where id='B-1'")).rows === 1);
+  check("developer can record a payment", (await tries("insert into payments (id,booking_id,amount,utr) values ('PAY-9','B-1',100,'999988887777')")).ok);
+  check("developer sees leads", (await count("select count(*) n from leads")) === 1);
+  check("developer can update a resolution case", (await tries("update cases set status='acknowledged' where id='RC-1'")).rows === 1);
+  check("developer can write the activity log", (await tries("insert into activity (id,\"by\",area,text) values ('A-1','Dev','Bookings','x')")).ok);
+});
+
+// Only the two roles exist: owner and developer.
+await as("owner@aod.test", async () => {
+  for (const old of ["ops", "finance", "viewer"])
+    check(`the database refuses the old "${old}" role`, !(await tries(`insert into staff (id,name,email,role) values ('U-${old}','X','${old}@aod.test','${old}')`)).ok);
 });
 
 // Deactivated staff: nothing.
@@ -148,6 +149,10 @@ await as(null, async () => {
   check("signed-out visitor cannot read bookings", !r.ok, r.err);
   const o = await tries("select * from outbox");
   check("signed-out visitor cannot read the outbox", !o.ok);
+  // Supabase's security advisor: the access checks aren't callable through the API.
+  check("the access checks are no longer in public (the API's schema)", !(await tries("select public.is_staff()")).ok);
+  check("signed-out visitor cannot run the access checks", !(await tries("select private.staff_role()")).ok);
+  check("signed-out visitor cannot run the live-update trigger function", !(await tries("select public.live_changed()")).ok);
 });
 
 // ---- Artists ----
@@ -164,7 +169,7 @@ await as("owner@aod.test", async () => {
 const key = async (email: string) => (await db.query<{ k: string }>("select public.email_key($1) k", [email])).rows[0].k;
 const sentTo = (topic: string) => count("select count(*) n from realtime.messages where topic = $1", [topic]);
 await db.exec("delete from realtime.messages");
-await as("ops@aod.test", async () => {
+await as("dev@aod.test", async () => {
   await db.exec("update bookings set status = 'matched' where id = 'B-2'");
   await db.exec("reset role"); // count the messages as the database owner (listening rules are checked below)
   check("a booking change reaches the staff channel", (await sentTo("staff")) >= 1);
@@ -184,7 +189,7 @@ const canJoin = (email: string, topic: string) =>
     await db.query("select set_config('realtime.topic', $1, true)", [topic]);
     return (await count("select count(*) n from realtime.messages where topic = $1", [topic])) > 0;
   });
-check("staff can join the staff channel", await canJoin("viewer@aod.test", "staff"));
+check("staff can join the staff channel", await canJoin("dev@aod.test", "staff"));
 check("deactivated staff cannot join the staff channel", !(await canJoin("gone@aod.test", "staff")));
 check("a customer cannot join the staff channel", !(await canJoin("asha@x.test", "staff")));
 check("a customer can join their own channel", await canJoin("asha@x.test", channels[3]));

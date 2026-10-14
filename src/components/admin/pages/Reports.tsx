@@ -1,14 +1,14 @@
 "use client";
 
 import { Download, FileSpreadsheet, RefreshCw } from "lucide-react";
-import { applicationStages, bookingStages, caseStages, leadStatuses, paymentStatuses } from "@/content/admin";
+import { applicationStages, bookingStages, caseStages, paymentStatuses } from "@/content/admin";
 import { useDb, type Db } from "@/lib/admin-store";
 import { buildXlsx, download, XLSX_TYPE, type Sheet } from "@/lib/xlsx";
 import { artistName, Card, categoryName, inr, PageHeader, Stat, useCan } from "../ui";
 
 const stageLabel = (list: readonly { id: string; label: string }[], id: string) => list.find((s) => s.id === id)?.label ?? id;
 
-// The master workbook: one sheet per list (artists, bookings, payments, payouts, leads,
+// The master workbook: one sheet per list (artists, bookings, payments, payouts,
 // applications, resolution cases, activity), plus "which customer booked which artist".
 export function masterWorkbook(db: Db): Sheet[] {
   return [
@@ -37,10 +37,6 @@ export function masterWorkbook(db: Db): Sheet[] {
     {
       name: "Payouts",
       rows: [["ID", "Artist", "Booking", "Amount", "Status", "Paid on", "Reference"], ...db.payouts.map((p) => [p.id, artistName(db, p.artistId), p.bookingId, p.amount, p.status, p.paidAt?.slice(0, 10), p.reference])],
-    },
-    {
-      name: "Leads",
-      rows: [["ID", "Came in", "Name", "Phone", "Source", "Type", "City", "Looking for", "Status", "Booking"], ...db.leads.map((l) => [l.id, l.createdAt.slice(0, 10), l.name, l.phone, l.source, l.type, l.city, l.need, stageLabel(leadStatuses, l.status), l.bookingId])],
     },
     {
       name: "Applications",
@@ -80,14 +76,11 @@ export function Reports() {
   const quoted = db.bookings.filter((b) => b.quote);
   const verified = db.payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
   const booked = db.bookings.filter((b) => ["confirmed", "completed", "delivered", "reviewed"].includes(b.status)).reduce((n, b) => n + (b.quote ?? 0), 0);
-  const converted = db.leads.filter((l) => l.status === "converted").length;
-  const closedLeads = db.leads.filter((l) => l.status === "converted" || l.status === "lost").length;
   const cancelled = db.bookings.filter((b) => b.status === "cancelled").length;
   const reviews = db.bookings.filter((b) => b.review);
   const count = <K extends string>(keys: K[]) => keys.reduce<Record<string, number>>((m, k) => ((m[k] = (m[k] ?? 0) + 1), m), {});
   const byCategory = Object.entries(count(live.map((b) => categoryName(b.category)))).sort((a, b) => b[1] - a[1]);
   const byCity = Object.entries(count(live.map((b) => b.city))).sort((a, b) => b[1] - a[1]);
-  const bySource = Object.entries(count(db.leads.map((l) => l.source))).sort((a, b) => b[1] - a[1]);
   const stamp = new Date().toISOString().slice(0, 10);
 
   return (
@@ -111,22 +104,19 @@ export function Reports() {
         <Stat label="Booked value" value={inr(booked)} note="Confirmed and later" />
         <Stat label="Payments verified" value={inr(verified)} note="All time" />
         <Stat label="Average quote" value={inr(quoted.length ? Math.round(quoted.reduce((n, b) => n + b.quote!, 0) / quoted.length) : 0)} note={`${quoted.length} quotes`} />
-        <Stat label="Lead conversion" value={closedLeads ? `${Math.round((converted / closedLeads) * 100)}%` : "—"} note={`${converted} of ${closedLeads} closed leads`} />
+        <Stat label="Bookings" value={db.bookings.length} note={`${db.bookings.filter((b) => b.audience === "Business").length} for businesses`} />
         <Stat label="Cancellations" value={db.bookings.length ? `${Math.round((cancelled / db.bookings.length) * 100)}%` : "—"} note={`${cancelled} of ${db.bookings.length} bookings`} />
         <Stat label="Reviews" value={reviews.length ? `${(reviews.reduce((n, b) => n + b.review!.rating, 0) / reviews.length).toFixed(1)} / 5` : "—"} note={`${reviews.length} reviews`} />
         <Stat label="Active artists" value={db.artists.filter((a) => a.status === "active").length} note={`${db.artists.length} in total`} />
         <Stat label="Applications" value={db.applications.length} note={`${db.applications.filter((a) => a.status === "approved").length} approved`} />
       </div>
 
-      <div className="grid items-start gap-6 xl:grid-cols-3">
+      <div className="grid items-start gap-6 xl:grid-cols-2">
         <Card title="Bookings by category">
           <Bars rows={byCategory.map(([label, value]) => ({ label, value }))} />
         </Card>
         <Card title="Bookings by city">
           <Bars rows={byCity.map(([label, value]) => ({ label, value }))} />
-        </Card>
-        <Card title="Leads by source">
-          <Bars rows={bySource.map(([label, value]) => ({ label, value }))} />
         </Card>
       </div>
 

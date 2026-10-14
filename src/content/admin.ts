@@ -39,13 +39,6 @@ export const paymentStatuses = [
   { id: "rejected", label: "Not found", tone: "bad" },
 ] as const;
 
-export const leadStatuses = [
-  { id: "new", label: "New", tone: "brand" },
-  { id: "contacted", label: "Contacted", tone: "wait" },
-  { id: "converted", label: "Converted", tone: "good" },
-  { id: "lost", label: "Lost", tone: "neutral" },
-] as const;
-
 // Resolution Centre cases (the public side's wording is in src/content/resolution.ts).
 export const caseStages = [
   { id: "received", label: "Received", tone: "brand" },
@@ -63,26 +56,23 @@ export type Tone = "brand" | "wait" | "good" | "bad" | "neutral";
 // ---- Roles: who can do what ----
 
 export const roles = [
-  { id: "owner", label: "Owner", text: "Everything, including team, settings and payouts" },
-  { id: "ops", label: "Operations", text: "Applications, artists, bookings, leads and messages" },
-  { id: "finance", label: "Finance", text: "Payment verification, payouts and exports" },
-  { id: "viewer", label: "Viewer", text: "Can see everything, can't change anything" },
+  { id: "owner", label: "Admin", text: "Full access. The team always keeps at least one admin." },
+  { id: "developer", label: "Developer", text: "Full access, the same as an admin: for the people who build and run the site." },
 ] as const;
 
 export type Role = (typeof roles)[number]["id"];
 
 export const permissions = {
-  "applications.edit": ["owner", "ops"],
-  "artists.edit": ["owner", "ops"],
-  "bookings.edit": ["owner", "ops"],
-  "payments.verify": ["owner", "finance"],
-  "payouts.pay": ["owner", "finance"],
-  "leads.edit": ["owner", "ops"],
-  "messages.send": ["owner", "ops"],
-  "export": ["owner", "ops", "finance"],
-  "team.edit": ["owner"],
-  "settings.edit": ["owner"],
-  "cases.edit": ["owner", "ops"],
+  "applications.edit": ["owner", "developer"],
+  "artists.edit": ["owner", "developer"],
+  "bookings.edit": ["owner", "developer"],
+  "payments.verify": ["owner", "developer"],
+  "payouts.pay": ["owner", "developer"],
+  "messages.send": ["owner", "developer"],
+  "export": ["owner", "developer"],
+  "team.edit": ["owner", "developer"],
+  "settings.edit": ["owner", "developer"],
+  "cases.edit": ["owner", "developer"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof permissions;

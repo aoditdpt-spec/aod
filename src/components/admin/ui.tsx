@@ -229,7 +229,7 @@ export function DrawerSection({ title, children }: { title: string; children: Re
   );
 }
 
-// Notes thread with an "add note" box (applications, artists, bookings, leads).
+// Notes thread with an "add note" box (applications, artists, bookings).
 export function NotesBox({ notes, onAdd, permission }: { notes: { at: string; by: string; text: string }[]; onAdd: (text: string) => void; permission: Permission }) {
   const allowed = useCan()(permission);
   return (
