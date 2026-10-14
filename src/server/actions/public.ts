@@ -238,7 +238,7 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         kind: "email",
         to: [email],
         subject: `We've received your AOD application (${app.id})`,
-        text: `Hi ${name},\n\nThanks for applying to Artists on Demand as ${category.singular.toLowerCase()}. Our team reviews every application and will get back to you by email.\n\nYour reference: ${app.id}\n\n– Team AOD`,
+        text: `Hi ${name},\n\nThanks for applying to Artists on Demand as ${category.singular.toLowerCase()}. Our team will review your application.\n\nYour reference: ${app.id}\n\n– Team AOD`,
       });
       await runOrQueue(jobs);
     });
