@@ -6,8 +6,9 @@ import { Icon } from "@/components/ui/Icon";
 import { Rating } from "@/components/ui/Rating";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
 
-// The most-booked services as a list: no photos and no cards, just rows with a diamond bullet,
-// the service, its category, the rating and a link to the category. Two columns on laptops.
+// The most-booked services as a list: no photos and no cards, just rows with the category's
+// symbol on a small tile, the service, its category, the rating and a link to the category.
+// Two columns on laptops.
 export function MostBooked() {
   const items = mostBooked.map(({ service, category }) => {
     const cat = getCategory(category)!;
@@ -40,13 +41,12 @@ export function MostBooked() {
                 href={`/categories/${item.slug}`}
                 className="group -mx-3 flex items-center gap-5 rounded-lg px-3 py-5 transition-colors hover:bg-white sm:gap-6"
               >
-                <span aria-hidden className="ml-1 h-2.5 w-2.5 shrink-0 rotate-45 rounded-[2px] bg-brand-bright" />
+                <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach transition-colors group-hover:bg-brand">
+                  <Icon name={item.icon} className="h-5 w-5 text-brand transition-colors group-hover:text-white" strokeWidth={1.75} />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-lg font-medium text-ink group-hover:text-brand">{item.service}</span>
-                  <span className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">
-                    <Icon name={item.icon} className="h-3.5 w-3.5 text-brand" />
-                    {item.category}
-                  </span>
+                  <span className="mt-0.5 block text-sm text-muted">{item.category}</span>
                   <span className="mt-1 block sm:hidden">
                     <Rating rating={item.rating} count={item.bookings} unit="bookings" />
                   </span>

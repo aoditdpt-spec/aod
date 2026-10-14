@@ -79,7 +79,8 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
     const el = stageRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
-      setSpacing(Math.round(Math.min(300, Math.max(150, entry.contentRect.width * 0.24))));
+      // Wide enough apart for the bigger desktop cards (24rem from 1024px).
+      setSpacing(Math.round(Math.min(345, Math.max(150, entry.contentRect.width * 0.25))));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -184,7 +185,7 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
     >
       <div
         ref={stageRef}
-        className={`relative h-[25rem] touch-pan-y select-none overflow-hidden [perspective:1200px] ${
+        className={`relative h-[25rem] touch-pan-y lg:h-[28.5rem] select-none overflow-hidden [perspective:1200px] ${
           dragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         onPointerDown={(e) => {
@@ -311,8 +312,9 @@ function CoverflowCard({
 
   return (
     <motion.li
-      className="pointer-events-auto absolute left-1/2 top-3 w-[17rem] sm:w-[19rem]"
-      style={{ marginLeft: "-8.5rem", x, z, rotateY, scale, opacity, zIndex }}
+      // Centred on the middle of the stage by a negative margin of half its width.
+      className="pointer-events-auto absolute left-1/2 top-3 -ml-[8.5rem] w-[17rem] sm:-ml-[9.5rem] sm:w-[19rem] lg:-ml-[12rem] lg:w-[24rem]"
+      style={{ x, z, rotateY, scale, opacity, zIndex }}
       aria-hidden={far}
     >
       <Link

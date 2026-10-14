@@ -25,7 +25,7 @@ export function CategoryCoverflow() {
                   src={c.image.src}
                   alt={c.name}
                   fill
-                  sizes="(min-width: 640px) 19rem, 17rem"
+                  sizes="(min-width: 1024px) 24rem, (min-width: 640px) 19rem, 17rem"
                   draggable={false}
                   className={`object-cover transition-transform duration-500 ${active ? "scale-105" : ""}`}
                 />
