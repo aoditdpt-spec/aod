@@ -4,11 +4,12 @@ import { portal } from "@/content/artist-portal";
 import { Container } from "@/components/ui/Container";
 import { ApplyForm } from "@/components/artists/ApplyForm";
 import { PortalHeader } from "@/components/artists/PortalChrome";
+import { sectionLink } from "@/lib/site-url";
 
 export const metadata: Metadata = {
   title: "Apply to join",
   description: "Apply to join Artists on Demand: your details, craft, portfolio and identity, in five short steps.",
-  alternates: { canonical: "/artists/apply" },
+  alternates: { canonical: `https://${portal.host}/apply` },
 };
 
 export default function ApplyPage() {
@@ -16,7 +17,7 @@ export default function ApplyPage() {
     <>
       <PortalHeader
         right={
-          <Link href="/artists" className="text-sm text-muted hover:text-brand">
+          <Link href={sectionLink("/artists")} className="text-sm text-muted hover:text-brand">
             Sign in
           </Link>
         }

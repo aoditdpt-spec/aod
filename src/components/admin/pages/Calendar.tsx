@@ -8,6 +8,7 @@ import { categories } from "@/content/site";
 import { useDb } from "@/lib/admin-store";
 import { time12 } from "@/lib/event-time";
 import { artistName, fieldBase, PageHeader, todayKey } from "../ui";
+import { sectionLink } from "@/lib/site-url";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -97,7 +98,7 @@ export function Calendar() {
                     const tone = bookingStages.find((s) => s.id === b.status)?.tone ?? "neutral";
                     return (
                       <li key={b.id}>
-                        <Link href={`/admin/bookings?open=${b.id}`} title={`${b.id} · ${b.service} · ${b.customer.name} · ${artistName(db, b.artistId)}`} className={`block truncate rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${chip[tone]}`}>
+                        <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} title={`${b.id} · ${b.service} · ${b.customer.name} · ${artistName(db, b.artistId)}`} className={`block truncate rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${chip[tone]}`}>
                           {b.time !== "—" ? `${time12(b.time)} ` : ""}
                           {b.service}
                         </Link>
@@ -106,14 +107,14 @@ export function Calendar() {
                   })}
                   {meets.map((a) => (
                     <li key={a.id}>
-                      <Link href={`/admin/applications?open=${a.id}`} className="block truncate rounded bg-night px-1.5 py-0.5 text-[0.7rem] font-medium text-white">
+                      <Link href={sectionLink(`/admin/applications?open=${a.id}`)} className="block truncate rounded bg-night px-1.5 py-0.5 text-[0.7rem] font-medium text-white">
                         Meet {a.name.split(" ")[0]}
                       </Link>
                     </li>
                   ))}
                   {offs.map((a) => (
                     <li key={a.id}>
-                      <Link href={`/admin/artists?open=${a.id}`} className="block truncate rounded border border-dashed border-line px-1.5 py-0.5 text-[0.7rem] text-muted">
+                      <Link href={sectionLink(`/admin/artists?open=${a.id}`)} className="block truncate rounded border border-dashed border-line px-1.5 py-0.5 text-[0.7rem] text-muted">
                         {a.name.split(" ")[0]} off
                       </Link>
                     </li>

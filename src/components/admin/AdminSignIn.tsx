@@ -9,6 +9,7 @@ import { backendEnabled } from "@/lib/backend";
 import { reloadAdmin, signIn, useAdminError, useBrowserReady, useSession } from "@/lib/admin-store";
 import { requestCode, verifyCode } from "@/server/actions/auth";
 import { fieldClass } from "./ui";
+import { sectionLink } from "@/lib/site-url";
 
 // Staff sign-in.
 // Live (Supabase set up): work email, then the 6-digit code emailed to it. Only emails listed in
@@ -30,7 +31,7 @@ function LiveSignIn() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ready && session) router.replace("/admin/dashboard");
+    if (ready && session) router.replace(sectionLink("/admin/dashboard"));
   }, [ready, session, router]);
 
   return (
@@ -123,7 +124,7 @@ function PreviewSignIn() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ready && session) router.replace("/admin/dashboard");
+    if (ready && session) router.replace(sectionLink("/admin/dashboard"));
   }, [ready, session, router]);
 
   return (
@@ -152,7 +153,7 @@ function PreviewSignIn() {
             }
             const name = email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
             signIn({ name: `${name} (${roles.find((r) => r.id === role)?.label})`, email: email.trim(), role });
-            router.replace("/admin/dashboard");
+            router.replace(sectionLink("/admin/dashboard"));
           }}
           className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8"
         >
@@ -213,7 +214,7 @@ function PreviewSignIn() {
           type="button"
           onClick={() => {
             signIn({ name: "AOD Team (Owner)", email: "owner@example.com", role: "owner" });
-            router.replace("/admin/dashboard");
+            router.replace(sectionLink("/admin/dashboard"));
           }}
           className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-medium text-ink hover:border-ink"
         >

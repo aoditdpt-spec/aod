@@ -11,6 +11,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { DataTable, type Column } from "../DataTable";
 import { ActionButton, ago, artistName, Card, Details, Drawer, DrawerSection, Empty, fieldBase, fillTemplate, fmtDate, inr, PageHeader, StageBadge, Stat, whatsappTo } from "../ui";
 import { useOpen } from "../useOpen";
+import { sectionLink } from "@/lib/site-url";
 
 const tabs = [
   { id: "verify", label: "To verify" },
@@ -136,7 +137,7 @@ function VerifyCard({ p, db }: { p: Payment; db: Db }) {
         {booking && (
           <p className="text-muted">
             For{" "}
-            <Link href={`/admin/bookings?open=${booking.id}`} className="font-medium text-brand">
+            <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="font-medium text-brand">
               {booking.id}
             </Link>{" "}
             · {booking.service} · expected {inr(expected)}
@@ -200,7 +201,7 @@ function PaymentDrawer({ p, db, onClose }: { p: Payment; db: Db; onClose: () => 
             ["Amount", inr(p.amount)],
             ["UTR", <span key="u" className="font-mono">{p.utr}</span>],
             ["Reported", fmtDate(p.reportedAt, true)],
-            ["Booking", booking ? <Link key="b" href={`/admin/bookings?open=${booking.id}`} className="text-brand">{booking.id} · {booking.service}</Link> : p.bookingId],
+            ["Booking", booking ? <Link key="b" href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand">{booking.id} · {booking.service}</Link> : p.bookingId],
             ["Checked by", p.checkedBy ? `${p.checkedBy}, ${fmtDate(p.checkedAt, true)}` : "Not yet"],
             ["Reason", p.reason ?? "—"],
           ]}

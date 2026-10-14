@@ -5,7 +5,7 @@ import { PortalFooter } from "@/components/artists/PortalChrome";
 
 const description = "Sign in or apply to join Artists on Demand: booking requests, your profile, portfolio and availability in one place.";
 
-// The artist portal. Lives at /artists for now and moves to artists.aod.co.in (see src/proxy.ts).
+// The artist portal, at artists.aod.co.in (src/proxy.ts; /artists on localhost).
 // Kept out of search results: it's for artists, reached from the For Artists page.
 export const metadata: Metadata = {
   title: { default: portal.name, template: `%s — ${portal.name}` },

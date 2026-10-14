@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { backendEnabled } from "@/lib/backend";
 import { portalSignOut, useArtistProfile, usePortalMode } from "@/lib/artist-live";
 import { modeStore, type PreviewMode } from "@/lib/artist-store";
+import { sectionLink } from "@/lib/site-url";
 
 export const initials = (name: string) =>
   name
@@ -87,7 +88,7 @@ export function AccountMenu() {
               type="button"
               onClick={() => {
                 setOpen(false);
-                void portalSignOut().then(() => router.push("/artists"));
+                void portalSignOut().then(() => router.push(sectionLink("/artists")));
               }}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-body hover:bg-wash"
             >

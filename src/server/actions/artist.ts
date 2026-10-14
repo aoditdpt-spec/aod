@@ -6,6 +6,7 @@ import { categories, cities } from "@/content/site";
 import type { ArtistProfile } from "@/lib/artist-store";
 import type { ApplicationStatus, PortfolioFile } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
+import { sectionUrl } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -55,7 +56,6 @@ export type ArtistPortal = {
 export type PortalLoad = { state: "signed-out" } | { state: "no-account"; email: string } | { state: "ready"; data: ArtistPortal };
 
 const BUCKET = "portfolio";
-const site = () => process.env.NEXT_PUBLIC_SITE_URL || "https://www.aod.co.in";
 
 // ---- Who is signed in ----
 
@@ -298,7 +298,7 @@ export async function replyToBooking(bookingId: string, status: "quoted" | "decl
         kind: "email",
         to: teamEmails(),
         subject: status === "quoted" ? `${name} quoted ₹${amount!.toLocaleString("en-IN")} for ${b.id}` : `${name} declined ${b.id}`,
-        text: `${name} ${status === "quoted" ? `quoted ₹${amount!.toLocaleString("en-IN")}` : "declined"} for ${b.id} (${b.service}, ${b.event}, ${b.date}, ${b.city}).${text ? `\n\nNote: ${text}` : ""}\n\nOpen the booking: ${site()}/admin/bookings?open=${b.id}`,
+        text: `${name} ${status === "quoted" ? `quoted ₹${amount!.toLocaleString("en-IN")}` : "declined"} for ${b.id} (${b.service}, ${b.event}, ${b.date}, ${b.city}).${text ? `\n\nNote: ${text}` : ""}\n\nOpen the booking: ${sectionUrl("admin", `/bookings?open=${b.id}`)}`,
       },
     ]);
   });

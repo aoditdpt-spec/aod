@@ -8,6 +8,7 @@ import { caseSteps, resolution } from "@/content/resolution";
 import { backendEnabled } from "@/lib/backend";
 import { escalateCase, trackCase, type TrackedCase } from "@/server/actions/resolution";
 import { field } from "./CaseForm";
+import { sectionLink } from "@/lib/site-url";
 
 const input = `mt-1.5 ${field}`;
 
@@ -122,7 +123,7 @@ export function TrackCase() {
       ) : null}
       <p className="mt-6 text-sm text-muted">
         No case yet?{" "}
-        <Link href="/resolve/new" className="font-medium text-brand hover:underline">
+        <Link href={sectionLink("/resolve/new")} className="font-medium text-brand hover:underline">
           Raise one
         </Link>
         .

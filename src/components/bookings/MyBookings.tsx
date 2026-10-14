@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
 import { brand } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
+import { portalHref } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
 import { customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
 import { useHydrated } from "@/lib/motion-safe";
@@ -468,7 +469,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
             <a href={changeMail} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
               <Mail className="h-4 w-4 text-brand" aria-hidden /> Change or cancel by email
             </a>
-            <Link href={`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
+            <Link href={portalHref(`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`)} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
               <Scale className="h-4 w-4 text-brand" aria-hidden /> Something went wrong? Raise a case
             </Link>
             <Link href="/refund-policy" className="text-xs text-muted underline underline-offset-2 hover:text-ink">

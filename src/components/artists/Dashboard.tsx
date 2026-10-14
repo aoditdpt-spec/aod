@@ -11,6 +11,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge, Panel } from "./form";
 import { OnboardingTimeline } from "./OnboardingTimeline";
+import { sectionLink } from "@/lib/site-url";
 
 // Profile checklist: what's left before the profile is complete. In the preview, uploads and
 // identity can't be checked (nothing is uploaded), so they show as to-do.
@@ -19,12 +20,12 @@ export function useProfileChecks(): { label: string; done: boolean; href: string
   const blocked = useBlockedDates();
   const live = usePortalState().data;
   return [
-    { label: "Services and experience", done: profile.services.length > 0 && !!profile.experience, href: "/artists/profile" },
-    { label: "About your work", done: profile.bio.trim().length >= 40, href: "/artists/profile" },
-    { label: "Portfolio links", done: profile.links.length > 0, href: "/artists/portfolio" },
-    { label: "Portfolio photos and videos", done: (live?.portfolio.length ?? 0) > 0, href: "/artists/portfolio" },
-    { label: "Identity (DigiLocker)", done: live?.kycVerified ?? false, href: "/artists/documents" },
-    { label: "Days you're unavailable", done: blocked.length > 0, href: "/artists/availability" },
+    { label: "Services and experience", done: profile.services.length > 0 && !!profile.experience, href: sectionLink("/artists/profile") },
+    { label: "About your work", done: profile.bio.trim().length >= 40, href: sectionLink("/artists/profile") },
+    { label: "Portfolio links", done: profile.links.length > 0, href: sectionLink("/artists/portfolio") },
+    { label: "Portfolio photos and videos", done: (live?.portfolio.length ?? 0) > 0, href: sectionLink("/artists/portfolio") },
+    { label: "Identity (DigiLocker)", done: live?.kycVerified ?? false, href: sectionLink("/artists/documents") },
+    { label: "Days you're unavailable", done: blocked.length > 0, href: sectionLink("/artists/availability") },
   ];
 }
 
@@ -188,7 +189,7 @@ export function Dashboard() {
               title="New booking requests"
               text="Reply with your quote. The customer picks from a shortlist of matched artists."
               action={
-                <Link href="/artists/bookings" className="text-sm font-medium text-brand hover:text-brand-hover">
+                <Link href={sectionLink("/artists/bookings")} className="text-sm font-medium text-brand hover:text-brand-hover">
                   All bookings
                 </Link>
               }

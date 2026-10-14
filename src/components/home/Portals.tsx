@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Briefcase, Check, LogIn, Scale, Sparkles, Ticket, UserPlus } from "lucide-react";
-import { artistJoinMessage, brand, portals } from "@/content/site";
+import { artistJoinMessage, portals } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { portalAddress, portalHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const icons = { bookings: Ticket, resolve: Scale, business: Briefcase };
@@ -58,7 +59,7 @@ export function Portals() {
           ].map((x) => (
             <Link
               key={x.href}
-              href={x.href}
+              href={portalHref(x.href)}
               className={`group flex items-center gap-4 rounded-card border p-5 transition-colors sm:p-6 ${x.primary ? "border-transparent bg-brand hover:bg-brand-hover" : "border-night-line bg-white/[0.04] hover:border-tangerine/50 hover:bg-white/[0.07]"}`}
             >
               <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${x.primary ? "bg-white/15" : "bg-tangerine/15"}`}>
@@ -82,7 +83,7 @@ export function Portals() {
           return (
             <StaggerItem key={p.id}>
               <TiltCard className={`rounded-card border border-line bg-white ${cardHover}`}>
-                <Link href={p.href} className="flex h-full flex-col p-6">
+                <Link href={portalHref(p.href)} className="flex h-full flex-col p-6">
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl bg-peach ${iconHover}`}>
                     <I className="h-5 w-5 text-brand" aria-hidden />
                   </span>
@@ -101,10 +102,7 @@ export function Portals() {
                     <span className="font-medium text-brand">{p.cta}</span>
                     <ArrowUpRight className="h-4 w-4 text-brand transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />
                   </span>
-                  <span className="mt-1 text-xs text-muted">
-                    {brand.domain}
-                    {p.href}
-                  </span>
+                  <span className="mt-1 text-xs text-muted">{portalAddress(p.href)}</span>
                 </Link>
               </TiltCard>
             </StaggerItem>

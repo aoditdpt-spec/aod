@@ -12,6 +12,7 @@ import { DataTable, type Column } from "../DataTable";
 import { ActionButton, ago, Details, Drawer, DrawerSection, fieldClass, fmtDate, Labelled, NotesBox, PageHeader, StageBadge, useCan, whatsappTo } from "../ui";
 import { useOpen } from "../useOpen";
 import { NewBooking } from "./Bookings";
+import { sectionLink } from "@/lib/site-url";
 
 const columns: Column<Lead>[] = [
   { key: "name", label: "Lead", render: (l) => l.name, value: (l) => l.name },
@@ -64,7 +65,7 @@ export function Leads() {
         <NewBooking
           from={{ name: converting.name, phone: converting.phone, need: converting.need, city: converting.city, type: converting.type, leadId: converting.id }}
           onClose={() => setConverting(null)}
-          onCreated={(id) => router.push(`/admin/bookings?open=${id}`)}
+          onCreated={(id) => router.push(sectionLink(`/admin/bookings?open=${id}`))}
         />
       )}
     </div>
@@ -93,7 +94,7 @@ function LeadDrawer({ lead, onClose, onConvert }: { lead: Lead; onClose: () => v
             Call
           </a>
           {lead.bookingId ? (
-            <Link href={`/admin/bookings?open=${lead.bookingId}`} className="ml-auto inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink">
+            <Link href={sectionLink(`/admin/bookings?open=${lead.bookingId}`)} className="ml-auto inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink">
               Open booking {lead.bookingId}
             </Link>
           ) : (

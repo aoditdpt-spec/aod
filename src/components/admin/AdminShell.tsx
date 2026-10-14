@@ -30,6 +30,7 @@ import { backendEnabled } from "@/lib/backend";
 import { resetDb, signOut, useAdminError, useBrowserReady, useDb, useLiveConnection, useSession, type Db } from "@/lib/admin-store";
 import { caseDue } from "./pages/Resolution";
 import { daysUntil, fieldClass, inr } from "./ui";
+import { sectionLink, sectionPath } from "@/lib/site-url";
 
 const nav = [
   { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -69,27 +70,27 @@ export function useAlerts(db: Db | null) {
     if (!db) return [];
     const out: { text: string; href: string; tone: "brand" | "wait" }[] = [];
     const pending = db.payments.filter((p) => p.status === "pending");
-    if (pending.length) out.push({ text: `${pending.length} payment${pending.length > 1 ? "s" : ""} to verify (${inr(pending.reduce((n, p) => n + p.amount, 0))})`, href: "/admin/payments", tone: "brand" });
+    if (pending.length) out.push({ text: `${pending.length} payment${pending.length > 1 ? "s" : ""} to verify (${inr(pending.reduce((n, p) => n + p.amount, 0))})`, href: sectionLink("/admin/payments"), tone: "brand" });
     const apps = db.applications.filter((a) => a.status === "submitted");
-    if (apps.length) out.push({ text: `${apps.length} new artist application${apps.length > 1 ? "s" : ""}`, href: "/admin/applications", tone: "brand" });
+    if (apps.length) out.push({ text: `${apps.length} new artist application${apps.length > 1 ? "s" : ""}`, href: sectionLink("/admin/applications"), tone: "brand" });
     const fresh = db.bookings.filter((b) => b.status === "new");
-    if (fresh.length) out.push({ text: `${fresh.length} booking request${fresh.length > 1 ? "s" : ""} to match`, href: "/admin/bookings", tone: "brand" });
+    if (fresh.length) out.push({ text: `${fresh.length} booking request${fresh.length > 1 ? "s" : ""} to match`, href: sectionLink("/admin/bookings"), tone: "brand" });
     for (const b of db.bookings.filter((b) => b.status === "confirmed" && daysUntil(b.date) >= 0 && daysUntil(b.date) <= 2)) {
-      out.push({ text: `${b.id} is ${daysUntil(b.date) === 0 ? "today" : daysUntil(b.date) === 1 ? "tomorrow" : "in 2 days"}: ${b.service}, ${b.city}`, href: `/admin/bookings?open=${b.id}`, tone: "wait" });
+      out.push({ text: `${b.id} is ${daysUntil(b.date) === 0 ? "today" : daysUntil(b.date) === 1 ? "tomorrow" : "in 2 days"}: ${b.service}, ${b.city}`, href: sectionLink(`/admin/bookings?open=${b.id}`), tone: "wait" });
     }
     for (const b of db.bookings.filter((b) => b.delivery && daysUntil(b.delivery.expires) >= 0 && daysUntil(b.delivery.expires) <= 5)) {
-      out.push({ text: `Delivery link for ${b.id} expires in ${daysUntil(b.delivery!.expires)} days`, href: `/admin/bookings?open=${b.id}`, tone: "wait" });
+      out.push({ text: `Delivery link for ${b.id} expires in ${daysUntil(b.delivery!.expires)} days`, href: sectionLink(`/admin/bookings?open=${b.id}`), tone: "wait" });
     }
     for (const a of db.applications.filter((a) => a.status === "meeting" && a.meeting && daysUntil(a.meeting.at.slice(0, 10)) <= 2 && daysUntil(a.meeting.at.slice(0, 10)) >= 0)) {
-      out.push({ text: `Meeting with ${a.name} soon`, href: `/admin/applications?open=${a.id}`, tone: "wait" });
+      out.push({ text: `Meeting with ${a.name} soon`, href: sectionLink(`/admin/applications?open=${a.id}`), tone: "wait" });
     }
     for (const c of db.cases.filter((c) => c.status === "received" || c.status === "escalated")) {
       const due = caseDue(c);
       const text = c.status === "escalated" ? `Case ${c.id} escalated to the grievance officer` : `Case ${c.id} needs a reply${due ? ` (${due.text.toLowerCase()})` : ""}`;
-      out.push({ text, href: `/admin/resolution?open=${c.id}`, tone: c.status === "escalated" || due?.overdue ? "brand" : "wait" });
+      out.push({ text, href: sectionLink(`/admin/resolution?open=${c.id}`), tone: c.status === "escalated" || due?.overdue ? "brand" : "wait" });
     }
     const dues = db.payouts.filter((p) => p.status === "due");
-    if (dues.length) out.push({ text: `${dues.length} artist payout${dues.length > 1 ? "s" : ""} due`, href: "/admin/payments?tab=payouts", tone: "wait" });
+    if (dues.length) out.push({ text: `${dues.length} artist payout${dues.length > 1 ? "s" : ""} due`, href: sectionLink("/admin/payments?tab=payouts"), tone: "wait" });
     return out;
   }, [db]);
 }
@@ -103,12 +104,12 @@ function GlobalSearch({ db }: { db: Db }) {
     if (s.length < 2) return [];
     const hit = (...v: (string | undefined)[]) => v.some((x) => x?.toLowerCase().includes(s));
     return [
-      ...db.bookings.filter((b) => hit(b.id, b.customer.name, b.service, b.city)).map((b) => ({ href: `/admin/bookings?open=${b.id}`, label: `${b.id} · ${b.customer.name}`, hint: "Booking" })),
-      ...db.artists.filter((a) => hit(a.id, a.name, a.city)).map((a) => ({ href: `/admin/artists?open=${a.id}`, label: a.name, hint: "Artist" })),
-      ...db.applications.filter((a) => hit(a.id, a.name)).map((a) => ({ href: `/admin/applications?open=${a.id}`, label: a.name, hint: "Application" })),
-      ...db.leads.filter((l) => hit(l.id, l.name, l.need)).map((l) => ({ href: `/admin/leads?open=${l.id}`, label: l.name, hint: "Lead" })),
-      ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.issue)).map((c) => ({ href: `/admin/resolution?open=${c.id}`, label: `${c.id} · ${c.name}`, hint: "Case" })),
-      ...db.payments.filter((p) => hit(p.id, p.utr, p.payer, p.bookingId)).map((p) => ({ href: `/admin/payments?open=${p.id}`, label: `${p.id} · ${p.payer}`, hint: "Payment" })),
+      ...db.bookings.filter((b) => hit(b.id, b.customer.name, b.service, b.city)).map((b) => ({ href: sectionLink(`/admin/bookings?open=${b.id}`), label: `${b.id} · ${b.customer.name}`, hint: "Booking" })),
+      ...db.artists.filter((a) => hit(a.id, a.name, a.city)).map((a) => ({ href: sectionLink(`/admin/artists?open=${a.id}`), label: a.name, hint: "Artist" })),
+      ...db.applications.filter((a) => hit(a.id, a.name)).map((a) => ({ href: sectionLink(`/admin/applications?open=${a.id}`), label: a.name, hint: "Application" })),
+      ...db.leads.filter((l) => hit(l.id, l.name, l.need)).map((l) => ({ href: sectionLink(`/admin/leads?open=${l.id}`), label: l.name, hint: "Lead" })),
+      ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.issue)).map((c) => ({ href: sectionLink(`/admin/resolution?open=${c.id}`), label: `${c.id} · ${c.name}`, hint: "Case" })),
+      ...db.payments.filter((p) => hit(p.id, p.utr, p.payer, p.bookingId)).map((p) => ({ href: sectionLink(`/admin/payments?open=${p.id}`), label: `${p.id} · ${p.payer}`, hint: "Payment" })),
     ].slice(0, 8);
   }, [q, db]);
 
@@ -197,7 +198,7 @@ function Alerts({ db }: { db: Db }) {
 // Sends anyone without a (preview) session back to the sign-in page.
 export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = sectionPath("admin", usePathname());
   const ready = useBrowserReady();
   const session = useSession();
   const db = useDb();
@@ -205,7 +206,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [menu, setMenu] = useState(false);
 
   useEffect(() => {
-    if (ready && !session && !loadError) router.replace("/admin");
+    if (ready && !session && !loadError) router.replace(sectionLink("/admin"));
   }, [ready, session, loadError, router]);
 
   if (loadError) {
@@ -234,7 +235,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           return (
             <li key={href}>
               <Link
-                href={href}
+                href={sectionLink(href)}
                 onClick={() => setMenu(false)}
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"}`}
@@ -263,7 +264,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           type="button"
           onClick={() => {
             signOut();
-            router.replace("/admin");
+            router.replace(sectionLink("/admin"));
           }}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-body hover:bg-wash"
         >
@@ -279,7 +280,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <button type="button" onClick={() => setMenu((m) => !m)} aria-label="Menu" className="rounded-lg p-2 hover:bg-wash lg:hidden">
           {menu ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
         </button>
-        <Link href="/admin/dashboard" className="flex shrink-0 items-center gap-2">
+        <Link href={sectionLink("/admin/dashboard")} className="flex shrink-0 items-center gap-2">
           <Image src="/aod-wordmark.png" alt="AOD" width={708} height={200} priority className="h-5 w-auto" />
           <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
         </Link>

@@ -8,6 +8,7 @@ import { Icon, WhatsAppIcon, type AnyIconName } from "@/components/ui/Icon";
 import { StepFlow } from "@/components/ui/StepFlow";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { portalHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default function ForArtistsPage() {
             </h1>
             <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-xl sm:leading-snug">{forArtists.subtitle}</p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <ButtonLink href="/artists/apply" size="lg">
+              <ButtonLink href={portalHref("/artists/apply")} size="lg">
                 {forArtists.applyCta} <ArrowRight className="h-5 w-5" aria-hidden />
               </ButtonLink>
               <ButtonLink href={join} variant="ghost-light" size="lg">
@@ -50,7 +51,7 @@ export default function ForArtistsPage() {
             <p className="mt-4 text-sm text-white/70">{forArtists.note}</p>
             <p className="mt-2 text-sm text-white/70">
               {forArtists.signInText}{" "}
-              <Link href="/artists" className="font-medium text-white underline underline-offset-4 hover:text-tangerine">
+              <Link href={portalHref("/artists")} className="font-medium text-white underline underline-offset-4 hover:text-tangerine">
                 {forArtists.signInCta}
               </Link>
             </p>
@@ -85,7 +86,7 @@ export default function ForArtistsPage() {
             <h2 className="text-2xl font-medium sm:text-3xl">{forArtists.meetTitle}</h2>
             <p className="mt-2 max-w-3xl text-body">{forArtists.meetText}</p>
           </div>
-          <ButtonLink href="/artists/apply" variant="outline" className="shrink-0 bg-white">
+          <ButtonLink href={portalHref("/artists/apply")} variant="outline" className="shrink-0 bg-white">
             {forArtists.applyCta}
           </ButtonLink>
         </section>
@@ -117,7 +118,7 @@ export default function ForArtistsPage() {
           <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <ButtonLink href="/artists/apply" variant="white">
+            <ButtonLink href={portalHref("/artists/apply")} variant="white">
               {forArtists.applyCta} <ArrowRight className="h-4 w-4" aria-hidden />
             </ButtonLink>
             <ButtonLink href={join} variant="ghost-light">

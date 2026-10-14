@@ -29,6 +29,7 @@ import {
   whatsappTo,
 } from "../ui";
 import { useOpen } from "../useOpen";
+import { sectionLink } from "@/lib/site-url";
 
 const done = ["completed", "delivered", "reviewed"];
 const jobs = (db: Db, id: string) => db.bookings.filter((b) => b.artistId === id && done.includes(b.status)).length;
@@ -153,7 +154,7 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
           <ul className="divide-y divide-line rounded-lg border border-line">
             {history.map((b) => (
               <li key={b.id}>
-                <Link href={`/admin/bookings?open=${b.id}`} className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-wash">
+                <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-wash">
                   <span className="min-w-0">
                     <span className="block truncate text-ink">
                       {b.id} · {b.service}

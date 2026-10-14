@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { backendEnabled } from "@/lib/backend";
 import { portalSignOut, reloadPortal, usePortalState } from "@/lib/artist-live";
+import { sectionLink } from "@/lib/site-url";
 
 // Live mode: the signed-in pages need a signed-in artist or applicant. Signed-out visitors go to
 // the sign-in page; an email with no artist or application gets a way to apply. The preview
@@ -13,7 +14,7 @@ export function PortalGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const portal = usePortalState();
   useEffect(() => {
-    if (backendEnabled && portal.status === "signed-out") router.replace("/artists");
+    if (backendEnabled && portal.status === "signed-out") router.replace(sectionLink("/artists"));
   }, [portal.status, router]);
 
   if (!backendEnabled || portal.status === "ready") return children;
@@ -29,12 +30,12 @@ export function PortalGate({ children }: { children: ReactNode }) {
                 {portal.email} isn&apos;t linked to an AOD artist or application yet. Apply to join, or sign in with the email you applied with.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href="/artists/apply" className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover">
+                <Link href={sectionLink("/artists/apply")} className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover">
                   Apply to join
                 </Link>
                 <button
                   type="button"
-                  onClick={() => void portalSignOut().then(() => router.replace("/artists"))}
+                  onClick={() => void portalSignOut().then(() => router.replace(sectionLink("/artists")))}
                   className="inline-flex h-11 items-center rounded-lg border border-line px-5 font-medium text-ink hover:border-ink"
                 >
                   Use another email

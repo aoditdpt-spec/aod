@@ -9,7 +9,7 @@ import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
-import { siteHref } from "@/lib/site-url";
+import { sectionLink, siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { createApplication } from "@/server/actions/public";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
@@ -99,10 +99,10 @@ export function ApplyForm() {
         </p>
         <p className="mt-3 text-sm text-muted">Sign in to the artist portal with this email to follow your application and add photos to your portfolio.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/artists" className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
+          <Link href={sectionLink("/artists")} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
             Sign in to follow it
           </Link>
-          <Link href="/for-artists" className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash">
+          <Link href={siteHref("/for-artists")} className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash">
             Back to For Artists
           </Link>
         </div>
@@ -151,7 +151,7 @@ export function ApplyForm() {
             type="button"
             onClick={() => {
               modeStore.set("applicant");
-              router.push("/artists/dashboard");
+              router.push(sectionLink("/artists/dashboard"));
             }}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash"
           >
@@ -260,7 +260,7 @@ export function ApplyForm() {
               <ArrowLeft className="h-4 w-4" aria-hidden /> Back
             </button>
           ) : (
-            <Link href="/artists" className="text-sm font-medium text-muted hover:text-ink">
+            <Link href={sectionLink("/artists")} className="text-sm font-medium text-muted hover:text-ink">
               Already with AOD? Sign in
             </Link>
           )}

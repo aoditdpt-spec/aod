@@ -7,6 +7,7 @@ import { portalSignOut, usePortalMode } from "@/lib/artist-live";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { useBookings } from "./BookingCard";
+import { sectionLink, sectionPath } from "@/lib/site-url";
 
 export const portalLinks = [
   { href: "/artists/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -21,7 +22,7 @@ const helpUrl = whatsappUrl("Hi AOD, I need help with the artist portal.");
 
 // Signed-in navigation: a sidebar from 1024px up, a scrollable tab row below that.
 export function PortalNav() {
-  const pathname = usePathname();
+  const pathname = sectionPath("artists", usePathname());
   const router = useRouter();
   const mode = usePortalMode();
   const bookings = useBookings();
@@ -41,7 +42,7 @@ export function PortalNav() {
           {items.map(({ href, label, icon: I, active, count }) => (
             <li key={href} className="shrink-0">
               <Link
-                href={href}
+                href={sectionLink(href)}
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm ${active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"}`}
               >
@@ -60,7 +61,7 @@ export function PortalNav() {
           {items.map(({ href, label, icon: I, active, count }) => (
             <li key={href}>
               <Link
-                href={href}
+                href={sectionLink(href)}
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] transition-colors ${
                   active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"
@@ -84,7 +85,7 @@ export function PortalNav() {
           </a>
           <button
             type="button"
-            onClick={() => void portalSignOut().then(() => router.push("/artists"))}
+            onClick={() => void portalSignOut().then(() => router.push(sectionLink("/artists")))}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] text-body hover:bg-wash"
           >
             <LogOut className="h-[1.125rem] w-[1.125rem] text-muted" aria-hidden /> Sign out

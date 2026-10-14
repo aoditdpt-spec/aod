@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-// The admin panel. Lives at /admin for now and moves to admin.aod.co.in (see src/proxy.ts).
+// The admin panel, at admin.aod.co.in (src/proxy.ts; /admin on localhost).
 export const metadata: Metadata = {
   title: { default: "AOD Admin", template: "%s — AOD Admin" },
   description: "Admin panel for the Artists on Demand team.",

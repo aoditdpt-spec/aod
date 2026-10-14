@@ -3,6 +3,7 @@
 import { after } from "next/server";
 import { resolution, type CaseRole } from "@/content/resolution";
 import { backendEnabled } from "@/lib/backend";
+import { sectionUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CaseStatus } from "@/lib/admin-store";
 import { insertWithNextId } from "@/server/ids";
@@ -30,7 +31,6 @@ export type TrackedCase = {
 };
 
 const notSetUp = { ok: false as const, error: "The Resolution Centre isn't connected yet." };
-const site = () => process.env.NEXT_PUBLIC_SITE_URL || "https://www.aod.co.in";
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
@@ -128,14 +128,14 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
           kind: "email",
           to: teamEmails(),
           subject: `New resolution case ${id}: ${issue} (${bookingRef})`,
-          text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${site()}/admin/resolution?open=${id}`,
+          text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         });
       jobs.push({
         kind: "email",
         to: [email],
         subject: `AOD has received your case ${id}`,
-        text: `Hi ${name},\n\nAOD has received your case and someone will reply within 48 hours.\n\n${summary}\n\nFollow it any time: ${site()}/resolve/track?id=${id} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Resolution Centre`,
+        text: `Hi ${name},\n\nAOD has received your case and someone will reply within 48 hours.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Resolution Centre`,
       });
       await runOrQueue(jobs);
     });
@@ -210,14 +210,14 @@ export async function escalateCase(idInput: string, emailInput: string, reasonIn
           kind: "email",
           to: teamEmails(),
           subject: `Escalated to the grievance officer: ${id}`,
-          text: `${r.name} has escalated case ${id} (${r.issue}, booking ${r.booking_ref}).\n\nWhy: ${reason}\n\nOpen it: ${site()}/admin/resolution?open=${id}`,
+          text: `${r.name} has escalated case ${id} (${r.issue}, booking ${r.booking_ref}).\n\nWhy: ${reason}\n\nOpen it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         },
         {
           kind: "email",
           to: [email],
           subject: `Your case ${id} has been escalated`,
-          text: `Hi ${r.name},\n\nAOD's grievance officer will review case ${id} afresh and reply by email.\n\nYour reason: ${reason}\n\nFollow it: ${site()}/resolve/track?id=${id}\n\n– AOD Resolution Centre`,
+          text: `Hi ${r.name},\n\nAOD's grievance officer will review case ${id} afresh and reply by email.\n\nYour reason: ${reason}\n\nFollow it: ${sectionUrl("resolve", `/track?id=${id}`)}\n\n– AOD Resolution Centre`,
         },
       ]);
     });

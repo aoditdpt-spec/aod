@@ -3,6 +3,7 @@ import { Mail, Phone } from "lucide-react";
 import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
+import { portalHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { Logo } from "./Navbar";
 
@@ -70,7 +71,7 @@ export function Footer() {
               <ul className="mt-4 space-y-3 text-[0.9375rem]">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={l.href} className="hover:text-apricot">
+                    <Link href={portalHref(l.href)} className="hover:text-apricot">
                       {l.label}
                     </Link>
                   </li>

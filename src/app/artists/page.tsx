@@ -8,11 +8,12 @@ import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
 import { PortalHeader } from "@/components/artists/PortalChrome";
 import { SignIn } from "@/components/artists/SignIn";
+import { sectionLink } from "@/lib/site-url";
 
 export const metadata: Metadata = {
   // The layout's title template only applies to pages below /artists, so this one is spelled out.
   title: { absolute: `Sign in — ${portal.name}` },
-  alternates: { canonical: "/artists" },
+  alternates: { canonical: `https://${portal.host}/` },
 };
 
 // Portal start page: sign in, or apply to join.
@@ -44,7 +45,7 @@ export default function ArtistsHome() {
             </ul>
 
             <Link
-              href="/artists/apply"
+              href={sectionLink("/artists/apply")}
               className="group mt-10 flex items-center justify-between gap-4 rounded-[1.25rem] bg-night p-6 text-white transition hover:-translate-y-0.5 hover:shadow-xl"
             >
               <span>

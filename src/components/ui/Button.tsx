@@ -28,12 +28,13 @@ type ButtonLinkProps = Omit<ComponentProps<typeof Link>, "className"> & {
   children: ReactNode;
 };
 
-// Internal links go through next/link; external ones (WhatsApp, tel:, mailto:) open as plain anchors.
+// Internal links go through next/link; external ones (WhatsApp, tel:, mailto:) open as plain anchors,
+// in a new tab unless they're one of AOD's own domains (artists.aod.co.in…).
 export function ButtonLink({ variant, size, className, href, children, ...rest }: ButtonLinkProps) {
   const classes = buttonClasses(variant, size, className);
   const url = String(href);
   if (/^(https?:|tel:|mailto:)/.test(url)) {
-    const external = url.startsWith("http");
+    const external = url.startsWith("http") && !/^https:\/\/([a-z]+\.)?aod\.co\.in(?=[/?#]|$)/.test(url);
     return (
       <a
         href={url}

@@ -9,6 +9,7 @@ import { backendEnabled } from "@/lib/backend";
 import { reloadPortal, usePortalState } from "@/lib/artist-live";
 import { requestCode, verifyCode } from "@/server/actions/auth";
 import { Field, inputBase, inputClass } from "./form";
+import { sectionLink } from "@/lib/site-url";
 
 type Method = "phone" | "email";
 
@@ -36,7 +37,7 @@ function LiveSignIn() {
       <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-8">
         <h2 className="text-2xl font-normal">Welcome back</h2>
         <p className="mt-2 text-sm text-body">Signed in as {portal.data.email}.</p>
-        <Link href="/artists/dashboard" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
+        <Link href={sectionLink("/artists/dashboard")} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
           Open your portal <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
@@ -68,7 +69,7 @@ function LiveSignIn() {
             return;
           }
           await reloadPortal();
-          router.push("/artists/dashboard");
+          router.push(sectionLink("/artists/dashboard"));
         }}
       >
         <Field label="Email address" error={!sent ? error : null} hint={!sent ? "The email you applied with." : undefined}>
@@ -126,7 +127,7 @@ function LiveSignIn() {
       </form>
       <p className="mt-6 border-t border-line pt-5 text-sm text-body">
         New to AOD?{" "}
-        <Link href="/artists/apply" className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+        <Link href={sectionLink("/artists/apply")} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
           Apply to join
         </Link>
       </p>
@@ -157,7 +158,7 @@ function PreviewSignIn() {
       setError("Enter the 6-digit code.");
       return;
     }
-    router.push("/artists/dashboard");
+    router.push(sectionLink("/artists/dashboard"));
   }
 
   return (
@@ -286,7 +287,7 @@ function PreviewSignIn() {
 
       <p className="mt-6 border-t border-line pt-5 text-sm text-body">
         New to AOD?{" "}
-        <Link href="/artists/apply" className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+        <Link href={sectionLink("/artists/apply")} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
           Apply to join
         </Link>
       </p>

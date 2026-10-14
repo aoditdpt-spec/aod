@@ -5,6 +5,7 @@ import { caseSteps, resolution } from "@/content/resolution";
 import { buttonClasses } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { sectionLink } from "@/lib/site-url";
 
 const promiseIcons = [Clock, CalendarCheck, Scale];
 const stepIcons = [FilePlus, Search, Gavel, Scale];
@@ -24,10 +25,10 @@ export default function ResolvePage() {
             <h1 className="mt-3 text-4xl font-medium leading-tight text-ink sm:text-5xl">{resolution.tagline}</h1>
             <p className="mt-5 max-w-xl text-lg text-body">{resolution.intro}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/resolve/new" className={buttonClasses("primary", "lg")}>
+              <Link href={sectionLink("/resolve/new")} className={buttonClasses("primary", "lg")}>
                 Raise a case <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
-              <Link href="/resolve/track" className={buttonClasses("outline", "lg")}>
+              <Link href={sectionLink("/resolve/track")} className={buttonClasses("outline", "lg")}>
                 Track a case
               </Link>
             </div>
@@ -134,7 +135,7 @@ export default function ResolvePage() {
                     </li>
                   ))}
                 </ul>
-                <Link href={`/resolve/new?role=${r.id}`} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
+                <Link href={sectionLink(`/resolve/new?role=${r.id}`)} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
                   Raise a case <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </li>

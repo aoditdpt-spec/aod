@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useDb, type Activity } from "@/lib/admin-store";
 import { DataTable, type Column } from "../DataTable";
 import { fmtDate, PageHeader } from "../ui";
+import { sectionLink } from "@/lib/site-url";
 
 // Where a record id leads.
 const hrefFor = (target?: string) => {
   if (!target) return null;
-  if (target.startsWith("B-")) return `/admin/bookings?open=${target}`;
-  if (target.startsWith("APP-")) return `/admin/applications?open=${target}`;
-  if (target.startsWith("ART-")) return `/admin/artists?open=${target}`;
-  if (target.startsWith("PAY-")) return `/admin/payments?tab=all&open=${target}`;
-  if (target.startsWith("L-")) return `/admin/leads?open=${target}`;
+  if (target.startsWith("B-")) return sectionLink(`/admin/bookings?open=${target}`);
+  if (target.startsWith("APP-")) return sectionLink(`/admin/applications?open=${target}`);
+  if (target.startsWith("ART-")) return sectionLink(`/admin/artists?open=${target}`);
+  if (target.startsWith("PAY-")) return sectionLink(`/admin/payments?tab=all&open=${target}`);
+  if (target.startsWith("L-")) return sectionLink(`/admin/leads?open=${target}`);
   return null;
 };
 

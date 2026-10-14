@@ -3,6 +3,7 @@
 import { after } from "next/server";
 import { categories, cities, type Audience } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
+import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eventMinutes, timeRange } from "@/lib/event-time";
 import { insertWithNextId } from "@/server/ids";
@@ -15,7 +16,6 @@ import { ALL_ORDERS_TAB, istNow, notifyEnabled, runOrQueue, teamEmails, type Job
 export type SaveResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
 const notSetUp = { ok: false as const, error: "Saving isn't set up yet." };
-const site = () => process.env.NEXT_PUBLIC_SITE_URL || "https://www.aod.co.in";
 
 // ---- Small checks ----
 
@@ -150,7 +150,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
           kind: "email",
           to: teamEmails(),
           subject: `New booking request ${ref}: ${needs.map((c) => c.name).join(", ")} in ${city}`,
-          text: `${summary}\n\nCustomer: ${name}\nPhone: ${phone}\nEmail: ${email || "—"}\n\nOpen the admin: ${site()}/admin/bookings`,
+          text: `${summary}\n\nCustomer: ${name}\nPhone: ${phone}\nEmail: ${email || "—"}\n\nOpen the admin: ${sectionUrl("admin", "/bookings")}`,
           replyTo: email || undefined,
         });
       }
@@ -159,7 +159,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
           kind: "email",
           to: [email],
           subject: `We've received your request ${ref}`,
-          text: `Hi ${name},\n\nThanks for your request. We're finding the right artists for you and will reply with curated matches.\n\n${summary}\n\nSee it any time under My bookings: ${site()}/my-bookings\n\n– Team AOD`,
+          text: `Hi ${name},\n\nThanks for your request. We're finding the right artists for you and will reply with curated matches.\n\n${summary}\n\nSee it any time under My bookings: ${siteUrl}/my-bookings\n\n– Team AOD`,
         });
       }
       await runOrQueue(jobs);
@@ -231,7 +231,7 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
           kind: "email",
           to: teamEmails(),
           subject: `New artist application ${app.id}: ${name} (${category.name})`,
-          text: `${name}, ${category.name}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}\n\nReview it: ${site()}/admin/applications?open=${app.id}`,
+          text: `${name}, ${category.name}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
           replyTo: email,
         });
       jobs.push({

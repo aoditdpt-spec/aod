@@ -5,6 +5,7 @@ import { useState } from "react";
 import { caseStages } from "@/content/admin";
 import { resolution } from "@/content/resolution";
 import { currentUser, update, useDb, type CaseStatus, type ResolutionCase } from "@/lib/admin-store";
+import { sectionLink, sectionUrl } from "@/lib/site-url";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import { ActionButton, ago, Details, Drawer, DrawerSection, fieldClass, fmtDate, NotesBox, PageHeader, StageBadge, Stat, StatusBadge, useCan, whatsappTo } from "../ui";
@@ -63,7 +64,7 @@ export function Resolution() {
         text={
           <>
             Problems with a booking, raised on the{" "}
-            <Link href="/resolve" target="_blank" className="text-brand hover:underline">
+            <Link href={sectionUrl("resolve")} target="_blank" className="text-brand hover:underline">
               Resolution Centre
             </Link>{" "}
             by customers, businesses and artists. Reply within 48 hours and decide within 30 days; the person sees the status and the decision when they track the case, never the notes.
@@ -151,7 +152,7 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
       <DrawerSection title="The case">
         <Details
           rows={[
-            ["Booking", booking ? <Link href={`/admin/bookings?open=${booking.id}`} className="text-brand hover:underline">{c.bookingRef} ({booking.service}, {booking.customer.name})</Link> : c.bookingRef],
+            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand hover:underline">{c.bookingRef} ({booking.service}, {booking.customer.name})</Link> : c.bookingRef],
             ["Happened on", fmtDate(c.incidentDate)],
             ["Wants", c.outcome],
             ["Raised", fmtDate(c.createdAt, true)],

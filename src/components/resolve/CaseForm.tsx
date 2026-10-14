@@ -7,7 +7,7 @@ import { AlertTriangle, CheckCircle2, Plus, X } from "lucide-react";
 import { resolution, type CaseRole } from "@/content/resolution";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { backendEnabled } from "@/lib/backend";
-import { siteHref } from "@/lib/site-url";
+import { sectionLink, siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { createCase } from "@/server/actions/resolution";
 
@@ -92,7 +92,7 @@ export function CaseForm() {
           AOD will reply by email to <strong className="font-medium">{f.email.trim()}</strong> within 48 hours. Keep the case number to follow it.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={`/resolve/track?id=${state.id}`} className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
+          <Link href={sectionLink(`/resolve/track?id=${state.id}`)} className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
             Track this case
           </Link>
           <a

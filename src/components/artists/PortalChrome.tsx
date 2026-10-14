@@ -4,10 +4,10 @@ import type { ReactNode } from "react";
 import { portal } from "@/content/artist-portal";
 import { legalDocs } from "@/content/legal";
 import { brand } from "@/content/site";
-import { siteHref } from "@/lib/site-url";
+import { sectionLink, siteHref } from "@/lib/site-url";
 
 // "AOD. for Artists" mark. Links to the portal's start page.
-export function PortalLogo({ href = "/artists" }: { href?: string }) {
+export function PortalLogo({ href = sectionLink("/artists") }: { href?: string }) {
   return (
     <Link href={href} className="flex shrink-0 items-center gap-2" aria-label={`${portal.name} home`}>
       <Image src="/aod-wordmark.png" alt="AOD" width={708} height={200} priority className="h-6 w-auto" />

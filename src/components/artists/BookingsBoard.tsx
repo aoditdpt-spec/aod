@@ -7,6 +7,7 @@ import { backendEnabled } from "@/lib/backend";
 import { usePortalMode } from "@/lib/artist-live";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge } from "./form";
+import { sectionLink } from "@/lib/site-url";
 
 const tabs = [
   { id: "requests", label: "Requests", match: ["new", "quoted"] },
@@ -30,7 +31,7 @@ export function BookingsBoard() {
         <p className="mx-auto mt-2 max-w-md text-body">
           After your review and trial booking, requests that match your craft and city show up here.
         </p>
-        <Link href="/artists/dashboard" className="mt-6 inline-flex text-sm font-medium text-brand underline underline-offset-4">
+        <Link href={sectionLink("/artists/dashboard")} className="mt-6 inline-flex text-sm font-medium text-brand underline underline-offset-4">
           See your onboarding steps
         </Link>
       </div>
