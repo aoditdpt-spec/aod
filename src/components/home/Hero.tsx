@@ -28,7 +28,7 @@ export function Hero() {
       style={
         hasVideo
           ? undefined
-          : { backgroundImage: "radial-gradient(rgba(234,153,123,0.18) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
+          : { backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-tangerine) 18%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
       }
     >
       {hasVideo && (
@@ -44,10 +44,10 @@ export function Hero() {
       <Container className="relative py-16 sm:py-20">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           {/* A soft shadow under all the text in this column keeps it readable over the brighter video.
-              (The heading has a black outline instead: `text-outline` in globals.css.) */}
+              (The heading has its own drop shadow instead: `text-rose-gold` in globals.css.) */}
           <div className="[text-shadow:0_1px_12px_rgba(0,0,0,0.55)]">
             {/* The brand name is the page heading and the largest text in the hero. */}
-            <h1 className="text-outline text-5xl font-bold leading-[0.95] tracking-[-0.01em] text-white [text-shadow:none] sm:text-7xl lg:text-[clamp(3.5rem,5.1vw,5.6rem)]">
+            <h1 className="text-rose-gold w-fit text-5xl font-bold leading-[0.95] tracking-[-0.01em] text-white [text-shadow:none] sm:text-7xl lg:text-[clamp(3.5rem,5.1vw,5.6rem)]">
               {hero.eyebrow}
             </h1>
             <p className="mt-6 max-w-[35rem] text-lg text-white/90 sm:text-xl sm:leading-snug">

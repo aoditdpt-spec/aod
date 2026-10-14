@@ -44,10 +44,11 @@ type CoverflowProps<T> = {
 // 3D coverflow carousel. A single continuous `position` drives every card's place,
 // angle, size and fade, so dragging (mouse/touch) and trackpad swipes move the cards
 // through the arc under your finger, then snap to the nearest card. Also: dots, arrow
-// buttons, ← → keys, click a side card to bring it forward. Auto-advances; pauses on
-// hover, focus and drag.
+// buttons, ← → keys, click a side card to bring it forward. Auto-advances only while most of
+// it is on screen; pauses on hover, focus and drag.
 export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCard, autoplayMs = 3500 }: CoverflowProps<T>) {
   const reduce = useReducedMotionSafe();
+  const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const count = items.length;
   // `target` is where the carousel should be; `position` glides there and drives the cards.
@@ -58,6 +59,7 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [inView, setInView] = useState(false);
   const drag = useRef({ down: false, startX: 0, startPos: 0, moved: 0, lastX: 0, lastT: 0, velocity: 0 });
 
   // The front card is whichever is nearest to the current position.
@@ -83,12 +85,25 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
     return () => observer.disconnect();
   }, []);
 
-  // Auto-advance, unless the visitor is interacting or prefers reduced motion.
+  // On screen means most of the carousel is visible (80%, or 80% of the screen's height when it's
+  // taller than that), so it doesn't start moving while it's still half below the fold.
   useEffect(() => {
-    if (reduce || hovered || focused || dragging) return;
+    const el = rootRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.intersectionRatio >= 0.8 || entry.intersectionRect.height >= window.innerHeight * 0.8),
+      { threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-advance while on screen, unless the visitor is interacting or prefers reduced motion.
+  useEffect(() => {
+    if (reduce || !inView || hovered || focused || dragging) return;
     const id = window.setInterval(() => target.set(Math.round(target.get()) + 1), autoplayMs);
     return () => window.clearInterval(id);
-  }, [reduce, hovered, focused, dragging, autoplayMs, target]);
+  }, [reduce, inView, hovered, focused, dragging, autoplayMs, target]);
 
   // ← → keys work while the pointer is over the carousel (focus is handled on the element itself).
   useEffect(() => {
@@ -145,6 +160,7 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
 
   return (
     <div
+      ref={rootRef}
       role="region"
       aria-roledescription="carousel"
       aria-label={label}
@@ -205,7 +221,9 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
           }
         }}
       >
-        <ul className="absolute inset-0 [transform-style:preserve-3d]">
+        {/* The list itself ignores the pointer: the side cards sit behind it in 3D, so otherwise it
+            would catch their clicks. Presses still reach the stage for dragging. */}
+        <ul className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]">
           {items.map((item, i) => (
             <CoverflowCard
               key={getKey(item)}
@@ -293,7 +311,7 @@ function CoverflowCard({
 
   return (
     <motion.li
-      className="absolute left-1/2 top-3 w-[17rem] sm:w-[19rem]"
+      className="pointer-events-auto absolute left-1/2 top-3 w-[17rem] sm:w-[19rem]"
       style={{ marginLeft: "-8.5rem", x, z, rotateY, scale, opacity, zIndex }}
       aria-hidden={far}
     >
@@ -309,7 +327,7 @@ function CoverflowCard({
           }
         }}
         className={`group block rounded-[1.25rem] border bg-white p-3 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-brand ${
-          isActive ? "border-brand/40 shadow-[0_30px_60px_-25px_rgba(161,74,43,0.45)]" : "border-line shadow-md"
+          isActive ? "border-brand/40 shadow-[0_30px_60px_-25px_color-mix(in_srgb,var(--color-brand)_45%,transparent)]" : "border-line shadow-md"
         }`}
       >
         {children}

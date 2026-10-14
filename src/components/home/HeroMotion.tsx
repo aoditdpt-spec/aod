@@ -12,7 +12,7 @@ export function HeroGlow() {
   const y = useMotionValue(45);
   const sx = useSpring(x, { stiffness: 60, damping: 20 });
   const sy = useSpring(y, { stiffness: 60, damping: 20 });
-  const background = useMotionTemplate`radial-gradient(38rem circle at ${sx}% ${sy}%, rgba(208,97,57,0.16), transparent 60%)`;
+  const background = useMotionTemplate`radial-gradient(38rem circle at ${sx}% ${sy}%, color-mix(in srgb, var(--color-brand-bright) 16%, transparent), transparent 60%)`;
 
   useEffect(() => {
     const card = ref.current?.parentElement;

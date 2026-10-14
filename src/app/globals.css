@@ -1,35 +1,41 @@
 @import "tailwindcss";
 
 /*
- * AOD design tokens — terracotta & cream with espresso text: warm, welcoming and
- * professional. Laid out in the style of the Upwork homepage saved in context/.
- * Use these via Tailwind classes such as bg-brand, text-ink, border-line — never
- * raw hex values in components. The token names (peach, apricot, tangerine…)
- * date from the first orange theme; their values are now terracotta shades.
+ * AOD design tokens — rose gold & blush cream with warm dark-brown text: warm, elegant and
+ * professional. Every shade shares the hero heading's rose gold hue. Laid out in the style of
+ * the Upwork homepage saved in context/. Use these via Tailwind classes such as bg-brand,
+ * text-ink, border-line — never raw hex values in components (for a tint, use color-mix with a
+ * token). The token names (peach, apricot, tangerine…) date from the first orange theme; their
+ * values are now rose gold shades.
  */
 @theme {
-  --color-ink: #281c15; /* espresso: headings */
+  --color-ink: #291c19; /* warm dark brown: headings */
   --color-body: #1a1a1a; /* body text */
-  --color-muted: #6d5e54; /* secondary text */
-  --color-line: #f0e5db; /* borders, dividers */
-  --color-surface: #fffdfa; /* page background: the faintest cream */
-  --color-wash: #fcf8f3; /* cream: soft section background */
+  --color-muted: #705f5c; /* secondary text */
+  --color-line: #f4e4e1; /* borders, dividers */
+  --color-surface: #fefbfa; /* page background: the faintest blush */
+  --color-wash: #fcf4f3; /* blush cream: soft section background */
 
   --color-night: #181818; /* dark hero / footer cards */
   --color-night-soft: #2a2a2a; /* panels on dark cards */
   --color-night-line: #3d3d3d;
 
-  --color-brand: #a14a2b; /* terracotta: primary buttons, links (5.9:1 with white text) */
-  --color-brand-hover: #833b21;
-  --color-brand-bright: #d06139; /* bright clay: icons, highlights, badges (large text only) */
-  --color-apricot: #f2baa6; /* light clay: accents on dark backgrounds */
-  --color-peach: #f7dacf; /* call-out highlight, icon tiles */
-  --color-tangerine: #ea997b; /* icons on dark backgrounds */
+  --color-brand: #905347; /* deep rose gold: primary buttons, links (6:1 with white text) */
+  --color-brand-hover: #764237;
+  --color-brand-bright: #c47c6e; /* rose gold: icons, highlights, badges (large text only) */
+  --color-apricot: #efc6be; /* light rose gold: accents on dark backgrounds */
+  --color-peach: #f7ded9; /* call-out highlight, icon tiles */
+  --color-tangerine: #e1a498; /* icons on dark backgrounds */
 
-  /* A soft warm sheen (sand → clay) for feature bands, with optional film grain. */
-  --color-sheen-light: #f1d7c5;
-  --color-sheen: #e6af94;
-  --color-sheen-deep: #c97b5e;
+  /* A soft rose gold sheen (blush → rose gold) for feature bands, with optional film grain. */
+  --color-sheen-light: #f6dfda;
+  --color-sheen: #e4b3aa;
+  --color-sheen-deep: #c88b7e;
+
+  /* The hero brand name's metallic rose gold (text-rose-gold below). */
+  --color-rose-gold-light: #f8ddd3;
+  --color-rose-gold: #dda090;
+  --color-rose-gold-deep: #c3837a;
 
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
   --color-whatsapp-hover: #1ebe5d;
@@ -46,9 +52,16 @@
   /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
   /* 63s for 26 logos at their current size; lengthen it in proportion when adding logos (or
      making them bigger) so the speed stays the same. */
+  /* The brand strips (BrandStrip.tsx sets each row's duration so both move at the same speed). */
   --animate-marquee: marquee 63s linear infinite;
   @keyframes marquee {
     to {
+      transform: translateX(-50%);
+    }
+  }
+  --animate-marquee-reverse: marquee-reverse 63s linear infinite;
+  @keyframes marquee-reverse {
+    from {
       transform: translateX(-50%);
     }
   }
@@ -86,9 +99,9 @@
   }
 }
 
-/* Warm sheen: soft diagonal light bands from sand to clay.
+/* Rose gold sheen: soft diagonal light bands from blush to rose gold.
    `bg-sheen` is the light version (use ink text on it); `bg-sheen-deep` keeps the middle
-   terracotta so white text stays readable. Add `grain` for a fine film-grain texture. */
+   deep rose gold so white text stays readable. Add `grain` for a fine film-grain texture. */
 @utility bg-sheen {
   background-color: var(--color-sheen);
   background-image: linear-gradient(
@@ -114,15 +127,28 @@
   );
 }
 
+/* The hero's "Artists On Demand": white turning to rose gold with a metallic sheen, painted
+   through the letters (background-clip: text; give the element w-fit so the gradient spans the
+   words, not the column). The colour stays set (text-white) for any browser without it. A
+   drop-shadow filter (a close one for the edges, a wide soft one) keeps it readable over the
+   bright stage shots: with see-through letters a text-shadow would show through them. */
+@utility text-rose-gold {
+  background-image: linear-gradient(
+    125deg,
+    var(--color-white) 0%,
+    var(--color-rose-gold-light) 25%,
+    var(--color-rose-gold) 48%,
+    var(--color-rose-gold-light) 68%,
+    var(--color-rose-gold-deep) 92%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 14px rgb(0 0 0 / 0.35));
+}
+
 /* Film grain drawn in CSS (SVG noise), so it stays crisp at any size. It sits between the
    element's background and its content. */
-/* The hero's "Artists On Demand": plain letters with a black outline. The outline is painted
-   under the fill (paint-order), so only its outer half shows and the font's overlapping letter
-   shapes don't draw lines inside the letters. In em, so it scales with the heading. */
-@utility text-outline {
-  -webkit-text-stroke: 0.07em black;
-  paint-order: stroke fill;
-}
 
 @utility grain {
   position: relative;

@@ -32,7 +32,7 @@ export default function ForArtistsPage() {
         <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-20">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[32.5rem] w-[32.5rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(234,153,123,0.3)_0%,rgba(234,153,123,0)_65%)] lg:block"
+            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[32.5rem] w-[32.5rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--color-tangerine)_30%,transparent)_0%,color-mix(in_srgb,var(--color-tangerine)_0%,transparent)_65%)] lg:block"
           />
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{forArtists.eyebrow}</p>

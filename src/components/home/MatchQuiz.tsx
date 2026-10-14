@@ -133,7 +133,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
   ].filter((x): x is { label: string; to: number } => x !== null);
 
   return (
-    <div className="overflow-hidden rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_rgba(40,28,21,0.06)] sm:p-10">
+    <div className="overflow-hidden rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-medium text-muted">Three quick questions</p>
         <div className="flex items-center gap-2 text-xs text-ink" aria-label={`Question ${step + 1} of 3`}>

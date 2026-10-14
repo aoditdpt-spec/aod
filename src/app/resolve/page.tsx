@@ -43,7 +43,7 @@ export default function ResolvePage() {
             </p>
           </div>
 
-          <div aria-hidden className="rounded-panel border border-line bg-white p-6 shadow-[0_20px_60px_-30px_rgba(40,28,21,0.35)] sm:p-8">
+          <div aria-hidden className="rounded-panel border border-line bg-white p-6 shadow-[0_20px_60px_-30px_color-mix(in_srgb,var(--color-ink)_35%,transparent)] sm:p-8">
             <p className="text-xs font-medium uppercase tracking-wider text-muted">What you&apos;ll see</p>
             <div className="mt-3 flex items-center justify-between gap-3">
               <p className="text-xl font-medium text-ink">Case RC-1001</p>

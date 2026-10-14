@@ -279,6 +279,7 @@ export const clientBrands = [
   { name: "NeeRain", logo: "/brands/neerain.png", width: 585, height: 185 },
   { name: "KYB Conmat", logo: "/brands/kyb-conmat.png", width: 667, height: 161 },
   { name: "Organilicious", logo: "/brands/organilicious.png", width: 1081, height: 160 },
+  { name: "Mandalam", logo: "/brands/mandalam.png", width: 164, height: 220 },
 ];
 
 export const guarantees = [
