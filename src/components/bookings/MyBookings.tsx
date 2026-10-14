@@ -27,6 +27,9 @@ const todayKey = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+// Timeline wording for the steps that aren't on the progress bar.
+const otherSteps: Record<string, string> = { rescheduled: "Date changed", cancelled: "Cancelled" };
+
 const statusInfo = (o: CustomerOrder) => {
   if (o.status === "sent") return { label: "Sent on WhatsApp", tone: "bg-wash text-muted" };
   if (o.status === "cancelled") return { label: "Cancelled", tone: "bg-red-50 text-red-700" };
@@ -483,9 +486,9 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
         <div className={box}>
           <h3 className="font-medium text-ink">Timeline</h3>
           <ol className="mt-3 space-y-2 border-l-2 border-line pl-4 text-sm">
-            {[...o.history].reverse().map((h) => (
-              <li key={h.status}>
-                <span className="text-ink">{customerSteps.find((x) => x.id === h.status)?.label}</span>
+            {[...o.history].reverse().map((h, i) => (
+              <li key={`${h.status}-${h.at}-${i}`}>
+                <span className="text-ink">{customerSteps.find((x) => x.id === h.status)?.label ?? otherSteps[h.status] ?? h.status}</span>
                 <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted">
                   <Clock className="h-3 w-3" aria-hidden /> {fmt(h.at, true)}
                 </span>

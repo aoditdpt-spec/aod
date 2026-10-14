@@ -38,7 +38,7 @@ export async function requestCode(rawEmail: string, who: "staff" | "customer" | 
   if (who === "staff") {
     const { data, error } = await createAdminClient().from("staff").select("id").eq("email", email).eq("active", true).maybeSingle();
     if (error) return { ok: false, error: "Couldn't check the team list just now. Please try again." };
-    if (!data) return { ok: false, error: "This email isn't on the AOD team. Ask the owner to add you in Team & roles." };
+    if (!data) return { ok: false, error: "This email isn't on the AOD team. Ask an admin to add you in Team & roles." };
   }
 
   const supabase = await createClient();

@@ -43,8 +43,9 @@ function moveTo(b: Booking, status: BookingStatus, extra?: (x: Booking) => void,
     text ?? `Moved ${b.id} to ${label(status)}`,
     (db) => {
       const x = db.bookings.find((y) => y.id === b.id)!;
+      // History lists status changes (and every reschedule), not every edit made in a stage.
+      if (x.status !== status || status === "rescheduled") x.history.push({ at: new Date().toISOString(), by: currentUser(), status });
       x.status = status;
-      x.history.push({ at: new Date().toISOString(), by: currentUser(), status });
       extra?.(x);
     },
     b.id,
@@ -225,7 +226,8 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   const candidates = db.artists
     .filter((a) => a.category === b.category && a.status === "active")
     .map((a) => {
-      const clash = db.bookings.some((x) => x.id !== b.id && x.artistId === a.id && x.date === b.date && !["cancelled", "rescheduled"].includes(x.status));
+      // A rescheduled booking sits on its new date, so it counts; only cancelled ones free the day.
+      const clash = db.bookings.some((x) => x.id !== b.id && x.artistId === a.id && x.date === b.date && x.status !== "cancelled");
       const off = a.blockedDates.includes(b.date);
       return { a, free: !clash && !off, why: off ? "Day off" : clash ? "Booked that day" : a.city === b.city ? "Free · same city" : `Free · ${a.city}` };
     })
@@ -294,8 +296,9 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             ["Phone", b.customer.phone],
             ["Email", b.customer.email],
             ["Event", `${b.event} · ${fmtDate(b.date)}, ${timeRange(b.time, b.endTime)}`],
-            ["Venue", `${b.venue}, ${b.city}`],
-            ["Service", `${categoryName(b.category)} · ${b.service}`],
+            ["Venue", [b.venue, b.city].filter(Boolean).join(", ")],
+            // Website requests name the category as the service; show it once.
+            ["Service", b.service === categoryName(b.category) ? b.service : `${categoryName(b.category)} · ${b.service}`],
             ["Budget", b.budget],
             ["Notes", b.notes || "—"],
             ["Requested", fmtDate(b.createdAt, true)],
@@ -347,7 +350,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
                   type="button"
                   disabled={!editable || b.artistId === a.id}
                   onClick={() =>
-                    moveTo(b, b.status === "new" ? "matched" : b.status, (x) => void (x.artistId = a.id), `Assigned ${a.name} to ${b.id}`)
+                    moveTo(b, b.status === "new" || (b.status === "rescheduled" && !b.artistId) ? "matched" : b.status, (x) => void (x.artistId = a.id), `Assigned ${a.name} to ${b.id}`)
                   }
                   className="rounded-md bg-brand px-2 py-1 text-xs font-medium text-white disabled:opacity-40"
                 >
@@ -382,7 +385,8 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
               const q = Number(quote);
               const adv = advance ? Number(advance) : Math.round((q * db.settings.advancePct) / 100);
               setAdvance(String(adv));
-              moveTo(b, ["new", "matched"].includes(b.status) ? "quoted" : b.status, (x) => {
+              // A rescheduled booking re-enters the flow here, like a matched one.
+              moveTo(b, ["new", "matched", "rescheduled"].includes(b.status) ? "quoted" : b.status, (x) => {
                 x.quote = q;
                 x.advance = adv;
               }, `Set the quote for ${b.id} to ${inr(q)} (advance ${inr(adv)})`);

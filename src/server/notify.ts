@@ -117,8 +117,11 @@ async function googleToken() {
 
 // Add rows at the bottom of a tab; writes the heading row first if the tab is empty.
 async function appendToSheet(tab: string, rows: string[][]) {
-  const sheetId = process.env.ORDERS_SHEET_ID;
+  // The sheet's ID, or its whole address pasted in (…/spreadsheets/d/<id>/edit…): either works.
+  const raw = process.env.ORDERS_SHEET_ID?.trim() ?? "";
+  const sheetId = raw.match(/\/d\/([\w-]+)/)?.[1] ?? raw.replace(/^[A-Z_]+=/, "");
   if (!sheetId) throw new Error("The orders sheet isn't set up yet (ORDERS_SHEET_ID).");
+  if (!/^[\w-]{20,}$/.test(sheetId)) throw new Error("ORDERS_SHEET_ID doesn't look like a Google Sheet ID: use the part of the sheet's address between /d/ and /edit.");
   const token = await googleToken();
   const base = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values`;
   const range = (r: string) => encodeURIComponent(`'${tab.replace(/'/g, "''")}'!${r}`);

@@ -138,13 +138,19 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
     db.from("artist_replies").select("*").eq("artist_id", artist.id),
   ]);
   const replies = new Map((replyRows ?? []).map(fromRow.reply).map((r) => [r.bookingId, r]));
+  // A rescheduled booking is only "confirmed" for the artist once the customer has paid.
+  const rescheduled = (rows ?? []).filter((r) => r.status === "rescheduled").map((r) => String(r.id));
+  const { data: paidRows } = rescheduled.length
+    ? await db.from("payments").select("booking_id").in("booking_id", rescheduled).eq("status", "verified")
+    : { data: [] };
+  const paid = new Set((paidRows ?? []).map((r) => String(r.booking_id)));
 
   const bookings: PortalBooking[] = [];
   for (const b of (rows ?? []).map(fromRow.booking)) {
     let status: PortalStatus | null = null;
     const reply = replies.get(b.id);
     if (b.artistId === artist.id) {
-      if (["confirmed", "rescheduled"].includes(b.status)) status = "confirmed";
+      if (b.status === "confirmed" || (b.status === "rescheduled" && paid.has(b.id))) status = "confirmed";
       else if (["completed", "delivered", "reviewed"].includes(b.status)) status = "completed";
       else if (b.status === "cancelled") status = "cancelled";
       else status = "selected";

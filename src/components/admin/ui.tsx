@@ -58,9 +58,12 @@ export const artistName = (db: Db, id?: string) => (id ? db.artists.find((a) => 
 // ---- WhatsApp ----
 
 // wa.me link to a specific number (customer, artist or applicant), with the message ready.
+// wa.me needs the country code: an Indian number typed as 10 digits (or 0 + 10 digits) gets 91 in
+// front, otherwise "90000 00002" would open a chat with a number in Turkey (+90).
 export function whatsappTo(phone: string, message: string) {
-  const digits = phone.replace(/\D/g, "");
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  const digits = phone.replace(/\D/g, "").replace(/^0(?=[6-9]\d{9}$)/, "");
+  const full = /^[6-9]\d{9}$/.test(digits) ? `91${digits}` : digits;
+  return `https://wa.me/${full}?text=${encodeURIComponent(message)}`;
 }
 
 export function fillTemplate(id: TemplateId, vars: Record<string, string>) {

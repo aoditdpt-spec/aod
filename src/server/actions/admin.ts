@@ -81,8 +81,15 @@ async function currentStaff() {
 export async function adminSession(): Promise<Session | null> {
   const me = await currentStaff();
   if (!me) return null;
-  // Best effort: shows on Team & roles as "last active".
-  await createAdminClient().from("staff").update({ last_active: new Date().toISOString() }).eq("id", me.staff.id);
+  // Best effort: shows on Team & roles as "last active". At most every 5 minutes: each write is a
+  // change on the staff live channel, which makes every open admin reload (and call this again), so
+  // writing on every load kept two open admins reloading each other for ever.
+  const stale = new Date(Date.now() - 5 * 60_000).toISOString();
+  await createAdminClient()
+    .from("staff")
+    .update({ last_active: new Date().toISOString() })
+    .eq("id", me.staff.id)
+    .or(`last_active.is.null,last_active.lt.${stale}`);
   return { name: me.staff.name, email: me.staff.email, role: me.staff.role };
 }
 

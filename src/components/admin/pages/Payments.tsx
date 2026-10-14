@@ -19,7 +19,7 @@ const tabs = [
   { id: "payouts", label: "Artist payouts" },
 ] as const;
 
-// Verifying a payment confirms its booking (if it was waiting for payment) and logs both.
+// Verifying a payment confirms its booking (if it was waiting for payment, or rescheduled) and logs both.
 function verify(p: Payment) {
   update(
     "Payments",
@@ -30,7 +30,7 @@ function verify(p: Payment) {
       x.checkedBy = currentUser();
       x.checkedAt = new Date().toISOString();
       const b = db.bookings.find((y) => y.id === p.bookingId);
-      if (b && ["quoted", "payment_pending", "matched", "new"].includes(b.status)) {
+      if (b && ["quoted", "payment_pending", "matched", "new", "rescheduled"].includes(b.status)) {
         b.status = "confirmed";
         b.history.push({ at: new Date().toISOString(), by: currentUser(), status: "confirmed" });
       }

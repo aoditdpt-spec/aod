@@ -175,7 +175,7 @@ export const onboardingStages = [
 export const applicantStatusText: Record<string, { title: string; text: string }> = {
   submitted: { title: "Your application is in the queue", text: "AOD's team reviews every application, usually within a few days." },
   review: { title: "Our team is reviewing your portfolio", text: "We'll message you if we need anything else." },
-  meeting: { title: "Meeting with the AOD team", text: "Details are below and in your email." },
+  meeting: { title: "Meeting with the AOD team", text: "Details are below. The AOD team confirms them with you on WhatsApp." },
   trial: { title: "Your trial booking is being arranged", text: "AOD will share the event details with you directly." },
   approved: { title: "You're approved", text: "Welcome to AOD. Your bookings appear here." },
   rejected: { title: "Application closed", text: "AOD's team has emailed you about the decision. Questions? Message us." },
