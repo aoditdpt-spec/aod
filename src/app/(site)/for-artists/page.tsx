@@ -114,7 +114,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container>
-        <section className="grain bg-sheen-deep rounded-[1.25rem] px-6 py-14 text-center">
+        <section className="grain rounded-[1.25rem] bg-brand px-6 py-14 text-center">
           <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
