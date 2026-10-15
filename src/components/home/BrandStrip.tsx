@@ -15,9 +15,11 @@ function logoHeight(width: number, height: number) {
   return Math.min(MAX_HEIGHT, Math.sqrt((AREA * height) / width));
 }
 
+// The logo's display size in px, used both for its CSS size and for the width and height given to
+// next/image, so the browser fetches a copy that size (twice it on sharp screens), not the original.
 function logoSize(width: number, height: number) {
   const h = logoHeight(width, height);
-  return { height: `${h / 16}rem`, width: `${(h * width) / height / 16}rem` };
+  return { h, w: (h * width) / height };
 }
 
 // Seconds for one loop of a row (one copy of its logos) at SPEED.
@@ -41,18 +43,21 @@ function LogoList({ brands, copy = false }: { brands: readonly Brand[]; copy?: b
         copy ? "motion-reduce:hidden" : ""
       }`}
     >
-      {brands.map((b) => (
-        <li key={b.name} className="shrink-0">
-          <Image
-            src={b.logo}
-            alt={copy ? "" : b.name}
-            width={b.width}
-            height={b.height}
-            style={logoSize(b.width, b.height)}
-            className="object-contain"
-          />
-        </li>
-      ))}
+      {brands.map((b) => {
+        const { w, h } = logoSize(b.width, b.height);
+        return (
+          <li key={b.name} className="shrink-0">
+            <Image
+              src={b.logo}
+              alt={copy ? "" : b.name}
+              width={Math.round(w)}
+              height={Math.round(h)}
+              style={{ height: `${h / 16}rem`, width: `${w / 16}rem` }}
+              className="object-contain"
+            />
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -28,8 +28,9 @@ export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {
       <Image
         src="/aod-wordmark.png"
         alt={brand.name}
-        width={708}
-        height={200}
+        // The display size (24 or 36px tall), so the browser fetches a small copy, not the 708px file.
+        width={size === "nav" ? 85 : 127}
+        height={size === "nav" ? 24 : 36}
         priority
         className={`w-auto ${size === "nav" ? "h-6" : "h-9"}`}
       />

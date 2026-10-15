@@ -1,47 +1,57 @@
 @import "tailwindcss";
 
 /*
- * AOD design tokens — rose gold & blush cream with warm dark-brown text: warm, elegant and
- * professional. Every shade shares the hero heading's rose gold hue. Laid out in the style of
- * the Upwork homepage saved in context/. Use these via Tailwind classes such as bg-brand,
- * text-ink, border-line — never raw hex values in components (for a tint, use color-mix with a
- * token). The token names (peach, apricot, tangerine…) date from the first orange theme; their
- * values are now rose gold shades.
+ * AOD design tokens — three colours only: AOD orange (#ff6201), white and black. Every other
+ * shade is a mix of those (orange with white for tints, orange with black for the deep shade,
+ * black with white for greys). Laid out in the style of the Upwork homepage saved in context/.
+ * Use these via Tailwind classes such as bg-brand, text-ink, border-line — never raw hex values
+ * in components (for a tint, use color-mix with a token). The token names (peach, apricot,
+ * tangerine…) date from the first orange theme.
  */
 @theme {
-  --color-ink: #291c19; /* warm dark brown: headings */
-  --color-body: #1a1a1a; /* body text */
-  --color-muted: #705f5c; /* secondary text */
-  --color-line: #f4e4e1; /* borders, dividers */
-  --color-surface: #fefbfa; /* page background: the faintest blush */
-  --color-wash: #fcf4f3; /* blush cream: soft section background */
+  --color-ink: #000000; /* black: headings */
+  --color-body: #1a1a1a; /* body text: black, a touch softer */
+  --color-muted: #5c5c5c; /* secondary text: grey (6.7:1 on white) */
+  --color-line: #e6e6e6; /* borders, dividers: light grey */
+  --color-surface: #ffffff; /* page background: white */
+  --color-wash: #fff4ed; /* soft section background: 7% orange in white */
 
-  --color-night: #181818; /* dark hero / footer cards */
-  --color-night-soft: #2a2a2a; /* panels on dark cards */
-  --color-night-line: #3d3d3d;
+  --color-night: #000000; /* dark hero / footer cards: black */
+  --color-night-soft: #1a1a1a; /* panels on dark cards */
+  --color-night-line: #333333;
 
-  --color-brand: #905347; /* deep rose gold: primary buttons, links (6:1 with white text) */
-  --color-brand-hover: #764237;
-  --color-brand-bright: #c47c6e; /* rose gold: icons, highlights, badges (large text only) */
-  --color-apricot: #efc6be; /* light rose gold: accents on dark backgrounds */
-  --color-peach: #f7ded9; /* call-out highlight, icon tiles */
-  --color-tangerine: #e1a498; /* icons on dark backgrounds */
+  --color-brand: #ff6201; /* AOD orange: primary buttons, links, highlights */
+  --color-brand-hover: #e05601; /* orange with 12% black */
+  --color-brand-bright: #ff6201; /* icons, highlights, badges */
+  --color-apricot: #ff6201; /* accents on dark backgrounds (7:1 on black) */
+  --color-peach: #ffe7d9; /* call-out highlight, icon tiles: 15% orange in white */
+  --color-tangerine: #ff6201; /* icons on dark backgrounds */
 
-  /* A soft rose gold sheen (blush → rose gold) for feature bands, with optional film grain. */
-  --color-sheen-light: #f6dfda;
-  --color-sheen: #e4b3aa;
-  --color-sheen-deep: #c88b7e;
+  /* The orange feature bands (bg-sheen, bg-sheen-deep below), with optional film grain. */
+  --color-sheen-light: #ff8134; /* orange with 20% white */
+  --color-sheen: #ff6201;
+  --color-sheen-deep: #d95301; /* orange with 15% black */
 
-  /* The hero brand name's metallic rose gold (text-rose-gold below). */
-  --color-rose-gold-light: #f8ddd3;
-  --color-rose-gold: #dda090;
-  --color-rose-gold-deep: #c3837a;
+  /* The hero brand name: white turning to orange (text-shine below; no plain --color-shine, which
+     would add a clashing text-shine colour class). */
+  --color-shine-light: #ffd0b3; /* 30% orange in white */
+  --color-shine-mid: #ff914d; /* orange with 30% white */
+  --color-shine-deep: #ff6201;
+
+  /* The soft drop shadow under all text that makes it look raised (set on body below, so
+     everything inherits it): a close shadow for the edge and a wide soft one for the glow, as in
+     the AOD artwork. Sized in em, so it is a hint under small print and a clear glow under big
+     headings. */
+  --text-shadow-3d: 0.02em 0.04em 0.06em rgb(0 0 0 / 0.2), 0.03em 0.08em 0.22em rgb(0 0 0 / 0.24);
 
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
   --color-whatsapp-hover: #1ebe5d;
 
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Brand fonts (loaded in layout.tsx): Montserrat for text, Bricolage Grotesque for headings
+     (h1–h3 below, or the font-display class on anything else). */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
 
   /* Widest the page content gets (about 1600px); wider screens and zoomed-out views centre it. */
   --container-page: 124rem;
@@ -89,19 +99,27 @@
   body {
     background: var(--color-surface);
     color: var(--color-body);
+    text-shadow: var(--text-shadow-3d);
+  }
+
+  /* Browsers clear text-shadow on buttons; let them carry it like the rest of the text. (Form
+     fields keep the browser's none, so typed text stays crisp.) */
+  button {
+    text-shadow: inherit;
   }
 
   h1,
   h2,
   h3 {
     color: var(--color-ink);
+    font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
 }
 
-/* Rose gold sheen: soft diagonal light bands from blush to rose gold.
-   `bg-sheen` is the light version (use ink text on it); `bg-sheen-deep` keeps the middle
-   deep rose gold so white text stays readable. Add `grain` for a fine film-grain texture. */
+/* Orange feature bands with soft diagonal light. `bg-sheen` runs from light orange to orange (use
+   ink text on it); `bg-sheen-deep` deepens towards the middle so white text stays readable. Add
+   `grain` for a fine film-grain texture. */
 @utility bg-sheen {
   background-color: var(--color-sheen);
   background-image: linear-gradient(
@@ -119,31 +137,31 @@
   background-image: linear-gradient(
     115deg,
     var(--color-sheen) 0%,
-    var(--color-sheen-deep) 22%,
-    var(--color-brand) 45%,
-    var(--color-brand) 58%,
-    var(--color-sheen-deep) 80%,
+    var(--color-sheen-deep) 40%,
+    var(--color-sheen-deep) 60%,
     var(--color-sheen) 100%
   );
 }
 
-/* The hero's "Artists On Demand": white turning to rose gold with a metallic sheen, painted
+/* The hero's "Artists On Demand": white turning to orange with a metallic sheen, painted
    through the letters (background-clip: text; give the element w-fit so the gradient spans the
    words, not the column). The colour stays set (text-white) for any browser without it. A
    drop-shadow filter (a close one for the edges, a wide soft one) keeps it readable over the
-   bright stage shots: with see-through letters a text-shadow would show through them. */
-@utility text-rose-gold {
+   bright stage shots and gives it the same raised look as the rest of the text: with
+   see-through letters a text-shadow would show through them, so it is switched off here. */
+@utility text-shine {
   background-image: linear-gradient(
     125deg,
     var(--color-white) 0%,
-    var(--color-rose-gold-light) 25%,
-    var(--color-rose-gold) 48%,
-    var(--color-rose-gold-light) 68%,
-    var(--color-rose-gold-deep) 92%
+    var(--color-shine-light) 25%,
+    var(--color-shine-mid) 48%,
+    var(--color-shine-light) 68%,
+    var(--color-shine-deep) 92%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: none;
   filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 14px rgb(0 0 0 / 0.35));
 }
 

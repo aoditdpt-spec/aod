@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Montserrat } from "next/font/google";
 import { brand } from "@/content/site";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import "./globals.css";
 
-// Free stand-in for Upwork's Neue Montreal (a paid font).
-const inter = Inter({
-  variable: "--font-inter",
+// AOD's brand fonts: Bricolage Grotesque for headings (with its optical-size axis, so big
+// headings get the tighter display cut) and Montserrat for everything else.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin"],
+  axes: ["opsz"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
 });
 
@@ -31,7 +38,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en-IN" className={`${bricolage.variable} ${montserrat.variable} h-full antialiased`}>
       <head>
         {/* Without JavaScript, show everything that would otherwise animate in. */}
         <noscript>

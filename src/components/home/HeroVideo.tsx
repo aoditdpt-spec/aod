@@ -18,9 +18,9 @@ const lowData = () => {
 };
 
 // Looping background video for the hero, kept light for the page:
-// - The poster (the clip's first frame as WebP, 80–210 KB) renders on the server and is what
-//   visitors see first. The video only starts downloading once the rest of the page has loaded,
-//   then fades in over the poster when it plays.
+// - The poster (the clip's first frame as AVIF, 43–105 KB, with WebP for older browsers) renders
+//   on the server and is what visitors see first. The video only starts downloading once the
+//   rest of the page has loaded, then fades in over the poster when it plays.
 // - Each screen shape gets its own cut (608×1080, the middle of the frame, for phones; 1920×1080
 //   otherwise), as AV1 (about 60% smaller; Chrome, Edge, Firefox, newer Safari) with H.264 as the
 //   fallback. 30 fps, no sound.
@@ -35,7 +35,9 @@ export function HeroVideo({ base }: { base: string }) {
   return (
     <>
       <picture>
+        <source media={PHONE} type="image/avif" srcSet={`${base}/hero-portrait.avif`} />
         <source media={PHONE} srcSet={`${base}/hero-portrait.webp`} />
+        <source type="image/avif" srcSet={`${base}/hero.avif`} />
         <img src={`${base}/hero.webp`} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
       </picture>
       {showVideo && (
@@ -52,7 +54,7 @@ export function HeroVideo({ base }: { base: string }) {
           <source media={PHONE} src={`${base}/hero-portrait-av1.mp4`} type='video/mp4; codecs="av01.0.04M.08"' />
           <source media={PHONE} src={`${base}/hero-portrait.mp4`} type='video/mp4; codecs="avc1.640028"' />
           <source src={`${base}/hero-1080-av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-          <source src={`${base}/hero-1080.mp4`} type='video/mp4; codecs="avc1.640032"' />
+          <source src={`${base}/hero-1080.mp4`} type='video/mp4; codecs="avc1.640028"' />
         </video>
       )}
     </>

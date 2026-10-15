@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "motion/react";
+import * as m from "motion/react-m";
+import { useMotionTemplate, useMotionValue, useSpring, useTransform } from "motion/react";
 import type { ReactNode } from "react";
 
 // The site-wide card animation (first used on "Book with confidence"):
@@ -38,7 +39,7 @@ export function TiltCard({
 
   return (
     <div className={`[perspective:900px] ${fill ? "h-full" : ""}`}>
-      <motion.div
+      <m.div
         className={`group group/tilt relative [transform-style:preserve-3d] ${fill ? "h-full" : ""} ${className}`}
         style={{ rotateX, rotateY }}
         onPointerMove={(e) => {
@@ -54,12 +55,12 @@ export function TiltCard({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         {children}
-        <motion.div
+        <m.div
           aria-hidden
           className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover/tilt:opacity-100"
           style={{ background: light }}
         />
-      </motion.div>
+      </m.div>
     </div>
   );
 }

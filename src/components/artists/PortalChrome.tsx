@@ -10,7 +10,7 @@ import { sectionLink, siteHref } from "@/lib/site-url";
 export function PortalLogo({ href = sectionLink("/artists") }: { href?: string }) {
   return (
     <Link href={href} className="flex shrink-0 items-center gap-2" aria-label={`${portal.name} home`}>
-      <Image src="/aod-wordmark.png" alt="AOD" width={708} height={200} priority className="h-6 w-auto" />
+      <Image src="/aod-wordmark.png" alt="AOD" width={85} height={24} priority className="h-6 w-auto" />
       <span className="rounded-md bg-peach px-2 py-0.5 text-xs font-medium text-brand-hover">for Artists</span>
     </Link>
   );

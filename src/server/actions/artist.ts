@@ -349,10 +349,21 @@ export async function finishPortfolioUpload(path: string, name: string, type: st
   if (folder !== account.id || !file) return { ok: false, error: "That upload isn't yours." };
   const db = createAdminClient();
   const { data } = await db.storage.from(BUCKET).list(folder, { search: file, limit: 1 });
-  if (!data?.some((f) => f.name === file)) return { ok: false, error: "The upload didn't finish. Please try again." };
+  const stored = data?.find((f) => f.name === file);
+  if (!stored) return { ok: false, error: "The upload didn't finish. Please try again." };
+
+  // Check the file as stored, not what the browser said in step 1: the upload link itself
+  // accepts any allowed type up to the bucket's 50 MB.
+  const realType = String(stored.metadata?.mimetype ?? type);
+  const realSize = Number(stored.metadata?.size ?? size) || 0;
+  const isImage = IMAGE_TYPES.includes(realType);
+  if ((!isImage && !VIDEO_TYPES.includes(realType)) || realSize > (isImage ? 15 : 50) * MB) {
+    await db.storage.from(BUCKET).remove([path]);
+    return { ok: false, error: isImage ? "Photos can be up to 15 MB." : "Upload JPG, PNG, WebP or HEIC photos up to 15 MB, or MP4 or MOV videos up to 50 MB." };
+  }
 
   const files = ownFiles(account).filter((f) => f.path !== path);
-  files.push({ path, name: String(name).slice(0, 120), type: String(type), size: Number(size) || 0, at: new Date().toISOString() });
+  files.push({ path, name: String(name).slice(0, 120), type: realType, size: realSize, at: new Date().toISOString() });
   const table = account.kind === "artist" ? "artists" : "applications";
   const { error } = await db.from(table).update({ portfolio: files }).eq("id", account.id);
   if (error) return { ok: false, error: "Couldn't add the file to your portfolio. Please try again." };

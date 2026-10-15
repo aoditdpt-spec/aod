@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useInView, useMotionTemplate, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import * as m from "motion/react-m";
+import { useInView, useMotionTemplate, useMotionValue, useReducedMotion, useSpring } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { hero } from "@/content/site";
 import { Icon, type AnyIconName } from "@/components/ui/Icon";
@@ -34,7 +35,7 @@ export function HeroGlow() {
     };
   }, [x, y]);
 
-  return <motion.div ref={ref} aria-hidden className="pointer-events-none absolute inset-0" style={{ background }} />;
+  return <m.div ref={ref} aria-hidden className="pointer-events-none absolute inset-0" style={{ background }} />;
 }
 
 // A booking walk-through that spotlights one step at a time: the current step pops forward
@@ -62,7 +63,7 @@ export function HeroDemo() {
         {steps.map((step, i) => {
           const lit = reduce || i === active;
           return (
-            <motion.li
+            <m.li
               key={step.title}
               animate={lit ? { opacity: 1, scale: 1.03 } : { opacity: 0.55, scale: 0.97 }}
               transition={{ type: "spring", stiffness: 420, damping: 22 }}
@@ -78,7 +79,7 @@ export function HeroDemo() {
                 <span className="block text-xs text-white/75">{step.text}</span>
               </span>
               {i === steps.length - 1 && <span className="ml-auto rounded-md bg-brand-bright px-2 py-0.5 text-[0.7rem] font-semibold text-white">Done</span>}
-            </motion.li>
+            </m.li>
           );
         })}
       </ul>

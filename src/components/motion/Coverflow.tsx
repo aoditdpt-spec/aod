@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import * as m from "motion/react-m";
 import {
-  motion,
   useMotionValue,
   useMotionValueEvent,
   useSpring,
@@ -14,7 +14,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useReducedMotionSafe } from "@/lib/motion-safe";
 import { createSwipeInterpreter } from "@/lib/swipe";
 
-const mod = (n: number, m: number) => ((n % m) + m) % m;
+const mod = (n: number, size: number) => ((n % size) + size) % size;
 
 // Signed distance from `position` to card `index`, wrapped to the nearest copy
 // so the carousel loops (e.g. with 10 cards, card 9 sits just left of card 0).
@@ -311,7 +311,7 @@ function CoverflowCard({
   const far = Math.abs(wrapOffset(index, Math.round(position.get()), count)) > 2;
 
   return (
-    <motion.li
+    <m.li
       // Centred on the middle of the stage by a negative margin of half its width.
       className="pointer-events-auto absolute left-1/2 top-3 -ml-[8.5rem] w-[17rem] sm:-ml-[9.5rem] sm:w-[19rem] lg:-ml-[12rem] lg:w-[24rem]"
       style={{ x, z, rotateY, scale, opacity, zIndex }}
@@ -334,6 +334,6 @@ function CoverflowCard({
       >
         {children}
       </Link>
-    </motion.li>
+    </m.li>
   );
 }

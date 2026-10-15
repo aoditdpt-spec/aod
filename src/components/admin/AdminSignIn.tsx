@@ -38,7 +38,7 @@ function LiveSignIn() {
     <div className="flex flex-1 items-center justify-center bg-wash p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <Image src="/aod-wordmark.png" alt="AOD" width={708} height={200} priority className="h-7 w-auto" />
+          <Image src="/aod-wordmark.png" alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
           <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
         </div>
         <form
@@ -131,7 +131,7 @@ function PreviewSignIn() {
     <div className="flex flex-1 items-center justify-center bg-wash p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <Image src="/aod-wordmark.png" alt="AOD" width={708} height={200} priority className="h-7 w-auto" />
+          <Image src="/aod-wordmark.png" alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
           <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
         </div>
         <form

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import type { Variants } from "motion/react";
+import * as m from "motion/react-m";
 import type { CSSProperties, ReactNode } from "react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -19,7 +20,7 @@ export function Reveal({
   y?: number;
 }) {
   return (
-    <motion.div
+    <m.div
       data-reveal
       className={className}
       initial={{ opacity: 0, y }}
@@ -28,7 +29,7 @@ export function Reveal({
       transition={{ duration: 0.8, ease: EASE, delay }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -45,7 +46,7 @@ const item: Variants = {
 // A list whose items appear one after another in a wave (staggered grid).
 export function StaggerList({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
   return (
-    <motion.ul
+    <m.ul
       data-reveal
       className={className}
       style={style}
@@ -55,14 +56,14 @@ export function StaggerList({ children, className = "", style }: { children: Rea
       viewport={{ once: true, amount: 0.15 }}
     >
       {children}
-    </motion.ul>
+    </m.ul>
   );
 }
 
 export function StaggerItem({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <motion.li data-reveal className={className} variants={item}>
+    <m.li data-reveal className={className} variants={item}>
       {children}
-    </motion.li>
+    </m.li>
   );
 }

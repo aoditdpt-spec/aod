@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion, type Variants } from "motion/react";
+import { AnimatePresence, type Variants } from "motion/react";
+import * as m from "motion/react-m";
 import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
@@ -162,7 +163,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
       )}
 
       <AnimatePresence mode="wait" custom={dir} initial={false}>
-        <motion.section
+        <m.section
           key={step}
           custom={dir}
           variants={slide}
@@ -458,7 +459,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
               )}
             </>
           )}
-        </motion.section>
+        </m.section>
       </AnimatePresence>
     </div>
   );
