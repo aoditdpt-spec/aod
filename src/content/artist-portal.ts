@@ -34,18 +34,24 @@ export const portal = {
 
 export const languages = ["Gujarati", "Hindi", "English", "Marathi", "Punjabi", "Urdu", "Bengali", "Tamil"];
 
-export const experienceLevels = ["Less than 1 year", "1–3 years", "3–5 years", "5–10 years", "10+ years"];
+// The same buckets as AOD's registration forms (Google Forms).
+export const experienceLevels = ["Less than 1 year", "1–3 years", "3–5 years", "More than 5 years"];
 
-// "Your work details": a step of the application with questions for the applicant's category.
-// Every question is required. Answers are saved by question id in `applications.details`, and the
-// admin shows them with each question's `short` label.
+// "Your work details": a step of the application with questions for the applicant's category,
+// taken from AOD's registration form for each category (Google Forms), minus what the other steps
+// already ask (name, contact, city, experience, languages, links and the declaration).
+// Questions are required unless `optional`; one with `showIf` only appears (and is only checked)
+// when another question has the given answer. Answers are saved by question id in
+// `applications.details`, and the admin shows them with each question's `short` label.
 export type WorkQuestion = {
   id: string;
   label: string;
   short: string; // the label in the review step and the admin
-  kind: "one" | "many" | "text";
+  kind: "one" | "many" | "text" | "long"; // long: a few lines of text
   options?: string[];
   hint?: string;
+  optional?: boolean;
+  showIf?: { id: string; is: string };
 };
 
 const yesNo = ["Yes", "No"];
@@ -54,9 +60,14 @@ const many = (id: string, label: string, short: string, options: string[]): Work
 const typed = (id: string, label: string, short: string, hint: string): WorkQuestion => ({ id, label, short, kind: "text", hint });
 
 const levels = ["Full-time Professional", "Freelance", "Part-time", "Student / Beginner"];
-const level = (who: string) => one("level", `Are you a professional ${who}?`, "Works as", levels);
-const travel = (what: string) => one("travel", `Are you willing to travel to other cities for ${what} if required?`, "Travels to other cities");
-const brandWork = one("brandWork", "Have you worked with brands, artists or events before?", "Worked with brands");
+const level = (who: string, options = levels) => one("level", `Are you a professional ${who}?`, "Works as", options);
+const travel = (what: string) => one("travel", `Are you willing to travel for ${what} if required?`, "Travels", ["Yes", "No", "Within my city only"]);
+const paid = (what: string, depends = "Depends on project") => one("paid", `Are you open to paid ${what} through AOD?`, "Open to paid work", ["Yes", depends, "No"]);
+// "Have you worked with brands…?" and, if yes, which ones (optional).
+const brandWork = (label = "Have you worked with brands, artists or events before?", follow = "Mention notable brands, clients or events"): WorkQuestion[] => [
+  one("brandWork", label, "Worked with brands"),
+  { id: "brandWorkDetails", label: follow, short: "Brands / clients", kind: "long", optional: true, showIf: { id: "brandWork", is: "Yes" } },
+];
 const camera = (who: string, what: string, specialisations: string[]): WorkQuestion[] => [
   level(who),
   many("specialisations", `Your ${what} specialisation`, "Specialisation", specialisations),
@@ -64,7 +75,7 @@ const camera = (who: string, what: string, specialisations: string[]): WorkQuest
   travel("shoots"),
   many("equipment", "Equipment you use", "Equipment", ["DSLR", "Mirrorless", "Gimbal", "Drone", "Studio lights"]),
   typed("cameraBrand", "Camera brand", "Camera brand", "E.g. Sony, Canon, Nikon, Fujifilm."),
-  brandWork,
+  ...brandWork(),
 ];
 const shootTypes = ["Wedding", "Pre-wedding", "Fashion", "Portrait", "Product", "Event", "Corporate", "Lifestyle", "Travel", "Creative / Cinematic", "Other"];
 
@@ -78,25 +89,32 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     typed("drones", "Drones you fly", "Drones", "E.g. DJI Mini 4 Pro, Air 3, Mavic 3."),
     one("editor", "Do you edit the footage as well, or have an editor with you?", "Edits / has an editor"),
     travel("shoots"),
-    brandWork,
+    ...brandWork(),
   ],
+  // From the "Host / Anchor – Registration" form.
   "anchors-hosts": [
-    level("anchor"),
-    many("specialisations", "Events you host", "Events", ["Wedding / Sangeet", "Corporate", "Award shows", "Concerts / Live shows", "Garba / Navratri", "Product launches", "College fests", "Kids' parties", "Other"]),
-    one("script", "Do you write your own script?", "Writes own script"),
-    one("games", "Do you run games and audience activities?", "Runs games"),
-    one("bigCrowd", "Have you hosted for an audience of over 500?", "Hosted 500+ audience"),
+    level("host / anchor", ["Full-time Professional", "Freelance", "Part-time", "Beginner"]),
+    many("specialisations", "Type of hosting experience", "Hosting experience", ["Corporate Events", "Weddings", "Stage Shows", "Live Concerts", "Award Functions", "Exhibitions / Trade Shows", "Digital / Online Events", "Radio / Podcast Hosting", "Other"]),
+    many("style", "Hosting style", "Hosting style", ["Formal / Corporate", "Energetic / Entertaining", "Interactive / Crowd Engagement", "Luxury / Premium", "Youth / Fun"]),
+    ...brandWork("Have you hosted events for brands or corporate clients before?", "Mention notable events or brands"),
+    paid("hosting assignments", "Depends on event"),
+    many("preferredEvents", "Preferred type of events", "Preferred events", ["Corporate Events", "Weddings", "Brand Launches", "College Festivals", "Private Parties", "Virtual Events"]),
     travel("events"),
-    brandWork,
   ],
+  // From the "Video Editor Registration" form.
   editors: [
-    level("editor"),
-    many("specialisations", "What you edit", "Specialisation", ["Wedding films", "Reels / short-form", "YouTube", "Corporate videos", "Ads / commercials", "Music videos", "Photo retouching / albums", "Other"]),
-    many("software", "Software you use", "Software", ["Premiere Pro", "Final Cut Pro", "DaVinci Resolve", "After Effects", "Lightroom", "Photoshop", "CapCut", "Other"]),
-    one("colour", "Do you do colour grading?", "Colour grading"),
-    one("turnaround", "Your usual turnaround for an event film", "Turnaround", ["Same day", "2–3 days", "About a week", "More than a week"]),
-    one("onSite", "Can you edit on site at events (same-day edits)?", "Edits on site"),
-    brandWork,
+    one("workMode", "Work preference", "Works", ["Work From Home (Remote)", "Hybrid (Remote + Occasional Visit)", "On-site Only"]),
+    many("software", "Editing software you use", "Software", ["Adobe Premiere Pro", "After Effects", "DaVinci Resolve", "Final Cut Pro", "CapCut", "Other"]),
+    one("skill", "Skill level", "Skill level", ["Beginner", "Intermediate", "Advanced", "Professional"]),
+    many("specialisations", "Types of editing you specialise in", "Specialisation", ["Instagram Reels / Shorts", "YouTube Videos", "Wedding Films", "Corporate / Brand Videos", "Advertisements (Ads)", "Podcast Editing", "Cinematic Edits", "VFX / Motion Graphics", "Color Grading", "Other"]),
+    ...brandWork("Have you worked with any brands or agencies?", "Mention brands or projects"),
+    one("setup", "Do you have a proper editing setup (a laptop or PC with good performance)?", "Editing setup", ["Yes (High-performance system)", "Basic system", "No"]),
+    one("internet", "Internet speed (for file transfer)", "Internet speed", ["Below 20 Mbps", "20–50 Mbps", "50+ Mbps"]),
+    one("urgent", "Can you handle urgent / fast delivery projects?", "Urgent projects", ["Yes", "No", "Depends on workload"]),
+    many("availability", "Availability", "Availability", ["Full-Time Freelance", "Part-Time Freelance", "Project-Based Only"]),
+    one("shoots", "Do you also shoot, with a camera or an iPhone?", "Also shoots"),
+    one("deadlines", "Do you follow deadlines strictly?", "Follows deadlines"),
+    one("revisions", "Are you comfortable working under AOD guidelines and revisions?", "OK with AOD revisions"),
   ],
   "musicians-djs": [
     level("musician or DJ"),
@@ -104,15 +122,20 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     one("lineUp", "Do you perform solo or with a band?", "Line-up", ["Solo", "Duo", "Band (3 or more)"]),
     many("equipment", "Equipment you bring", "Equipment", ["DJ controller / CDJs", "Speakers / PA", "Microphones", "Lights", "Smoke / effects", "Instruments", "None"]),
     travel("events"),
-    brandWork,
+    ...brandWork(),
   ],
+  // From the "Comedian – Registration" form.
   comedians: [
     level("comedian"),
-    many("specialisations", "Your style", "Style", ["Stand-up", "Improv", "Mimicry", "Hosting with comedy", "Gujarati comedy", "Hindi comedy", "Other"]),
-    one("clean", "Can you perform a clean, family-friendly set?", "Clean set"),
-    one("setLength", "Longest set you can perform", "Longest set", ["Up to 15 min", "15–30 min", "30–60 min", "Over an hour"]),
+    many("specialisations", "Type of comedy you perform", "Comedy", ["Stand-up Comedy", "Observational Comedy", "Dark Comedy", "Improvisation (Improv)", "Crowd Work", "Scripted Comedy", "Character Comedy", "Other"]),
+    many("performLanguages", "Languages you perform in", "Performs in", ["English", "Hindi", "Gujarati", "Hinglish", "Other"]),
+    many("events", "Types of events you have performed at", "Performed at", ["Corporate Events", "Private Parties", "Weddings / Sangeet", "Clubs / Open Mics", "College Events", "Ticketed Shows", "Online Shows", "Other"]),
+    one("setLength", "Average performance duration", "Set length", ["5–10 minutes", "10–20 minutes", "20–40 minutes", "40+ minutes"]),
+    { ...one("crowdComfort", "Comfort level with live audience interaction", "Crowd comfort", ["1", "2", "3", "4", "5"]), hint: "1 = not comfortable, 5 = very comfortable." },
+    one("customContent", "Do you create customised content for events?", "Custom content", ["Yes", "No", "Depends on requirement"]),
+    ...brandWork("Have you worked with brands, artists or events before?", "Mention notable collaborations, shows or performances"),
+    paid("projects"),
     travel("shows"),
-    brandWork,
   ],
   singers: [
     level("singer"),
@@ -120,15 +143,18 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     one("liveWith", "How do you perform?", "Performs with", ["With a live band", "With karaoke tracks", "Both"]),
     one("sound", "Do you bring your own sound system?", "Own sound system"),
     travel("events"),
-    brandWork,
+    ...brandWork(),
   ],
+  // From the "Makeup Artist – Registration" form.
   "makeup-artists": [
-    level("makeup artist"),
-    many("specialisations", "Your specialisation", "Specialisation", ["Bridal", "Party", "Engagement", "HD / Airbrush", "Editorial / shoot", "Hair styling", "Saree draping", "Other"]),
-    typed("products", "Main makeup brands you use", "Products", "E.g. MAC, Huda Beauty, Kryolan."),
-    one("team", "Do you have a team for large weddings?", "Has a team"),
-    travel("bookings"),
-    brandWork,
+    level("make-up artist"),
+    many("specialisations", "Make-up specialisation", "Specialisation", ["Bridal Make-Up", "Party / Occasion Make-Up", "Fashion / Editorial", "Celebrity / Artist Make-Up", "HD Make-Up", "Airbrush Make-Up", "Natural / Minimal Look", "Special Effects (SFX)", "Other"]),
+    ...brandWork("Have you worked with brands, artists, salons or events before?", "Mention notable collaborations or clients"),
+    typed("products", "Make-up products / brands you use", "Products", "E.g. MAC, Huda Beauty, Bobbi Brown, Kryolan."),
+    one("hygiene", "Do you follow proper hygiene and sanitisation practices?", "Hygiene", ["Yes, strictly", "Yes, basic hygiene", "Learning / Improving"]),
+    paid("collaborations"),
+    many("preferredProjects", "Preferred type of projects", "Preferred projects", ["Bridal Assignments", "Brand Shoots", "Artist / Influencer Shoots", "Fashion Shows", "Events", "Commercial Campaigns"]),
+    travel("assignments"),
   ],
   models: [
     level("model"),
@@ -136,7 +162,7 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     typed("height", "Your height", "Height", "E.g. 5′7″ or 170 cm."),
     one("portfolioShoot", "Do you have a professional portfolio shoot?", "Portfolio shoot"),
     travel("shoots"),
-    brandWork,
+    ...brandWork(),
   ],
   "content-creators": [
     level("content creator"),
@@ -145,13 +171,18 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     one("onCamera", "Do you appear on camera?", "On camera"),
     many("equipment", "Equipment you use", "Equipment", ["Phone", "Mirrorless / DSLR", "Gimbal", "Microphone", "Lights", "Drone"]),
     one("followers", "Your Instagram followers", "Followers", ["Under 1K", "1K–10K", "10K–50K", "50K–1L", "Over 1L"]),
-    brandWork,
+    ...brandWork(),
   ],
 };
-export const workQuestionsFor = (category: string) => workQuestions[category] ?? [level("artist"), travel("events"), brandWork];
+export const workQuestionsFor = (category: string) => workQuestions[category] ?? [level("artist"), travel("events"), ...brandWork()];
 
-// Photographers and cinematographers give both an Instagram link and a portfolio link.
-export const bothLinksCategories = ["photographers", "cinematographers"];
+// Whether a question is on screen for these answers (a `showIf` question only after the given choice).
+export const workQuestionShown = (q: WorkQuestion, answers: Record<string, string | string[]> | undefined) =>
+  !q.showIf || [answers?.[q.showIf.id] ?? []].flat().includes(q.showIf.is);
+
+// These categories give both an Instagram link and a portfolio / showreel link (AOD's registration
+// forms ask each of them for both).
+export const bothLinksCategories = ["photographers", "cinematographers", "editors", "anchors-hosts", "comedians", "makeup-artists"];
 
 // The steps of the application form, in order.
 export const applySteps = [

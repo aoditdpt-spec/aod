@@ -25,12 +25,12 @@ export function PortalGate({ children }: { children: ReactNode }) {
         <div className="max-w-md rounded-[1.5rem] border border-line bg-white p-8 text-center">
           {portal.status === "no-account" ? (
             <>
-              <h1 className="text-2xl font-medium">No artist account for this email</h1>
+              <h1 className="text-2xl font-bold">No artist account for this email</h1>
               <p className="mt-3 text-body">
                 {portal.email} isn&apos;t linked to an AOD artist or application yet. Apply to join, or sign in with the email you applied with.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href={sectionLink("/artists/apply")} className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-shadow-3d text-white hover:bg-brand-hover">
+                <Link href={sectionLink("/artists/apply")} className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover">
                   Apply to join
                 </Link>
                 <button
@@ -44,7 +44,7 @@ export function PortalGate({ children }: { children: ReactNode }) {
             </>
           ) : (
             <>
-              <h1 className="text-2xl font-medium">Couldn&apos;t load your portal</h1>
+              <h1 className="text-2xl font-bold">Couldn&apos;t load your portal</h1>
               <p className="mt-3 text-body">{portal.error}</p>
               <button type="button" onClick={() => void reloadPortal()} className="mt-6 inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover">
                 Try again

@@ -55,7 +55,7 @@ export function Calendar() {
             <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <h2 className="mr-auto px-2 text-lg font-medium">{first.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</h2>
+        <h2 className="mr-auto px-2 text-lg font-bold">{first.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</h2>
         <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category" className={`${fieldBase} w-auto`}>
           <option value="">All categories</option>
           {categories.map((c) => (

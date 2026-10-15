@@ -138,7 +138,7 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
 
   return (
     <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
-      <h2 className="text-2xl font-normal">{myBookingsCopy.signInTitle}</h2>
+      <h2 className="text-2xl font-bold">{myBookingsCopy.signInTitle}</h2>
       <p className="mt-2 text-sm text-body">{myBookingsCopy.signInText}</p>
       <form
         noValidate
@@ -222,7 +222,7 @@ function BookingsView({ email, orders, onSignOut, onReview }: { email: string; o
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-medium sm:text-4xl">{myBookingsCopy.title}</h1>
+          <h1 className="text-3xl font-medium sm:text-4xl text-shadow-3d">{myBookingsCopy.title}</h1>
           <p className="mt-1 text-sm text-muted">
             Signed in as {email} ·{" "}
             <button type="button" onClick={onSignOut} className="font-medium text-brand underline underline-offset-2">
@@ -230,7 +230,7 @@ function BookingsView({ email, orders, onSignOut, onReview }: { email: string; o
             </button>
           </p>
         </div>
-        <Link href="/book" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-shadow-3d text-white hover:bg-brand-hover">
+        <Link href="/book" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-white hover:bg-brand-hover">
           New booking <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
@@ -336,7 +336,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
               {o.id} · requested {fmt(o.createdAt)}
               {o.sample && <span className="ml-2 rounded bg-wash px-1.5 py-0.5">Sample</span>}
             </p>
-            <h2 className="mt-1 text-xl font-medium sm:text-2xl">
+            <h2 className="mt-1 text-xl font-bold sm:text-2xl">
               {o.occasion} · {o.services.join(", ")}
             </h2>
           </div>
@@ -381,7 +381,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
                 href={action.href}
                 target={action.href.startsWith("http") ? "_blank" : undefined}
                 rel={action.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-shadow-3d text-white hover:bg-brand-hover"
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
               >
                 {o.status === "delivered" ? <Download className="h-4 w-4" aria-hidden /> : <IndianRupee className="h-4 w-4" aria-hidden />}
                 {action.cta}
@@ -393,7 +393,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
 
       <div className="grid gap-5 md:grid-cols-2">
         <div className={box}>
-          <h3 className="font-medium text-ink">Event</h3>
+          <h3 className="text-ink font-bold">Event</h3>
           <dl className="mt-3 space-y-2 text-sm">
             {[
               ["Date", `${fmt(o.date)}${o.time ? `, ${timeRange(o.time, o.endTime)}` : ""}`],
@@ -410,7 +410,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
         </div>
 
         <div className={box}>
-          <h3 className="font-medium text-ink">Your artist</h3>
+          <h3 className="text-ink font-bold">Your artist</h3>
           {o.artist ? (
             <div className="mt-3 flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-peach text-brand">
@@ -429,7 +429,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
         </div>
 
         <div className={box}>
-          <h3 className="font-medium text-ink">Payments</h3>
+          <h3 className="text-ink font-bold">Payments</h3>
           <dl className="mt-3 space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted">Quote</dt>
@@ -464,7 +464,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
         </div>
 
         <div className={box}>
-          <h3 className="font-medium text-ink">Need something?</h3>
+          <h3 className="text-ink font-bold">Need something?</h3>
           <div className="mt-3 flex flex-col gap-2 text-sm">
             <a href={ask} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
               <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Ask about this booking
@@ -484,7 +484,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
 
       {o.history.length > 0 && (
         <div className={box}>
-          <h3 className="font-medium text-ink">Timeline</h3>
+          <h3 className="text-ink font-bold">Timeline</h3>
           <ol className="mt-3 space-y-2 border-l-2 border-line pl-4 text-sm">
             {[...o.history].reverse().map((h, i) => (
               <li key={`${h.status}-${h.at}-${i}`}>
@@ -500,7 +500,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
 
       {o.status === "delivered" && (
         <div className={box}>
-          <h3 className="font-medium text-ink">How was it?</h3>
+          <h3 className="text-ink font-bold">How was it?</h3>
           {reviewed ? (
             <p className="mt-3 text-sm text-body">
               Thanks for your review!{onReview ? "" : " (Preview: reviews are saved once the backend is live.)"}

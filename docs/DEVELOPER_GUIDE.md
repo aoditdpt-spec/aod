@@ -1,0 +1,717 @@
+# AOD website: developer guide
+
+Everything a developer needs to work on the AOD (Artists on Demand) website: what it is, how it
+is built, where every file lives and what it does, how data moves, how to change things, and what
+the common errors mean.
+
+- **Live sites:** `www.aod.co.in` (customers), `artists.aod.co.in` (artist portal),
+  `admin.aod.co.in` (staff admin panel), `resolve.aod.co.in` (Resolution Centre).
+- **Code:** GitHub `aoditdpt-spec/aod`, branch `main`. Every push to `main` deploys to production
+  on Vercel.
+- **Passwords and keys are not in this repo.** They live in `E:\Projects\Internship\aod docs\`
+  (outside the repo) together with `backend-setup.md` (switching the backend on, step by step) and
+  `testing.md` (how to test everything). Never commit keys or move those guides into the repo.
+- `CLAUDE.md` at the repo root is the same knowledge written for the AI assistant; it is kept up
+  to date with every change and is a good second reference.
+
+---
+
+## Contents
+
+1. [What the website does](#1-what-the-website-does)
+2. [Quick start](#2-quick-start)
+3. [Tech stack](#3-tech-stack)
+4. [How it fits together](#4-how-it-fits-together)
+5. [Folder structure](#5-folder-structure)
+6. [Every folder in detail](#6-every-folder-in-detail)
+7. [How the main flows work](#7-how-the-main-flows-work)
+8. [Database](#8-database)
+9. [Environment variables](#9-environment-variables)
+10. [Design system](#10-design-system)
+11. [Where to change what (cookbook)](#11-where-to-change-what-cookbook)
+12. [Commands and checks](#12-commands-and-checks)
+13. [Deploying](#13-deploying)
+14. [Errors and how to fix them](#14-errors-and-how-to-fix-them)
+15. [Rules and gotchas](#15-rules-and-gotchas)
+
+---
+
+## 1. What the website does
+
+AOD is an Ahmedabad marketplace for booking event talent: photographers, cinematographers, drone
+pilots, anchors, editors, DJs, comedians, singers, makeup artists, models and content creators.
+The site is a from-scratch rebuild of the old aod.co.in (which had no backend and only opened
+WhatsApp). It has four parts:
+
+| Part | Address | Who uses it | What it does |
+| --- | --- | --- | --- |
+| Customer site | `www.aod.co.in` | Customers and businesses | Browse categories, search, send a booking request, follow bookings in **My bookings**, read policies |
+| Artist portal | `artists.aod.co.in` | Artists and applicants | Apply to join, sign in, see onboarding status, edit profile, upload portfolio, set days off, quote or decline booking requests |
+| Admin panel | `admin.aod.co.in` | AOD staff | Review applications, manage artists and bookings, record and verify payments, handle cases, messages, reports, team, settings |
+| Resolution Centre | `resolve.aod.co.in` | Anyone with a booking problem | Raise a formal case, track it, escalate it |
+
+WhatsApp stays the main contact channel (click-to-chat links only, no WhatsApp API). Payments are
+taken by UPI or bank transfer outside the site; staff record them in the admin. There is no
+payment gateway yet.
+
+### Two modes: live and preview
+
+The whole site runs in one of two modes, chosen by `backendEnabled` in `src/lib/backend.ts`:
+
+- **Live** (the Supabase URL and publishable key are set): forms save to the database, sign-in
+  sends real emailed codes, the admin works on shared data, emails and sheet rows are sent.
+- **Preview** (no Supabase keys): the site still works as a demo. Forms hand off to WhatsApp, My
+  bookings shows samples, the admin runs on sample data kept in the browser (`localStorage`), and
+  sign-in accepts any code.
+
+Every live feature keeps its preview fallback, so a deployment never breaks because a key is
+missing. When you add a feature, make it work in both modes.
+
+---
+
+## 2. Quick start
+
+**You need:** Node.js 24 (the check scripts use Node's built-in TypeScript support; the site
+itself needs Node 20.9 or newer), npm, Git.
+
+```bash
+git clone https://github.com/aoditdpt-spec/aod.git
+cd aod
+npm install
+cp .env.example .env.local      # then fill it in (section 9); leave it empty for the preview
+npm run dev                     # http://localhost:3000
+```
+
+Opening the separate sites locally:
+
+| Site | Local address |
+| --- | --- |
+| Customer site | `http://localhost:3000` |
+| Artist portal | `http://localhost:3000/artists` or `http://artists.localhost:3000` |
+| Admin panel | `http://localhost:3000/admin` or `http://admin.localhost:3000` |
+| Resolution Centre | `http://localhost:3000/resolve` or `http://resolve.localhost:3000` |
+
+In `.env.local` for development, set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` so links stay
+on your machine.
+
+Before pushing, run:
+
+```bash
+npm run build && npm run lint && npm run check:search && npm run check:links && npm run check:db
+```
+
+---
+
+## 3. Tech stack
+
+| Layer | Technology | Version | Notes |
+| --- | --- | --- | --- |
+| Framework | **Next.js** (App Router, `src/` folder) | 16.3 | Breaking changes from older Next.js: `middleware` is now `proxy` (`src/proxy.ts`). Read `node_modules/next/dist/docs/` before using an API you're unsure of. |
+| UI | **React** | 19.2 | Server Components by default; client components only where there is interaction. |
+| Language | **TypeScript** | 5 | Strict. `npm run build` also type-checks. |
+| Styling | **Tailwind CSS** | 4 | No `tailwind.config`. Design tokens live in the `@theme` block of `src/app/globals.css`. |
+| Animation | **Motion** (`motion/react`) | 14 | Loaded lazily (`LazyMotion strict`): use `m.*` components from `motion/react-m`, never `motion.*`. |
+| Icons | **lucide-react** | 1.x | Mapped by name in `src/components/ui/Icon.tsx`. |
+| Fonts | **Bricolage Grotesque** (headings) + **Montserrat** (text) | — | Through `next/font/google` in `src/app/layout.tsx`; served from the site itself. |
+| Database, sign-in, files, live updates | **Supabase** (Postgres, Auth, Storage, Realtime) | `@supabase/supabase-js` 2, `@supabase/ssr` 0.12 | Project in Mumbai (`ap-south-1`). |
+| Email | **Resend** | HTTP API | Sign-in codes go through Supabase's SMTP set to Resend; site emails call the Resend API directly (`src/server/notify.ts`). |
+| Orders spreadsheet | **Google Sheets API** with a service account | HTTP API | No Google SDK; the JWT is signed by hand in `src/server/notify.ts`. |
+| Hosting | **Vercel** | — | Server functions in Mumbai (`bom1`, `vercel.json`). |
+| Domain and DNS | **GoDaddy** | — | `aod.co.in` and the subdomain records. |
+| Retries scheduler | **cron-job.org** | — | Calls `/api/jobs/retry` every 15 minutes. |
+| Database checks | **PGlite** (Postgres in WebAssembly) | 0.5 | Dev only: `npm run check:db`. |
+| Lint | **ESLint** 9 + `eslint-config-next` | — | `npm run lint`. |
+
+Some things are hand-written instead of using a library: the Excel export (`src/lib/xlsx.ts`),
+fuzzy search (`src/lib/fuzzy.ts`), photo shrinking (`src/lib/image-resize.ts`) and the Google
+service-account sign-in.
+
+---
+
+## 4. How it fits together
+
+```
+                       Browser (customer, artist, staff)
+                                     │
+                 www / artists. / admin. / resolve.aod.co.in
+                                     │
+                         Vercel (Next.js, Mumbai)
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │ src/proxy.ts      picks the site from the host name (artists./admin./  │
+   │                   resolve.) and rewrites to /artists, /admin, /resolve │
+   │ src/app/...       pages (prerendered static HTML + client components)  │
+   │ src/server/...    server actions: validate, check who's signed in,     │
+   │                   save with Supabase, then after() → emails + sheet    │
+   │ /api/jobs/retry   retries failed emails and sheet rows (outbox)        │
+   └───────────────────────────────────────────────────────────────────────┘
+          │                      │                       │
+     Supabase               Resend API           Google Sheets API
+ (Postgres + RLS,         (emails from         (orders sheet: "All orders"
+  Auth codes, Storage,     connect@aod.co.in)   + one tab per category)
+  Realtime channels)
+```
+
+- **Pages are static.** Every route is prerendered at build time. Data that changes (bookings,
+  the admin, the portal) is loaded in the browser by calling server actions after the page loads.
+- **Server actions are the only way in to the data** for customers and artists. They check who is
+  signed in and return only what that person may see. Staff read the database directly from the
+  browser, and Postgres row-level security (RLS) decides what they may read and change.
+- **After a save**, notifications run with Next's `after()`, so the visitor gets their answer
+  first. A notification that fails is queued in the `outbox` table and retried later.
+- **Live updates:** a database trigger sends a small "changed" message over Supabase Realtime on
+  private channels; open pages reload their own data when one arrives.
+
+---
+
+## 5. Folder structure
+
+```
+aod/
+├── AGENTS.md                 Note for AI agents: this Next.js version has breaking changes
+├── CLAUDE.md                 Project knowledge for the AI assistant (keep it current)
+├── docs/
+│   └── DEVELOPER_GUIDE.md    This guide
+├── context/                  Owner's notes and design references (not used by the site)
+│   ├── brief.md              The owner's raw notes for the redesign
+│   ├── brands/               Original client logos the owner sent
+│   └── *.txt, *.docx, *.pdf  Old-site copy and the platform plan
+├── public/                   Files served as-is at the site root
+│   ├── aod-wordmark.png      The orange "AOD." logo
+│   ├── brands/               Client logos for the brand strip (transparent PNGs)
+│   ├── categories/           One photo per category (mock photos for now)
+│   └── media/                Hero video cuts (AV1 + H.264, laptop + phone) and posters
+├── scripts/                  Plain Node checks (npm run check:*)
+│   ├── db-check.mts          Runs the migrations on PGlite and tests who can read/change what
+│   ├── links-check.mts       Tests the portfolio-link rules
+│   └── search-check.mts      Tests search results for common queries and misspellings
+├── supabase/
+│   └── migrations/           SQL files, run once each, in date order, in Supabase's SQL Editor
+├── src/
+│   ├── proxy.ts              Host-based routing for the artists./admin./resolve. subdomains
+│   ├── app/                  Routes (pages, layouts, the retry API, icons, global CSS)
+│   ├── components/           React components, grouped by area
+│   ├── content/              All copy and data (text, categories, questions, sample data)
+│   ├── lib/                  Shared helpers and browser-side state (client + server safe)
+│   └── server/               Server-only code: server actions, notifications, row mapping
+├── next.config.ts            Security headers, caching, image formats, redirects
+├── vercel.json               Vercel region (Mumbai)
+├── eslint.config.mjs         Lint rules
+├── postcss.config.mjs        Tailwind's PostCSS plugin
+├── tsconfig.json             TypeScript settings; "@/..." means "src/..."
+├── .env.example              Every environment variable, with comments
+└── package.json              Dependencies and npm scripts
+```
+
+Files that are generated or local only (ignored by Git): `node_modules/`, `.next/` (build
+output), `.env.local` (your keys), `next-env.d.ts`, `tsconfig.tsbuildinfo`.
+
+---
+
+## 6. Every folder in detail
+
+### 6.1 `src/app/`: routes
+
+Next.js App Router: each folder is a URL segment, `page.tsx` is the page, `layout.tsx` wraps the
+pages below it. Folders in brackets like `(site)` are **route groups**: they share a layout but
+don't appear in the URL. `[slug]` is a dynamic segment.
+
+```
+src/app/
+├── layout.tsx            Root: <html>, the two fonts, site metadata, MotionProvider, <noscript> rule
+├── globals.css           Tailwind import, design tokens (@theme), base styles, custom utilities
+├── favicon.ico, icon.png, apple-icon.png    App icons (picked up by Next automatically)
+├── not-found.tsx         404 page (renders its own navbar and footer)
+├── sitemap.ts, robots.ts SEO files (sitemap lists the customer site only)
+├── (site)/               THE CUSTOMER SITE
+│   ├── layout.tsx        Adds Navbar, Footer, WhatsAppFab, ScrollProgress
+│   ├── page.tsx          Homepage: only composes sections (order explained in comments)
+│   ├── categories/[slug]/page.tsx   One page per category, built from `categories` in site.ts
+│   ├── book/page.tsx              "Personal or business?" choice
+│   ├── book/[audience]/page.tsx   The booking quiz (MatchQuiz) for personal / business
+│   ├── my-bookings/page.tsx       My bookings (MyBookings component)
+│   ├── business/, for-artists/, about/   Marketing pages
+│   └── privacy/, terms/, refund-policy/  Policies (render src/content/legal.ts)
+├── artists/              THE ARTIST PORTAL (artists.aod.co.in)
+│   ├── layout.tsx        Portal header/footer (PortalChrome), noindex
+│   ├── page.tsx          Sign-in
+│   ├── apply/page.tsx    The six-step application (ApplyForm)
+│   └── (portal)/         Signed-in pages; layout.tsx wraps them in PortalGate + PortalNav
+│       └── dashboard/, profile/, portfolio/, bookings/, availability/, documents/
+├── admin/                THE ADMIN PANEL (admin.aod.co.in)
+│   ├── layout.tsx        noindex
+│   ├── page.tsx          Staff sign-in (AdminSignIn)
+│   └── (panel)/          Signed-in pages; layout.tsx wraps them in AdminShell
+│       └── dashboard/, applications/, artists/, bookings/, calendar/, payments/,
+│           resolution/, messages/, reports/, team/, activity/, settings/
+├── resolve/              THE RESOLUTION CENTRE (resolve.aod.co.in)
+│   ├── layout.tsx        Its own small header and footer
+│   ├── page.tsx          How it works, promises, grievance officer
+│   ├── new/page.tsx      Raise a case (CaseForm)
+│   └── track/page.tsx    Track and escalate a case (TrackCase)
+└── api/jobs/retry/route.ts   GET with "Authorization: Bearer <CRON_SECRET>": retries the outbox
+```
+
+Page files are thin: they set metadata (title, description, Open Graph) and render components.
+The admin and portal pages are mostly one component each from `src/components/admin/pages/` or
+`src/components/artists/`.
+
+### 6.2 `src/proxy.ts`: subdomains
+
+Next 16 calls middleware "proxy". This one looks at the host name: a host starting with
+`artists.`, `admin.` or `resolve.` is rewritten to `/artists`, `/admin` or `/resolve`, so
+`admin.aod.co.in/bookings` serves `/admin/bookings`. An old address that still has the prefix
+(`admin.aod.co.in/admin/bookings`) gets a 308 redirect to the clean one. Every other host passes
+through untouched. The `matcher` skips `_next/` and any path with a file extension.
+
+### 6.3 `src/components/`: React components
+
+| Folder | What's in it |
+| --- | --- |
+| `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `HowItWorks`, `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
+| `layout/` | `Navbar` (client: phone menu, category dropdown, search, city), `Footer`, `AnnouncementBar`, `WhatsAppFab` |
+| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton` |
+| `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (card tilt, `cardHover`, `iconHover`), `Coverflow` (the 3D carousel), `ScrollProgress` |
+| `search/` | `SearchBox`: navbar search with suggestions, keyboard navigation, typed placeholder |
+| `location/` | `CityPicker` and `CityChips`: the visitor's city |
+| `bookings/` | `MyBookings`: sign-in, list of the customer's bookings, progress, reviews |
+| `artists/` | The artist portal: `ApplyForm`, `SignIn`, `PortalGate`, `PortalChrome`, `PortalNav`, `AccountMenu`, `Dashboard`, `OnboardingTimeline`, `ProfileEditor`, `PortfolioManager`, `FileDrop`, `LinkEditor`, `AvailabilityCalendar`, `BookingsBoard`, `BookingCard`, `DocumentsPanel`, `DigiLockerCard`, `form.tsx` (Field, ChipGroup, CheckRow, input styles) |
+| `admin/` | `AdminShell` (sidebar, header, Live dot), `AdminSignIn`, `DataTable` (sortable/filterable table), `ui.tsx` (drawer, badges, sections), `useOpen.ts` (`?open=<id>` drawers), `pages/` (one component per admin page) |
+| `resolve/` | `CaseForm`, `TrackCase` |
+| `legal/` | `LegalPage`: renders a policy from `src/content/legal.ts` |
+
+Interactive components start with `"use client"`. Everything else is a Server Component.
+
+### 6.4 `src/content/`: all copy and data
+
+Change words here, not in JSX.
+
+| File | Holds |
+| --- | --- |
+| `site.ts` | Brand details (phone, email, socials), **categories** (name, icon, photo, services, search keywords), cities, homepage copy (hero, stats, how it works, features, portals, get-matched), occasions for the quiz, client brands, About page, For Artists and Business copy. Ratings and counts in it are sample data (flagged at the top). |
+| `artist-portal.ts` | Portal copy, languages, `experienceLevels`, **`workQuestions`** (the application's "Your work details" questions per category), `bothLinksCategories`, application steps, onboarding stages, upload limits, sample artist and booking requests |
+| `admin.ts` | Admin pipelines (application and booking stages), roles and permissions, WhatsApp message templates (the admin menu itself is `nav` in `AdminShell.tsx`) |
+| `admin-sample.ts` | Sample data for the admin preview (phones start with 55, emails use example.com) |
+| `my-bookings.ts` | Sample bookings for the My bookings preview |
+| `resolution.ts` | Resolution Centre copy, promises, case types, statuses, grievance officer (draft) |
+| `legal.ts` | Privacy policy, terms, cancellation & refund policy (drafts) |
+
+### 6.5 `src/lib/`: shared helpers and browser state
+
+These can run in the browser (and most also on the server). Files with **no imports** are kept
+that way on purpose so the check scripts can test them alone.
+
+| File | What it does |
+| --- | --- |
+| `backend.ts` | `backendEnabled`: live or preview mode |
+| `supabase/server.ts` | Supabase client for Server Components / Actions, acting **as the signed-in user** (RLS applies). Create one per request. |
+| `supabase/client.ts` | Supabase client for client components (browser) |
+| `supabase/admin.ts` | Supabase client with the **secret key**: skips RLS. Server code only, and only after checking the input or the caller. |
+| `admin-store.ts` | The admin's data layer: types for every record, loading the whole `Db`, `update()` (every change goes through it and writes the activity log), saving only what changed, live reloads, session |
+| `artist-live.ts` | The artist portal's data layer: same interface in live and preview (`usePortalState`, `useArtistProfile`, `saveProfile`, `setBlockedDates`, `answerRequest`…) |
+| `artist-store.ts` | Preview-mode portal data in `localStorage`; `ArtistProfile` and `WorkDetails` types |
+| `customer-store.ts` | Preview-mode "requests this browser sent" for My bookings |
+| `local-store.ts` | `createStore()`: a small `localStorage` store read with `useSyncExternalStore` |
+| `city.ts` | The visitor's city (`localStorage` key `aod-city`) |
+| `live.ts` | `listenLive()` / `useLiveRefresh()`: join Realtime channels, reload on change, poll every minute when disconnected |
+| `site-url.ts` | Addresses: `siteUrl`, `siteHref()`, `sectionUrl()`, `portalHref()`, `sectionLink()`, `sectionPath()` (see section 15) |
+| `whatsapp.ts` | `whatsappUrl()` (chat with AOD) and `whatsappShareUrl()`. Build every `wa.me` link here. |
+| `event-time.ts` | Event times: "8:00 PM – 1:00 AM (5 hours, ends next day)" (no imports) |
+| `fuzzy.ts` | Search ranking and typo tolerance (no imports, tested by `check:search`) |
+| `search.ts` | Builds the search index from `site.ts` |
+| `portfolio-links.ts` | Checks portfolio links (no imports, tested by `check:links`) |
+| `image-resize.ts` | Shrinks photos in the browser to WebP, max 2560px, before upload |
+| `xlsx.ts` | Writes .xlsx and CSV files for Reports & exports |
+| `swipe.ts`, `motion-safe.ts` | Carousel swipe handling; reduced-motion helpers |
+
+### 6.6 `src/server/`: server-only code
+
+| File | What it does |
+| --- | --- |
+| `actions/public.ts` | `createBookingRequest`, `createApplication`: validate, check the honeypot field `website`, save with the secret key, then emails and sheet rows in `after()` |
+| `actions/auth.ts` | `requestCode`, `verifyCode`: emailed 6-digit codes. Staff only if their email is in `staff`; artists only if AOD knows their email. |
+| `actions/customer.ts` | My bookings: `myOrders` (the signed-in customer's bookings), `submitReview` |
+| `actions/artist.ts` | Artist portal: load, profile, availability, replies to requests, portfolio uploads (signed upload links) |
+| `actions/admin.ts` | `adminSession`, `loadAdminDb`, `saveAdminChanges`: checks the staff role, then saves the changed records |
+| `actions/resolution.ts` | Raise, track and escalate a case. Tracking needs the case number plus the email; never returns internal notes. |
+| `notify.ts` | Emails (Resend), sheet rows (Google Sheets), `runOrQueue()` (try now, queue failures in `outbox`), `runJob()` (used by the retry route), team email list, notify settings |
+| `rows.ts` | `fromRow` / `toRow`: database rows (snake_case) ↔ admin types (camelCase) |
+| `ids.ts` | `insertWithNextId()`: readable IDs (B-1201, APP-201…), retrying on a duplicate |
+| `live.ts` | Realtime channel names (`customer:<sha256 email>`, `artist:<id>`…) |
+
+Files in `src/server/actions/` start with `"use server"`: each exported function can be called
+from the browser and runs on the server. Treat every argument as untrusted input.
+
+### 6.7 `supabase/migrations/`: the database
+
+| File | Adds |
+| --- | --- |
+| `20261009000000_init.sql` | All tables, row-level security, settings, outbox |
+| `20261010000000_live_and_artists.sql` | Live-update trigger and Realtime policy, artist replies, portfolio storage bucket, artist access |
+| `20261013000000_no_pay_page.sql` | Removes the old "Payment reported" alert |
+| `20261014000000_details_and_developers.sql` | Application `details`, owner/developer roles, access checks moved to a `private` schema, fixed search paths |
+| `20261014010000_outbox_rule.sql` | A "server only" policy on `outbox` |
+
+Each file is run **once**, in date order, in Supabase's SQL Editor. Never edit a file that may
+already have been run: add a new dated file instead, and add a case to `scripts/db-check.mts`.
+
+### 6.8 `scripts/`, `public/`, `context/`
+
+- `scripts/*.mts` are plain Node scripts (Node runs TypeScript directly). Each prints a result
+  and exits non-zero on failure.
+- `public/` is served at the site root (`/aod-wordmark.png`). Files in `/media`, `/brands` and
+  `/categories` are cached by browsers for 30 days, so **replace a file under a new name**.
+- `context/` holds references for designers and planners only; nothing in it is used by the site.
+
+### 6.9 Root config files
+
+| File | What to know |
+| --- | --- |
+| `next.config.ts` | Security headers including a **Content Security Policy** (production only), 30-day caching for `/media`, `/brands`, `/categories`, AVIF/WebP images, and redirects: every `*.vercel.app` address → `www.aod.co.in`, and `/artists`, `/admin`, `/resolve` on the main domain → their subdomains |
+| `vercel.json` | `"regions": ["bom1"]` (Mumbai) |
+| `tsconfig.json` | `@/` is `src/` |
+| `eslint.config.mjs` | `next/core-web-vitals` + TypeScript rules |
+| `.env.example` | Every environment variable, with comments |
+
+---
+
+## 7. How the main flows work
+
+### 7.1 A customer sends a booking request
+
+1. `/book` → personal or business → `/book/personal` runs `MatchQuiz` (`src/components/home/MatchQuiz.tsx`):
+   occasion, who they need, then event details and contact. Every field is required.
+2. Live: the quiz calls `createBookingRequest()` (`src/server/actions/public.ts`). It validates
+   everything again, then inserts **one booking per category** needed (B-1201, B-1202…) with one
+   customer reference (`AOD-1201`, from the first booking number).
+3. Only after the save succeeds does the visitor see "received" with the reference. WhatsApp then
+   opens with the reference in the message. If saving fails, the visitor is told and WhatsApp
+   carries the request instead.
+4. In `after()`: a row on the sheet's "All orders" tab and on each category's tab, a team email,
+   and a confirmation email to the customer (`src/server/notify.ts`). Failures go to `outbox`.
+5. Preview: no save; the request is kept in this browser (`customer-store.ts`) and sent on WhatsApp.
+
+### 7.2 An artist applies
+
+1. `artists.aod.co.in/apply` runs `ApplyForm` (`src/components/artists/ApplyForm.tsx`): About you,
+   Your craft, Your work details (questions from `workQuestions` in `src/content/artist-portal.ts`),
+   Portfolio, Verification, Review.
+2. Live: `createApplication()` validates every required question (a follow-up question counts only
+   when `workQuestionShown()` says it's on screen), saves the application (APP-201…) with the
+   answers in `details`, then emails the team and the applicant.
+3. The applicant signs in to the portal with an emailed code and sees their real onboarding step.
+4. Staff move the application through review → meeting → trial → approve in the admin; approving
+   creates the artist record (ART-101…).
+
+### 7.3 Signing in (customers, artists, staff)
+
+1. The page calls `requestCode(email, who)` (`src/server/actions/auth.ts`). Staff must be in the
+   `staff` table; artists must be a known artist or applicant.
+2. Supabase emails a 6-digit code (through Resend SMTP; template set in the Supabase dashboard).
+3. `verifyCode()` checks it and sets the session cookie.
+
+### 7.4 Staff change something in the admin
+
+1. Every change calls `update(area, text, fn)` in `src/lib/admin-store.ts`. `fn` edits a copy of
+   the data; `update()` writes an activity-log line.
+2. Live: the page shows the change at once, then `saveAdminChanges()` (`src/server/actions/admin.ts`)
+   sends only the records added, changed or removed, and for changed records only the columns
+   that differ. So two people editing different fields of one record don't undo each other.
+3. The server checks the staff role; row-level security checks it again. If the save is refused,
+   the page shows why and reloads the data.
+4. New records are inserted, never upserted, so two people taking the same number get an error
+   instead of overwriting each other.
+
+### 7.5 Live updates
+
+A trigger on every table (`live_changed()`) sends a small "changed" message (table and id, never
+the record) on private Realtime channels: `staff` (every change), `customer:<sha256 of email>`,
+`artist:<id>` and `applicant:<sha256 of email>`. A policy on `realtime.messages` lets each
+signed-in person join only their own channels. Pages reload their own data through their server
+actions when a message arrives, when the tab comes back into view, and every minute while
+disconnected. The admin header shows a green **Live** dot when connected.
+
+### 7.6 Emails and sheet rows that fail
+
+`runOrQueue()` tries each job; a failure (or a missing key) inserts it into `outbox` with the
+error. `GET /api/jobs/retry` with `Authorization: Bearer <CRON_SECRET>` retries pending jobs, up to
+6 attempts, then marks them `failed` with the last error. cron-job.org calls it every 15 minutes.
+
+### 7.7 Artist portfolio uploads
+
+The browser shrinks photos (`image-resize.ts`), asks the server for a one-time signed upload link
+(`actions/artist.ts`), uploads straight to the `portfolio` storage bucket (bypassing the server's
+request size limit), then tells the server, which checks the stored file (type and size) before
+listing it on the artist's record. Limits: photos 15 MB, videos 50 MB, 30 files.
+
+### 7.8 Payments
+
+No gateway. Staff send payment details on WhatsApp (templates in the admin fill in the amount),
+the customer pays by UPI or bank transfer, staff record the amount and UTR on the booking
+(**Record payment**), and verifying it in **Payments** confirms the booking.
+
+---
+
+## 8. Database
+
+**Tables** (all in `public`): `applications`, `artists`, `bookings`, `payments`, `payouts`,
+`leads`, `cases`, `staff`, `activity`, `settings`, `artist_replies` (an artist's quote or decline),
+`outbox` (retries). Storage bucket: `portfolio` (public; artists' photos and videos).
+
+**IDs** are readable references: `B-1201` (booking), `AOD-1201` (a customer request, from its first
+booking), `APP-201` (application), `ART-101` (artist), `PAY-3101` (payment), `L-401` (lead),
+`RC-1001` (case), `U-1` (staff member). The next number is the highest existing one plus one.
+
+**Who can do what (row-level security):**
+
+- Active staff (listed in `staff`, matched by the signed-in email) read everything. Writes need one
+  of the two roles: `owner` (shown as "Admin") or `developer`.
+- Customers and artists read nothing directly. Their pages go through server actions that return
+  only what that person should see (no internal notes, shortlists or other people's details).
+- Signed-out visitors get nothing.
+- The check functions (`private.staff_role()`, `private.is_staff()`, `private.staff_can()`,
+  `private.my_artist_id()`) live in the `private` schema, which the API doesn't expose. New helper
+  functions get `set search_path = ''` and name everything in full (Supabase's Security Advisor
+  checks both).
+
+**Mapping:** database columns are snake_case; the app's types (in `admin-store.ts`) are camelCase.
+`src/server/rows.ts` converts both ways. A new column needs a migration, the type, and both
+mappings.
+
+---
+
+## 9. Environment variables
+
+Set them in `.env.local` locally and in Vercel → Project → Settings → Environment Variables for
+production. **Any change in Vercel needs a redeploy** to take effect, and `NEXT_PUBLIC_*` values
+are baked into the browser code at build time.
+
+| Variable | Used for | Without it |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project address | Preview mode |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase public key (browser) | Preview mode |
+| `SUPABASE_SECRET_KEY` | Server-only key that skips RLS (public forms, My bookings, portal) | Saving and portal features say "isn't set up yet". **Never give it a `NEXT_PUBLIC_` name.** |
+| `RESEND_API_KEY` | Sending site emails | Emails wait in `outbox` |
+| `EMAIL_FROM` | Sender, e.g. `AOD <connect@aod.co.in>` (must be on the domain verified in Resend) | Emails wait in `outbox` |
+| `TEAM_EMAIL` | Where team notifications go (comma-separated) | Falls back to the site email |
+| `ORDERS_SHEET_ID` | The orders sheet (its ID, or its full link) | Sheet rows wait in `outbox` |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | The service account the sheet is shared with | Sheet rows wait in `outbox` |
+| `GOOGLE_PRIVATE_KEY` | That account's private key, on one line with `\n` for line breaks, in double quotes | Sheet rows wait in `outbox` |
+| `CRON_SECRET` | Protects `/api/jobs/retry` | The retry address always answers 401 |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp number for every `wa.me` link (country code, no +) | Uses the built-in default |
+| `NEXT_PUBLIC_MEDIA_URL` | Serve the hero video from a bucket/CDN instead of `public/media` | Served from the site |
+| `NEXT_PUBLIC_SITE_URL` | The customer site's address for links in emails and from the subdomains | `https://www.aod.co.in` (use `http://localhost:3000` in development) |
+
+---
+
+## 10. Design system
+
+- **Colours:** three only: AOD orange `#ff6201`, white and black. Every other shade is a mix of
+  those. They are tokens in the `@theme` block of `src/app/globals.css` and used through classes:
+  `text-ink`, `text-body`, `text-muted`, `bg-brand`, `hover:bg-brand-hover`, `bg-peach`, `bg-wash`,
+  `border-line`, `bg-night`… **Never write raw hex values in components**; for a tint use
+  `color-mix()` with a token, or an opacity class like `bg-brand/10`. Status colours (red errors,
+  green success, amber warnings) and the WhatsApp green stay as they are.
+- **Fonts:** Bricolage Grotesque for headings (`h1`–`h3` get it automatically; `font-display` puts
+  it on anything else), Montserrat for everything else (`font-sans`).
+- **Text shadow:** only big titles (base size `text-3xl` or larger) and the stat numbers get the
+  soft raised shadow, through the `text-shadow-3d` class. Smaller headings are bold with no shadow.
+  Buttons and body text are flat.
+- **Size:** `html { font-size: 81% }` in `globals.css` scales the whole site (everything is in rem).
+- **Width:** wrap page content in `Container` (`max-w-page`, about 1600px).
+- **Buttons:** use `buttonClasses()` / `ButtonLink` from `src/components/ui/Button.tsx`.
+- **Cards:** repeating card grids use `StaggerList` + `StaggerItem` + `TiltCard` with `cardHover`
+  and `iconHover` (`src/components/motion/`).
+- **Animation:** `m.*` components only (see section 15). Animated elements render their final
+  content on the server and carry `data-reveal`; a `<noscript>` rule shows them when JavaScript is
+  off. Respect reduced motion (`MotionProvider` sets `reducedMotion="user"`).
+- **Photos over icons:** real artist photos are the main trust signal; design around them.
+
+---
+
+## 11. Where to change what (cookbook)
+
+| I want to… | Change | Then |
+| --- | --- | --- |
+| Change any wording on the site | `src/content/*.ts` (mostly `site.ts`) | Build |
+| Add or rename a category | `categories` in `src/content/site.ts` (slug, name, icon, photo, services, keywords); add its photo to `public/categories/`; add its questions to `workQuestions` in `artist-portal.ts`; add a tab with the exact category name to the orders sheet | `npm run check:search` |
+| Change search results | `keywords` in `site.ts`; ranking in `src/lib/fuzzy.ts` | Add a case to `scripts/search-check.mts`, run `check:search` |
+| Change the artist application questions | `workQuestions` in `src/content/artist-portal.ts` (kinds: `one`, `many`, `text`, `long`; `optional`; `showIf`) | Old answers stay saved by id and still show in the admin |
+| Change which categories need both Instagram and portfolio links | `bothLinksCategories` in `artist-portal.ts` | — |
+| Change the portfolio-link rules | `src/lib/portfolio-links.ts` | Add a case to `scripts/links-check.mts` |
+| Change colours | Tokens in `src/app/globals.css` | Check light text on orange stays readable |
+| Change fonts | `src/app/layout.tsx` (next/font) and `--font-*` in `globals.css` | — |
+| Replace the hero video | New files in `public/media/` **with new names**, then `HeroVideo.tsx` (`<source>` names and `codecs`) | Keep AV1 ≈ 2–3 MB (laptop), 1 MB (phone) |
+| Replace category photos or brand logos | New file with a **new name** in `public/categories/` or `public/brands/`, then the path and size in `site.ts` | 30-day browser cache |
+| Edit a policy | `src/content/legal.ts` | — |
+| Change an email's text | `src/server/actions/public.ts` (booking request, application), `resolution.ts` (new and escalated cases), `artist.ts` (an artist's quote or decline, to the team), `admin.ts` ("You've been added to the AOD admin") | Plain-text emails sent through `runOrQueue()` |
+| Change the sign-in code email | Supabase dashboard → Authentication → Emails → Templates (HTML in `backend-setup.md` 2.9) | Not in code |
+| Change the sheet's columns | `sheetHeader` in `src/server/notify.ts` and `sheetRow` in `src/server/actions/public.ts` | The header row is only written to an empty tab, so update existing tabs by hand |
+| Change WhatsApp templates in the admin | `src/content/admin.ts` | — |
+| Add a page to the customer site | New folder in `src/app/(site)/` with `page.tsx` + metadata | Add it to the list in `src/app/sitemap.ts` |
+| Add a homepage section | New file in `src/components/home/`, add it to `src/app/(site)/page.tsx` | Comment why it sits where it does |
+| Add an admin page | Component in `src/components/admin/pages/`, route in `src/app/admin/(panel)/<name>/page.tsx`, menu entry in `nav` in `src/components/admin/AdminShell.tsx` | — |
+| Add a database column | New dated file in `supabase/migrations/`, the type in `admin-store.ts`, both mappings in `server/rows.ts` | Run the SQL in Supabase; `npm run check:db` |
+| Change who can read/change a table | New migration with the policy change | Add a case to `scripts/db-check.mts` |
+| Add a server action | A `"use server"` function in `src/server/actions/`; validate every input; use `supabase/server.ts` (as the user) or `supabase/admin.ts` (secret key, only after checking the caller) | Keep a preview fallback |
+| Load a script, font or image from a new website | Add its origin to the CSP in `next.config.ts` | Test with `npm run build && npm start` |
+| Add a subdomain | `sections` in `src/proxy.ts`, redirects in `next.config.ts`, `Section` in `site-url.ts`; domain in Vercel + DNS at GoDaddy | — |
+
+---
+
+## 12. Commands and checks
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Development server at http://localhost:3000 |
+| `npm run build` | Production build; also type-checks. Fails on any TypeScript error. |
+| `npm start` | Runs the production build locally (use it to test the security policy) |
+| `npm run lint` | ESLint |
+| `npm run check:search` | Search results for common queries and misspellings |
+| `npm run check:links` | Portfolio-link rules |
+| `npm run check:db` | Runs every migration on PGlite and checks each kind of user's access |
+
+There is no test runner. The checks are plain Node scripts in `scripts/`. Add a case when you
+change search, link rules or database access. The live walk-through (three browsers: staff,
+customer, artist) is in `testing.md` in `aod docs`.
+
+---
+
+## 13. Deploying
+
+- **Push to `main` = deploy to production.** Vercel builds and deploys automatically (about 1–2
+  minutes). The deployment status shows on the commit in GitHub.
+- **Preview deployments can't be opened on their `*.vercel.app` address**: `next.config.ts`
+  redirects every `*.vercel.app` address to `www.aod.co.in`. Test locally instead (`npm run build`
+  then `npm start`).
+- **Environment variable changed in Vercel?** Redeploy (Deployments → newest → ⋯ → Redeploy).
+- **Database change?** Run the new migration in Supabase's SQL Editor before (or right after)
+  deploying the code that needs it.
+- **Domains:** each subdomain is a domain in Vercel plus a CNAME and a `_vercel` TXT record at
+  GoDaddy (`backend-setup.md` section 8).
+- **Caching:** pages are static; files in `/media`, `/brands`, `/categories` are cached 30 days by
+  browsers; optimised images are cached 30 days. Rename files when you replace them.
+- **Retries:** cron-job.org calls `https://www.aod.co.in/api/jobs/retry` every 15 minutes with
+  `Authorization: Bearer <CRON_SECRET>`.
+
+---
+
+## 14. Errors and how to fix them
+
+### 14.1 Build and type errors
+
+| You see | Cause | Fix |
+| --- | --- | --- |
+| `Type error: …` during `npm run build` | TypeScript error | Fix the type; `npx tsc --noEmit` shows all errors quickly |
+| `You have rendered a motion component within a LazyMotion component…` (in the browser) | A `motion.div` (or other `motion.*`) was used | Use `import * as m from "motion/react-m"` and `m.div` |
+| A Tailwind class does nothing, or two classes fight | A token name collides with a custom `@utility` (a `--color-x` token creates `text-x`/`bg-x` classes) | Rename the token or the utility in `globals.css` |
+| `Module not found: Can't resolve '@/…'` in a check script | Scripts run in plain Node, which doesn't know the `@/` alias | Only import files with no `@/` imports into scripts (that's why `fuzzy.ts`, `portfolio-links.ts`, `event-time.ts` have none) |
+| ESLint `@next/next/no-img-element` | A plain `<img>` | Use `next/image`, or add the disable comment (as `PortfolioManager.tsx` does for storage files) |
+| `LF will be replaced by CRLF` warnings from Git on Windows | Line endings | Harmless |
+
+### 14.2 In the browser
+
+| You see | Cause | Fix |
+| --- | --- | --- |
+| Hydration error ("text content does not match") | Server HTML differs from the first client render, e.g. reading `localStorage` or `window` during render | Read browser-only state through `useSyncExternalStore` stores (see `local-store.ts`, `city.ts`) with a server snapshot |
+| Console: `Refused to load … because it violates the Content Security Policy` (production only) | A new outside script, style, font, image, video or connection | Add its origin to the CSP in `next.config.ts` |
+| A link from a subdomain goes to the wrong place | Raw path used instead of the helpers | Inside a section use `sectionLink()`; to the customer site use `siteHref()`; into a section from elsewhere use `portalHref()` / `sectionUrl()` |
+| Admin menu highlights the wrong page in production | `usePathname()` used directly | Use `sectionPath()`, which adds the section prefix back |
+| A replaced photo or video still shows the old one | 30-day cache on `/media`, `/brands`, `/categories` | Give the new file a new name |
+| Admin shows no green Live dot | Realtime can't connect (network, or the Realtime policy missing) | Check the second migration was run; the page still reloads every minute |
+
+### 14.3 Messages people see on the forms (and where they come from)
+
+These are returned by server actions as `{ ok: false, error }` and shown on the page.
+
+| Message | Raised in | Meaning |
+| --- | --- | --- |
+| "Saving isn't set up yet." / "Sign-in isn't set up yet." / "The Resolution Centre isn't connected yet." / "Reviews aren't set up yet." | `actions/public.ts`, `auth.ts`, `resolution.ts`, `customer.ts` | Supabase keys (or `SUPABASE_SECRET_KEY`) missing in this deployment |
+| "Pick the occasion." / "Pick who you need." / "Choose the event date, from tomorrow onwards." / "Add the event's start and end time." / "Choose your city." / "Add a few event details." / "Enter your name." / "Enter a valid phone number." / "Enter a valid email address." | `public.ts` → `createBookingRequest` | Booking request failed validation |
+| "Couldn't save your request just now. Please send it on WhatsApp instead." | `createBookingRequest` | Database insert failed: check Supabase status and the Vercel function logs |
+| "Enter your full name." / "Pick your category." / "Please accept the terms." / `Answer "…" on the Your work details step.` / "Add both your Instagram link and a portfolio or showreel link." | `public.ts` → `createApplication` | Application failed validation |
+| "Couldn't save your application just now. Please try again, or send it on WhatsApp." | `createApplication` | Database insert failed |
+| "AOD has no artist or application with this email…" | `auth.ts` | Artist sign-in with an unknown email |
+| "This email isn't on the AOD team. Ask an admin to add you in Team & roles." | `auth.ts` | Staff sign-in with an email not in `staff` |
+| "Please wait a minute before asking for another code." | `auth.ts` (`friendly()`) | Supabase's email rate limit |
+| "That code didn't work or has expired…" | `auth.ts` | Wrong or old code (codes last one hour) |
+| "You're signed out. Please sign in again." | `actions/admin.ts`, `artist.ts` | The session expired |
+| `Your role can't change …` | `actions/admin.ts` | The staff member's role doesn't allow that table |
+| "The team needs at least one active admin." | `actions/admin.ts` | Tried to remove or demote the last Admin |
+| "Someone else just added a record with the same number…" | `actions/admin.ts` | Two people created a record at the same moment; the page reloaded; try again |
+| `Couldn't save …: it may have been deleted, or your role can't change it.` | `actions/admin.ts` | The record is gone, or RLS refused the update |
+| "Availability opens once you're live on AOD." / "Booking requests open once you're live on AOD." | `actions/artist.ts` | An applicant (not yet an artist) tried an artist-only feature |
+| "This request isn't one of yours." / "This request has already been settled." | `actions/artist.ts` | Replying to someone else's or a closed booking request |
+| "Upload JPG, PNG, WebP or HEIC photos, or MP4 or MOV videos." / `You can keep up to 30 files…` / "The upload didn't finish…" | `actions/artist.ts` | Portfolio upload rules |
+| "No case matches that number and email…" | `actions/resolution.ts` | Wrong case number or email on Track |
+| "Couldn't get a free reference number. Please try again." | `server/ids.ts` | Several duplicate-number retries failed in a row (very busy moment) |
+
+To see the real cause of any "Couldn't … just now" message, open Vercel → the project → **Logs**
+(server function errors) or Supabase → **Logs**.
+
+### 14.4 Emails, the sheet and the outbox
+
+Failures here never undo a save; the job waits in the `outbox` table with `last_error`. Read it in
+Supabase → Table editor → `outbox`.
+
+| `last_error` | Cause | Fix |
+| --- | --- | --- |
+| "Email isn't set up yet (RESEND_API_KEY, EMAIL_FROM)." | Keys missing | Set them in Vercel, redeploy |
+| `Resend 403: …` / `Resend 422: …` | Sending domain not verified, or `EMAIL_FROM` not on it | Verify aod.co.in in Resend; fix `EMAIL_FROM` |
+| "The orders sheet isn't set up yet (ORDERS_SHEET_ID)." or "(GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY)" | Keys missing | Set them, redeploy |
+| "ORDERS_SHEET_ID doesn't look like a Google Sheet ID…" | Something extra in the value | Use the ID, or the full sheet link |
+| `Google sign-in 400/401: …` (or a key decode error) | `GOOGLE_PRIVATE_KEY` malformed | One line, `\n` for line breaks, wrapped in double quotes |
+| `Sheet tab "…" 400: Unable to parse range` | A tab named after the category is missing | Add a tab with exactly the category's name (and "All orders") |
+| `Sheet tab "…" 403: The caller does not have permission` | The sheet isn't shared with the service account | Share it with the service account's email as Editor |
+| `Sheet tab "…" 404` | Wrong sheet ID | Fix `ORDERS_SHEET_ID` |
+| Retry route answers `401 {"error":"Not allowed"}` | `CRON_SECRET` missing or the header is wrong | Header must be exactly `Authorization: Bearer <CRON_SECRET>`; redeploy after setting it |
+| Job status `failed` | 6 attempts used | Fix the cause, then set the row's `status` back to `pending` and `attempts` to `0` |
+
+### 14.5 Deployment and configuration
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| A Vercel preview link opens the live site | `*.vercel.app` redirects to `www.aod.co.in` by design | Test locally |
+| A changed env variable has no effect | Not redeployed | Redeploy |
+| `admin.aod.co.in` shows "Invalid configuration" in Vercel | DNS records missing or wrong | CNAME + `_vercel` TXT at GoDaddy (`backend-setup.md` §8) |
+| Supabase project "paused" | Free plan pauses after a week without activity | Restore it in the Supabase dashboard |
+| Supabase Security Advisor warnings on a new function | Missing `set search_path = ''` or not in the `private` schema | Follow the pattern in `20261014000000_details_and_developers.sql` |
+
+---
+
+## 15. Rules and gotchas
+
+**Product rules (from the audit of the old site):**
+
+- Never show "received" or "confirmed" unless the record was actually saved. Opening WhatsApp is
+  not saving.
+- No hardcoded ratings, review counts, artist counts or booking numbers on the live site; show real
+  data or leave the element out. (The sample numbers in `site.ts` are flagged.)
+- Don't claim escrow, payments or verification that isn't built.
+- Never collect Aadhaar numbers; identity checks go through a KYC provider (DigiLocker).
+- Every page needs a title, description, Open Graph tags and a share image (links are shared on
+  WhatsApp). Key numbers and content render on the server.
+
+**Code rules:**
+
+- Copy lives in `src/content/`, not in JSX.
+- Build every WhatsApp link with `whatsappUrl()` (`src/lib/whatsapp.ts`).
+- Use the secret-key Supabase client (`supabase/admin.ts`) only in server code, after validating
+  input or checking the caller. Never expose `SUPABASE_SECRET_KEY` to the browser.
+- Every live feature keeps a preview fallback.
+- Validate on the server even when the form already validated (anyone can call a server action).
+- New database records insert, never upsert.
+- Never edit a migration that may have been run; add a new dated one.
+- Links: inside the artists/admin/resolve sites write `/artists/...`, `/admin/...`, `/resolve/...`
+  and pass them through `sectionLink()` (drops the prefix in production). Links back to the
+  customer site use `siteHref()`. Links into a section from elsewhere (and in emails) use
+  `portalHref()` / `sectionUrl()`.
+- Animated elements: `m.*` components, final content rendered on the server, `data-reveal` kept.
+- Tokens, not raw colours. Big titles get `text-shadow-3d`; small ones are bold.
+- Rename media files when replacing them (30-day cache).
+- After a change that affects how the project works, update `CLAUDE.md`, this guide, and
+  `testing.md` in `aod docs` if a flow changed.
+
+**Local storage keys (preview mode and per-browser settings):** `aod-city`, `aod-sent-requests`,
+`aod-customer-session`, `aod-admin-db-v1`, `aod-admin-session`, `aod-artist-profile`,
+`aod-artist-preview-mode`, `aod-artist-blocked-dates`, `aod-artist-booking-actions`. Clear them in
+the browser's dev tools to reset the preview.

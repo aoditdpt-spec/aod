@@ -175,7 +175,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
           }}
           className="mt-6"
         >
-          <h3 ref={heading} tabIndex={-1} className="text-2xl font-normal text-ink outline-none sm:text-[2rem] sm:leading-tight">
+          <h3 ref={heading} tabIndex={-1} className="text-2xl font-bold text-ink outline-none sm:text-[2rem] sm:leading-tight">
             {titles[step]}
           </h3>
 

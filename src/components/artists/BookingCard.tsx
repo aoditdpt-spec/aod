@@ -49,7 +49,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="text-xs text-muted">{booking.id}</p>
-          <h3 className="mt-0.5 text-lg font-medium text-ink">
+          <h3 className="mt-0.5 text-lg font-bold text-ink">
             {booking.event} · {booking.service}
           </h3>
         </div>

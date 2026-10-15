@@ -24,7 +24,7 @@ export default function ApplyPage() {
       />
       <Container className="flex-1 py-10 sm:py-14">
         <div className="mx-auto max-w-6xl">
-          <h1 className="text-3xl font-medium sm:text-5xl">{portal.apply.title}</h1>
+          <h1 className="text-3xl font-medium sm:text-5xl text-shadow-3d">{portal.apply.title}</h1>
           <p className="mt-3 max-w-2xl text-lg text-body">{portal.apply.subtitle}</p>
           <div className="mt-10">
             <ApplyForm />

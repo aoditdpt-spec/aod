@@ -32,10 +32,10 @@
   --color-sheen: #ff6201;
   --color-sheen-deep: #d95301; /* orange with 15% black */
 
-  /* The soft drop shadow that makes headings and buttons look raised, as in the AOD artwork: a
-     close shadow for the edge and a wide soft one for the glow, sized in em so it grows with the
-     text. Headings and <button>s get it below; links styled as buttons use the text-shadow-3d
-     class (buttonClasses adds it). Body text stays flat. */
+  /* The soft drop shadow that makes big headings look raised, as in the AOD artwork: a close
+     shadow for the edge and a wide soft one for the glow, sized in em so it grows with the text.
+     Only on large titles (text-3xl and up) and the stat numbers, through the text-shadow-3d class;
+     smaller headings are bold instead, and buttons and body text stay flat. */
   --text-shadow-3d: 0.02em 0.04em 0.06em rgb(0 0 0 / 0.2), 0.03em 0.08em 0.22em rgb(0 0 0 / 0.24);
 
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
@@ -95,13 +95,6 @@
     color: var(--color-body);
   }
 
-  /* The raised look (--text-shadow-3d) on headings and buttons only. */
-  h1,
-  h2,
-  h3,
-  button {
-    text-shadow: var(--text-shadow-3d);
-  }
 
   h1,
   h2,

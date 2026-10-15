@@ -63,7 +63,7 @@ function LiveSignIn() {
         >
           {!sent ? (
             <>
-              <h1 className="text-2xl font-medium">Staff sign in</h1>
+              <h1 className="text-2xl font-bold">Staff sign in</h1>
               <p className="mt-1 text-sm text-muted">For the AOD team only. We&apos;ll email you a 6-digit code.</p>
               <label className="mt-6 block text-sm font-medium text-ink">
                 Work email
@@ -75,7 +75,7 @@ function LiveSignIn() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-brand">
                 <KeyRound className="h-5 w-5" aria-hidden />
               </span>
-              <h1 className="mt-4 text-2xl font-medium">Check your email</h1>
+              <h1 className="mt-4 text-2xl font-bold">Check your email</h1>
               <p className="mt-1 text-sm text-muted">
                 Enter the 6-digit code sent to {email}.{" "}
                 <button type="button" onClick={() => { setSent(false); setCode(""); }} className="font-medium text-brand underline underline-offset-2">
@@ -159,7 +159,7 @@ function PreviewSignIn() {
         >
           {step === "password" ? (
             <>
-              <h1 className="text-2xl font-medium">Staff sign in</h1>
+              <h1 className="text-2xl font-bold">Staff sign in</h1>
               <p className="mt-1 text-sm text-muted">For the AOD team only.</p>
               <label className="mt-6 block text-sm font-medium text-ink">
                 Work email
@@ -187,7 +187,7 @@ function PreviewSignIn() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-brand">
                 <KeyRound className="h-5 w-5" aria-hidden />
               </span>
-              <h1 className="mt-4 text-2xl font-medium">2-step verification</h1>
+              <h1 className="mt-4 text-2xl font-bold">2-step verification</h1>
               <p className="mt-1 text-sm text-muted">Enter the 6-digit code from your authenticator app.</p>
               <input
                 value={code}

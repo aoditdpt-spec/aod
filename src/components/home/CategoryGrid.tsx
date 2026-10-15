@@ -13,7 +13,7 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
       <section id="categories" className="scroll-mt-24">
         <Reveal className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{categories.length} categories · one booking</p>
-          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{title}</h2>
+          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{title}</h2>
         </Reveal>
 
         <Reveal delay={0.1} className="mt-8">

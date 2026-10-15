@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
                 <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
               </span>
               <div>
-                <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
+                <h1 className="text-3xl font-medium !text-white sm:text-5xl text-shadow-3d">{category.name}</h1>
                 <p className="mt-4 max-w-2xl text-base text-white/90 sm:text-lg">{category.description}</p>
                 <div className="mt-5">
                   <VerifiedArtists variant="inline" dark />
@@ -86,14 +86,14 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem]">What you can book</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">What you can book</h2>
         <p className="mt-3 text-body">Pick a service and ask for a quote — we&apos;ll reply with curated matches.</p>
         <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {category.services.map((s) => (
             <StaggerItem key={s.name}>
             <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6 ${cardHover}`}>
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-medium">{s.name}</h3>
+                <h3 className="text-lg font-bold">{s.name}</h3>
                 {s.popular && (
                   <span className="rounded-full bg-peach px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-ink">
                     Popular
@@ -125,14 +125,14 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       </Container>
 
       <Container className="pt-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem]">People also book</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">People also book</h2>
         <StaggerList className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {others.map((c) => (
             <StaggerItem key={c.slug}>
               <Link href={`/categories/${c.slug}`} className="block h-full rounded-card outline-none focus-visible:ring-2 focus-visible:ring-brand">
                 <TiltCard className={`flex flex-col gap-4 rounded-card border border-line bg-white p-5 ${cardHover}`}>
                   <Icon name={c.icon} className={`h-7 w-7 text-brand-bright ${iconHover}`} strokeWidth={1.25} />
-                  <span className="font-medium text-ink">{c.name}</span>
+                  <span className="font-bold text-ink">{c.name}</span>
                   <span className="text-sm text-muted">{c.short}</span>
                 </TiltCard>
               </Link>

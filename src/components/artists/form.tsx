@@ -28,7 +28,7 @@ export function Panel({
       {(title || action) && (
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
-            {title && <h2 className="text-lg font-medium text-ink sm:text-xl">{title}</h2>}
+            {title && <h2 className="text-lg font-bold text-ink sm:text-xl">{title}</h2>}
             {text && <p className="mt-1 text-sm text-muted">{text}</p>}
           </div>
           {action}

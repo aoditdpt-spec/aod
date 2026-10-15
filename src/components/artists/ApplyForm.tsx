@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { applySteps, bothLinksCategories, experienceLevels, languages, uploadRules, workQuestionsFor } from "@/content/artist-portal";
+import { applySteps, bothLinksCategories, experienceLevels, languages, uploadRules, workQuestionShown, workQuestionsFor } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
@@ -50,12 +50,13 @@ function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: b
   if (step === "work") {
     if (!p.category) e.category = "Choose what you do on the Your craft step first.";
     for (const q of workQuestionsFor(p.category)) {
-      if (!answered(p.work?.[q.id])) e[q.id] = q.kind === "text" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
+      if (q.optional || !workQuestionShown(q, p.work)) continue;
+      if (!answered(p.work?.[q.id])) e[q.id] = q.kind === "text" || q.kind === "long" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
     }
   }
   if (step === "portfolio") {
     if (needsBothLinks(p) && (!p.links.some(isInstagram) || !p.links.some((l) => !isInstagram(l)))) {
-      e.samples = "Add both links: your Instagram profile, and a portfolio link (website, YouTube, Vimeo, Behance or Google Drive).";
+      e.samples = "Add both links: your Instagram profile, and a portfolio or showreel link (website, YouTube, Vimeo, Behance or Google Drive).";
     } else if (backendEnabled && p.links.length === 0) {
       e.samples = "Add at least one portfolio link (Instagram, YouTube, Drive…). Uploaded files aren't sent to AOD yet.";
     } else if (files.samples.length < uploadRules.samples.min && p.links.length === 0) {
@@ -107,13 +108,13 @@ export function ApplyForm() {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <CheckCircle2 className="h-7 w-7" aria-hidden />
         </span>
-        <h2 className="mt-6 text-2xl font-normal sm:text-3xl">Application received</h2>
+        <h2 className="mt-6 text-2xl font-bold sm:text-3xl">Application received</h2>
         <p className="mt-3 text-body">
           Your reference is <strong>{savedId}</strong>. AOD&apos;s team reviews every application and will reply by email at {profile.email}.
         </p>
         <p className="mt-3 text-sm text-muted">Sign in to the artist portal with this email to follow your application and add photos to your portfolio.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={sectionLink("/artists")} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-shadow-3d text-white hover:bg-brand-hover">
+          <Link href={sectionLink("/artists")} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
             Sign in to follow it
           </Link>
           <Link href={siteHref("/for-artists")} className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash">
@@ -133,6 +134,9 @@ export function ApplyForm() {
       `City: ${profile.city}`,
       `Services: ${profile.services.join(", ")}`,
       `Experience: ${profile.experience}`,
+      ...workQuestionsFor(profile.category)
+        .filter((q) => workQuestionShown(q, profile.work) && answered(profile.work?.[q.id]))
+        .map((q) => `${q.short}: ${[profile.work?.[q.id] ?? ""].flat().join(", ")}`),
       profile.links.length > 0 && `Portfolio: ${profile.links.join(" ")}`,
     ]
       .filter(Boolean)
@@ -142,7 +146,7 @@ export function ApplyForm() {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
           <Info className="h-7 w-7" aria-hidden />
         </span>
-        <h2 className="mt-6 text-2xl font-normal sm:text-3xl">Your application is ready, but not sent</h2>
+        <h2 className="mt-6 text-2xl font-bold sm:text-3xl">Your application is ready, but not sent</h2>
         {saveError ? (
           <p className="mt-3 text-body">{saveError} Nothing has reached AOD yet.</p>
         ) : (
@@ -251,7 +255,7 @@ export function ApplyForm() {
         }}
         className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10"
       >
-        <h2 className="text-2xl font-normal sm:text-[2rem] sm:leading-tight">{current.title}</h2>
+        <h2 className="text-2xl font-bold sm:text-[2rem] sm:leading-tight">{current.title}</h2>
         <p className="mt-2 text-sm text-muted">{current.text}</p>
 
         <div className="mt-8 space-y-6">
@@ -327,7 +331,7 @@ function AboutStep({
       </Field>
 
       <div>
-        <Field label="Mobile number (WhatsApp)" error={errors.phone}>
+        <Field label="Mobile number (WhatsApp preferred)" error={errors.phone}>
           <div className="mt-1.5 flex gap-2">
             <div className="flex flex-1">
               <span className="flex items-center rounded-l-xl border border-r-0 border-line bg-wash px-3 text-sm text-muted">+91</span>
@@ -508,10 +512,23 @@ function WorkStep({ profile, set, errors }: StepProps) {
   return (
     <>
       {workQuestionsFor(profile.category).map((q) => {
+        if (!workQuestionShown(q, d)) return null;
         const v = d[q.id];
+        if (q.kind === "long")
+          return (
+            <Field key={q.id} label={q.label} optional={q.optional} error={errors[q.id]} hint={q.hint}>
+              <textarea
+                value={typeof v === "string" ? v : ""}
+                onChange={(e) => setAnswer(q.id, e.target.value.slice(0, 600))}
+                rows={3}
+                aria-invalid={!!errors[q.id]}
+                className={`${inputClass} resize-none`}
+              />
+            </Field>
+          );
         if (q.kind === "text")
           return (
-            <Field key={q.id} label={q.label} error={errors[q.id]} hint={q.hint} className="sm:max-w-sm">
+            <Field key={q.id} label={q.label} optional={q.optional} error={errors[q.id]} hint={q.hint} className="sm:max-w-sm">
               <input
                 value={typeof v === "string" ? v : ""}
                 onChange={(e) => setAnswer(q.id, e.target.value.slice(0, 80))}
@@ -566,7 +583,7 @@ function PortfolioStep({
         <p className="text-sm font-medium text-ink">Portfolio links</p>
         <p className="mt-1 text-xs text-muted">
           {needsBothLinks(profile)
-            ? "Both are needed: your Instagram profile, and a portfolio link (your website, YouTube, Vimeo, Behance or Google Drive). Each link is checked as you add it."
+            ? "Both are needed: your Instagram profile, and a portfolio or showreel link (your website, YouTube, Vimeo, Behance or Google Drive). Each link is checked as you add it."
             : "Instagram, YouTube, Vimeo, Behance, Google Drive or your website. Each link is checked as you add it."}
         </p>
         <LinkEditor links={profile.links} onChange={(links) => set({ links })} />
@@ -634,7 +651,8 @@ function VerifyStep({
           <a href={siteHref("/privacy")} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-2">
             privacy policy
           </a>
-          , and confirm the work I&apos;ve shared is my own.
+          . I confirm that all the information above is true and the work I&apos;ve shared is my own, and I agree to
+          collaborate with AOD as per mutual understanding.
         </CheckRow>
         {errors.agreeTerms && <p className="pl-7 text-xs text-red-600">{errors.agreeTerms}</p>}
       </div>
@@ -669,7 +687,9 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
     {
       step: "work",
       title: "Your work details",
-      items: workQuestionsFor(profile.category).map((q): [string, ReactNode] => [q.short, [profile.work?.[q.id] ?? "—"].flat().join(", ")]),
+      items: workQuestionsFor(profile.category)
+        .filter((q) => workQuestionShown(q, profile.work) && (!q.optional || answered(profile.work?.[q.id])))
+        .map((q): [string, ReactNode] => [q.short, [profile.work?.[q.id] ?? "—"].flat().join(", ") || "—"]),
     },
     {
       step: "portfolio",
@@ -707,7 +727,7 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       {rows.map((r) => (
         <div key={r.title} className="rounded-xl border border-line p-5">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-ink">{r.title}</h3>
+            <h3 className="text-ink font-bold">{r.title}</h3>
             <button type="button" onClick={() => goTo(r.step)} className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-hover">
               <Pencil className="h-3.5 w-3.5" aria-hidden /> Edit
             </button>

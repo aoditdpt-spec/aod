@@ -139,11 +139,11 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
           </a>
           <a
             href={`mailto:${c.email}?subject=${encodeURIComponent(`Your AOD case ${c.id}`)}`}
-            className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-shadow-3d text-ink hover:border-ink"
+            className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink"
           >
             Email
           </a>
-          <a href={`tel:${c.phone.replace(/\s/g, "")}`} className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-shadow-3d text-ink hover:border-ink">
+          <a href={`tel:${c.phone.replace(/\s/g, "")}`} className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink">
             Call
           </a>
         </>

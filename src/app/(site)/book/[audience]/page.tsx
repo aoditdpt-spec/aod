@@ -41,7 +41,7 @@ export default async function BookAudiencePage({ params }: PageProps<"/book/[aud
       <div className="mt-6 grid items-start gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{choice.label}</p>
-          <h1 className="mt-3 text-3xl font-normal leading-[1.1] sm:text-4xl">Tell us what you need</h1>
+          <h1 className="mt-3 text-3xl font-normal leading-[1.1] sm:text-4xl text-shadow-3d">Tell us what you need</h1>
           <p className="mt-5 max-w-sm text-body">
             {choice.text} Three quick questions — then we&apos;ll send curated matches on WhatsApp.
           </p>

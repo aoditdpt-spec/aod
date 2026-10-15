@@ -37,7 +37,7 @@ export function DocumentsPanel() {
             </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-medium text-ink">Artist agreement</h2>
+                <h2 className="text-ink font-bold">Artist agreement</h2>
                 <Badge tone="wait">After approval</Badge>
               </div>
               <p className="mt-1 text-sm text-body">
@@ -53,7 +53,7 @@ export function DocumentsPanel() {
             </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-medium text-ink">Payout details</h2>
+                <h2 className="text-ink font-bold">Payout details</h2>
                 <Badge>Later</Badge>
               </div>
               <p className="mt-1 text-sm text-body">

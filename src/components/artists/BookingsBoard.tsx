@@ -27,7 +27,7 @@ export function BookingsBoard() {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
           <CalendarCheck2 className="h-7 w-7" aria-hidden />
         </span>
-        <h2 className="mt-5 text-xl font-medium">Bookings start once you&apos;re live</h2>
+        <h2 className="mt-5 text-xl font-bold">Bookings start once you&apos;re live</h2>
         <p className="mx-auto mt-2 max-w-md text-body">
           After your review and trial booking, requests that match your craft and city show up here.
         </p>

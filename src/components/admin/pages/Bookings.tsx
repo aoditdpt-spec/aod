@@ -158,7 +158,7 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
               onDrop={(e) => drop(e, s)}
               className={`flex w-64 shrink-0 flex-col rounded-2xl p-2 transition-colors ${over === s ? "bg-peach/60" : "bg-white/60"}`}
             >
-              <h2 className="flex items-center justify-between px-2 py-1.5 text-sm font-medium text-ink">
+              <h2 className="flex items-center justify-between px-2 py-1.5 text-sm font-bold text-ink">
                 {label(s)} <span className="rounded-full bg-wash px-2 text-xs text-muted">{cards.length}</span>
               </h2>
               <ul className="mt-1 space-y-2">
@@ -249,7 +249,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   };
   const send = (id: TemplateId, to: "customer" | "artist") => whatsappTo(to === "customer" ? b.customer.phone : artist?.phone ?? "", fillTemplate(id, vars));
   const edit = (text: string, fn: (x: Booking) => void) => update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!), b.id);
-  const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-shadow-3d text-ink hover:border-ink";
+  const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-ink hover:border-ink";
 
   return (
     <Drawer

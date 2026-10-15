@@ -14,7 +14,7 @@ export function VerifiedSection() {
       <section>
         <Reveal>
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{verifiedArtists.eyebrow}</p>
-          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{verifiedArtists.title}</h2>
+          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{verifiedArtists.title}</h2>
           <p className="mt-4 max-w-3xl text-lg text-body">{verifiedArtists.text}</p>
         </Reveal>
         <StaggerList className="mt-10 grid gap-5 sm:grid-cols-3">
@@ -26,7 +26,7 @@ export function VerifiedSection() {
                   <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach/60 ${iconHover}`}>
                     <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />
                   </span>
-                  <h3 className="text-lg font-medium">{p}</h3>
+                  <h3 className="text-lg font-bold">{p}</h3>
                 </TiltCard>
               </StaggerItem>
             );

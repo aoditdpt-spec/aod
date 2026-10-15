@@ -43,7 +43,7 @@ export default function AboutPage() {
           style={{ backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-brand) 12%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
         >
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">{about.eyebrow}</p>
-          <h1 className="mt-4 text-5xl font-semibold leading-[0.95] tracking-tight !text-brand sm:text-7xl">{about.title}</h1>
+          <h1 className="mt-4 text-5xl font-semibold leading-[0.95] tracking-tight !text-brand sm:text-7xl text-shadow-3d">{about.title}</h1>
           <p className="mt-6 max-w-3xl text-lg text-body sm:text-xl sm:leading-snug">{about.intro}</p>
           <ul className="mt-8 flex flex-wrap gap-3">
             {facts.map(({ icon: I, label }) => (
@@ -59,7 +59,7 @@ export default function AboutPage() {
       {/* Story */}
       <Container className="py-16">
         <Reveal className="grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
-          <h2 className="text-3xl font-normal sm:text-[2.5rem] sm:leading-tight">{about.storyTitle}</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem] sm:leading-tight text-shadow-3d">{about.storyTitle}</h2>
           <div className="space-y-5 text-lg text-body">
             {about.story.map((p) => (
               <p key={p}>{p}</p>
@@ -71,7 +71,7 @@ export default function AboutPage() {
       {/* Values */}
       <Container className="pb-16">
         <Reveal>
-          <h2 className="text-3xl font-normal sm:text-[2.5rem]">{about.valuesTitle}</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{about.valuesTitle}</h2>
         </Reveal>
         <StaggerList className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {about.values.map((v, i) => {
@@ -82,7 +82,7 @@ export default function AboutPage() {
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl bg-peach/60 ${iconHover}`}>
                     <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />
                   </span>
-                  <h3 className="mt-6 text-xl font-medium">{v.title}</h3>
+                  <h3 className="mt-6 text-xl font-bold">{v.title}</h3>
                   <p className="mt-2 text-body">{v.text}</p>
                 </TiltCard>
               </StaggerItem>
@@ -99,7 +99,7 @@ export default function AboutPage() {
       {/* Team */}
       <Container className="py-16">
         <Reveal>
-          <h2 className="text-3xl font-normal sm:text-[2.5rem]">{about.teamTitle}</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{about.teamTitle}</h2>
         </Reveal>
         <StaggerList className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
           {about.team.map((m) => (
@@ -107,7 +107,7 @@ export default function AboutPage() {
               <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-3 ${cardHover}`}>
                 <PhotoPlaceholder icon="user" label={m.name} className="aspect-square" />
                 <div className="px-3 pb-2 pt-4">
-                  <h3 className="text-lg font-medium">{m.name}</h3>
+                  <h3 className="text-lg font-bold">{m.name}</h3>
                   <p className="text-sm text-muted">{m.role}</p>
                 </div>
               </TiltCard>
@@ -119,7 +119,7 @@ export default function AboutPage() {
       {/* Contact */}
       <Container>
         <section className="rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-16">
-          <h2 className="text-3xl font-medium !text-white sm:text-[2.5rem]">{about.contactTitle}</h2>
+          <h2 className="text-3xl font-medium !text-white sm:text-[2.5rem] text-shadow-3d">{about.contactTitle}</h2>
           <p className="mt-3 text-lg text-white/80">{about.contactText}</p>
           <StaggerList className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {contacts.map((c) => {

@@ -18,7 +18,7 @@ export function Portals() {
   return (
     <Container className="py-16 sm:py-20">
       <p className="text-sm font-medium uppercase tracking-wider text-brand">{portals.eyebrow}</p>
-      <h2 className="mt-3 text-4xl font-medium leading-[1.1] sm:text-5xl">{portals.title}</h2>
+      <h2 className="mt-3 text-4xl font-medium leading-[1.1] sm:text-5xl text-shadow-3d">{portals.title}</h2>
       <p className="mt-4 max-w-2xl text-lg text-body">{portals.text}</p>
 
       {/* Artists */}
@@ -27,7 +27,7 @@ export function Portals() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-tangerine/15 px-3 py-1 text-sm font-medium text-apricot">
             <Sparkles className="h-4 w-4" aria-hidden /> {a.eyebrow}
           </span>
-          <h3 id="portal-artists" className="mt-4 text-3xl font-medium leading-tight !text-white sm:text-4xl">
+          <h3 id="portal-artists" className="mt-4 text-3xl font-medium leading-tight !text-white sm:text-4xl text-shadow-3d">
             {a.title}
           </h3>
           <p className="mt-4 max-w-xl text-white/80">{a.text}</p>
@@ -67,7 +67,7 @@ export function Portals() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className={`block text-xs font-medium uppercase tracking-wider ${x.primary ? "text-white/75" : "text-white/55"}`}>{x.label}</span>
-                <span className="mt-0.5 block text-lg font-medium text-white">{x.title}</span>
+                <span className="mt-0.5 block text-lg font-bold text-white">{x.title}</span>
                 <span className={`mt-0.5 block text-sm ${x.primary ? "text-white/85" : "text-white/65"}`}>{x.text}</span>
               </span>
               <ArrowRight className="h-5 w-5 shrink-0 text-white transition-transform group-hover:translate-x-1" aria-hidden />
@@ -88,7 +88,7 @@ export function Portals() {
                     <I className="h-5 w-5 text-brand" aria-hidden />
                   </span>
                   <span className="mt-5 text-xs font-medium uppercase tracking-wider text-muted">{p.who}</span>
-                  <span className="mt-1 text-xl font-medium text-ink">{p.title}</span>
+                  <span className="mt-1 text-xl font-bold text-ink">{p.title}</span>
                   <span className="mt-2 text-body">{p.text}</span>
                   <ul className="mt-4 flex-1 space-y-1.5 text-sm text-body">
                     {p.points.map((pt) => (

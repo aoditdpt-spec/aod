@@ -50,12 +50,12 @@ export function createSampleDb(now: Date): Db {
   });
 
   const artists: Artist[] = [
-    artist(1, "Aarav Joshi", "photographers", ["Wedding photography", "Candid photography"], "Ahmedabad", "5–10 years", ["Gujarati", "Hindi", "English"], -320),
+    artist(1, "Aarav Joshi", "photographers", ["Wedding photography", "Candid photography"], "Ahmedabad", "More than 5 years", ["Gujarati", "Hindi", "English"], -320),
     artist(2, "Meera Trivedi", "photographers", ["Pre-wedding shoot", "Portrait session"], "Vadodara", "3–5 years", ["Gujarati", "English"], -210),
-    artist(3, "Kabir Mehta", "cinematographers", ["Wedding film", "Corporate film"], "Ahmedabad", "5–10 years", ["Hindi", "English"], -280),
+    artist(3, "Kabir Mehta", "cinematographers", ["Wedding film", "Corporate film"], "Ahmedabad", "More than 5 years", ["Hindi", "English"], -280),
     artist(4, "Nisha Parmar", "makeup-artists", ["Bridal makeup", "Party makeup"], "Surat", "3–5 years", ["Gujarati", "Hindi"], -150),
-    artist(5, "DJ Rohan Bhatt", "musicians-djs", ["Wedding / sangeet DJ", "Corporate party DJ"], "Ahmedabad", "10+ years", ["Gujarati", "Hindi", "English"], -400),
-    artist(6, "Ishaan Desai", "anchors-hosts", ["Wedding emcee", "Corporate emcee"], "Gandhinagar", "5–10 years", ["Gujarati", "Hindi", "English"], -190),
+    artist(5, "DJ Rohan Bhatt", "musicians-djs", ["Wedding / sangeet DJ", "Corporate party DJ"], "Ahmedabad", "More than 5 years", ["Gujarati", "Hindi", "English"], -400),
+    artist(6, "Ishaan Desai", "anchors-hosts", ["Wedding emcee", "Corporate emcee"], "Gandhinagar", "More than 5 years", ["Gujarati", "Hindi", "English"], -190),
     artist(7, "Tara Shah", "singers", ["Garba night vocals", "Wedding live singing"], "Rajkot", "3–5 years", ["Gujarati", "Hindi"], -120, { status: "paused" }),
     artist(8, "Vihaan Rana", "drone-pilots", ["Wedding aerial shots", "Event aerial coverage"], "Ahmedabad", "1–3 years", ["Gujarati", "English"], -90, { kyc: "pending" }),
     artist(9, "Anaya Kapadia", "editors", ["Wedding highlight edit", "Reels & social edit"], "Ahmedabad", "3–5 years", ["English", "Hindi"], -60),
@@ -93,7 +93,7 @@ export function createSampleDb(now: Date): Db {
       city: "Vadodara",
       category: "photographers",
       services: ["Wedding photography", "Candid photography"],
-      experience: "5–10 years",
+      experience: "More than 5 years",
       languages: ["Gujarati", "Hindi"],
       bio: "Candid wedding photographer, two-person team, 60+ weddings covered across central Gujarat.",
       links: ["https://example.com/harshvyas-photos", "https://example.com/videos/harsh-reel"],

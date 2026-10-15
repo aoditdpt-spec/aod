@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarX, Pause, Play, Plus } from "lucide-react";
 import { useState } from "react";
 import { bookingStages } from "@/content/admin";
+import { experienceLevels } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Artist, type Db } from "@/lib/admin-store";
 import { WhatsAppIcon } from "@/components/ui/Icon";
@@ -299,7 +300,7 @@ function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: st
         </Labelled>
         <Labelled label="Experience">
           <select value={form.experience} onChange={set("experience")} className={fieldClass}>
-            {["Less than 1 year", "1–3 years", "3–5 years", "5–10 years", "10+ years"].map((x) => (
+            {experienceLevels.map((x) => (
               <option key={x}>{x}</option>
             ))}
           </select>

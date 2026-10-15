@@ -36,7 +36,7 @@ export default function ForArtistsPage() {
           />
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{forArtists.eyebrow}</p>
-            <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] text-white sm:text-6xl">
+            <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] text-white sm:text-6xl text-shadow-3d">
               {forArtists.title}
             </h1>
             <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-xl sm:leading-snug">{forArtists.subtitle}</p>
@@ -60,7 +60,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.whyTitle}</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{forArtists.whyTitle}</h2>
         <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {forArtists.why.map((w, i) => {
             const I = whyIcons[i];
@@ -68,7 +68,7 @@ export default function ForArtistsPage() {
               <StaggerItem key={w.title}>
                 <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7 ${cardHover}`}>
                   <I className={`h-9 w-9 text-brand-bright ${iconHover}`} strokeWidth={1.25} aria-hidden />
-                  <h3 className="mt-6 text-xl font-normal">{w.title}</h3>
+                  <h3 className="mt-6 text-xl font-bold">{w.title}</h3>
                   <p className="mt-2 text-body">{w.text}</p>
                 </TiltCard>
               </StaggerItem>
@@ -83,7 +83,7 @@ export default function ForArtistsPage() {
             <ShieldCheck className="h-8 w-8 text-brand" strokeWidth={1.5} aria-hidden />
           </span>
           <div className="flex-1">
-            <h2 className="text-2xl font-medium sm:text-3xl">{forArtists.meetTitle}</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">{forArtists.meetTitle}</h2>
             <p className="mt-2 max-w-3xl text-body">{forArtists.meetText}</p>
           </div>
           <ButtonLink href={portalHref("/artists/apply")} variant="outline" className="shrink-0 bg-white">
@@ -94,7 +94,7 @@ export default function ForArtistsPage() {
 
       <Container className="py-16">
         <section id="verification" className="scroll-mt-24">
-          <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.verificationTitle}</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{forArtists.verificationTitle}</h2>
           <p className="mt-3 max-w-2xl text-body">{forArtists.verificationIntro}</p>
           <div className="mt-10">
             <StepFlow steps={howItWorks.artists} icons={stepIcons} />
@@ -103,7 +103,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container className="pb-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem]">Who we&apos;re onboarding</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">Who we&apos;re onboarding</h2>
         <ul className="mt-8 flex flex-wrap gap-3">
           {categories.map((c) => (
             <li key={c.slug} className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-ink">
@@ -115,7 +115,7 @@ export default function ForArtistsPage() {
 
       <Container>
         <section className="grain rounded-[1.25rem] bg-brand px-6 py-14 text-center">
-          <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
+          <h2 className="text-3xl font-medium text-white sm:text-[2.5rem] text-shadow-3d">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href={portalHref("/artists/apply")} variant="white">

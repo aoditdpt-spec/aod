@@ -36,13 +36,13 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
             <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
             Last updated {doc.updated}
           </p>
-          <h1 className="mt-3 text-3xl font-medium sm:text-5xl">{doc.title}</h1>
+          <h1 className="mt-3 text-3xl font-medium sm:text-5xl text-shadow-3d">{doc.title}</h1>
           <p className="mt-5 text-lg text-body">{doc.intro}</p>
 
           <div className="mt-10 space-y-10">
             {doc.sections.map((s, i) => (
               <section key={s.id} id={s.id} className="scroll-mt-24">
-                <h2 className="text-xl font-medium sm:text-2xl">
+                <h2 className="text-xl font-bold sm:text-2xl">
                   <span className="mr-2 text-brand">{i + 1}.</span>
                   {s.heading}
                 </h2>

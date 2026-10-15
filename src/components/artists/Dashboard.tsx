@@ -117,7 +117,7 @@ export function Dashboard() {
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-medium sm:text-4xl">Hi, {name}</h1>
+          <h1 className="text-3xl font-medium sm:text-4xl text-shadow-3d">Hi, {name}</h1>
           <p className="mt-2 text-body">
             {mode === "live" ? "Here's what's happening with your bookings." : "Here's where your application stands."}
           </p>

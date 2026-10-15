@@ -20,7 +20,7 @@ export function StepFlow({ steps, icons }: { steps: readonly { title: string; te
             </span>
           </span>
           <span className="md:mt-2">
-            <span className="block text-xl font-medium text-ink">{s.title}</span>
+            <span className="block text-xl font-bold text-ink">{s.title}</span>
             <span className="mt-2 block text-body md:mx-auto md:max-w-xs">{s.text}</span>
           </span>
         </StaggerItem>

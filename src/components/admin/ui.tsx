@@ -131,7 +131,7 @@ export function PageHeader({ title, text, actions }: { title: string; text?: Rea
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-medium sm:text-3xl">{title}</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
         {text && <p className="mt-1 max-w-2xl text-sm text-muted">{text}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -144,7 +144,7 @@ export function Card({ title, action, children, className = "" }: { title?: Reac
     <section className={`rounded-2xl border border-line bg-white p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="font-medium text-ink">{title}</h2>}
+          {title && <h2 className="text-ink font-bold">{title}</h2>}
           {action}
         </div>
       )}
@@ -209,7 +209,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer }: { o
       <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl outline-none">
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-medium text-ink">{title}</h2>
+            <h2 className="truncate text-lg font-bold text-ink">{title}</h2>
             {subtitle && <div className="mt-1 text-sm text-muted">{subtitle}</div>}
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-wash hover:text-ink">
@@ -226,7 +226,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer }: { o
 export function DrawerSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted">{title}</h3>
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">{title}</h3>
       {children}
     </section>
   );

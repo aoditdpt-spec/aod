@@ -11,7 +11,7 @@ export function Features() {
       <section>
         <Reveal>
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">Every booking includes</p>
-          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">Book with confidence</h2>
+          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">Book with confidence</h2>
         </Reveal>
         <StaggerList className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
@@ -21,7 +21,7 @@ export function Features() {
                   <Icon name={f.icon} className="h-5 w-5 text-brand" strokeWidth={1.75} />
                 </span>
                 <div>
-                  <h3 className="text-lg font-medium">{f.title}</h3>
+                  <h3 className="text-lg font-bold">{f.title}</h3>
                   <p className="mt-1 text-sm text-muted">{f.text}</p>
                 </div>
               </TiltCard>

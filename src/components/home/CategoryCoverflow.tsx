@@ -49,7 +49,7 @@ export function CategoryCoverflow() {
             )}
           </div>
           <div className="px-3 pb-2 pt-4">
-            <h3 className="text-lg font-medium group-hover:text-brand">{c.name}</h3>
+            <h3 className="text-lg font-bold group-hover:text-brand">{c.name}</h3>
             <p className="mt-1 line-clamp-1 text-sm text-muted">{c.short}</p>
             <span className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm font-medium text-brand">
               {c.services.length} services

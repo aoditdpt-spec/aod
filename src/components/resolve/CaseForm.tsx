@@ -87,12 +87,12 @@ export function CaseForm() {
     return (
       <div className="rounded-panel border border-line bg-white p-8 text-center sm:p-10">
         <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" aria-hidden />
-        <h2 className="mt-4 text-2xl font-medium text-ink">Case {state.id} received</h2>
+        <h2 className="mt-4 text-2xl font-bold text-ink">Case {state.id} received</h2>
         <p className="mx-auto mt-2 max-w-md text-body">
           AOD will reply by email to <strong className="font-medium">{f.email.trim()}</strong> within 48 hours. Keep the case number to follow it.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={sectionLink(`/resolve/track?id=${state.id}`)} className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-shadow-3d text-white hover:bg-brand-hover">
+          <Link href={sectionLink(`/resolve/track?id=${state.id}`)} className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
             Track this case
           </Link>
           <a

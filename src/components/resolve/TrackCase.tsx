@@ -154,7 +154,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
               {sample && <span className="rounded-md bg-wash px-2 py-0.5 text-xs font-medium text-muted ring-1 ring-line">Sample</span>}
               Raised {fmt(c.createdAt)}
             </p>
-            <h2 className="mt-1 text-2xl font-medium text-ink">Case {c.id}</h2>
+            <h2 className="mt-1 text-2xl font-bold text-ink">Case {c.id}</h2>
             <p className="mt-1 text-body">{c.issue}</p>
           </div>
           <button type="button" onClick={onBack} className="text-sm font-medium text-brand hover:underline">
@@ -177,7 +177,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
       </div>
 
       <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
-        <h3 className="text-lg font-medium text-ink">Progress</h3>
+        <h3 className="text-lg font-bold text-ink">Progress</h3>
         <ol className="mt-5 space-y-5">
           {caseSteps.map((s, i) => {
             // The step the case is on now (unless it's settled or escalated); earlier steps are ticked.
@@ -235,7 +235,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
 
       {c.status !== "escalated" && (
         <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
-          <h3 className="text-lg font-medium text-ink">{resolution.escalateTitle}</h3>
+          <h3 className="text-lg font-bold text-ink">{resolution.escalateTitle}</h3>
           <p className="mt-1 text-body">Escalate the case and AOD&apos;s grievance officer reviews it afresh.</p>
           {!escalating ? (
             <button type="button" onClick={() => setEscalating(true)} className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-5 font-medium text-ink hover:border-ink">

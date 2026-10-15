@@ -19,7 +19,7 @@ export function GetMatched() {
             </span>
             {getMatched.eyebrow}
           </p>
-          <h2 className="mt-6 text-4xl font-normal leading-[1.1] sm:text-5xl">{getMatched.title}</h2>
+          <h2 className="mt-6 text-4xl font-normal leading-[1.1] sm:text-5xl text-shadow-3d">{getMatched.title}</h2>
           <p className="mt-6 max-w-md text-body">{getMatched.text}</p>
           <div className="mt-6">
             <VerifiedArtists variant="inline" />
@@ -27,7 +27,7 @@ export function GetMatched() {
 
           {/* Laptops only: fills the left side beside the questions; on phones the questions come first. */}
           <div className="hidden lg:block">
-            <h3 className="mt-10 text-xs font-medium uppercase tracking-[0.15em] text-brand">{getMatched.nextTitle}</h3>
+            <h3 className="mt-10 text-xs font-semibold uppercase tracking-[0.15em] text-brand">{getMatched.nextTitle}</h3>
             <ol className="mt-5 space-y-5">
               {howItWorks.clients.map((s, i) => (
                 <li key={s.title} className="relative flex gap-4">
@@ -37,7 +37,7 @@ export function GetMatched() {
                     {i + 1}
                   </span>
                   <span>
-                    <span className="block font-medium text-ink">{s.title}</span>
+                    <span className="block font-bold text-ink">{s.title}</span>
                     <span className="block text-sm text-muted">{s.text}</span>
                   </span>
                 </li>
