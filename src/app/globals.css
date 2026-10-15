@@ -32,16 +32,10 @@
   --color-sheen: #ff6201;
   --color-sheen-deep: #d95301; /* orange with 15% black */
 
-  /* The hero brand name: white turning to orange (text-shine below; no plain --color-shine, which
-     would add a clashing text-shine colour class). */
-  --color-shine-light: #ffd0b3; /* 30% orange in white */
-  --color-shine-mid: #ff914d; /* orange with 30% white */
-  --color-shine-deep: #ff6201;
-
-  /* The soft drop shadow under all text that makes it look raised (set on body below, so
-     everything inherits it): a close shadow for the edge and a wide soft one for the glow, as in
-     the AOD artwork. Sized in em, so it is a hint under small print and a clear glow under big
-     headings. */
+  /* The soft drop shadow that makes headings and buttons look raised, as in the AOD artwork: a
+     close shadow for the edge and a wide soft one for the glow, sized in em so it grows with the
+     text. Headings and <button>s get it below; links styled as buttons use the text-shadow-3d
+     class (buttonClasses adds it). Body text stays flat. */
   --text-shadow-3d: 0.02em 0.04em 0.06em rgb(0 0 0 / 0.2), 0.03em 0.08em 0.22em rgb(0 0 0 / 0.24);
 
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
@@ -99,13 +93,14 @@
   body {
     background: var(--color-surface);
     color: var(--color-body);
-    text-shadow: var(--text-shadow-3d);
   }
 
-  /* Browsers clear text-shadow on buttons; let them carry it like the rest of the text. (Form
-     fields keep the browser's none, so typed text stays crisp.) */
+  /* The raised look (--text-shadow-3d) on headings and buttons only. */
+  h1,
+  h2,
+  h3,
   button {
-    text-shadow: inherit;
+    text-shadow: var(--text-shadow-3d);
   }
 
   h1,
@@ -141,28 +136,6 @@
     var(--color-sheen-deep) 60%,
     var(--color-sheen) 100%
   );
-}
-
-/* The hero's "Artists On Demand": white turning to orange with a metallic sheen, painted
-   through the letters (background-clip: text; give the element w-fit so the gradient spans the
-   words, not the column). The colour stays set (text-white) for any browser without it. A
-   drop-shadow filter (a close one for the edges, a wide soft one) keeps it readable over the
-   bright stage shots and gives it the same raised look as the rest of the text: with
-   see-through letters a text-shadow would show through them, so it is switched off here. */
-@utility text-shine {
-  background-image: linear-gradient(
-    125deg,
-    var(--color-white) 0%,
-    var(--color-shine-light) 25%,
-    var(--color-shine-mid) 48%,
-    var(--color-shine-light) 68%,
-    var(--color-shine-deep) 92%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 14px rgb(0 0 0 / 0.35));
 }
 
 /* Film grain drawn in CSS (SVG noise), so it stays crisp at any size. It sits between the

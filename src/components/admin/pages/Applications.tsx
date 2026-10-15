@@ -148,7 +148,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
           <a href={whatsappTo(app.phone, `Hi ${vars.applicant}, `)} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-whatsapp px-3.5 text-sm font-medium text-white hover:bg-whatsapp-hover">
             <WhatsAppIcon className="h-4 w-4" /> WhatsApp
           </a>
-          <a href={`tel:${app.phone.replace(/\s/g, "")}`} className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink">
+          <a href={`tel:${app.phone.replace(/\s/g, "")}`} className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-shadow-3d text-ink hover:border-ink">
             Call
           </a>
         </>

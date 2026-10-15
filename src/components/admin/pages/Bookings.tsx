@@ -249,7 +249,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   };
   const send = (id: TemplateId, to: "customer" | "artist") => whatsappTo(to === "customer" ? b.customer.phone : artist?.phone ?? "", fillTemplate(id, vars));
   const edit = (text: string, fn: (x: Booking) => void) => update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!), b.id);
-  const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-ink hover:border-ink";
+  const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-shadow-3d text-ink hover:border-ink";
 
   return (
     <Drawer

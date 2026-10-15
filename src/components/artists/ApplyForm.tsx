@@ -113,7 +113,7 @@ export function ApplyForm() {
         </p>
         <p className="mt-3 text-sm text-muted">Sign in to the artist portal with this email to follow your application and add photos to your portfolio.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={sectionLink("/artists")} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
+          <Link href={sectionLink("/artists")} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-shadow-3d text-white hover:bg-brand-hover">
             Sign in to follow it
           </Link>
           <Link href={siteHref("/for-artists")} className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash">

@@ -30,7 +30,7 @@ export function PortalGate({ children }: { children: ReactNode }) {
                 {portal.email} isn&apos;t linked to an AOD artist or application yet. Apply to join, or sign in with the email you applied with.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href={sectionLink("/artists/apply")} className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover">
+                <Link href={sectionLink("/artists/apply")} className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-shadow-3d text-white hover:bg-brand-hover">
                   Apply to join
                 </Link>
                 <button

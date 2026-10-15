@@ -92,7 +92,7 @@ export function CaseForm() {
           AOD will reply by email to <strong className="font-medium">{f.email.trim()}</strong> within 48 hours. Keep the case number to follow it.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={sectionLink(`/resolve/track?id=${state.id}`)} className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
+          <Link href={sectionLink(`/resolve/track?id=${state.id}`)} className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-shadow-3d text-white hover:bg-brand-hover">
             Track this case
           </Link>
           <a

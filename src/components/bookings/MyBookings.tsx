@@ -230,7 +230,7 @@ function BookingsView({ email, orders, onSignOut, onReview }: { email: string; o
             </button>
           </p>
         </div>
-        <Link href="/book" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-white hover:bg-brand-hover">
+        <Link href="/book" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-shadow-3d text-white hover:bg-brand-hover">
           New booking <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
@@ -381,7 +381,7 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
                 href={action.href}
                 target={action.href.startsWith("http") ? "_blank" : undefined}
                 rel={action.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-shadow-3d text-white hover:bg-brand-hover"
               >
                 {o.status === "delivered" ? <Download className="h-4 w-4" aria-hidden /> : <IndianRupee className="h-4 w-4" aria-hidden />}
                 {action.cta}

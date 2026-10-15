@@ -18,7 +18,7 @@ const sizes: Record<Size, string> = {
 };
 
 export function buttonClasses(variant: Variant = "primary", size: Size = "md", className = "") {
-  return `inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${variants[variant]} ${sizes[size]} ${className}`;
+  return `inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap text-shadow-3d transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${variants[variant]} ${sizes[size]} ${className}`;
 }
 
 type ButtonLinkProps = Omit<ComponentProps<typeof Link>, "className"> & {

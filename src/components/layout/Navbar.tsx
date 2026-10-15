@@ -96,7 +96,7 @@ export function Navbar() {
             href="/my-bookings"
             aria-label="My bookings"
             title="My bookings"
-            className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-2.5 text-[0.9375rem] text-ink transition-colors hover:border-brand hover:text-brand"
+            className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-2.5 text-[0.9375rem] text-ink text-shadow-3d transition-colors hover:border-brand hover:text-brand"
           >
             <Ticket className="h-[1.125rem] w-[1.125rem]" aria-hidden />
             <span className="hidden sm:inline lg:hidden xl:inline">My bookings</span>
