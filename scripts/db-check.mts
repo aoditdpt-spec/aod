@@ -181,6 +181,44 @@ await as("dev@aod.test", async () => {
   check("a payment reaches its booking's customer", (await sentTo(`customer:${await key("asha@x.test")}`)) === 1);
 });
 
+// ---- Several artists per booking, and artists in several categories ----
+await db.exec("delete from realtime.messages");
+await as("dev@aod.test", async () => {
+  check("an order can need more than 20 artists in all (up to 20 of each category)", (await tries("update bookings set artists_needed = 25 where id = 'B-1'")).rows === 1);
+  check("…but not none", !(await tries("update bookings set artists_needed = 0 where id = 'B-1'")).ok);
+  check("an order's lines are a list", !(await tries(`update bookings set items = '{"category":"photographers"}' where id = 'B-1'`)).ok);
+  check(
+    "staff can save an order with several lines",
+    (await tries(`update bookings set items = '[{"category":"photographers","service":"Photographers","count":2,"artistIds":["ART-1"]},{"category":"models","service":"Models","count":1,"artistIds":[]}]' where id = 'B-1'`)).rows === 1,
+  );
+  check("staff can give an artist other categories", (await tries("update artists set other_categories = '{cinematographers}' where id = 'ART-1'")).rows === 1);
+  await db.exec("update bookings set artist_ids = '{ART-1,ART-2}', artist_id = 'ART-1' where id = 'B-3'");
+  await db.exec("reset role");
+  check("a booking change reaches every assigned artist", (await sentTo("artist:ART-1")) >= 1 && (await sentTo("artist:ART-2")) === 1);
+});
+// A booking saved with one artist before the sixth migration gets them in artist_ids (and running it again is harmless).
+await db.exec("update bookings set artist_id = 'ART-2', artist_ids = '{}' where id = 'B-2'");
+await db.exec(readFileSync(new URL("20261016000000_team_bookings.sql", dir), "utf8"));
+check(
+  "the sixth migration moves a booking's single artist into artist_ids",
+  (await db.query<{ a: string[] }>("select artist_ids a from bookings where id = 'B-2'")).rows[0].a.join() === "ART-2",
+);
+// …and the seventh gives a booking saved before orders had lines one line from its own columns.
+await db.exec(readFileSync(new URL("20261016010000_one_order_per_request.sql", dir), "utf8"));
+const line = (await db.query<{ i: { category: string; count: number; artistIds: string[] }[] }>("select items i from bookings where id = 'B-2'")).rows[0].i;
+check(
+  "the seventh migration makes one order line from a booking's old columns",
+  line.length === 1 && line[0].category === "musicians-djs" && line[0].count === 1 && line[0].artistIds.join() === "ART-2",
+);
+check(
+  "…and lets an order need more than 20 artists again",
+  await as("dev@aod.test", async () => (await tries("update bookings set artists_needed = 25 where id = 'B-2'")).rows === 1),
+);
+check(
+  "…and adds the customer-cancelled alert to the settings",
+  (await count(`select count(*) n from settings where data -> 'notify' ? 'Customer cancelled a booking'`)) === 1,
+);
+
 // Joining a channel = reading realtime.messages with realtime.topic() set to it (as Realtime does).
 const channels = ["staff", "artist:ART-1", "artist:ART-2", `customer:${await key("asha@x.test")}`, `customer:${await key("ravi@x.test")}`];
 for (const t of channels) await db.query("insert into realtime.messages (topic, extension) values ($1, 'broadcast')", [t]);

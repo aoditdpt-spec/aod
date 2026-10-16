@@ -61,7 +61,7 @@ export function Stats() {
         {stats.map((s) => (
           <StaggerItem key={s.label}>
             <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-white px-4 py-8 text-center ${cardHover}`}>
-              <p className="font-display text-shadow-3d text-4xl font-medium text-ink sm:text-5xl">{s.value}</p>
+              <p className="font-display text-4xl font-medium text-ink sm:text-5xl">{s.value}</p>
               <div className={`mt-3 flex h-7 items-center ${iconHover}`}>
                 <StatVisual visual={s.visual} value={s.value} />
               </div>

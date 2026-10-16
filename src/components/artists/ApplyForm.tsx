@@ -4,15 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { applySteps, bothLinksCategories, experienceLevels, languages, uploadRules, workQuestionShown, workQuestionsFor } from "@/content/artist-portal";
+import { applySteps, bothLinksCategories, experienceLevels, languages, uploadRules, workQuestionShown, workQuestionsForAll, workSections } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
+import { allCategories } from "@/lib/booking-needs";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { sectionLink, siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { createApplication } from "@/server/actions/public";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 import { DigiLockerCard } from "./DigiLockerCard";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
@@ -26,7 +28,14 @@ const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
 const BIO_MAX = 600;
 
 type StepId = (typeof applySteps)[number]["id"];
-const needsBothLinks = (p: ArtistProfile) => bothLinksCategories.includes(p.category);
+const needsBothLinks = (p: ArtistProfile) => allCategories(p).some((c) => bothLinksCategories.includes(c));
+const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+const questionsFor = (p: ArtistProfile) => workQuestionsForAll(p.category, p.otherCategories);
+// "As a photographer", "As an editor": the title of each category's questions.
+const asA = (slug: string) => {
+  const who = categories.find((c) => c.slug === slug)?.singular.toLowerCase() ?? slug;
+  return `As ${/^[aeiou]/.test(who) ? "an" : "a"} ${who}`;
+};
 const isInstagram = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
 const answered = (v: string | string[] | undefined) => (Array.isArray(v) ? v.length > 0 : !!v?.trim());
 
@@ -49,7 +58,7 @@ function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: b
   }
   if (step === "work") {
     if (!p.category) e.category = "Choose what you do on the Your craft step first.";
-    for (const q of workQuestionsFor(p.category)) {
+    for (const q of questionsFor(p)) {
       if (q.optional || !workQuestionShown(q, p.work)) continue;
       if (!answered(p.work?.[q.id])) e[q.id] = q.kind === "text" || q.kind === "long" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
     }
@@ -126,15 +135,16 @@ export function ApplyForm() {
   }
 
   if (submitted) {
+    const also = profile.otherCategories.map((s) => categories.find((c) => c.slug === s)?.singular.toLowerCase() ?? s);
     const summary = [
-      `Hi Artists on Demand! I want to join AOD as ${category ? `a ${category.singular.toLowerCase()}` : "an artist"}.`,
+      `Hi Artists on Demand! I want to join AOD as ${category ? `a ${category.singular.toLowerCase()}` : "an artist"}${also.length ? ` (also ${also.join(", ")})` : ""}.`,
       `Name: ${profile.fullName}`,
       `Phone: +91 ${phoneDigits(profile.phone)}`,
       profile.email && `Email: ${profile.email}`,
       `City: ${profile.city}`,
       `Services: ${profile.services.join(", ")}`,
       `Experience: ${profile.experience}`,
-      ...workQuestionsFor(profile.category)
+      ...questionsFor(profile)
         .filter((q) => workQuestionShown(q, profile.work) && answered(profile.work?.[q.id]))
         .map((q) => `${q.short}: ${[profile.work?.[q.id] ?? ""].flat().join(", ")}`),
       profile.links.length > 0 && `Portfolio: ${profile.links.join(" ")}`,
@@ -283,13 +293,19 @@ export function ApplyForm() {
               Already with AOD? Sign in
             </Link>
           )}
-          <button type="submit" className="inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
+          <button
+            type="submit"
+            disabled={sending}
+            className="inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover disabled:cursor-wait"
+          >
             {step < steps.length - 1 ? (
               <>
                 Continue <ArrowRight className="h-4 w-4" aria-hidden />
               </>
             ) : sending ? (
-              "Sending…"
+              <>
+                <Spinner /> Sending your application…
+              </>
             ) : (
               "Submit application"
             )}
@@ -434,20 +450,26 @@ function AboutStep({
 }
 
 function CraftStep({ profile, set, errors }: StepProps) {
-  const category = categories.find((c) => c.slug === profile.category);
+  const chosen = allCategories(profile).map((slug) => categories.find((c) => c.slug === slug)).filter((c) => c !== undefined);
+  // Services stay picked only while one of the chosen categories offers them.
+  const keepServices = (slugs: string[]) => {
+    const offered = new Set(categories.filter((c) => slugs.includes(c.slug)).flatMap((c) => c.services.map((s) => s.name)));
+    return profile.services.filter((s) => offered.has(s));
+  };
   return (
     <>
       <div>
-        <p className="text-sm font-medium text-ink">What do you do?</p>
+        <p className="text-sm font-medium text-ink">What do you mainly do?</p>
         <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {categories.map((c) => {
             const on = c.slug === profile.category;
+            const others = profile.otherCategories.filter((x) => x !== c.slug);
             return (
               <li key={c.slug}>
                 <button
                   type="button"
                   aria-pressed={on}
-                  onClick={() => set({ category: c.slug, services: on ? profile.services : [] })}
+                  onClick={() => set({ category: c.slug, otherCategories: others, services: keepServices([c.slug, ...others]) })}
                   className={`flex w-full items-center gap-2 rounded-xl border px-3 py-3 text-left text-sm transition-colors ${
                     on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"
                   }`}
@@ -461,10 +483,46 @@ function CraftStep({ profile, set, errors }: StepProps) {
         {errors.category && <p className="mt-1.5 text-xs text-red-600">{errors.category}</p>}
       </div>
 
-      {category && (
+      {profile.category && (
+        <div>
+          <p className="text-sm font-medium text-ink">
+            Do you also work as any of these? <span className="font-normal text-muted">(optional)</span>
+          </p>
+          <p className="mt-1 text-xs text-muted">Pick every other kind of work you take on. AOD can then offer you bookings for each.</p>
+          <div role="group" aria-label="Other categories" className="mt-2 flex flex-wrap gap-2">
+            {categories
+              .filter((c) => c.slug !== profile.category)
+              .map((c) => {
+                const on = profile.otherCategories.includes(c.slug);
+                const others = on ? profile.otherCategories.filter((x) => x !== c.slug) : [...profile.otherCategories, c.slug];
+                return (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => set({ otherCategories: others, services: keepServices([profile.category, ...others]) })}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      on ? "border-brand bg-peach/50 text-ink" : "border-line bg-white text-body hover:border-brand/50"
+                    }`}
+                  >
+                    {on ? <Check className="h-3.5 w-3.5 text-brand" aria-hidden /> : <Icon name={c.icon} className="h-3.5 w-3.5 text-brand" />}
+                    {c.name}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {chosen.length > 0 && (
         <div>
           <p className="text-sm font-medium text-ink">Services you offer</p>
-          <ChipGroup label="Services" options={category.services.map((s) => s.name)} value={profile.services} onChange={(services) => set({ services })} />
+          {chosen.map((c) => (
+            <div key={c.slug} className={chosen.length > 1 ? "mt-3" : ""}>
+              {chosen.length > 1 && <p className="text-xs font-semibold uppercase tracking-wide text-muted">{c.name}</p>}
+              <ChipGroup label={`${c.name} services`} options={c.services.map((s) => s.name)} value={profile.services} onChange={(services) => set({ services })} />
+            </div>
+          ))}
           {errors.services && <p className="mt-1.5 text-xs text-red-600">{errors.services}</p>}
         </div>
       )}
@@ -503,15 +561,40 @@ function CraftStep({ profile, set, errors }: StepProps) {
   );
 }
 
-// The questions for the applicant's category (workQuestions in artist-portal.ts).
+// The questions for the applicant's categories (workQuestions in artist-portal.ts), a section for
+// each when they work in more than one.
 function WorkStep({ profile, set, errors }: StepProps) {
   const d = profile.work ?? {};
   // Merge into the latest saved answers, like `set`, so quick successive taps never undo each other.
   const setAnswer = (id: string, v: string | string[]) => set({ work: { ...(profileStore.get()?.work ?? {}), [id]: v } });
   if (!profile.category) return <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{errors.category ?? "Choose what you do on the Your craft step first."}</p>;
+  const sections = workSections(profile.category, profile.otherCategories).filter((s) => s.questions.length > 0);
   return (
     <>
-      {workQuestionsFor(profile.category).map((q) => {
+      {sections.map((s) => (
+        <fieldset key={s.category} className={sections.length > 1 ? "space-y-6 rounded-xl border border-line p-5" : "contents"}>
+          {sections.length > 1 && <legend className="px-1 text-sm font-bold text-ink">{asA(s.category)}</legend>}
+          <WorkQuestions questions={s.questions} answers={d} setAnswer={setAnswer} errors={errors} />
+        </fieldset>
+      ))}
+    </>
+  );
+}
+
+function WorkQuestions({
+  questions,
+  answers: d,
+  setAnswer,
+  errors,
+}: {
+  questions: ReturnType<typeof workQuestionsForAll>;
+  answers: NonNullable<ArtistProfile["work"]>;
+  setAnswer: (id: string, v: string | string[]) => void;
+  errors: Record<string, string>;
+}) {
+  return (
+    <>
+      {questions.map((q) => {
         if (!workQuestionShown(q, d)) return null;
         const v = d[q.id];
         if (q.kind === "long")
@@ -661,7 +744,6 @@ function VerifyStep({
 }
 
 function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: Files; goTo: (step: StepId) => void }) {
-  const category = categories.find((c) => c.slug === profile.category);
   const rows: { step: StepId; title: string; items: [string, ReactNode][] }[] = [
     {
       step: "about",
@@ -677,7 +759,8 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       step: "craft",
       title: "Your craft",
       items: [
-        ["Category", category?.name ?? "—"],
+        ["Category", profile.category ? categoryName(profile.category) : "—"],
+        ["Also works as", profile.otherCategories.map(categoryName).join(", ") || "—"],
         ["Services", profile.services.join(", ")],
         ["Experience", profile.experience],
         ["Languages", profile.languages.join(", ")],
@@ -687,7 +770,7 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
     {
       step: "work",
       title: "Your work details",
-      items: workQuestionsFor(profile.category)
+      items: questionsFor(profile)
         .filter((q) => workQuestionShown(q, profile.work) && (!q.optional || answered(profile.work?.[q.id])))
         .map((q): [string, ReactNode] => [q.short, [profile.work?.[q.id] ?? "—"].flat().join(", ") || "—"]),
     },

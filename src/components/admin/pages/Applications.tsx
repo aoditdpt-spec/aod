@@ -3,16 +3,17 @@
 import { CalendarClock, CheckCircle2, ExternalLink, ShieldCheck, XCircle } from "lucide-react";
 import { useState } from "react";
 import { applicationStages } from "@/content/admin";
-import { workQuestionsFor } from "@/content/artist-portal";
+import { workQuestionsForAll } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Application, type ApplicationStatus } from "@/lib/admin-store";
+import { worksIn } from "@/lib/booking-needs";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
   ActionButton,
   ago,
-  categoryName,
+  categoryNames,
   Details,
   Drawer,
   DrawerSection,
@@ -34,7 +35,7 @@ import { useOpen } from "../useOpen";
 
 const columns: Column<Application>[] = [
   { key: "name", label: "Applicant", render: (a) => a.name, value: (a) => a.name },
-  { key: "category", label: "Category", render: (a) => categoryName(a.category), value: (a) => categoryName(a.category) },
+  { key: "category", label: "Categories", render: (a) => categoryNames(a), value: (a) => categoryNames(a) },
   { key: "city", label: "City", render: (a) => a.city, value: (a) => a.city, hideOnMobile: true },
   { key: "experience", label: "Experience", render: (a) => a.experience, value: (a) => a.experience, hideOnMobile: true },
   { key: "submitted", label: "Submitted", render: (a) => ago(a.submittedAt), value: (a) => a.submittedAt, hideOnMobile: true },
@@ -69,7 +70,7 @@ export function Applications() {
         initialSort={{ key: "submitted", dir: "desc" }}
         filters={[
           { label: "Status", options: applicationStages.map((s) => ({ value: s.id, label: s.label })), test: (a, v) => a.status === v },
-          { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (a, v) => a.category === v },
+          { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (a, v) => worksIn(a, v) },
           { label: "City", options: cities.map((c) => ({ value: c, label: c })), test: (a, v) => a.city === v },
         ]}
       />
@@ -113,6 +114,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
           email: a.email,
           city: a.city,
           category: a.category,
+          otherCategories: a.otherCategories ?? [],
           services: a.services,
           experience: a.experience,
           languages: a.languages,
@@ -140,7 +142,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
       title={app.name}
       subtitle={
         <span className="flex flex-wrap items-center gap-2">
-          {app.id} · {categoryName(app.category)} · {app.city} <StageBadge stages={applicationStages} id={app.status} />
+          {app.id} · {categoryNames(app)} · {app.city} <StageBadge stages={applicationStages} id={app.status} />
         </span>
       }
       footer={
@@ -311,12 +313,12 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
   );
 }
 
-// "Your work details" answers, in the order and with the labels of the category's questions;
-// answers to questions no longer asked follow under their id.
+// "Your work details" answers, in the order and with the labels of the questions for the
+// applicant's categories; answers to questions no longer asked follow under their id.
 function workRows(app: Application): [string, string][] {
   const d = app.details ?? {};
   const show = (v: string | string[]) => (Array.isArray(v) ? v.join(", ") : v) || "—";
-  const qs = workQuestionsFor(app.category);
+  const qs = workQuestionsForAll(app.category, app.otherCategories);
   return [
     ...qs.filter((q) => q.id in d).map((q): [string, string] => [q.short, show(d[q.id])]),
     ...Object.keys(d)

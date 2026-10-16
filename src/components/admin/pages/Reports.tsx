@@ -4,7 +4,8 @@ import { Download, FileSpreadsheet, RefreshCw } from "lucide-react";
 import { applicationStages, bookingStages, caseStages, paymentStatuses } from "@/content/admin";
 import { useDb, type Db } from "@/lib/admin-store";
 import { buildXlsx, download, XLSX_TYPE, type Sheet } from "@/lib/xlsx";
-import { artistName, Card, categoryName, inr, PageHeader, Stat, useCan } from "../ui";
+import { assignedArtists, itemFor, itemsLabel, totalNeeded } from "@/lib/booking-needs";
+import { artistName, artistNames, Card, categoryName, categoryNames, inr, PageHeader, Stat, useCan } from "../ui";
 
 const stageLabel = (list: readonly { id: string; label: string }[], id: string) => list.find((s) => s.id === id)?.label ?? id;
 
@@ -15,20 +16,21 @@ export function masterWorkbook(db: Db): Sheet[] {
     {
       name: "Bookings",
       rows: [
-        ["Ref", "Created", "Type", "Customer", "Phone", "Email", "Category", "Service", "Event", "Date", "Time", "City", "Venue", "Budget", "Status", "Artist", "Quote", "Advance", "Delivery link", "Rating"],
-        ...db.bookings.map((b) => [b.id, b.createdAt.slice(0, 10), b.audience, b.customer.name, b.customer.phone, b.customer.email, categoryName(b.category), b.service, b.event, b.date, b.time, b.city, b.venue, b.budget, stageLabel(bookingStages, b.status), artistName(db, b.artistId), b.quote, b.advance, b.delivery?.link, b.review?.rating]),
+        ["Ref", "Created", "Type", "Customer", "Phone", "Email", "Categories", "Needs", "Artists needed", "Event", "Date", "Time", "City", "Venue", "Budget", "Status", "Artists", "Quote", "Advance", "Delivery link", "Rating"],
+        ...db.bookings.map((b) => [b.id, b.createdAt.slice(0, 10), b.audience, b.customer.name, b.customer.phone, b.customer.email, b.items.map((i) => categoryName(i.category)).join(", "), itemsLabel(b.items), totalNeeded(b.items), b.event, b.date, b.time, b.city, b.venue, b.budget, stageLabel(bookingStages, b.status), artistNames(db, assignedArtists(b.items)), b.quote, b.advance, b.delivery?.link, b.review?.rating]),
       ],
     },
     {
       name: "Artists",
       rows: [
-        ["ID", "Name", "Phone", "Email", "Category", "Services", "City", "Experience", "Languages", "Status", "Identity", "Payout UPI", "Joined", "Jobs done"],
-        ...db.artists.map((a) => [a.id, a.name, a.phone, a.email, categoryName(a.category), a.services.join(", "), a.city, a.experience, a.languages.join(", "), a.status, a.kyc, a.payoutUpi, a.joinedAt.slice(0, 10), db.bookings.filter((b) => b.artistId === a.id && ["completed", "delivered", "reviewed"].includes(b.status)).length]),
+        ["ID", "Name", "Phone", "Email", "Categories", "Services", "City", "Experience", "Languages", "Status", "Identity", "Payout UPI", "Joined", "Jobs done"],
+        ...db.artists.map((a) => [a.id, a.name, a.phone, a.email, categoryNames(a), a.services.join(", "), a.city, a.experience, a.languages.join(", "), a.status, a.kyc, a.payoutUpi, a.joinedAt.slice(0, 10), db.bookings.filter((b) => assignedArtists(b.items).includes(a.id) && ["completed", "delivered", "reviewed"].includes(b.status)).length]),
       ],
     },
     {
       name: "Customer x artist",
-      rows: [["Customer", "Booking", "Date", "Service", "Artist", "Status"], ...db.bookings.filter((b) => b.artistId).map((b) => [b.customer.name, b.id, b.date, b.service, artistName(db, b.artistId), stageLabel(bookingStages, b.status)])],
+      // One row for each artist on a booking.
+      rows: [["Customer", "Booking", "Date", "Service", "Artist", "Status"], ...db.bookings.flatMap((b) => assignedArtists(b.items).map((a) => [b.customer.name, b.id, b.date, itemFor(b.items, a)?.service, artistName(db, a), stageLabel(bookingStages, b.status)]))],
     },
     {
       name: "Payments",
@@ -40,7 +42,7 @@ export function masterWorkbook(db: Db): Sheet[] {
     },
     {
       name: "Applications",
-      rows: [["ID", "Submitted", "Name", "Phone", "Email", "Category", "City", "Experience", "Status", "Meeting", "Links"], ...db.applications.map((a) => [a.id, a.submittedAt.slice(0, 10), a.name, a.phone, a.email, categoryName(a.category), a.city, a.experience, stageLabel(applicationStages, a.status), a.meeting?.at.slice(0, 16).replace("T", " "), a.links.join(" ")])],
+      rows: [["ID", "Submitted", "Name", "Phone", "Email", "Categories", "City", "Experience", "Status", "Meeting", "Links"], ...db.applications.map((a) => [a.id, a.submittedAt.slice(0, 10), a.name, a.phone, a.email, categoryNames(a), a.city, a.experience, stageLabel(applicationStages, a.status), a.meeting?.at.slice(0, 16).replace("T", " "), a.links.join(" ")])],
     },
     {
       name: "Resolution cases",
@@ -79,7 +81,8 @@ export function Reports() {
   const cancelled = db.bookings.filter((b) => b.status === "cancelled").length;
   const reviews = db.bookings.filter((b) => b.review);
   const count = <K extends string>(keys: K[]) => keys.reduce<Record<string, number>>((m, k) => ((m[k] = (m[k] ?? 0) + 1), m), {});
-  const byCategory = Object.entries(count(live.map((b) => categoryName(b.category)))).sort((a, b) => b[1] - a[1]);
+  // Each category an order needs counts once for that order.
+  const byCategory = Object.entries(count(live.flatMap((b) => b.items.map((i) => categoryName(i.category))))).sort((a, b) => b[1] - a[1]);
   const byCity = Object.entries(count(live.map((b) => b.city))).sort((a, b) => b[1] - a[1]);
   const stamp = new Date().toISOString().slice(0, 10);
 

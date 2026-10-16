@@ -6,6 +6,7 @@
 // to show how the portal will work, and every portal page says so. Replace them with
 // Supabase data when the backend is built.
 
+import { categories } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
 
 // The customer site, for "back" links. On the artists domain "/" is the portal itself, so this
@@ -176,6 +177,43 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
 };
 export const workQuestionsFor = (category: string) => workQuestions[category] ?? [level("artist"), travel("events"), ...brandWork()];
 
+// An applicant with other categories besides their main one answers each category's questions,
+// in a section per category. The main category's answers keep their plain ids (as before); a
+// question another category asks the same way (same id and wording, such as "Are you willing to
+// travel for shoots?") is asked once; any other question of another category is saved as
+// "<category>.<id>" and labelled with the category ("Cinematographer: Specialisation").
+export type WorkSection = { category: string; questions: WorkQuestion[] };
+export function workSections(main: string, others: string[] = []): WorkSection[] {
+  const singular = (slug: string) => categories.find((c) => c.slug === slug)?.singular ?? slug;
+  const asked = new Map<string, string>(); // "id|label" → the id it's saved under
+  return [main, ...others.filter((c) => c && c !== main)].filter(Boolean).map((category, i) => {
+    const ids = new Map<string, string>(); // this category's question id → saved id
+    const questions: WorkQuestion[] = [];
+    for (const q of workQuestionsFor(category)) {
+      const parent = q.showIf ? ids.get(q.showIf.id) ?? q.showIf.id : undefined;
+      const key = `${q.id}|${q.label}|${parent ?? ""}`;
+      const shared = i > 0 ? asked.get(key) : undefined;
+      if (shared) {
+        ids.set(q.id, shared);
+        continue;
+      }
+      const id = i === 0 ? q.id : `${category}.${q.id}`;
+      ids.set(q.id, id);
+      asked.set(key, id);
+      questions.push({
+        ...q,
+        id,
+        short: i === 0 ? q.short : `${singular(category)}: ${q.short}`,
+        showIf: q.showIf && { id: parent!, is: q.showIf.is },
+      });
+    }
+    return { category, questions };
+  });
+}
+
+// All the questions for a main category and its others, in order (see workSections).
+export const workQuestionsForAll = (main: string, others: string[] = []) => workSections(main, others).flatMap((s) => s.questions);
+
 // Whether a question is on screen for these answers (a `showIf` question only after the given choice).
 export const workQuestionShown = (q: WorkQuestion, answers: Record<string, string | string[]> | undefined) =>
   !q.showIf || [answers?.[q.showIf.id] ?? []].flat().includes(q.showIf.is);
@@ -243,7 +281,8 @@ export const sampleArtist = {
   email: "kavya.frames@example.com",
   city: "Ahmedabad",
   category: "photographers",
-  services: ["Wedding photography", "Candid photography", "Pre-wedding shoot"],
+  otherCategories: ["cinematographers"],
+  services: ["Wedding photography", "Candid photography", "Pre-wedding shoot", "Reels & social video"],
   experience: "3–5 years",
   languages: ["Gujarati", "Hindi", "English"],
   bio: "Candid wedding and pre-wedding photographer. I like quiet, unposed moments and warm colour. I shoot with a second shooter for weddings over 300 guests.",
@@ -267,6 +306,7 @@ export type SampleBooking = {
   note?: string;
   replyBy?: string;
   status: BookingStatus;
+  team?: number; // the booking needs this many artists of the category (more than one)
 };
 
 export const sampleBookings: SampleBooking[] = [
@@ -281,6 +321,7 @@ export const sampleBookings: SampleBooking[] = [
     note: "Sangeet on the first evening, ceremony the next morning.",
     replyBy: "Reply within 18 hours",
     status: "new",
+    team: 2,
   },
   {
     id: "R-2038",

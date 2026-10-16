@@ -5,11 +5,12 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { paymentStatuses } from "@/content/admin";
-import { currentUser, newId, update, useDb, type Db, type Payment, type Payout } from "@/lib/admin-store";
+import { currentUser, newId, update, useDb, type Booking, type Db, type Payment, type Payout } from "@/lib/admin-store";
+import { assignedArtists, itemFor, itemsLabel } from "@/lib/booking-needs";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { DataTable, type Column } from "../DataTable";
-import { ActionButton, ago, artistName, Card, Details, Drawer, DrawerSection, Empty, fieldBase, fillTemplate, fmtDate, inr, PageHeader, StageBadge, Stat, whatsappTo } from "../ui";
+import { ActionButton, ago, artistList, artistName, Card, Details, Drawer, DrawerSection, Empty, fieldBase, fillTemplate, fmtDate, inr, PageHeader, StageBadge, Stat, whatsappTo } from "../ui";
 import { useOpen } from "../useOpen";
 import { sectionLink } from "@/lib/site-url";
 
@@ -140,7 +141,7 @@ function VerifyCard({ p, db }: { p: Payment; db: Db }) {
             <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="font-medium text-brand">
               {booking.id}
             </Link>{" "}
-            · {booking.service} · expected {inr(expected)}
+            · {itemsLabel(booking.items)} · expected {inr(expected)}
           </p>
         )}
         {duplicate && (
@@ -201,7 +202,7 @@ function PaymentDrawer({ p, db, onClose }: { p: Payment; db: Db; onClose: () => 
             ["Amount", inr(p.amount)],
             ["UTR", <span key="u" className="font-mono">{p.utr}</span>],
             ["Reported", fmtDate(p.reportedAt, true)],
-            ["Booking", booking ? <Link key="b" href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand">{booking.id} · {booking.service}</Link> : p.bookingId],
+            ["Booking", booking ? <Link key="b" href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand">{booking.id} · {itemsLabel(booking.items)}</Link> : p.bookingId],
             ["Checked by", p.checkedBy ? `${p.checkedBy}, ${fmtDate(p.checkedAt, true)}` : "Not yet"],
             ["Reason", p.reason ?? "—"],
           ]}
@@ -210,7 +211,7 @@ function PaymentDrawer({ p, db, onClose }: { p: Payment; db: Db; onClose: () => 
       {booking && p.status === "verified" && (
         <DrawerSection title="Tell the customer">
           <a
-            href={whatsappTo(booking.customer.phone, fillTemplate("confirmed", { customer: booking.customer.name.split(" ")[0], ref: booking.id, artist: artistName(db, booking.artistId), service: booking.service, date: fmtDate(booking.date), city: booking.city }))}
+            href={whatsappTo(booking.customer.phone, fillTemplate("confirmed", { customer: booking.customer.name.split(" ")[0], ref: booking.id, artist: artistList(db, assignedArtists(booking.items), "your artist"), service: itemsLabel(booking.items), date: fmtDate(booking.date), city: booking.city }))}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-whatsapp px-3.5 text-sm font-medium text-white hover:bg-whatsapp-hover"
@@ -237,9 +238,17 @@ function PaymentDrawer({ p, db, onClose }: { p: Payment; db: Db; onClose: () => 
 
 function Payouts({ db }: { db: Db }) {
   const [refs, setRefs] = useState<Record<string, string>>({});
-  // Delivered or reviewed bookings that don't have a payout yet.
-  const missing = db.bookings.filter((b) => ["delivered", "reviewed"].includes(b.status) && b.artistId && b.quote && !db.payouts.some((p) => p.bookingId === b.id));
-  const share = (quote: number) => Math.round(quote * (1 - db.settings.commissionPct / 100));
+  const [amounts, setAmounts] = useState<Record<string, string>>({}); // edited payout amounts, by booking and artist
+  // Each artist of a delivered or reviewed booking who doesn't have a payout for it yet.
+  const missing = db.bookings
+    .filter((b) => ["delivered", "reviewed"].includes(b.status) && b.quote)
+    .flatMap((b) => assignedArtists(b.items).filter((a) => !db.payouts.some((p) => p.bookingId === b.id && p.artistId === a)).map((artistId) => ({ b, artistId })));
+  // The suggested payout: the artist's own quote from the portal if they sent one, otherwise an
+  // equal part of the artists' share (the quote minus AOD's commission). The team can change it.
+  const suggested = (b: Booking, artistId: string) => {
+    const own = b.replies?.find((r) => r.artistId === artistId && r.status === "quoted")?.quote;
+    return own ?? Math.round((b.quote! * (1 - db.settings.commissionPct / 100)) / Math.max(1, assignedArtists(b.items).length));
+  };
 
   const columns: Column<Payout>[] = [
     { key: "artist", label: "Artist", render: (p) => artistName(db, p.artistId), value: (p) => artistName(db, p.artistId) },
@@ -283,24 +292,46 @@ function Payouts({ db }: { db: Db }) {
       {missing.length > 0 && (
         <Card title="Ready for payout">
           <ul className="divide-y divide-line text-sm">
-            {missing.map((b) => (
-              <li key={b.id} className="flex flex-wrap items-center justify-between gap-3 py-2">
+            {missing.map(({ b, artistId }) => {
+              const key = `${b.id}-${artistId}`;
+              const amount = Number(amounts[key] ?? suggested(b, artistId));
+              return (
+              <li key={key} className="flex flex-wrap items-center justify-between gap-3 py-2">
                 <span>
-                  {b.id} · {artistName(db, b.artistId)} · quote {inr(b.quote)} → artist share <strong className="font-medium">{inr(share(b.quote!))}</strong>
+                  {b.id} · {artistName(db, artistId)} ({itemFor(b.items, artistId)?.service}) · order quote {inr(b.quote)}
                 </span>
+                <span className="flex items-center gap-2">
+                  <input
+                    value={amounts[key] ?? String(suggested(b, artistId))}
+                    onChange={(e) => setAmounts((m) => ({ ...m, [key]: e.target.value.replace(/\D/g, "") }))}
+                    inputMode="numeric"
+                    aria-label={`Payout to ${artistName(db, artistId)}`}
+                    className={`${fieldBase} w-28 py-1.5`}
+                  />
                 <ActionButton
                   permission="payouts.pay"
                   variant="secondary"
+                  disabled={!amount}
                   onClick={() =>
-                    update("Payments", `Added a payout of ${inr(share(b.quote!))} for ${b.id}`, (d) => void d.payouts.unshift({ id: newId("PO"), artistId: b.artistId!, bookingId: b.id, amount: share(b.quote!), status: "due" }), b.id)
+                    update(
+                      "Payments",
+                      `Added a payout of ${inr(amount)} to ${artistName(db, artistId)} for ${b.id}`,
+                      (d) => void d.payouts.unshift({ id: newId("PO"), artistId, bookingId: b.id, amount, status: "due" }),
+                      b.id,
+                    )
                   }
                 >
                   Add payout
                 </ActionButton>
+                </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
-          <p className="mt-2 text-xs text-muted">Artist share = quote minus the {db.settings.commissionPct}% AOD commission. Payouts go after delivery.</p>
+          <p className="mt-2 text-xs text-muted">
+            The suggested amount is the artist&apos;s own quote from the portal, or else an equal part of the order&apos;s quote minus the {db.settings.commissionPct}% AOD
+            commission. Change it before adding if you agreed something else. Payouts go after delivery.
+          </p>
         </Card>
       )}
       <DataTable

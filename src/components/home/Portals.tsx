@@ -18,7 +18,7 @@ export function Portals() {
   return (
     <Container className="py-16 sm:py-20">
       <p className="text-sm font-medium uppercase tracking-wider text-brand">{portals.eyebrow}</p>
-      <h2 className="mt-3 text-4xl font-medium leading-[1.1] sm:text-5xl text-shadow-3d">{portals.title}</h2>
+      <h2 className="mt-3 text-4xl font-medium leading-[1.1] sm:text-5xl">{portals.title}</h2>
       <p className="mt-4 max-w-2xl text-lg text-body">{portals.text}</p>
 
       {/* Artists */}
@@ -27,7 +27,7 @@ export function Portals() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-tangerine/15 px-3 py-1 text-sm font-medium text-apricot">
             <Sparkles className="h-4 w-4" aria-hidden /> {a.eyebrow}
           </span>
-          <h3 id="portal-artists" className="mt-4 text-3xl font-medium leading-tight !text-white sm:text-4xl text-shadow-3d">
+          <h3 id="portal-artists" className="mt-4 text-3xl font-medium leading-tight !text-white sm:text-4xl">
             {a.title}
           </h3>
           <p className="mt-4 max-w-xl text-white/80">{a.text}</p>

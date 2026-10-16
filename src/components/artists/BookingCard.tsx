@@ -1,12 +1,13 @@
 "use client";
 
-import { CalendarDays, Clock, IndianRupee, MapPin, Users } from "lucide-react";
+import { CalendarDays, Clock, IndianRupee, MapPin, Users, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { sampleBookings, type BookingStatus, type SampleBooking } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
 import { answerRequest, usePortalState } from "@/lib/artist-live";
 import { bookingActionsStore } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { Spinner } from "@/components/ui/Spinner";
 import { Badge, inputBase } from "./form";
 
 export type Booking = SampleBooking & { quote?: string };
@@ -38,10 +39,15 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
   const [quoting, setQuoting] = useState(false);
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState<"quoted" | "declined" | null>(null); // the reply being sent
   const badge = statusBadge[booking.status];
 
   function act(status: "quoted" | "declined", quote?: string) {
-    void answerRequest(booking.id, status, quote).then((err) => err && setError(err));
+    if (sending) return;
+    setSending(status);
+    void answerRequest(booking.id, status, quote)
+      .then((err) => err && setError(err))
+      .finally(() => setSending(null));
   }
 
   return (
@@ -66,6 +72,11 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
         {booking.guests && (
           <li className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted" aria-hidden /> {booking.guests}
+          </li>
+        )}
+        {booking.team && (
+          <li className="flex items-center gap-2">
+            <UsersRound className="h-4 w-4 text-muted" aria-hidden /> Team of {booking.team}: {["new", "quoted", "declined"].includes(booking.status) ? "you'd be" : "you're"} one of them
           </li>
         )}
         <li className="flex items-center gap-2">
@@ -110,8 +121,18 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
                   className={`${inputBase} rounded-l-none py-2.5`}
                 />
               </div>
-              <button type="submit" className="h-11 rounded-lg bg-brand px-5 text-sm font-medium text-white hover:bg-brand-hover">
-                Send quote
+              <button
+                type="submit"
+                disabled={sending !== null}
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-wait"
+              >
+                {sending === "quoted" ? (
+                  <>
+                    <Spinner /> Sending…
+                  </>
+                ) : (
+                  "Send quote"
+                )}
               </button>
               <button type="button" onClick={() => setQuoting(false)} className="h-11 px-3 text-sm font-medium text-muted hover:text-ink">
                 Cancel
@@ -133,9 +154,16 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
               <button
                 type="button"
                 onClick={() => act("declined")}
-                className="h-10 rounded-lg border border-line px-5 text-sm font-medium text-body hover:border-ink hover:text-ink"
+                disabled={sending !== null}
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-line px-5 text-sm font-medium text-body hover:border-ink hover:text-ink disabled:cursor-wait"
               >
-                Decline
+                {sending === "declined" ? (
+                  <>
+                    <Spinner /> Declining…
+                  </>
+                ) : (
+                  "Decline"
+                )}
               </button>
             </div>
           )}

@@ -32,12 +32,6 @@
   --color-sheen: #ff6201;
   --color-sheen-deep: #d95301; /* orange with 15% black */
 
-  /* The soft drop shadow that makes big headings look raised, as in the AOD artwork: a close
-     shadow for the edge and a wide soft one for the glow, sized in em so it grows with the text.
-     Only on large titles (text-3xl and up) and the stat numbers, through the text-shadow-3d class;
-     smaller headings are bold instead, and buttons and body text stay flat. */
-  --text-shadow-3d: 0.02em 0.04em 0.06em rgb(0 0 0 / 0.2), 0.03em 0.08em 0.22em rgb(0 0 0 / 0.24);
-
   --color-whatsapp: #25d366; /* WhatsApp's own brand green */
   --color-whatsapp-hover: #1ebe5d;
 
@@ -67,6 +61,17 @@
   @keyframes marquee-reverse {
     from {
       transform: translateX(-50%);
+    }
+  }
+
+  /* The loading bar at the top of the page (LoadingBar.tsx): a short orange stripe sweeping across. */
+  --animate-loading-bar: loading-bar 1.1s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  @keyframes loading-bar {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(350%);
     }
   }
 

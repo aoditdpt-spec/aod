@@ -23,7 +23,7 @@ export default function BookPage() {
   return (
     <Container className="py-16 sm:py-24">
       <div className="mx-auto max-w-3xl text-center">
-        <h1 className="text-3xl font-normal sm:text-5xl text-shadow-3d">{bookingChoice.title}</h1>
+        <h1 className="text-3xl font-normal sm:text-5xl">{bookingChoice.title}</h1>
         <p className="mt-4 text-lg text-body">{bookingChoice.subtitle}</p>
         <div className="mt-6">
           <VerifiedArtists variant="inline" />

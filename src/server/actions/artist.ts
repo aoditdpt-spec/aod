@@ -6,6 +6,7 @@ import { categories, cities } from "@/content/site";
 import type { ArtistProfile } from "@/lib/artist-store";
 import type { ApplicationStatus, PortfolioFile } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
+import { allCategories, assignedArtists, itemFor, totalNeeded, type BookingItem } from "@/lib/booking-needs";
 import { sectionUrl } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
@@ -34,6 +35,7 @@ export type PortalBooking = {
   note?: string;
   status: PortalStatus;
   quote?: string;
+  team?: number; // how many artists of this category the booking needs, when more than one
 };
 
 export type PortalFile = PortfolioFile & { url: string };
@@ -89,6 +91,11 @@ const notSignedIn = { ok: false as const, error: "You're signed out. Please sign
 
 // ---- Loading the portal ----
 
+// Whether a shortlisted artist's part of an order still needs someone: their line isn't full (or,
+// with no line in their categories, the order as a whole isn't).
+const stillOpen = (items: BookingItem[], item?: BookingItem) =>
+  item ? item.artistIds.length < item.count : assignedArtists(items).length < totalNeeded(items);
+
 const stageOf = (status: ApplicationStatus) => (status === "trial" ? 2 : status === "approved" ? 3 : status === "submitted" ? 0 : 1);
 
 const showDate = (date: string, start: string, end?: string) => {
@@ -122,7 +129,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         meeting: app.meeting,
         stage: stageOf(app.status),
         kycVerified: app.kyc === "verified",
-        profile: { fullName: app.name, phone: app.phone, email: app.email, city: app.city, category: app.category, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, agreeTerms: true },
+        profile: { fullName: app.name, phone: app.phone, email: app.email, city: app.city, category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, agreeTerms: true },
         bookings: [],
         blockedDates: [],
         portfolio: withUrls(app.portfolio ?? []),
@@ -134,7 +141,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
   const artist = fromRow.artist(account.row);
   topics.push(artistTopic(artist.id));
   const [{ data: rows }, { data: replyRows }] = await Promise.all([
-    db.from("bookings").select("*").or(`artist_id.eq.${artist.id},shortlist.cs.{${artist.id}}`).order("event_date", { ascending: true }),
+    db.from("bookings").select("*").or(`artist_ids.cs.{${artist.id}},artist_id.eq.${artist.id},shortlist.cs.{${artist.id}}`).order("event_date", { ascending: true }),
     db.from("artist_replies").select("*").eq("artist_id", artist.id),
   ]);
   const replies = new Map((replyRows ?? []).map(fromRow.reply).map((r) => [r.bookingId, r]));
@@ -149,26 +156,29 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
   for (const b of (rows ?? []).map(fromRow.booking)) {
     let status: PortalStatus | null = null;
     const reply = replies.get(b.id);
-    if (b.artistId === artist.id) {
+    // The artist's part of the order: the line they're assigned to, or else one in their categories.
+    const item = itemFor(b.items, artist.id, artist);
+    if (item?.artistIds.includes(artist.id)) {
       if (b.status === "confirmed" || (b.status === "rescheduled" && paid.has(b.id))) status = "confirmed";
       else if (["completed", "delivered", "reviewed"].includes(b.status)) status = "completed";
       else if (b.status === "cancelled") status = "cancelled";
       else status = "selected";
-    } else if (!b.artistId && b.status !== "cancelled") {
-      // Shortlisted, and the customer hasn't picked anyone yet.
+    } else if (stillOpen(b.items, item) && b.status !== "cancelled") {
+      // Shortlisted, and their part of the order still needs more artists than have been picked.
       status = reply ? reply.status : "new";
     }
-    if (!status) continue; // went to another artist, or cancelled before they were picked
+    if (!status) continue; // went to other artists, or cancelled before they were picked
     bookings.push({
       id: b.id,
       event: b.event || "Event",
-      service: b.service,
+      service: (item ?? b.items[0])?.service ?? "",
       date: showDate(b.date, b.time, b.endTime),
       city: b.city,
       budget: b.budget || "Not given yet",
       note: b.notes || undefined,
       status,
       quote: reply?.status === "quoted" && reply.quote ? String(reply.quote) : undefined,
+      team: item && item.count > 1 ? item.count : undefined,
     });
   }
 
@@ -186,6 +196,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         email: artist.email,
         city: artist.city,
         category: artist.category,
+        otherCategories: artist.otherCategories,
         services: artist.services,
         experience: artist.experience,
         languages: artist.languages,
@@ -210,12 +221,13 @@ const phoneOk = (p: string) => {
   return /^(?:91|0)?[6-9]\d{9}$/.test(d) || (d.length >= 8 && d.length <= 15);
 };
 
-// Name and category stay as AOD approved them; everything else the artist keeps up to date.
+// Name and categories stay as AOD approved them; everything else the artist keeps up to date.
 export async function saveArtistProfile(patch: ProfilePatch): Promise<Result> {
   const account = await currentAccount();
   if (!account) return notSignedIn;
   const row: Record<string, unknown> = {};
-  const category = categories.find((c) => c.slug === String(account.row.category));
+  const own = allCategories({ category: String(account.row.category), otherCategories: Array.isArray(account.row.other_categories) ? account.row.other_categories.map(String) : [] });
+  const offered = categories.filter((c) => own.includes(c.slug)).flatMap((c) => c.services.map((s) => s.name));
 
   if (patch.phone !== undefined) {
     const phone = String(patch.phone).trim().slice(0, 20);
@@ -228,7 +240,7 @@ export async function saveArtistProfile(patch: ProfilePatch): Promise<Result> {
     row.city = city;
   }
   if (patch.services !== undefined) {
-    const allowed = new Set(category?.services.map((s) => s.name) ?? []);
+    const allowed = new Set(offered);
     const services = [...new Set((Array.isArray(patch.services) ? patch.services : []).map(String))].filter((s) => allowed.has(s));
     if (!services.length) return { ok: false, error: "Pick at least one service." };
     row.services = services;
@@ -288,7 +300,9 @@ export async function replyToBooking(bookingId: string, status: "quoted" | "decl
   if (!data) return { ok: false, error: "This request no longer exists." };
   const b = fromRow.booking(data);
   if (!b.shortlist.includes(account.id)) return { ok: false, error: "This request isn't one of yours." };
-  if (b.artistId || b.status === "cancelled") return { ok: false, error: "This request has already been settled." };
+  const item = itemFor(b.items, account.id, fromRow.artist(account.row));
+  if (assignedArtists(b.items).includes(account.id) || !stillOpen(b.items, item) || b.status === "cancelled")
+    return { ok: false, error: "This request has already been settled." };
 
   const text = String(note ?? "").trim().slice(0, 300);
   const { error } = await db
@@ -304,7 +318,7 @@ export async function replyToBooking(bookingId: string, status: "quoted" | "decl
         kind: "email",
         to: teamEmails(),
         subject: status === "quoted" ? `${name} quoted ₹${amount!.toLocaleString("en-IN")} for ${b.id}` : `${name} declined ${b.id}`,
-        text: `${name} ${status === "quoted" ? `quoted ₹${amount!.toLocaleString("en-IN")}` : "declined"} for ${b.id} (${b.service}, ${b.event}, ${b.date}, ${b.city}).${text ? `\n\nNote: ${text}` : ""}\n\nOpen the booking: ${sectionUrl("admin", `/bookings?open=${b.id}`)}`,
+        text: `${name} ${status === "quoted" ? `quoted ₹${amount!.toLocaleString("en-IN")}` : "declined"} for ${b.id} (${(item ?? b.items[0])?.service ?? ""}, ${b.event}, ${b.date}, ${b.city}).${text ? `\n\nNote: ${text}` : ""}\n\nOpen the booking: ${sectionUrl("admin", `/bookings?open=${b.id}`)}`,
       },
     ]);
   });

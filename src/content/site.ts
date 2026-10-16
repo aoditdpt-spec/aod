@@ -225,11 +225,12 @@ export const categories: Category[] = [
     ],
   },
   {
-    // No photo yet: the carousel and the category page show the icon instead.
     slug: "content-creators",
     name: "Content & Instagram Reels",
     singular: "Content & reels creator",
     icon: "smartphone",
+    // A stock photo (iStock 1311101155) for the preview, like the other category photos.
+    image: { src: "/categories/content-creators.webp", width: 612, height: 408 },
     keywords: ["content", "content creator", "creator", "reels", "reel", "instagram", "insta", "ugc", "influencer", "social media", "shorts"],
     short: "Instagram reels, brand content & UGC",
     description:
@@ -418,6 +419,15 @@ export const verifiedArtists = {
 // Artists join over WhatsApp until the online registration system is built.
 export const artistJoinMessage = "Hi Artists on Demand! I am an artist and I want to join AOD.";
 
+// The booking questions on each category page: that category is already picked, with how many
+// of them, and other artists for the same event can be added. `name` is the category's name.
+export const categoryBooking = {
+  eyebrow: (name: string) => `Book ${name.toLowerCase()}`,
+  title: "Tell us what you need",
+  text: (name: string) =>
+    `Say how many ${name.toLowerCase()} you need, and add any other artists for the same event. One request, and we reply with curated matches for each.`,
+};
+
 // "Not sure who to book?" on the homepage: the intro beside the booking questions.
 // Its "What happens next" steps reuse howItWorks.clients.
 export const getMatched = {
@@ -452,8 +462,6 @@ export const howItWorks = {
       text: "One supervised booking to confirm professionalism and punctuality — then the bookings start coming.",
     },
   ],
-  replacement:
-    "Replacement guarantee: if an artist cancels, AOD sends a verified substitute — you are never stranded.",
 };
 
 // The homepage's "Everything in one place" section: the artist portal up front, then the

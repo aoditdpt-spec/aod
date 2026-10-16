@@ -24,7 +24,7 @@ export function VerifiedArtists({ variant = "card", dark = false }: { variant?: 
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white">
             <BadgeCheck className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />
           </span>
-          <h2 className="mt-6 text-3xl font-normal sm:text-[2.5rem] sm:leading-tight text-shadow-3d">{verifiedArtists.title}</h2>
+          <h2 className="mt-6 text-3xl font-normal sm:text-[2.5rem] sm:leading-tight">{verifiedArtists.title}</h2>
           <p className="mt-4 max-w-xl text-lg text-body">{verifiedArtists.text}</p>
         </div>
         <Points />

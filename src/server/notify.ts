@@ -12,6 +12,8 @@ export type EmailJob = { kind: "email"; to: string[]; subject: string; text: str
 export type Job = SheetJob | EmailJob;
 
 // Column headings for the orders sheet: "All orders" and one tab per category use the same columns.
+// New columns go at the end, so rows already in the sheet still line up; a tab whose heading row
+// is missing the new ones gets them added (see appendToSheet).
 export const sheetHeader = [
   "Ref",
   "Booking ID",
@@ -28,6 +30,7 @@ export const sheetHeader = [
   "Details",
   "Status",
   "Source",
+  "Artists needed",
 ];
 export const ALL_ORDERS_TAB = "All orders";
 
@@ -128,7 +131,8 @@ async function googleToken() {
   return cachedToken.token;
 }
 
-// Add rows at the bottom of a tab; writes the heading row first if the tab is empty.
+// Add rows at the bottom of a tab; writes the heading row first if the tab is empty, and adds any
+// headings added since (such as "Artists needed") to a tab that has the older ones.
 async function appendToSheet(tab: string, rows: string[][]) {
   // The sheet's ID, or its whole address pasted in (…/spreadsheets/d/<id>/edit…): either works.
   const raw = process.env.ORDERS_SHEET_ID?.trim() ?? "";
@@ -140,9 +144,15 @@ async function appendToSheet(tab: string, rows: string[][]) {
   const range = (r: string) => encodeURIComponent(`'${tab.replace(/'/g, "''")}'!${r}`);
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-  const first = await fetch(`${base}/${range("A1:A1")}`, { headers });
+  const first = await fetch(`${base}/${range("1:1")}`, { headers });
   if (!first.ok) throw new Error(`Sheet tab "${tab}" ${first.status}: ${(await first.text()).slice(0, 200)}`);
-  const empty = !((await first.json()) as { values?: unknown[] }).values;
+  const heading = ((await first.json()) as { values?: string[][] }).values?.[0] ?? [];
+  const empty = heading.length === 0;
+  const older = !empty && heading.length < sheetHeader.length && heading.every((h, i) => h === sheetHeader[i]);
+  if (older) {
+    const fix = await fetch(`${base}/${range("A1")}?valueInputOption=RAW`, { method: "PUT", headers, body: JSON.stringify({ values: [sheetHeader] }) });
+    if (!fix.ok) console.error(`[sheet] couldn't add the new headings to "${tab}"`, fix.status);
+  }
 
   const res = await fetch(`${base}/${range("A1")}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
     method: "POST",

@@ -7,11 +7,13 @@ import { bookingStages } from "@/content/admin";
 import { experienceLevels } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Artist, type Db } from "@/lib/admin-store";
+import { assignedArtists, itemFor, itemsLabel, worksIn } from "@/lib/booking-needs";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
   ActionButton,
   categoryName,
+  categoryNames,
   Details,
   Drawer,
   DrawerSection,
@@ -33,8 +35,8 @@ import { useOpen } from "../useOpen";
 import { sectionLink } from "@/lib/site-url";
 
 const done = ["completed", "delivered", "reviewed"];
-const jobs = (db: Db, id: string) => db.bookings.filter((b) => b.artistId === id && done.includes(b.status)).length;
-const upcoming = (db: Db, id: string) => db.bookings.filter((b) => b.artistId === id && ["confirmed", "payment_pending", "quoted"].includes(b.status) && b.date >= todayKey()).length;
+const jobs = (db: Db, id: string) => db.bookings.filter((b) => assignedArtists(b.items).includes(id) && done.includes(b.status)).length;
+const upcoming = (db: Db, id: string) => db.bookings.filter((b) => assignedArtists(b.items).includes(id) && ["confirmed", "payment_pending", "quoted"].includes(b.status) && b.date >= todayKey()).length;
 
 export function Artists() {
   const db = useDb();
@@ -45,7 +47,7 @@ export function Artists() {
 
   const columns: Column<Artist>[] = [
     { key: "name", label: "Artist", render: (a) => a.name, value: (a) => a.name },
-    { key: "category", label: "Category", render: (a) => categoryName(a.category), value: (a) => categoryName(a.category) },
+    { key: "category", label: "Categories", render: (a) => categoryNames(a), value: (a) => categoryNames(a) },
     { key: "city", label: "City", render: (a) => a.city, value: (a) => a.city },
     { key: "experience", label: "Experience", render: (a) => a.experience, value: (a) => a.experience, hideOnMobile: true },
     { key: "jobs", label: "Jobs done", render: (a) => jobs(db, a.id), value: (a) => jobs(db, a.id), hideOnMobile: true },
@@ -73,7 +75,7 @@ export function Artists() {
         exportName="artists"
         initialSort={{ key: "name", dir: "asc" }}
         filters={[
-          { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (a, v) => a.category === v },
+          { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (a, v) => worksIn(a, v) },
           { label: "City", options: cities.map((c) => ({ value: c, label: c })), test: (a, v) => a.city === v },
           { label: "Status", options: [{ value: "active", label: "Active" }, { value: "paused", label: "Paused" }], test: (a, v) => a.status === v },
         ]}
@@ -88,7 +90,7 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
   const allowed = useCan();
   const [blockDate, setBlockDate] = useState("");
   const [upi, setUpi] = useState(artist.payoutUpi);
-  const history = db.bookings.filter((b) => b.artistId === artist.id).sort((a, b) => b.date.localeCompare(a.date));
+  const history = db.bookings.filter((b) => assignedArtists(b.items).includes(artist.id)).sort((a, b) => b.date.localeCompare(a.date));
   const payouts = db.payouts.filter((p) => p.artistId === artist.id);
   const reviews = history.filter((b) => b.review);
   const edit = (text: string, fn: (a: Artist) => void) => update("Artists", text, (d) => fn(d.artists.find((x) => x.id === artist.id)!), artist.id);
@@ -98,7 +100,7 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
       open
       onClose={onClose}
       title={artist.name}
-      subtitle={`${artist.id} · ${categoryName(artist.category)} · ${artist.city}`}
+      subtitle={`${artist.id} · ${categoryNames(artist)} · ${artist.city}`}
       footer={
         <>
           <a href={whatsappTo(artist.phone, `Hi ${artist.name.split(" ")[0]}, `)} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-whatsapp px-3.5 text-sm font-medium text-white hover:bg-whatsapp-hover">
@@ -132,6 +134,19 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
         />
       </DrawerSection>
 
+      <DrawerSection title="Categories">
+        <p className="text-sm text-ink">
+          Main: <strong className="font-medium">{categoryName(artist.category)}</strong>
+        </p>
+        <p className="mt-1 text-xs text-muted">They&apos;re offered for bookings in their main category and every other one ticked here.</p>
+        <OtherCategories
+          main={artist.category}
+          value={artist.otherCategories}
+          disabled={!allowed("artists.edit")}
+          onChange={(next, slug, on) => edit(`${on ? "Added" : "Removed"} ${categoryName(slug)} ${on ? "to" : "from"} ${artist.name}'s categories`, (a) => void (a.otherCategories = next))}
+        />
+      </DrawerSection>
+
       <DrawerSection title="Their work">
         {artist.bio && <p className="mb-3 whitespace-pre-line text-sm text-ink">{artist.bio}</p>}
         {(artist.links ?? []).length > 0 && (
@@ -158,7 +173,7 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
                 <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-wash">
                   <span className="min-w-0">
                     <span className="block truncate text-ink">
-                      {b.id} · {b.service}
+                      {b.id} · {itemFor(b.items, artist.id)?.service ?? itemsLabel(b.items)}
                     </span>
                     <span className="block text-xs text-muted">
                       {fmtDate(b.date)} · {b.customer.name} · {inr(b.quote)}
@@ -234,8 +249,35 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
   );
 }
 
+// Tick boxes for the categories an artist also works in, besides their main one.
+function OtherCategories({ main, value, disabled, onChange }: { main: string; value: string[]; disabled?: boolean; onChange: (next: string[], slug: string, on: boolean) => void }) {
+  return (
+    <div role="group" aria-label="Also works as" className="mt-2 flex flex-wrap gap-1.5">
+      {categories
+        .filter((c) => c.slug !== main)
+        .map((c) => {
+          const on = value.includes(c.slug);
+          return (
+            <button
+              key={c.slug}
+              type="button"
+              aria-pressed={on}
+              disabled={disabled}
+              onClick={() => onChange(on ? value.filter((x) => x !== c.slug) : [...value, c.slug], c.slug, !on)}
+              className={`rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed ${on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"}`}
+            >
+              {on ? "✓ " : ""}
+              {c.name}
+            </button>
+          );
+        })}
+    </div>
+  );
+}
+
 function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: string) => void }) {
   const [form, setForm] = useState({ name: "", phone: "", email: "", city: cities[0], category: categories[0].slug, experience: "1–3 years" });
+  const [others, setOthers] = useState<string[]>([]);
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const ok = form.name.trim().length > 1 && form.phone.replace(/\D/g, "").length >= 10;
   return (
@@ -254,6 +296,7 @@ function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: st
               void db.artists.unshift({
                 id,
                 ...form,
+                otherCategories: others.filter((c) => c !== form.category),
                 services: [],
                 languages: [],
                 joinedAt: new Date().toISOString(),
@@ -305,6 +348,12 @@ function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: st
             ))}
           </select>
         </Labelled>
+        <div className="sm:col-span-2">
+          <p className="text-sm font-medium text-ink">
+            Also works as <span className="font-normal text-muted">(optional)</span>
+          </p>
+          <OtherCategories main={form.category} value={others} onChange={(next) => setOthers(next)} />
+        </div>
       </div>
     </Drawer>
   );

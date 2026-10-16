@@ -1,14 +1,23 @@
 import { Icon, type AnyIconName } from "@/components/ui/Icon";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 
+// Columns on laptops for three or four steps, and where the joining line starts and ends: from the
+// centre of the first column to the centre of the last (written out so Tailwind sees them).
+const row = {
+  3: "md:grid-cols-3 md:before:left-[16.67%] md:before:right-[16.67%]",
+  4: "md:grid-cols-4 md:before:left-[12.5%] md:before:right-[12.5%]",
+};
+
 // Numbered steps without photos: a round icon badge with its step number, the title and a line
 // of text. On laptops the steps sit in a row joined by a thin line; on phones they stack as a
-// timeline. They arrive in a wave like the other lists on the site.
+// timeline. They arrive in a wave like the other lists on the site. Three or four steps.
 export function StepFlow({ steps, icons }: { steps: readonly { title: string; text: string }[]; icons: readonly AnyIconName[] }) {
   return (
-    // On laptops the list's ::before draws the line joining the badges, from the centre of the
-    // first column to the centre of the last (a pseudo-element, since a list may only hold items).
-    <StaggerList className="relative grid gap-8 md:grid-cols-3 md:gap-10 md:before:absolute md:before:left-[16.67%] md:before:right-[16.67%] md:before:top-8 md:before:h-px md:before:bg-peach md:before:content-['']">
+    // On laptops the list's ::before draws the line joining the badges (a pseudo-element, since a
+    // list may only hold items).
+    <StaggerList
+      className={`relative grid gap-8 md:gap-10 md:before:absolute md:before:top-8 md:before:h-px md:before:bg-peach md:before:content-[''] ${steps.length === 4 ? row[4] : row[3]}`}
+    >
       {steps.map((s, i) => (
         <StaggerItem key={s.title} className="relative flex gap-5 md:flex-col md:items-center md:text-center">
           {/* On phones, a line runs down from each badge to the next one. */}

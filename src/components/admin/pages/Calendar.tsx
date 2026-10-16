@@ -6,8 +6,9 @@ import { useState } from "react";
 import { bookingStages } from "@/content/admin";
 import { categories } from "@/content/site";
 import { useDb } from "@/lib/admin-store";
+import { assignedArtists, itemsLabel, worksIn } from "@/lib/booking-needs";
 import { time12 } from "@/lib/event-time";
-import { artistName, fieldBase, PageHeader, todayKey } from "../ui";
+import { artistNames, fieldBase, PageHeader, todayKey } from "../ui";
 import { sectionLink } from "@/lib/site-url";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -36,9 +37,9 @@ export function Calendar() {
   const cells = [...Array.from({ length: lead }, () => null), ...Array.from({ length: days }, (_, i) => new Date(first.getFullYear(), first.getMonth(), i + 1))];
   const today = todayKey();
 
-  const bookings = db.bookings.filter((b) => (showCancelled || b.status !== "cancelled") && (!artist || b.artistId === artist) && (!category || b.category === category));
+  const bookings = db.bookings.filter((b) => (showCancelled || b.status !== "cancelled") && (!artist || assignedArtists(b.items).includes(artist)) && (!category || b.items.some((i) => i.category === category)));
   const meetings = artist || category ? [] : db.applications.filter((a) => a.status === "meeting" && a.meeting);
-  const off = db.artists.filter((a) => (!artist || a.id === artist) && (!category || a.category === category));
+  const off = db.artists.filter((a) => (!artist || a.id === artist) && (!category || worksIn(a, category)));
 
   return (
     <div className="space-y-6">
@@ -98,9 +99,9 @@ export function Calendar() {
                     const tone = bookingStages.find((s) => s.id === b.status)?.tone ?? "neutral";
                     return (
                       <li key={b.id}>
-                        <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} title={`${b.id} · ${b.service} · ${b.customer.name} · ${artistName(db, b.artistId)}`} className={`block truncate rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${chip[tone]}`}>
+                        <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} title={`${b.id} · ${itemsLabel(b.items)} · ${b.customer.name} · ${artistNames(db, assignedArtists(b.items))}`} className={`block truncate rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${chip[tone]}`}>
                           {b.time !== "—" ? `${time12(b.time)} ` : ""}
-                          {b.service}
+                          {itemsLabel(b.items)}
                         </Link>
                       </li>
                     );

@@ -8,6 +8,7 @@ import { WhatsAppIcon } from "@/components/ui/Icon";
 import { backendEnabled } from "@/lib/backend";
 import { reloadPortal, usePortalState } from "@/lib/artist-live";
 import { requestCode, verifyCode } from "@/server/actions/auth";
+import { Spinner } from "@/components/ui/Spinner";
 import { Field, inputBase, inputClass } from "./form";
 import { sectionLink } from "@/lib/site-url";
 
@@ -114,7 +115,11 @@ function LiveSignIn() {
           disabled={busy}
           className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover disabled:opacity-60"
         >
-          {busy ? "Please wait…" : sent ? (
+          {busy ? (
+            <>
+              <Spinner /> {sent ? "Signing you in…" : "Sending the code…"}
+            </>
+          ) : sent ? (
             <>
               Verify and sign in <ArrowRight className="h-4 w-4" aria-hidden />
             </>

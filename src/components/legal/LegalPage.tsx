@@ -36,7 +36,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
             <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
             Last updated {doc.updated}
           </p>
-          <h1 className="mt-3 text-3xl font-medium sm:text-5xl text-shadow-3d">{doc.title}</h1>
+          <h1 className="mt-3 text-3xl font-medium sm:text-5xl">{doc.title}</h1>
           <p className="mt-5 text-lg text-body">{doc.intro}</p>
 
           <div className="mt-10 space-y-10">

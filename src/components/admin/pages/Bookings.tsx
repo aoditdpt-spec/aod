@@ -1,20 +1,23 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { CalendarDays, Columns3, List, MapPin, Plus, Star, Users } from "lucide-react";
+import { CalendarDays, Columns3, List, MapPin, Plus, Star, Trash2, Users } from "lucide-react";
 import { useState, type DragEvent } from "react";
 import { activeBookingStages, bookingStages, paymentStatuses, templates, type TemplateId } from "@/content/admin";
 import { categories, cities } from "@/content/site";
-import { currentUser, newId, update, useDb, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
+import { currentUser, newId, update, useDb, type Artist, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
+import { assignedArtists, itemFor, itemsLabel, MAX_ARTISTS, totalNeeded, withCount, worksIn, type BookingItem } from "@/lib/booking-needs";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { parseOrderMessage, pickService } from "@/lib/whatsapp-order";
+import { CountPicker } from "@/components/ui/CountPicker";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
   ActionButton,
   addDays,
   ago,
-  artistName,
+  artistList,
+  artistNames,
   categoryName,
   daysUntil,
   Details,
@@ -36,6 +39,18 @@ import {
 import { useOpen } from "../useOpen";
 
 const label = (id: string) => bookingStages.find((s) => s.id === id)?.label ?? id;
+
+// "2 of 4 · Aarav Joshi, Dev Solanki" when an order needs several artists; the names otherwise.
+const assignedText = (db: Db, b: Booking) => {
+  const ids = assignedArtists(b.items);
+  const need = totalNeeded(b.items);
+  return need > 1 ? `${ids.length} of ${need}${ids.length ? ` · ${artistNames(db, ids)}` : ""}` : artistNames(db, ids);
+};
+
+// "Photographers · Wedding photography × 2": one line of an order. Website requests name the
+// category as the service, so it shows once.
+const itemText = (i: BookingItem) =>
+  withCount(!i.service || i.service === categoryName(i.category) ? categoryName(i.category) : `${categoryName(i.category)} · ${i.service}`, i.count);
 
 // Change a booking's status and record it in its history and the activity log.
 function moveTo(b: Booking, status: BookingStatus, extra?: (x: Booking) => void, text?: string) {
@@ -72,10 +87,10 @@ export function Bookings() {
 
   const columns: Column<Booking>[] = [
     { key: "id", label: "Booking", render: (b) => `${b.id} · ${b.customer.name}`, value: (b) => `${b.id} ${b.customer.name}` },
-    { key: "service", label: "Service", render: (b) => b.service, value: (b) => b.service },
+    { key: "service", label: "Needs", render: (b) => itemsLabel(b.items), value: (b) => itemsLabel(b.items) },
     { key: "date", label: "Event date", render: (b) => fmtDate(b.date), value: (b) => b.date },
     { key: "city", label: "City", render: (b) => b.city, value: (b) => b.city, hideOnMobile: true },
-    { key: "artist", label: "Artist", render: (b) => artistName(db, b.artistId), value: (b) => artistName(db, b.artistId), hideOnMobile: true },
+    { key: "artist", label: "Artists", render: (b) => assignedText(db, b), value: (b) => assignedText(db, b), hideOnMobile: true },
     { key: "quote", label: "Quote", render: (b) => inr(b.quote), value: (b) => b.quote ?? 0, hideOnMobile: true },
     { key: "type", label: "Type", render: (b) => b.audience, value: (b) => b.audience, hideOnMobile: true },
     { key: "status", label: "Status", render: (b) => <StageBadge stages={bookingStages} id={b.status} />, value: (b) => label(b.status) },
@@ -115,7 +130,7 @@ export function Bookings() {
           initialSort={{ key: "date", dir: "asc" }}
           filters={[
             { label: "Status", options: bookingStages.map((s) => ({ value: s.id, label: s.label })), test: (b, v) => b.status === v },
-            { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (b, v) => b.category === v },
+            { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (b, v) => b.items.some((i) => i.category === v) },
             { label: "City", options: cities.map((c) => ({ value: c, label: c })), test: (b, v) => b.city === v },
             { label: "Type", options: [{ value: "Personal", label: "Personal" }, { value: "Business", label: "Business" }], test: (b, v) => b.audience === v },
           ]}
@@ -177,7 +192,7 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
                         <span className={b.audience === "Business" ? "rounded bg-night px-1.5 text-white" : ""}>{b.audience === "Business" ? "B2B" : ""}</span>
                       </span>
                       <span className="mt-1 block font-medium text-ink">{b.customer.name}</span>
-                      <span className="block text-body">{b.service}</span>
+                      <span className="block text-body">{itemsLabel(b.items)}</span>
                       <span className="mt-2 flex items-center gap-3 text-xs text-muted">
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="h-3.5 w-3.5" aria-hidden /> {fmtDate(b.date)}
@@ -186,9 +201,9 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
                           <MapPin className="h-3.5 w-3.5" aria-hidden /> {b.city}
                         </span>
                       </span>
-                      {(b.artistId || b.quote) && (
-                        <span className="mt-2 flex items-center justify-between border-t border-line pt-2 text-xs">
-                          <span className="truncate text-ink">{artistName(db, b.artistId)}</span>
+                      {(assignedArtists(b.items).length > 0 || b.quote) && (
+                        <span className="mt-2 flex items-center justify-between gap-2 border-t border-line pt-2 text-xs">
+                          <span className="truncate text-ink">{assignedText(db, b)}</span>
                           <span className="font-medium text-ink">{inr(b.quote)}</span>
                         </span>
                       )}
@@ -217,26 +232,20 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   const [newDate, setNewDate] = useState(b.date);
   const [reason, setReason] = useState("");
 
-  const artist = db.artists.find((a) => a.id === b.artistId);
+  // Everyone assigned, across the order's lines.
+  const assigned = assignedArtists(b.items).map((id) => db.artists.find((a) => a.id === id)).filter((a): a is Artist => a !== undefined);
+  const artist = assigned.length === 1 ? assigned[0] : undefined;
+  const need = totalNeeded(b.items);
+  // Shortlisted artists are offered to the customer; a couple more than needed for each category.
+  const shortlistMax = Math.max(3, need + 2 * b.items.length);
   const payments = db.payments.filter((p) => p.bookingId === b.id);
   const verified = payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
   const due = (b.advance ?? b.quote ?? 0) - verified;
   const expiry = addDays(todayKey(), db.settings.deliveryLinkDays);
 
-  // Artists who could take this: same category, active, free that day. Same city first.
-  const candidates = db.artists
-    .filter((a) => a.category === b.category && a.status === "active")
-    .map((a) => {
-      // A rescheduled booking sits on its new date, so it counts; only cancelled ones free the day.
-      const clash = db.bookings.some((x) => x.id !== b.id && x.artistId === a.id && x.date === b.date && x.status !== "cancelled");
-      const off = a.blockedDates.includes(b.date);
-      return { a, free: !clash && !off, why: off ? "Day off" : clash ? "Booked that day" : a.city === b.city ? "Free · same city" : `Free · ${a.city}` };
-    })
-    .sort((x, y) => Number(y.free) - Number(x.free) || Number(y.a.city === b.city) - Number(x.a.city === b.city));
-
   const vars: Record<string, string> = {
     customer: b.customer.name.split(" ")[0],
-    service: b.service,
+    service: itemsLabel(b.items),
     event: b.event.toLowerCase(),
     date: fmtDate(b.date),
     city: b.city,
@@ -244,13 +253,18 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
     amount: inr(due > 0 ? due : b.quote),
     quote: inr(b.quote),
     budget: b.budget,
-    artist: artist?.name ?? "your artist",
+    artist: artistList(db, assignedArtists(b.items), need > 1 ? "your artists" : "your artist"),
     delivery: b.delivery?.link ?? delivery,
     expiry: fmtDate(b.delivery?.expires ?? expiry),
   };
-  const send = (id: TemplateId, to: "customer" | "artist") => whatsappTo(to === "customer" ? b.customer.phone : artist?.phone ?? "", fillTemplate(id, vars));
+  // A message to the customer, or to one artist (named in it, about their own line of the order).
+  const send = (id: TemplateId, to: "customer" | Artist) =>
+    to === "customer"
+      ? whatsappTo(b.customer.phone, fillTemplate(id, vars))
+      : whatsappTo(to.phone, fillTemplate(id, { ...vars, service: itemFor(b.items, to.id, to)?.service ?? vars.service, artist: to.name }));
   const edit = (text: string, fn: (x: Booking) => void) => update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!), b.id);
   const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-ink hover:border-ink";
+  const first = (a: Artist) => a.name.split(" ")[0];
 
   return (
     <Drawer
@@ -259,7 +273,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
       title={`${b.id} · ${b.customer.name}`}
       subtitle={
         <span className="flex flex-wrap items-center gap-2">
-          {b.service} · {fmtDate(b.date)} · {b.city} <StageBadge stages={bookingStages} id={b.status} />
+          {itemsLabel(b.items)} · {fmtDate(b.date)} · {b.city} <StageBadge stages={bookingStages} id={b.status} />
         </span>
       }
       footer={
@@ -268,7 +282,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             <WhatsAppIcon className="h-4 w-4" /> Customer
           </a>
           {artist && (
-            <a href={whatsappTo(artist.phone, `Hi ${artist.name.split(" ")[0]}, about ${b.id}: `)} target="_blank" rel="noopener noreferrer" className={waBtn}>
+            <a href={whatsappTo(artist.phone, `Hi ${first(artist)}, about ${b.id}: `)} target="_blank" rel="noopener noreferrer" className={waBtn}>
               <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Artist
             </a>
           )}
@@ -298,8 +312,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             ["Email", b.customer.email],
             ["Event", `${b.event} · ${fmtDate(b.date)}, ${timeRange(b.time, b.endTime)}`],
             ["Venue", [b.venue, b.city].filter(Boolean).join(", ")],
-            // Website requests name the category as the service; show it once.
-            ["Service", b.service === categoryName(b.category) ? b.service : `${categoryName(b.category)} · ${b.service}`],
+            ["Needs", b.items.map(itemText).join(", ")],
             ["Budget", b.budget],
             ["Notes", b.notes || "—"],
             ["Requested", fmtDate(b.createdAt, true)],
@@ -307,60 +320,16 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
         />
       </DrawerSection>
 
-      <DrawerSection title="Artist">
-        {artist ? (
-          <p className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-peach/40 p-3 text-sm">
-            <span>
-              Assigned: <strong className="font-medium">{artist.name}</strong> · {artist.city}
-            </span>
-            <a href={send("artist_request", "artist")} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand underline underline-offset-2">
-              Ask availability
-            </a>
-          </p>
-        ) : (
-          <p className="mb-3 text-sm text-muted">No artist assigned yet. Pick one, or shortlist up to three to offer the customer.</p>
-        )}
-        <ul className="divide-y divide-line rounded-lg border border-line">
-          {candidates.length === 0 && <li className="p-3 text-sm text-muted">No active {categoryName(b.category).toLowerCase()} yet.</li>}
-          {candidates.map(({ a, free, why }) => {
-            const listed = b.shortlist.includes(a.id);
-            // The artist's answer from the portal, once shortlisted.
-            const reply = b.replies?.find((r) => r.artistId === a.id);
-            return (
-              <li key={a.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium text-ink">{a.name}</span>
-                  <span className={`block text-xs ${free ? "text-emerald-700" : "text-red-700"}`}>{why}</span>
-                  {reply && (
-                    <span className={`mt-0.5 block text-xs font-medium ${reply.status === "quoted" ? "text-brand" : "text-muted"}`}>
-                      {reply.status === "quoted" ? `Quoted ${inr(reply.quote)}` : "Declined"} in the portal · {ago(reply.at)}
-                      {reply.note && <span className="block font-normal text-muted">&ldquo;{reply.note}&rdquo;</span>}
-                    </span>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  disabled={!editable || (!listed && b.shortlist.length >= 3)}
-                  onClick={() => edit(`${listed ? "Removed" : "Shortlisted"} ${a.name} for ${b.id}`, (x) => void (x.shortlist = listed ? x.shortlist.filter((i) => i !== a.id) : [...x.shortlist, a.id]))}
-                  className={`rounded-md px-2 py-1 text-xs font-medium disabled:opacity-40 ${listed ? "bg-night text-white" : "border border-line text-ink"}`}
-                >
-                  <Users className="mr-1 inline h-3 w-3" aria-hidden />
-                  {listed ? "Shortlisted" : "Shortlist"}
-                </button>
-                <button
-                  type="button"
-                  disabled={!editable || b.artistId === a.id}
-                  onClick={() =>
-                    moveTo(b, b.status === "new" || (b.status === "rescheduled" && !b.artistId) ? "matched" : b.status, (x) => void (x.artistId = a.id), `Assigned ${a.name} to ${b.id}`)
-                  }
-                  className="rounded-md bg-brand px-2 py-1 text-xs font-medium text-white disabled:opacity-40"
-                >
-                  {b.artistId === a.id ? "Assigned" : "Assign"}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      <DrawerSection title={b.items.length > 1 ? `Who they need · ${b.items.length} categories` : "Who they need"}>
+        <p className="mb-3 text-sm text-muted">
+          {assignedArtists(b.items).length} of {need} assigned. Shortlist up to {shortlistMax} in all to offer the customer.
+        </p>
+        <div className="space-y-4">
+          {b.items.map((item, i) => (
+            <OrderLine key={`${item.category}-${i}`} b={b} i={i} db={db} editable={editable} shortlistMax={shortlistMax} send={send} />
+          ))}
+        </div>
+        {editable && <AddLine b={b} />}
       </DrawerSection>
 
       <DrawerSection title="Quote and payment">
@@ -469,11 +438,11 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
                 <a href={send("event_reminder", "customer")} target="_blank" rel="noopener noreferrer" className={waBtn}>
                   <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Event reminder
                 </a>
-                {artist && (
-                  <a href={send("artist_confirmed", "artist")} target="_blank" rel="noopener noreferrer" className={waBtn}>
-                    <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Tell the artist
+                {assigned.map((a) => (
+                  <a key={a.id} href={send("artist_confirmed", a)} target="_blank" rel="noopener noreferrer" className={waBtn}>
+                    <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> {assigned.length > 1 ? `Tell ${first(a)}` : "Tell the artist"}
                   </a>
-                )}
+                ))}
                 <ActionButton permission="bookings.edit" variant="secondary" disabled={daysUntil(b.date) > 0} title={daysUntil(b.date) > 0 ? "After the event date" : undefined} onClick={() => moveTo(b, "completed")}>
                   Mark event done
                 </ActionButton>
@@ -560,11 +529,19 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
 
       <DrawerSection title="Messages">
         <div className="flex flex-wrap gap-1.5">
+          {/* Customer messages once; artist messages once for each assigned artist. */}
           {templates
-            .filter((t) => t.to !== "applicant" && (t.to === "customer" || artist))
-            .map((t) => (
-              <a key={t.id} href={send(t.id, t.to === "artist" ? "artist" : "customer")} target="_blank" rel="noopener noreferrer" className="rounded-md border border-line px-2 py-1 text-xs text-ink hover:border-whatsapp hover:text-whatsapp">
-                {t.name}
+            .filter((t) => t.to !== "applicant")
+            .flatMap((t): { t: (typeof templates)[number]; a?: Artist }[] => (t.to === "artist" ? assigned.map((a) => ({ t, a })) : [{ t }]))
+            .map(({ t, a }) => (
+              <a
+                key={`${t.id}-${a?.id ?? "customer"}`}
+                href={send(t.id, a ?? "customer")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md border border-line px-2 py-1 text-xs text-ink hover:border-whatsapp hover:text-whatsapp"
+              >
+                {a && assigned.length > 1 ? `${t.name} · ${first(a)}` : t.name}
               </a>
             ))}
         </div>
@@ -598,10 +575,10 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             variant="danger"
             className="mt-2"
             onClick={() => {
-              if (!window.confirm(`Delete ${b.id} (${b.customer.name || "no name"}, ${b.service}) for good? Its payments and payouts go too. This can't be undone.`)) return;
+              if (!window.confirm(`Delete ${b.id} (${b.customer.name || "no name"}, ${itemsLabel(b.items)}) for good? Its payments and payouts go too. This can't be undone.`)) return;
               update(
                 "Bookings",
-                `Deleted booking ${b.id} (${b.customer.name || "no name"}, ${b.service})`,
+                `Deleted booking ${b.id} (${b.customer.name || "no name"}, ${itemsLabel(b.items)})`,
                 (d) => {
                   d.bookings = d.bookings.filter((x) => x.id !== b.id);
                   d.payments = d.payments.filter((p) => p.bookingId !== b.id);
@@ -620,20 +597,272 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   );
 }
 
+// One line of an order ("Photographers × 2"): its service, how many, who's assigned, and the
+// artists who could take it, working in its category (as their main one or another), active and
+// free that day, same city first.
+function OrderLine({
+  b,
+  i,
+  db,
+  editable,
+  shortlistMax,
+  send,
+}: {
+  b: Booking;
+  i: number;
+  db: Db;
+  editable: boolean;
+  shortlistMax: number;
+  send: (id: TemplateId, to: Artist) => string;
+}) {
+  const item = b.items[i];
+  const name = categoryName(item.category);
+  const cat = categories.find((c) => c.slug === item.category);
+  const services = [...new Set([item.service, ...(cat?.services.map((s) => s.name) ?? [])].filter(Boolean))];
+  const assigned = item.artistIds.map((id) => db.artists.find((a) => a.id === id)).filter((a): a is Artist => a !== undefined);
+  const full = item.artistIds.length >= item.count;
+  const editLine = (text: string, fn: (line: BookingItem) => void) =>
+    update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!.items[i]), b.id);
+
+  const candidates = db.artists
+    .filter((a) => worksIn(a, item.category) && a.status === "active")
+    .map((a) => {
+      // A rescheduled booking sits on its new date, so it counts; only cancelled ones free the day.
+      const clash = db.bookings.some((x) => x.id !== b.id && assignedArtists(x.items).includes(a.id) && x.date === b.date && x.status !== "cancelled");
+      const elsewhere = b.items.find((o, j) => j !== i && o.artistIds.includes(a.id));
+      const off = a.blockedDates.includes(b.date);
+      const where = off
+        ? "Day off"
+        : clash
+          ? "Booked that day"
+          : elsewhere
+            ? `On this order as ${categoryName(elsewhere.category).toLowerCase()}`
+            : a.city === b.city
+              ? "Free · same city"
+              : `Free · ${a.city}`;
+      return { a, free: !clash && !off && !elsewhere, why: a.category === item.category ? where : `${where} · mainly ${categoryName(a.category).toLowerCase()}` };
+    })
+    .sort((x, y) => Number(y.free) - Number(x.free) || Number(y.a.city === b.city) - Number(x.a.city === b.city));
+
+  function assign(a: Artist) {
+    // Needing one artist, Assign swaps them; needing more, it adds one until the line is full.
+    const swap = item.count === 1 && full;
+    moveTo(
+      b,
+      b.status === "new" || (b.status === "rescheduled" && assignedArtists(b.items).length === 0) ? "matched" : b.status,
+      (x) => {
+        const line = x.items[i];
+        line.artistIds = swap ? [a.id] : [...line.artistIds.filter((id) => id !== a.id), a.id];
+      },
+      `Assigned ${a.name} to ${b.id} (${name})${swap ? ` instead of ${artistNames(db, item.artistIds)}` : ""}`,
+    );
+  }
+  const unassign = (a: Artist) => editLine(`Removed ${a.name} from ${b.id} (${name})`, (line) => void (line.artistIds = line.artistIds.filter((id) => id !== a.id)));
+
+  return (
+    <div className="rounded-lg border border-line p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-medium text-ink">{name}</p>
+        <span className={`text-xs ${full ? "text-emerald-700" : "text-muted"}`}>
+          {item.artistIds.length} of {item.count} assigned
+        </span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+        <select
+          value={item.service}
+          disabled={!editable}
+          onChange={(e) => editLine(`Changed ${b.id}'s ${name.toLowerCase()} service to ${e.target.value}`, (line) => void (line.service = e.target.value))}
+          aria-label={`${name}: service`}
+          className={`${fieldBase} w-auto min-w-0 flex-1 py-1`}
+        >
+          {services.map((s) => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+        <label className="flex items-center gap-2 text-ink">
+          Needed
+          <select
+            value={item.count}
+            disabled={!editable}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              if (n < item.artistIds.length) {
+                window.alert(`${item.artistIds.length} ${name.toLowerCase()} are assigned to ${b.id}. Remove ${item.artistIds.length - n} of them first.`);
+                return;
+              }
+              editLine(`Changed ${b.id} to need ${n} ${name.toLowerCase()} (was ${item.count})`, (line) => void (line.count = n));
+            }}
+            className={`${fieldBase} w-auto py-1`}
+          >
+            {Array.from({ length: MAX_ARTISTS }, (_, k) => k + 1).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        {editable && b.items.length > 1 && item.artistIds.length === 0 && (
+          <button
+            type="button"
+            onClick={() => update("Bookings", `Removed ${name} from ${b.id}`, (d) => void d.bookings.find((x) => x.id === b.id)!.items.splice(i, 1), b.id)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-red-700"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden /> Remove
+          </button>
+        )}
+      </div>
+
+      {assigned.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {assigned.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg bg-peach/40 p-3 text-sm">
+              <span>
+                Assigned: <strong className="font-medium">{a.name}</strong> · {a.city}
+              </span>
+              <span className="flex items-center gap-3">
+                <a href={send("artist_request", a)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand underline underline-offset-2">
+                  Ask availability
+                </a>
+                {editable && (
+                  <button type="button" onClick={() => unassign(a)} className="text-xs font-medium text-muted underline underline-offset-2 hover:text-ink">
+                    Remove
+                  </button>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <ul className="mt-3 divide-y divide-line rounded-lg border border-line">
+        {candidates.length === 0 && <li className="p-3 text-sm text-muted">No active {name.toLowerCase()} yet.</li>}
+        {candidates.map(({ a, free, why }) => {
+          const listed = b.shortlist.includes(a.id);
+          const isAssigned = item.artistIds.includes(a.id);
+          // The artist's answer from the portal, once shortlisted.
+          const reply = b.replies?.find((r) => r.artistId === a.id);
+          return (
+            <li key={a.id} className="flex items-center gap-3 px-3 py-2 text-sm">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium text-ink">{a.name}</span>
+                <span className={`block text-xs ${free || isAssigned ? "text-emerald-700" : "text-red-700"}`}>{why}</span>
+                {reply && (
+                  <span className={`mt-0.5 block text-xs font-medium ${reply.status === "quoted" ? "text-brand" : "text-muted"}`}>
+                    {reply.status === "quoted" ? `Quoted ${inr(reply.quote)}` : "Declined"} in the portal · {ago(reply.at)}
+                    {reply.note && <span className="block font-normal text-muted">&ldquo;{reply.note}&rdquo;</span>}
+                  </span>
+                )}
+              </span>
+              <a
+                href={send("artist_request", a)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Ask ${a.name} on WhatsApp if they're free`}
+                title="Ask on WhatsApp if they're free"
+                className="rounded-md border border-line p-1 hover:border-whatsapp"
+              >
+                <WhatsAppIcon className="h-3.5 w-3.5 text-whatsapp" />
+              </a>
+              <button
+                type="button"
+                disabled={!editable || (!listed && b.shortlist.length >= shortlistMax)}
+                onClick={() =>
+                  update(
+                    "Bookings",
+                    `${listed ? "Removed" : "Shortlisted"} ${a.name} for ${b.id}`,
+                    (d) => {
+                      const x = d.bookings.find((y) => y.id === b.id)!;
+                      x.shortlist = listed ? x.shortlist.filter((id) => id !== a.id) : [...x.shortlist, a.id];
+                    },
+                    b.id,
+                  )
+                }
+                className={`rounded-md px-2 py-1 text-xs font-medium disabled:opacity-40 ${listed ? "bg-night text-white" : "border border-line text-ink"}`}
+              >
+                <Users className="mr-1 inline h-3 w-3" aria-hidden />
+                {listed ? "Shortlisted" : "Shortlist"}
+              </button>
+              {isAssigned ? (
+                <button
+                  type="button"
+                  disabled={!editable}
+                  onClick={() => unassign(a)}
+                  title="Remove from this booking"
+                  className="rounded-md border border-brand px-2 py-1 text-xs font-medium text-brand disabled:opacity-40"
+                >
+                  Assigned ✓
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!editable || (full && item.count > 1)}
+                  title={full && item.count > 1 ? `All ${item.count} are assigned. Remove one, or raise the number needed.` : undefined}
+                  onClick={() => assign(a)}
+                  className="rounded-md bg-brand px-2 py-1 text-xs font-medium text-white disabled:opacity-40"
+                >
+                  Assign
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+// Adds a category to an existing order (the customer asked for more on WhatsApp, say).
+function AddLine({ b }: { b: Booking }) {
+  const options = categories.filter((c) => !b.items.some((i) => i.category === c.slug));
+  const [slug, setSlug] = useState(options[0]?.slug ?? "");
+  if (!options.length) return null;
+  const chosen = options.find((c) => c.slug === slug) ?? options[0];
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <select value={chosen.slug} onChange={(e) => setSlug(e.target.value)} aria-label="Category to add" className={`${fieldBase} w-auto py-1.5`}>
+        {options.map((c) => (
+          <option key={c.slug} value={c.slug}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      <ActionButton
+        permission="bookings.edit"
+        variant="secondary"
+        onClick={() =>
+          update(
+            "Bookings",
+            `Added ${chosen.name} to ${b.id}`,
+            (d) => void d.bookings.find((x) => x.id === b.id)!.items.push({ category: chosen.slug, service: chosen.services[0].name, count: 1, artistIds: [] }),
+            b.id,
+          )
+        }
+      >
+        <Plus className="h-4 w-4" aria-hidden /> Add to this order
+      </ActionButton>
+    </div>
+  );
+}
+
+// One category a new booking needs: its service and how many artists.
+type Line = { category: string; service: string; count: number };
+const firstLine = (slug = categories[0].slug): Line => {
+  const c = categories.find((x) => x.slug === slug) ?? categories[0];
+  return { category: c.slug, service: c.services[0].name, count: 1 };
+};
+
 export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   // A pasted WhatsApp message from the website's booking form fills the fields in
-  // (src/lib/whatsapp-order.ts). A request for several categories becomes one booking each,
-  // sharing one AOD- reference, as website requests do.
+  // (src/lib/whatsapp-order.ts). Like a website request, it's one booking (one order) with a
+  // line for each category and how many artists of it.
   const [pasted, setPasted] = useState("");
-  const [extra, setExtra] = useState<string[]>([]); // further category slugs from the message
+  const [lines, setLines] = useState<Line[]>([firstLine()]);
   const [fromMessage, setFromMessage] = useState<{ ref?: string; filled: string[] } | null>(null);
   const [f, setF] = useState({
     name: "",
     phone: "",
     email: "",
     audience: "Personal" as "Personal" | "Business",
-    category: categories[0].slug,
-    service: categories[0].services[0].name,
     event: "",
     date: "",
     time: "",
@@ -644,7 +873,7 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
     notes: "",
   });
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
-  const cat = categories.find((c) => c.slug === f.category)!;
+  const setLine = (i: number, patch: Partial<Line>) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
   // The same details the website asks for are required, including the start and end time;
   // venue and budget are optional (the website doesn't ask for them).
   const length = eventMinutes(f.time, f.endTime);
@@ -660,10 +889,11 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
   function fillFrom(text: string) {
     setPasted(text);
     const order = parseOrderMessage(text);
-    const found = order.needs
-      .map((n) => categories.find((c) => c.name.toLowerCase() === n.toLowerCase()))
-      .filter((c): c is (typeof categories)[number] => c !== undefined);
     const about = `${order.occasion ?? ""} ${order.details ?? ""}`;
+    const found = order.needs.flatMap((n) => {
+      const c = categories.find((x) => x.name.toLowerCase() === n.name.toLowerCase());
+      return c ? [{ category: c.slug, service: pickService(c.services.map((s) => s.name), about), count: n.count }] : [];
+    });
     const filled = [
       order.name && "name",
       order.phone && "phone",
@@ -682,8 +912,6 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
       phone: order.phone ?? x.phone,
       email: order.email ?? x.email,
       audience: order.audience ?? x.audience,
-      category: found[0]?.slug ?? x.category,
-      service: found[0] ? pickService(found[0].services.map((s) => s.name), about) : x.service,
       event: order.occasion ?? x.event,
       date: order.date ?? x.date,
       time: order.startTime ?? x.time,
@@ -691,7 +919,7 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
       city: order.city && cities.includes(order.city) ? order.city : x.city,
       notes: order.details ?? x.notes,
     }));
-    setExtra(found.slice(1).map((c) => c.slug));
+    if (found.length) setLines(found);
     setFromMessage(filled.length > 0 ? { ref: order.ref, filled } : null);
   }
 
@@ -706,57 +934,44 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
           permission="bookings.edit"
           disabled={!ok}
           onClick={() => {
-            const first = Number(newId("B").slice(2));
+            const id = newId("B");
             const now = new Date().toISOString();
-            const about = `${f.event} ${f.notes}`;
-            const parts = [
-              { category: f.category, service: f.service },
-              ...extra.map((slug) => {
-                const c = categories.find((x) => x.slug === slug)!;
-                return { category: slug, service: pickService(c.services.map((s) => s.name), about) };
-              }),
-            ];
-            const ids = parts.map((_, i) => `B-${first + i}`);
             const unsaved = fromMessage && (!fromMessage.ref || fromMessage.ref === "AOD-0");
             const note = fromMessage
               ? [{ at: now, by: currentUser(), text: `Added from a WhatsApp message${unsaved ? " (the website hadn't saved it)" : ` (website reference ${fromMessage.ref})`}.` }]
               : [];
             update(
               "Bookings",
-              `Created ${ids.length > 1 ? `bookings ${ids.join(", ")}` : `booking ${ids[0]}`} for ${f.name.trim()}${fromMessage ? " from a WhatsApp message" : ""}`,
-              (db) => {
-                parts.forEach((p, i) =>
-                  db.bookings.unshift({
-                    id: ids[i],
-                    // One reference for the customer when it came from the website's message, as website requests have.
-                    requestRef: fromMessage ? `AOD-${first}` : undefined,
-                    createdAt: now,
-                    audience: f.audience,
-                    customer: { name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim().toLowerCase() },
-                    category: p.category,
-                    service: p.service,
-                    event: f.event.trim(),
-                    date: f.date,
-                    time: f.time,
-                    endTime: f.endTime,
-                    city: f.city,
-                    venue: f.venue.trim(),
-                    budget: f.budget.trim(),
-                    notes: f.notes.trim(),
-                    status: "new",
-                    shortlist: [],
-                    history: [{ at: now, by: currentUser(), status: "new" }],
-                    notesLog: note,
-                  }),
-                );
-              },
-              ids[0],
+              `Created booking ${id} for ${f.name.trim()} (${itemsLabel(lines)})${fromMessage ? " from a WhatsApp message" : ""}`,
+              (db) =>
+                void db.bookings.unshift({
+                  id,
+                  // A customer reference like a website request's when it came from the website's message.
+                  requestRef: fromMessage ? `AOD-${id.slice(2)}` : undefined,
+                  createdAt: now,
+                  audience: f.audience,
+                  customer: { name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim().toLowerCase() },
+                  items: lines.map((l) => ({ category: l.category, service: l.service, count: l.count, artistIds: [] })),
+                  event: f.event.trim(),
+                  date: f.date,
+                  time: f.time,
+                  endTime: f.endTime,
+                  city: f.city,
+                  venue: f.venue.trim(),
+                  budget: f.budget.trim(),
+                  notes: f.notes.trim(),
+                  status: "new",
+                  shortlist: [],
+                  history: [{ at: now, by: currentUser(), status: "new" }],
+                  notesLog: note,
+                }),
+              id,
             );
             onClose();
-            onCreated(ids[0]);
+            onCreated(id);
           }}
         >
-          {extra.length > 0 ? `Create ${extra.length + 1} bookings` : "Create booking"}
+          Create booking
         </ActionButton>
       }
     >
@@ -774,7 +989,7 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
           <p className="-mt-2 rounded-lg bg-wash px-3 py-2 text-xs text-body sm:col-span-2" aria-live="polite">
             Filled in: {fromMessage.filled.join(", ")}.
             {!fromMessage.filled.includes("phone") && " Add the phone number from the WhatsApp chat."}
-            {extra.length > 0 && ` It also needs ${extra.map((s) => categories.find((c) => c.slug === s)?.name).join(", ")}: a booking is created for each.`}
+            {lines.length > 1 && ` It needs ${lines.map((l) => withCount(categoryName(l.category), l.count)).join(", ")}: one booking with a line for each.`}
             {(!fromMessage.ref || fromMessage.ref === "AOD-0") && " The website hadn't saved this request, so creating it here is the only copy."}
           </p>
         )}
@@ -793,29 +1008,56 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
             <option>Business</option>
           </select>
         </Labelled>
-        <Labelled label="Category">
-          <select
-            value={f.category}
-            onChange={(e) => {
-              const c = categories.find((x) => x.slug === e.target.value)!;
-              setF((x) => ({ ...x, category: c.slug, service: c.services[0].name }));
-            }}
-            className={fieldClass}
+        <div className="space-y-3 sm:col-span-2">
+          <p className="text-sm font-medium text-ink">Who they need</p>
+          {lines.map((l, i) => {
+            const cat = categories.find((c) => c.slug === l.category) ?? categories[0];
+            return (
+              <div key={i} className="rounded-lg border border-line p-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Labelled label="Category">
+                    <select value={l.category} onChange={(e) => setLine(i, firstLine(e.target.value))} className={fieldClass}>
+                      {categories.map((c) => (
+                        <option key={c.slug} value={c.slug}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Labelled>
+                  <Labelled label="Service">
+                    <select value={l.service} onChange={(e) => setLine(i, { service: e.target.value })} className={fieldClass}>
+                      {cat.services.map((s) => (
+                        <option key={s.name}>{s.name}</option>
+                      ))}
+                    </select>
+                  </Labelled>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-2 text-sm text-ink">
+                    How many
+                    <CountPicker size="sm" value={l.count} onChange={(count) => setLine(i, { count })} label={cat.name.toLowerCase()} />
+                  </span>
+                  {lines.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-red-700"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden /> Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setLines((ls) => [...ls, firstLine(categories.find((c) => !ls.some((l) => l.category === c.slug))?.slug)])}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-hover"
           >
-            {categories.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </Labelled>
-        <Labelled label="Service">
-          <select value={f.service} onChange={set("service")} className={fieldClass}>
-            {cat.services.map((s) => (
-              <option key={s.name}>{s.name}</option>
-            ))}
-          </select>
-        </Labelled>
+            <Plus className="h-4 w-4" aria-hidden /> Add another category
+          </button>
+        </div>
         <Labelled label="Event">
           <input value={f.event} onChange={set("event")} placeholder="Wedding, launch, birthday…" className={fieldClass} />
         </Labelled>

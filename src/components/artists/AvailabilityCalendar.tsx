@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useHydrated } from "@/lib/motion-safe";
 import { backendEnabled } from "@/lib/backend";
 import { setBlockedDates, useBlockedDates } from "@/lib/artist-live";
+import { PageLoader, Spinner } from "@/components/ui/Spinner";
 import { Panel } from "./form";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -20,8 +21,14 @@ export function AvailabilityCalendar() {
   const blocked = useBlockedDates();
   const [offset, setOffset] = useState(0); // months from the current one
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(0); // taps still being saved (live)
 
-  if (!hydrated) return <div className="mt-8 h-[28rem] animate-pulse rounded-[1.25rem] bg-white" />;
+  if (!hydrated)
+    return (
+      <div className="mt-8 rounded-[1.25rem] bg-white">
+        <PageLoader className="min-h-[28rem]" label="Loading your calendar…" />
+      </div>
+    );
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -37,7 +44,10 @@ export function AvailabilityCalendar() {
 
   function toggle(day: string) {
     setError(null);
-    void setBlockedDates(blocked.includes(day) ? blocked.filter((d) => d !== day) : [...blocked, day]).then((err) => err && setError(err));
+    setSaving((n) => n + 1);
+    void setBlockedDates(blocked.includes(day) ? blocked.filter((d) => d !== day) : [...blocked, day])
+      .then((err) => err && setError(err))
+      .finally(() => setSaving((n) => n - 1));
   }
 
   return (
@@ -130,7 +140,17 @@ export function AvailabilityCalendar() {
           </ul>
         )}
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-        <p className="mt-5 text-xs text-muted">{backendEnabled ? "Saved to your AOD profile as you tap." : "Preview: saved in this browser only."}</p>
+        <p className="mt-5 flex items-center gap-2 text-xs text-muted" aria-live="polite">
+          {saving > 0 ? (
+            <>
+              <Spinner className="h-3.5 w-3.5 text-brand" /> Saving…
+            </>
+          ) : backendEnabled ? (
+            "Saved to your AOD profile as you tap."
+          ) : (
+            "Preview: saved in this browser only."
+          )}
+        </p>
       </Panel>
     </div>
   );

@@ -17,7 +17,7 @@ export function FinalCta({
   return (
     <Container className="pt-16">
       <section className="grain rounded-[1.25rem] bg-brand px-6 py-14 text-center">
-        <h2 className="text-3xl font-medium !text-white sm:text-[2.5rem] text-shadow-3d">{title}</h2>
+        <h2 className="text-3xl font-medium !text-white sm:text-[2.5rem]">{title}</h2>
         <p className="mt-3 text-lg text-white">{text}</p>
         {/* ButtonLink opens external links (e.g. Gmail compose) in a new tab */}
         <ButtonLink href={href} variant="white" className="mt-8">

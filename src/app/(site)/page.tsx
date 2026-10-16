@@ -6,9 +6,9 @@ import { GetMatched } from "@/components/home/GetMatched";
 import { Features } from "@/components/home/Features";
 import { VerifiedSection } from "@/components/home/VerifiedSection";
 import { Hero } from "@/components/home/Hero";
-import { HowItWorks } from "@/components/home/HowItWorks";
 import { MostBooked } from "@/components/home/MostBooked";
 import { Portals } from "@/components/home/Portals";
+import { ResolutionFlow } from "@/components/home/ResolutionFlow";
 import { Stats } from "@/components/home/Stats";
 import { Reveal } from "@/components/motion/Reveal";
 
@@ -36,9 +36,10 @@ export default function Home() {
       <Reveal>
         <Portals />
       </Reveal>
-      {/* 7. Three simple steps */}
+      {/* 7. What if something goes wrong: the Resolution Centre's steps (in place of "How it works";
+          booking's own steps still show beside the booking questions further down) */}
       <Reveal>
-        <HowItWorks />
+        <ResolutionFlow />
       </Reveal>
       {/* 8. Risk removed: cancellation, rescheduling, replacement, contract */}
       <Features />

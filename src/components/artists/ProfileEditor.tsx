@@ -6,13 +6,34 @@ import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { saveProfile, useArtistProfile } from "@/lib/artist-live";
 import type { ArtistProfile } from "@/lib/artist-store";
+import { allCategories } from "@/lib/booking-needs";
 import type { ProfilePatch } from "@/server/actions/artist";
+import { Spinner } from "@/components/ui/Spinner";
 import { ChipGroup, Field, Panel, inputClass } from "./form";
 
 // Work profile editor. Live: edits are kept as a draft until "Save changes"; the name and
-// category stay as AOD approved them. Preview: kept in this browser as you type.
+// categories stay as AOD approved them. Preview: kept in this browser as you type.
 export function ProfileEditor() {
   return backendEnabled ? <LiveProfileEditor /> : <PreviewProfileEditor />;
+}
+
+// The services of each of the artist's categories, under the category's name when there are several.
+function ServicesPicker({ profile, onChange }: { profile: ArtistProfile; onChange: (services: string[]) => void }) {
+  const own = allCategories(profile)
+    .map((slug) => categories.find((c) => c.slug === slug))
+    .filter((c) => c !== undefined);
+  if (!own.length) return null;
+  return (
+    <div className="mt-5">
+      <p className="text-sm font-medium text-ink">Services</p>
+      {own.map((c) => (
+        <div key={c.slug} className={own.length > 1 ? "mt-3" : ""}>
+          {own.length > 1 && <p className="text-xs font-semibold uppercase tracking-wide text-muted">{c.name}</p>}
+          <ChipGroup label={`${c.name} services`} options={c.services.map((s) => s.name)} value={profile.services} onChange={onChange} />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function LiveProfileEditor() {
@@ -26,7 +47,7 @@ function LiveProfileEditor() {
     setMessage(null);
   };
   const dirty = Object.keys(draft).length > 0;
-  const category = categories.find((c) => c.slug === view.category);
+  const kinds = allCategories(view).map((slug) => categories.find((c) => c.slug === slug)?.name ?? slug);
 
   async function save() {
     setSaving(true);
@@ -66,8 +87,8 @@ function LiveProfileEditor() {
 
       <Panel title="Your craft">
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Category" hint="Set by AOD when you joined.">
-            <input value={category?.name ?? view.category} disabled className={`${inputClass} disabled:bg-wash disabled:text-muted`} />
+          <Field label={kinds.length > 1 ? "Categories" : "Category"} hint="Set by AOD. To add another kind of work, message AOD.">
+            <input value={kinds.join(", ")} disabled className={`${inputClass} disabled:bg-wash disabled:text-muted`} />
           </Field>
           <Field label="Experience">
             <select value={view.experience} onChange={(e) => set({ experience: e.target.value })} className={inputClass}>
@@ -78,12 +99,7 @@ function LiveProfileEditor() {
             </select>
           </Field>
         </div>
-        {category && (
-          <div className="mt-5">
-            <p className="text-sm font-medium text-ink">Services</p>
-            <ChipGroup label="Services" options={category.services.map((s) => s.name)} value={view.services} onChange={(services) => set({ services })} />
-          </div>
-        )}
+        <ServicesPicker profile={view} onChange={(services) => set({ services })} />
         <div className="mt-5">
           <p className="text-sm font-medium text-ink">Languages</p>
           <ChipGroup label="Languages" options={languages} value={view.languages} onChange={(l) => set({ languages: l })} />
@@ -98,9 +114,17 @@ function LiveProfileEditor() {
           type="button"
           onClick={() => void save()}
           disabled={!dirty || saving}
-          className="h-11 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className={`inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand-hover ${
+            saving ? "cursor-wait" : "disabled:cursor-not-allowed disabled:opacity-40"
+          }`}
         >
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? (
+            <>
+              <Spinner /> Saving…
+            </>
+          ) : (
+            "Save changes"
+          )}
         </button>
         {dirty && !saving && (
           <button type="button" onClick={() => setDraft({})} className="text-sm font-medium text-muted hover:text-ink">
@@ -117,7 +141,11 @@ function LiveProfileEditor() {
 function PreviewProfileEditor() {
   const { profile, sample } = useArtistProfile();
   const set = (patch: Partial<ArtistProfile>) => void saveProfile(patch);
-  const category = categories.find((c) => c.slug === profile.category);
+  // Services stay picked only while one of the categories offers them.
+  const keepServices = (slugs: string[]) => {
+    const offered = new Set(categories.filter((c) => slugs.includes(c.slug)).flatMap((c) => c.services.map((s) => s.name)));
+    return profile.services.filter((s) => offered.has(s));
+  };
 
   return (
     <div className="mt-8 max-w-3xl space-y-6">
@@ -147,7 +175,14 @@ function PreviewProfileEditor() {
       <Panel title="Your craft">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Category">
-            <select value={profile.category} onChange={(e) => set({ category: e.target.value, services: [] })} className={inputClass}>
+            <select
+              value={profile.category}
+              onChange={(e) => {
+                const others = profile.otherCategories.filter((c) => c !== e.target.value);
+                set({ category: e.target.value, otherCategories: others, services: keepServices([e.target.value, ...others]) });
+              }}
+              className={inputClass}
+            >
               <option value="">Choose…</option>
               {categories.map((c) => (
                 <option key={c.slug} value={c.slug}>
@@ -165,12 +200,23 @@ function PreviewProfileEditor() {
             </select>
           </Field>
         </div>
-        {category && (
+        {profile.category && (
           <div className="mt-5">
-            <p className="text-sm font-medium text-ink">Services</p>
-            <ChipGroup label="Services" options={category.services.map((s) => s.name)} value={profile.services} onChange={(services) => set({ services })} />
+            <p className="text-sm font-medium text-ink">
+              Also works as <span className="font-normal text-muted">(optional)</span>
+            </p>
+            <ChipGroup
+              label="Also works as"
+              options={categories.filter((c) => c.slug !== profile.category).map((c) => c.name)}
+              value={profile.otherCategories.map((s) => categories.find((c) => c.slug === s)?.name ?? s)}
+              onChange={(names) => {
+                const others = categories.filter((c) => names.includes(c.name)).map((c) => c.slug);
+                set({ otherCategories: others, services: keepServices([profile.category, ...others]) });
+              }}
+            />
           </div>
         )}
+        <ServicesPicker profile={profile} onChange={(services) => set({ services })} />
         <div className="mt-5">
           <p className="text-sm font-medium text-ink">Languages</p>
           <ChipGroup label="Languages" options={languages} value={profile.languages} onChange={(l) => set({ languages: l })} />

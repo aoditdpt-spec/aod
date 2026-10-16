@@ -4,16 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight } from "lucide-react";
-import { categories, getCategory, guarantees } from "@/content/site";
+import { categories, categoryBooking, getCategory, guarantees } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { Icon } from "@/components/ui/Icon";
 import { Rating } from "@/components/ui/Rating";
 import { FinalCta } from "@/components/home/FinalCta";
+import { MatchQuiz } from "@/components/home/MatchQuiz";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
-import { whatsappUrl } from "@/lib/whatsapp";
 
 // One static page per category, built at deploy time.
 export function generateStaticParams() {
@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
                 <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
               </span>
               <div>
-                <h1 className="text-3xl font-medium !text-white sm:text-5xl text-shadow-3d">{category.name}</h1>
+                <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
                 <p className="mt-4 max-w-2xl text-base text-white/90 sm:text-lg">{category.description}</p>
                 <div className="mt-5">
                   <VerifiedArtists variant="inline" dark />
@@ -76,9 +76,9 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               </div>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Link href="/book" className={buttonClasses("white", "lg")}>
+              <a href="#book" className={buttonClasses("white", "lg")}>
                 Get curated matches <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
+              </a>
               <span className="text-sm text-white/70">Verified professionals · transparent quotes · no negotiation</span>
             </div>
           </div>
@@ -86,8 +86,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">What you can book</h2>
-        <p className="mt-3 text-body">Pick a service and ask for a quote — we&apos;ll reply with curated matches.</p>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">What you can book</h2>
+        <p className="mt-3 text-body">Pick a service and ask for a quote below — we&apos;ll reply with curated matches.</p>
         <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {category.services.map((s) => (
             <StaggerItem key={s.name}>
@@ -103,12 +103,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               <div className="mt-2">
                 <Rating rating={s.rating} count={s.bookings} unit="bookings" />
               </div>
-              <a
-                href={whatsappUrl(`Hi Artists on Demand! I'd like a quote for: ${s.name} (${category.name}).`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonClasses("outline", "md", "mt-6")}
-              >
+              {/* To the booking questions on this page, so the request is saved before WhatsApp opens. */}
+              <a href="#book" className={buttonClasses("outline", "md", "mt-6")}>
                 Request a quote
               </a>
             </TiltCard>
@@ -124,8 +120,28 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         </ul>
       </Container>
 
+      {/* The booking questions with this category already picked: how many of them, and anyone
+          else for the same event. */}
+      <section id="book" aria-labelledby="book-title" className="scroll-mt-24 bg-wash py-16">
+        <Container>
+          <div className="grid items-start gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{categoryBooking.eyebrow(category.name)}</p>
+              <h2 id="book-title" className="mt-3 text-3xl font-normal leading-[1.1] sm:text-4xl">
+                {categoryBooking.title}
+              </h2>
+              <p className="mt-5 max-w-sm text-body">{categoryBooking.text(category.name)}</p>
+              <div className="mt-8 max-w-md">
+                <VerifiedArtists variant="card" />
+              </div>
+            </div>
+            <MatchQuiz initialNeeds={[category.slug]} />
+          </div>
+        </Container>
+      </section>
+
       <Container className="pt-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">People also book</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">People also book</h2>
         <StaggerList className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {others.map((c) => (
             <StaggerItem key={c.slug}>

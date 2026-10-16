@@ -4,8 +4,9 @@ import Link from "next/link";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { bookingStages } from "@/content/admin";
 import { useDb, useSession } from "@/lib/admin-store";
+import { assignedArtists, itemsLabel } from "@/lib/booking-needs";
 import { useAlerts } from "../AdminShell";
-import { ago, artistName, Card, daysUntil, fmtDate, inr, PageHeader, StageBadge, Stat } from "../ui";
+import { ago, artistNames, Card, daysUntil, fmtDate, inr, PageHeader, StageBadge, Stat } from "../ui";
 import { sectionLink } from "@/lib/site-url";
 
 export function Dashboard() {
@@ -96,10 +97,10 @@ export function Dashboard() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium text-ink">
-                        {b.service} · {b.customer.name}
+                        {itemsLabel(b.items)} · {b.customer.name}
                       </span>
                       <span className="block truncate text-xs text-muted">
-                        {b.city} · {artistName(db, b.artistId)}
+                        {b.city} · {artistNames(db, assignedArtists(b.items))}
                       </span>
                     </span>
                     <StageBadge stages={bookingStages} id={b.status} />

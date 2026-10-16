@@ -17,7 +17,7 @@ export function BookingOptions() {
         className="absolute inset-x-0 top-0 h-[26.25rem] bg-gradient-to-b from-wash to-transparent bg-[repeating-linear-gradient(135deg,transparent_0_14px,color-mix(in_srgb,var(--color-brand)_5%,transparent)_14px_15px)]"
       />
       <Container className="relative">
-        <h2 className="text-center text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">Choose how you want to book</h2>
+        <h2 className="text-center text-3xl font-normal sm:text-[2.5rem]">Choose how you want to book</h2>
         <p className="mt-6 text-center text-lg text-ink">One-off celebrations or a year of brand shoots — we&apos;ve got both.</p>
 
         <StaggerList className="mt-12 grid gap-8 md:grid-cols-2">

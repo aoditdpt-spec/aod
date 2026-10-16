@@ -14,7 +14,7 @@ export function VerifiedSection() {
       <section>
         <Reveal>
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{verifiedArtists.eyebrow}</p>
-          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{verifiedArtists.title}</h2>
+          <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{verifiedArtists.title}</h2>
           <p className="mt-4 max-w-3xl text-lg text-body">{verifiedArtists.text}</p>
         </Reveal>
         <StaggerList className="mt-10 grid gap-5 sm:grid-cols-3">

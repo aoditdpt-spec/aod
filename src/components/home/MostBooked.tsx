@@ -22,7 +22,7 @@ export function MostBooked() {
         <Reveal className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">What Gujarat books most</p>
-            <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">Most booked services</h2>
+            <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">Most booked services</h2>
             <p className="mt-3 text-body">Verified artists, real reviews. Get matched in minutes — no haggling.</p>
           </div>
           <Link href="/book" className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-hover">

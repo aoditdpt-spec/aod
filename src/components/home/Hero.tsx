@@ -7,7 +7,7 @@ import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { whatsappUrl } from "@/lib/whatsapp";
-import { HeroDemo, HeroGlow } from "./HeroMotion";
+import { HeroDemo } from "./HeroMotion";
 import { HeroVideo } from "./HeroVideo";
 
 // Background footage (the files HeroVideo lists): served from public/media/, or from a storage
@@ -35,19 +35,16 @@ export function Hero() {
         <>
           <HeroVideo base={mediaBase} />
           {/* A light veil (the footage stays about 90% visible), a touch darker behind the text on the
-              left; the text itself carries soft shadows so it reads on bright frames. */}
+              left so the white text reads on bright frames. The text itself has no shadow or glow. */}
           <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 via-45% to-transparent max-lg:bg-black/30" />
           <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/25 to-transparent" />
         </>
       )}
-      <HeroGlow />
       <Container className="relative py-16 sm:py-20">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-          {/* A soft shadow under all the text in this column keeps it readable over the brighter video.
-              The heading has a stronger one of its own: a close shadow for the edges and a wide soft one. */}
-          <div className="[text-shadow:0_1px_12px_rgba(0,0,0,0.55)]">
+          <div>
             {/* The brand name is the page heading and the largest text in the hero. */}
-            <h1 className="text-5xl font-bold leading-[0.95] tracking-[-0.01em] text-white [text-shadow:0_1px_3px_rgb(0_0_0/0.5),0_4px_14px_rgb(0_0_0/0.35)] sm:text-7xl lg:text-[clamp(3.5rem,5.1vw,5.6rem)]">
+            <h1 className="text-5xl font-bold leading-[0.95] tracking-[-0.01em] text-white sm:text-7xl lg:text-[clamp(3.5rem,5.1vw,5.6rem)]">
               {hero.eyebrow}
             </h1>
             <p className="mt-6 max-w-[35rem] text-lg text-white/90 sm:text-xl sm:leading-snug">

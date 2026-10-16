@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { backendEnabled } from "@/lib/backend";
 import { portalSignOut, reloadPortal, usePortalState } from "@/lib/artist-live";
 import { sectionLink } from "@/lib/site-url";
+import { PageLoader } from "@/components/ui/Spinner";
 
 // Live mode: the signed-in pages need a signed-in artist or applicant. Signed-out visitors go to
 // the sign-in page; an email with no artist or application gets a way to apply. The preview
@@ -56,5 +57,5 @@ export function PortalGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <div className="m-6 h-96 flex-1 animate-pulse rounded-[1.5rem] bg-white" aria-label="Loading your portal" />;
+  return <PageLoader label="Loading your portal…" />;
 }

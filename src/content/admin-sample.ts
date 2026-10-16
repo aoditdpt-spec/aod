@@ -4,6 +4,7 @@
 // Dates are relative to "now", so the calendar and reminders always look current.
 
 import type { Application, Artist, Booking, BookingStatus, Db, Lead, Member, Payment, Payout, ResolutionCase } from "@/lib/admin-store";
+import type { BookingItem } from "@/lib/booking-needs";
 
 export function createSampleDb(now: Date): Db {
   const day = (offset: number, hour = 11) => {
@@ -37,6 +38,7 @@ export function createSampleDb(now: Date): Db {
     email: email(name),
     city,
     category,
+    otherCategories: [],
     services,
     experience,
     languages,
@@ -50,7 +52,7 @@ export function createSampleDb(now: Date): Db {
   });
 
   const artists: Artist[] = [
-    artist(1, "Aarav Joshi", "photographers", ["Wedding photography", "Candid photography"], "Ahmedabad", "More than 5 years", ["Gujarati", "Hindi", "English"], -320),
+    artist(1, "Aarav Joshi", "photographers", ["Wedding photography", "Candid photography", "Event videography"], "Ahmedabad", "More than 5 years", ["Gujarati", "Hindi", "English"], -320, { otherCategories: ["cinematographers"] }),
     artist(2, "Meera Trivedi", "photographers", ["Pre-wedding shoot", "Portrait session"], "Vadodara", "3–5 years", ["Gujarati", "English"], -210),
     artist(3, "Kabir Mehta", "cinematographers", ["Wedding film", "Corporate film"], "Ahmedabad", "More than 5 years", ["Hindi", "English"], -280),
     artist(4, "Nisha Parmar", "makeup-artists", ["Bridal makeup", "Party makeup"], "Surat", "3–5 years", ["Gujarati", "Hindi"], -150),
@@ -66,11 +68,12 @@ export function createSampleDb(now: Date): Db {
   artists[0].blockedDates = [date(9), date(10)];
   artists[4].blockedDates = [date(5)];
 
-  const application = (n: number, a: Omit<Application, "id" | "phone" | "email" | "notes" | "kyc"> & Partial<Application>): Application => ({
+  const application = (n: number, a: Omit<Application, "id" | "phone" | "email" | "notes" | "kyc" | "otherCategories"> & Partial<Application>): Application => ({
     id: `APP-${1040 + n}`,
     phone: phone(40 + n),
     email: email(a.name),
     kyc: "not_started",
+    otherCategories: [],
     notes: [],
     ...a,
   });
@@ -118,7 +121,8 @@ export function createSampleDb(now: Date): Db {
       name: "Parth Thakkar",
       city: "Surat",
       category: "cinematographers",
-      services: ["Wedding film", "Reels & social video"],
+      otherCategories: ["drone-pilots", "editors"],
+      services: ["Wedding film", "Reels & social video", "Aerial event coverage", "Wedding highlight edit"],
       experience: "3–5 years",
       languages: ["Gujarati", "Hindi"],
       bio: "Wedding films with drone and gimbal; quick turnaround on reels.",
@@ -157,26 +161,36 @@ export function createSampleDb(now: Date): Db {
 
   const svc = (category: string, service: string) => ({ category, service });
 
-  const booking = (
-    n: number,
-    b: Omit<Booking, "id" | "history" | "notesLog" | "shortlist" | "customer"> & { customer: string; shortlist?: string[] } & Partial<Omit<Booking, "customer">>,
-  ): Booking => ({
+  // Shorthand for the order's first line: `category` and `service` (from svc()), `artistsNeeded`
+  // (default 1) and `artistId` or `artistIds`; `more` adds further lines.
+  type SampleBooking = Omit<Booking, "id" | "history" | "notesLog" | "shortlist" | "customer" | "items"> & {
+    customer: string;
+    shortlist?: string[];
+    category: string;
+    service: string;
+    artistsNeeded?: number;
+    artistId?: string;
+    artistIds?: string[];
+    more?: BookingItem[];
+  } & Partial<Omit<Booking, "customer" | "items">>;
+  const booking = (n: number, { category, service, artistsNeeded, artistId, artistIds, more = [], ...b }: SampleBooking): Booking => ({
     id: `B-${1200 + n}`,
     history: [{ at: b.createdAt, by: "Website", status: "new" }],
     notesLog: [],
     ...b,
+    items: [{ category, service, count: artistsNeeded ?? 1, artistIds: artistIds ?? (artistId ? [artistId] : []) }, ...more],
     shortlist: b.shortlist ?? [],
     customer: { name: b.customer, phone: phone(70 + n), email: email(b.customer) },
   });
 
   const bookings: Booking[] = [
-    booking(1, { createdAt: iso(0, 9), audience: "Personal", customer: "Ritu Agarwal", ...svc("photographers", "Wedding photography"), event: "Wedding", date: date(24), time: "10:00", city: "Ahmedabad", venue: "Party plot, SG Highway", budget: "₹60,000–80,000", notes: "Two days: haldi and wedding.", status: "new" }),
+    booking(1, { createdAt: iso(0, 9), audience: "Personal", customer: "Ritu Agarwal", ...svc("photographers", "Wedding photography"), event: "Wedding", date: date(24), time: "10:00", city: "Ahmedabad", venue: "Party plot, SG Highway", budget: "₹60,000–80,000", notes: "Two days: haldi and wedding.", status: "new", artistsNeeded: 2, more: [{ category: "drone-pilots", service: "Wedding flyover package", count: 1, artistIds: [] }, { category: "makeup-artists", service: "Bridal makeup", count: 1, artistIds: [] }] }),
     booking(2, { createdAt: iso(-1, 17), audience: "Business", customer: "Lumen Cafe", ...svc("photographers", "Product photography"), event: "Menu shoot", date: date(6), time: "15:00", city: "Ahmedabad", venue: "Lumen Cafe, Prahlad Nagar", budget: "₹12,000–15,000", notes: "40 dishes, white background and lifestyle.", status: "new" }),
     booking(3, { createdAt: iso(-2, 12), audience: "Personal", customer: "Mohit Jain", ...svc("musicians-djs", "Wedding / sangeet DJ"), event: "Sangeet", date: date(12), time: "19:00", city: "Vadodara", venue: "Banquet hall, Alkapuri", budget: "₹25,000–35,000", notes: "", status: "matched", shortlist: ["ART-205"] }),
     booking(4, { createdAt: iso(-3, 11), audience: "Personal", customer: "Sneha Iyer", ...svc("makeup-artists", "Bridal makeup"), event: "Wedding", date: date(18), time: "06:00", city: "Surat", venue: "Home, Vesu", budget: "₹20,000–30,000", notes: "Bride + mother; trial needed.", status: "quoted", artistId: "ART-204", shortlist: ["ART-204"], quote: 26000 }),
     booking(5, { createdAt: iso(-4, 16), audience: "Personal", customer: "Arjun Malhotra", ...svc("cinematographers", "Wedding film"), event: "Wedding", date: date(9), time: "09:00", city: "Ahmedabad", venue: "Riverfront lawns", budget: "₹80,000–1,20,000", notes: "Teaser within a week.", status: "payment_pending", artistId: "ART-203", shortlist: ["ART-203"], quote: 95000, advance: 30000 }),
     booking(6, { createdAt: iso(-6, 10), audience: "Business", customer: "Northwind Pharma", ...svc("anchors-hosts", "Corporate emcee"), event: "Annual day", date: date(4), time: "18:00", city: "Gandhinagar", venue: "Convention centre", budget: "₹30,000", notes: "Bilingual, 3-hour show.", status: "confirmed", artistId: "ART-206", shortlist: ["ART-206"], quote: 30000, advance: 15000 }),
-    booking(7, { createdAt: iso(-9, 13), audience: "Personal", customer: "Pooja Bhatia", ...svc("photographers", "Candid photography"), event: "Engagement", date: date(1), time: "17:00", city: "Ahmedabad", venue: "Hotel ballroom, Ashram Road", budget: "₹28,000", notes: "", status: "confirmed", artistId: "ART-201", shortlist: ["ART-201", "ART-210"], quote: 28000, advance: 10000 }),
+    booking(7, { createdAt: iso(-9, 13), audience: "Personal", customer: "Pooja Bhatia", ...svc("photographers", "Candid photography"), event: "Engagement", date: date(1), time: "17:00", city: "Ahmedabad", venue: "Hotel ballroom, Ashram Road", budget: "₹50,000–60,000", notes: "Two photographers: one for the stage, one candid.", status: "confirmed", artistsNeeded: 2, artistIds: ["ART-201", "ART-210"], shortlist: ["ART-201", "ART-210"], quote: 56000, advance: 10000 }),
     booking(8, { createdAt: iso(-15, 12), audience: "Personal", customer: "Karan Sethi", ...svc("musicians-djs", "Wedding / sangeet DJ"), event: "Wedding", date: date(-3), time: "20:00", city: "Ahmedabad", venue: "Farmhouse, Bopal", budget: "₹40,000", notes: "", status: "completed", artistId: "ART-205", quote: 38000, advance: 15000 }),
     booking(9, { createdAt: iso(-25, 15), audience: "Personal", customer: "Divya Nair", ...svc("photographers", "Pre-wedding shoot"), event: "Pre-wedding", date: date(-10), time: "07:00", city: "Vadodara", venue: "Laxmi Vilas grounds", budget: "₹22,000", notes: "", status: "delivered", artistId: "ART-202", quote: 22000, advance: 8000, delivery: { link: "https://example.com/drive/divya-prewedding", expires: date(4) } }),
     booking(10, { createdAt: iso(-40, 11), audience: "Business", customer: "Gulmohar Hotels", ...svc("photographers", "Event photography"), event: "Expo booth", date: date(-21), time: "10:00", city: "Gandhinagar", venue: "Exhibition centre", budget: "₹35,000", notes: "Three days of booth coverage.", status: "reviewed", artistId: "ART-210", quote: 34000, advance: 34000, review: { rating: 5, text: "On time every day and the photos were ready the same evening." } }),
@@ -320,6 +334,7 @@ export function createSampleDb(now: Date): Db {
       notify: {
         "New booking request": true,
         "Artist replied to a request": true,
+        "Customer cancelled a booking": true,
         "New resolution case": true,
         "New artist application": true,
         "Event tomorrow": true,

@@ -26,7 +26,9 @@ import {
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { roles } from "@/content/admin";
 import { backendEnabled } from "@/lib/backend";
-import { resetDb, signOut, useAdminError, useBrowserReady, useDb, useLiveConnection, useSession, type Db } from "@/lib/admin-store";
+import { resetDb, signOut, useAdminError, useAdminSaving, useBrowserReady, useDb, useLiveConnection, useSession, type Db } from "@/lib/admin-store";
+import { PageLoader, Spinner } from "@/components/ui/Spinner";
+import { itemsLabel } from "@/lib/booking-needs";
 import { caseDue } from "./pages/Resolution";
 import { daysUntil, fieldClass, inr } from "./ui";
 import { sectionLink, sectionPath } from "@/lib/site-url";
@@ -47,10 +49,19 @@ const nav = [
 ];
 
 // Live mode: a green "Live" dot while changes arrive by themselves; amber while reconnecting
-// (the panel still reloads when the tab comes back into view).
+// (the panel still reloads when the tab comes back into view). While a change is being saved it
+// says "Saving…" with a spinner instead (on phones too).
 function LiveBadge() {
   const connection = useLiveConnection();
+  const saving = useAdminSaving();
   const on = connection === "live";
+  if (saving) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-peach/60 px-2 py-1 text-xs font-medium text-brand-hover" role="status">
+        <Spinner className="h-3 w-3" /> Saving…
+      </span>
+    );
+  }
   return (
     <span
       className={`hidden items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium sm:inline-flex ${on ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}
@@ -74,7 +85,7 @@ export function useAlerts(db: Db | null) {
     const fresh = db.bookings.filter((b) => b.status === "new");
     if (fresh.length) out.push({ text: `${fresh.length} booking request${fresh.length > 1 ? "s" : ""} to match`, href: sectionLink("/admin/bookings"), tone: "brand" });
     for (const b of db.bookings.filter((b) => b.status === "confirmed" && daysUntil(b.date) >= 0 && daysUntil(b.date) <= 2)) {
-      out.push({ text: `${b.id} is ${daysUntil(b.date) === 0 ? "today" : daysUntil(b.date) === 1 ? "tomorrow" : "in 2 days"}: ${b.service}, ${b.city}`, href: sectionLink(`/admin/bookings?open=${b.id}`), tone: "wait" });
+      out.push({ text: `${b.id} is ${daysUntil(b.date) === 0 ? "today" : daysUntil(b.date) === 1 ? "tomorrow" : "in 2 days"}: ${itemsLabel(b.items)}, ${b.city}`, href: sectionLink(`/admin/bookings?open=${b.id}`), tone: "wait" });
     }
     for (const b of db.bookings.filter((b) => b.delivery && daysUntil(b.delivery.expires) >= 0 && daysUntil(b.delivery.expires) <= 5)) {
       out.push({ text: `Delivery link for ${b.id} expires in ${daysUntil(b.delivery!.expires)} days`, href: sectionLink(`/admin/bookings?open=${b.id}`), tone: "wait" });
@@ -102,7 +113,7 @@ function GlobalSearch({ db }: { db: Db }) {
     if (s.length < 2) return [];
     const hit = (...v: (string | undefined)[]) => v.some((x) => x?.toLowerCase().includes(s));
     return [
-      ...db.bookings.filter((b) => hit(b.id, b.customer.name, b.service, b.city)).map((b) => ({ href: sectionLink(`/admin/bookings?open=${b.id}`), label: `${b.id} · ${b.customer.name}`, hint: "Booking" })),
+      ...db.bookings.filter((b) => hit(b.id, b.customer.name, b.city, ...b.items.map((i) => i.service))).map((b) => ({ href: sectionLink(`/admin/bookings?open=${b.id}`), label: `${b.id} · ${b.customer.name}`, hint: "Booking" })),
       ...db.artists.filter((a) => hit(a.id, a.name, a.city)).map((a) => ({ href: sectionLink(`/admin/artists?open=${a.id}`), label: a.name, hint: "Artist" })),
       ...db.applications.filter((a) => hit(a.id, a.name)).map((a) => ({ href: sectionLink(`/admin/applications?open=${a.id}`), label: a.name, hint: "Application" })),
       ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.issue)).map((c) => ({ href: sectionLink(`/admin/resolution?open=${c.id}`), label: `${c.id} · ${c.name}`, hint: "Case" })),
@@ -219,7 +230,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   if (!ready || !session || !db) {
-    return <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted">Loading…</div>;
+    return <PageLoader className="min-h-svh" label={ready && session ? "Loading the admin data…" : "Loading the admin…"} />;
   }
 
   const roleLabel = roles.find((r) => r.id === session.role)?.label;

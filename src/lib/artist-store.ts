@@ -15,8 +15,9 @@ export type ArtistProfile = {
   phone: string;
   email: string;
   city: string;
-  category: string; // category slug from site.ts
-  services: string[];
+  category: string; // main category slug from site.ts
+  otherCategories: string[]; // other categories they also work in (optional)
+  services: string[]; // from any of their categories
   experience: string;
   languages: string[];
   bio: string;
@@ -31,6 +32,7 @@ export const emptyProfile: ArtistProfile = {
   email: "",
   city: "",
   category: "",
+  otherCategories: [],
   services: [],
   experience: "",
   languages: [],
@@ -46,7 +48,12 @@ const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string =>
 // null until something is saved, so pages can show the sample profile instead.
 export const profileStore = createStore<ArtistProfile | null>("aod-artist-profile", null, (v) =>
   v && typeof v === "object"
-    ? { ...emptyProfile, ...(v as Partial<ArtistProfile>), work: { ...((v as Partial<ArtistProfile>).work ?? {}) } }
+    ? {
+        ...emptyProfile,
+        ...(v as Partial<ArtistProfile>),
+        otherCategories: strings((v as Partial<ArtistProfile>).otherCategories),
+        work: { ...((v as Partial<ArtistProfile>).work ?? {}) },
+      }
     : null,
 );
 

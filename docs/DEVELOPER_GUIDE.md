@@ -226,7 +226,7 @@ src/app/
 ├── (site)/               THE CUSTOMER SITE
 │   ├── layout.tsx        Adds Navbar, Footer, WhatsAppFab, ScrollProgress
 │   ├── page.tsx          Homepage: only composes sections (order explained in comments)
-│   ├── categories/[slug]/page.tsx   One page per category, built from `categories` in site.ts
+│   ├── categories/[slug]/page.tsx   One page per category, built from `categories` in site.ts, with the booking quiz (its category already picked)
 │   ├── book/page.tsx              "Personal or business?" choice
 │   ├── book/[audience]/page.tsx   The booking quiz (MatchQuiz) for personal / business
 │   ├── my-bookings/page.tsx       My bookings (MyBookings component)
@@ -246,7 +246,7 @@ src/app/
 │           resolution/, messages/, reports/, team/, activity/, settings/
 ├── resolve/              THE RESOLUTION CENTRE (resolve.aod.co.in)
 │   ├── layout.tsx        Its own small header and footer
-│   ├── page.tsx          How it works, promises, grievance officer
+│   ├── page.tsx          How a case works, promises, grievance officer
 │   ├── new/page.tsx      Raise a case (CaseForm)
 │   └── track/page.tsx    Track and escalate a case (TrackCase)
 └── api/jobs/retry/route.ts   GET with "Authorization: Bearer <CRON_SECRET>": retries the outbox
@@ -268,9 +268,9 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 
 | Folder | What's in it |
 | --- | --- |
-| `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `HowItWorks`, `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
+| `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Resolution Centre's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
 | `layout/` | `Navbar` (client: phone menu, category dropdown, search, city), `Footer`, `AnnouncementBar`, `WhatsAppFab` |
-| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton` |
+| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (card tilt, `cardHover`, `iconHover`), `Coverflow` (the 3D carousel), `ScrollProgress` |
 | `search/` | `SearchBox`: navbar search with suggestions, keyboard navigation, typed placeholder |
 | `location/` | `CityPicker` and `CityChips`: the visitor's city |
@@ -316,7 +316,8 @@ that way on purpose so the check scripts can test them alone.
 | `live.ts` | `listenLive()` / `useLiveRefresh()`: join Realtime channels, reload on change, poll every minute when disconnected |
 | `site-url.ts` | Addresses: `siteUrl`, `siteHref()`, `sectionUrl()`, `portalHref()`, `sectionLink()`, `sectionPath()` (see section 15) |
 | `whatsapp.ts` | `whatsappUrl()` (chat with AOD) and `whatsappShareUrl()`. Build every `wa.me` link here. |
-| `whatsapp-order.ts` | `parseOrderMessage()`: reads the booking form's WhatsApp message back into its fields for the admin's "Paste a WhatsApp message" box; `pickService()` guesses the service (no imports, tested by `check:orders`) |
+| `whatsapp-order.ts` | `parseOrderMessage()`: reads the booking form's WhatsApp message back into its fields (including how many of each category) for the admin's "Paste a WhatsApp message" box; `pickService()` guesses the service (no imports, tested by `check:orders`) |
+| `booking-needs.ts` | How many artists of each category a booking needs (`MAX_ARTISTS` = 20, `quickCounts`, `clampCount()`, `withCount()` → "Photographers × 3", `needsText()`), and an artist's categories (`allCategories()`, `worksIn()`) (no imports) |
 | `event-time.ts` | Event times: "8:00 PM – 1:00 AM (5 hours, ends next day)" (no imports) |
 | `fuzzy.ts` | Search ranking and typo tolerance (no imports, tested by `check:search`) |
 | `search.ts` | Builds the search index from `site.ts` |
@@ -331,7 +332,7 @@ that way on purpose so the check scripts can test them alone.
 | --- | --- |
 | `actions/public.ts` | `createBookingRequest`, `createApplication`: validate, save with the secret key, then emails and sheet rows in `after()`. A filled hidden spam-trap field (`website`) doesn't drop the request: it's saved with an internal "check this one" note (`spamNote` in `notify.ts`), the team email is marked "[Check: possible spam]" and no confirmation is sent. |
 | `actions/auth.ts` | `requestCode`, `verifyCode`: emailed 6-digit codes. Staff only if their email is in `staff`; artists only if AOD knows their email. |
-| `actions/customer.ts` | My bookings: `myOrders` (the signed-in customer's bookings), `submitReview` |
+| `actions/customer.ts` | My bookings: `myOrders` (the signed-in customer's bookings), `submitReview`, `cancelMyBooking` (within 2 hours of booking) |
 | `actions/artist.ts` | Artist portal: load, profile, availability, replies to requests, portfolio uploads (signed upload links) |
 | `actions/admin.ts` | `adminSession`, `loadAdminDb`, `saveAdminChanges`: checks the staff role, then saves the changed records |
 | `actions/resolution.ts` | Raise, track and escalate a case. Tracking needs the case number plus the email; never returns internal notes. |
@@ -352,6 +353,8 @@ from the browser and runs on the server. Treat every argument as untrusted input
 | `20261013000000_no_pay_page.sql` | Removes the old "Payment reported" alert |
 | `20261014000000_details_and_developers.sql` | Application `details`, owner/developer roles, access checks moved to a `private` schema, fixed search paths |
 | `20261014010000_outbox_rule.sql` | A "server only" policy on `outbox` |
+| `20261016000000_team_bookings.sql` | Several artists per booking (`artists_needed` 1–20, `artist_ids`; `artist_id` stays as the first), artists in several categories (`other_categories` on artists and applications), live updates for every assigned artist |
+| `20261016010000_one_order_per_request.sql` | One booking per request with a line per category (`items`), `artists_needed` may go above 20 in all, the "Customer cancelled a booking" alert; repeats the sixth step, so it works without it |
 
 Each file is run **once**, in date order, in Supabase's SQL Editor. Never edit a file that may
 already have been run: add a new dated file instead, and add a case to `scripts/db-check.mts`.
@@ -381,10 +384,15 @@ already have been run: add a new dated file instead, and add a case to `scripts/
 ### 7.1 A customer sends a booking request
 
 1. `/book` → personal or business → `/book/personal` runs `MatchQuiz` (`src/components/home/MatchQuiz.tsx`):
-   occasion, who they need, then event details and contact. Every field is required.
+   occasion, who they need (any number of categories, and how many of each: 1–4, or "More" for
+   up to 20, through `CountPicker`), then event details and contact. Every field is required.
+   Each category page runs the same quiz in its "Book …" section with that category already
+   picked (`initialNeeds`), so a visitor sets how many and adds other artists for the same event.
 2. Live: the quiz calls `createBookingRequest()` (`src/server/actions/public.ts`). It validates
-   everything again, then inserts **one booking per category** needed (B-1201, B-1202…) with one
-   customer reference (`AOD-1201`, from the first booking number).
+   everything again, then inserts **one booking for the whole request** (B-1201), with a line in
+   `items` for each category and how many artists of it, and the customer's reference with the
+   same number (`AOD-1201`). Photographers × 2, a model and an anchor are one order with three
+   lines, one quote and one payment; the team assigns artists to each line.
 3. Only after the save succeeds does the visitor see "received" with the reference. WhatsApp then
    opens with the reference in the message. If saving fails, the visitor is told and WhatsApp
    carries the request instead.
@@ -402,8 +410,8 @@ already have been run: add a new dated file instead, and add a case to `scripts/
   be what failed).
 - The WhatsApp message carries every field, including the phone number, so the team can paste it
   into the admin: Bookings → New booking → "Paste a WhatsApp message" fills the form in
-  (`src/lib/whatsapp-order.ts`). Several categories become one booking each, sharing one AOD-
-  reference, with a note saying it came from WhatsApp.
+  (`src/lib/whatsapp-order.ts`), including how many of each ("Photographers × 3"). Several
+  categories become one booking with a line for each, with a note saying it came from WhatsApp.
 - A hidden spam-trap field never drops a request (it's saved with a "check this one" note).
 - Chats started with the floating WhatsApp button never touch the site; the team adds those with
   New booking (only the WhatsApp Business API could capture them automatically).
@@ -411,14 +419,18 @@ already have been run: add a new dated file instead, and add a case to `scripts/
 ### 7.2 An artist applies
 
 1. `artists.aod.co.in/apply` runs `ApplyForm` (`src/components/artists/ApplyForm.tsx`): About you,
-   Your craft, Your work details (questions from `workQuestions` in `src/content/artist-portal.ts`),
-   Portfolio, Verification, Review.
+   Your craft (what they mainly do, and optionally the other categories they also work in),
+   Your work details (questions from `workQuestions` in `src/content/artist-portal.ts`, a section
+   for each chosen category through `workSections()`; questions asked the same way by two
+   categories are asked once, and another category's own questions are saved as
+   `<category>.<id>`), Portfolio, Verification, Review.
 2. Live: `createApplication()` validates every required question (a follow-up question counts only
    when `workQuestionShown()` says it's on screen), saves the application (APP-201…) with the
    answers in `details`, then emails the team and the applicant.
 3. The applicant signs in to the portal with an emailed code and sees their real onboarding step.
 4. Staff move the application through review → meeting → trial → approve in the admin; approving
-   creates the artist record (ART-101…).
+   creates the artist record (ART-101…) with the same categories. Staff can change an artist's
+   other categories in the artist's drawer; matching offers an artist for bookings in any of them.
 
 ### 7.3 Signing in (customers, artists, staff)
 
@@ -491,6 +503,21 @@ booking), `APP-201` (application), `ART-101` (artist), `PAY-3101` (payment), `L-
   functions get `set search_path = ''` and name everything in full (Supabase's Security Advisor
   checks both).
 
+**One order per request:** a booking is a whole request. `items` (jsonb) has a line per category:
+`{ category, service, count, artistIds }`, `count` from 1 to 20 and `artistIds` the artists
+assigned to that line. The older columns stay filled from the lines: `category` / `service` (the
+first line), `artists_needed` (all lines added up), `artist_ids` (every assigned artist; live
+updates and the artist portal use it) and `artist_id` (the first). A row saved before lines
+existed reads as one line from those columns. The admin's booking drawer has a block per line
+("2 of 3 assigned") and "Add to this order"; payouts are one per assigned artist, suggested from
+the artist's own portal quote or an equal part of the order's quote, and editable.
+
+**Customer cancelling:** for 2 hours after booking (`customerCancelHours` in
+`src/content/my-bookings.ts`) My bookings shows "Changed your mind?" with a Cancel button.
+`cancelMyBooking()` (`src/server/actions/customer.ts`) checks the email and the time again, sets
+the booking to Cancelled with a note, and emails the customer and (unless switched off in admin
+Settings, "Customer cancelled a booking") the team.
+
 **Mapping:** database columns are snake_case; the app's types (in `admin-store.ts`) are camelCase.
 `src/server/rows.ts` converts both ways. A new column needs a migration, the type, and both
 mappings.
@@ -531,9 +558,9 @@ are baked into the browser code at build time.
   green success, amber warnings) and the WhatsApp green stay as they are.
 - **Fonts:** Bricolage Grotesque for headings (`h1`–`h3` get it automatically; `font-display` puts
   it on anything else), Montserrat for everything else (`font-sans`).
-- **Text shadow:** only big titles (base size `text-3xl` or larger) and the stat numbers get the
-  soft raised shadow, through the `text-shadow-3d` class. Smaller headings are bold with no shadow.
-  Buttons and body text are flat.
+- **No text shadows or glows:** no text has a shadow or glow behind it (the old raised
+  `text-shadow-3d` headings and the hero's shadows and glows were removed on purpose). Smaller
+  headings are bold; buttons and body text are flat.
 - **Size:** `html { font-size: 81% }` in `globals.css` scales the whole site (everything is in rem).
 - **Width:** wrap page content in `Container` (`max-w-page`, about 1600px).
 - **Buttons:** use `buttonClasses()` / `ButtonLink` from `src/components/ui/Button.tsx`.
@@ -554,6 +581,8 @@ are baked into the browser code at build time.
 | Add an order that only reached WhatsApp | Admin → Bookings → New booking → paste the message into "Paste a WhatsApp message", add the phone if it's missing | Nothing to code |
 | Delete a test or duplicate order | Admin → Bookings → open it → **Delete booking** (bottom of the drawer). Removes its payments and payouts too; cancel instead to keep a record | Nothing to code |
 | Change the booking form's WhatsApp message | `message` in `src/components/home/MatchQuiz.tsx` **and** the labels in `src/lib/whatsapp-order.ts` | Add a case to `scripts/order-check.mts`, run `check:orders` |
+| Change the most artists of one category per request (20) | `MAX_ARTISTS` in `src/lib/booking-needs.ts` and the 20 in `readNeed()` in `whatsapp-order.ts` | `check:orders` |
+| Change how long customers can cancel themselves (2 hours) | `customerCancelHours` in `src/content/my-bookings.ts`, and the sentence in the refund policy (`legal.ts`) | — |
 | Add or rename a category | `categories` in `src/content/site.ts` (slug, name, icon, photo, services, keywords); add its photo to `public/categories/`; add its questions to `workQuestions` in `artist-portal.ts`; add a tab with the exact category name to the orders sheet | `npm run check:search` |
 | Change search results | `keywords` in `site.ts`; ranking in `src/lib/fuzzy.ts` | Add a case to `scripts/search-check.mts`, run `check:search` |
 | Change the artist application questions | `workQuestions` in `src/content/artist-portal.ts` (kinds: `one`, `many`, `text`, `long`; `optional`; `showIf`) | Old answers stay saved by id and still show in the admin |
@@ -566,7 +595,7 @@ are baked into the browser code at build time.
 | Edit a policy | `src/content/legal.ts` | — |
 | Change an email's text | `src/server/actions/public.ts` (booking request, application), `resolution.ts` (new and escalated cases), `artist.ts` (an artist's quote or decline, to the team), `admin.ts` ("You've been added to the AOD admin") | Plain-text emails sent through `runOrQueue()` |
 | Change the sign-in code email | Supabase dashboard → Authentication → Emails → Templates (HTML in `backend-setup.md` 2.9) | Not in code |
-| Change the sheet's columns | `sheetHeader` in `src/server/notify.ts` and `sheetRow` in `src/server/actions/public.ts` | The header row is only written to an empty tab, so update existing tabs by hand |
+| Change the sheet's columns | `sheetHeader` in `src/server/notify.ts` and `sheetRow` in `src/server/actions/public.ts` | Add new columns at the end: a tab whose heading row is the older headings gets the new ones added; anything else, update existing tabs by hand |
 | Change WhatsApp templates in the admin | `src/content/admin.ts` | — |
 | Add a page to the customer site | New folder in `src/app/(site)/` with `page.tsx` + metadata | Add it to the list in `src/app/sitemap.ts` |
 | Add a homepage section | New file in `src/components/home/`, add it to `src/app/(site)/page.tsx` | Comment why it sits where it does |
@@ -606,8 +635,8 @@ customer, artist) is in `testing.md` in `aod docs`.
   redirects every `*.vercel.app` address to `www.aod.co.in`. Test locally instead (`npm run build`
   then `npm start`).
 - **Environment variable changed in Vercel?** Redeploy (Deployments → newest → ⋯ → Redeploy).
-- **Database change?** Run the new migration in Supabase's SQL Editor before (or right after)
-  deploying the code that needs it.
+- **Database change?** Run the new migration in Supabase's SQL Editor **before** deploying the
+  code that needs it (code that saves a column the database doesn't have yet fails to save).
 - **Domains:** each subdomain is a domain in Vercel plus a CNAME and a `_vercel` TXT record at
   GoDaddy (`backend-setup.md` section 8).
 - **Caching:** pages are static; files in `/media`, `/brands`, `/categories` are cached 30 days by
@@ -726,12 +755,16 @@ Supabase → Table editor → `outbox`.
 - Validate on the server even when the form already validated (anyone can call a server action).
 - New database records insert, never upsert.
 - Never edit a migration that may have been run; add a new dated one.
+- Don't add `loading.tsx` files. React puts a large page's content behind its loading screen in
+  the built HTML (shown first, swapped in by a script), so every first visit flashed the spinner
+  and visitors without JavaScript saw only the spinner. The top loading bar covers page changes;
+  give a waiting button a `Spinner` and an area that loads data in the browser a `PageLoader`.
 - Links: inside the artists/admin/resolve sites write `/artists/...`, `/admin/...`, `/resolve/...`
   and pass them through `sectionLink()` (drops the prefix in production). Links back to the
   customer site use `siteHref()`. Links into a section from elsewhere (and in emails) use
   `portalHref()` / `sectionUrl()`.
 - Animated elements: `m.*` components, final content rendered on the server, `data-reveal` kept.
-- Tokens, not raw colours. Big titles get `text-shadow-3d`; small ones are bold.
+- Tokens, not raw colours. No text shadows or glows; small headings are bold.
 - Rename media files when replacing them (30-day cache).
 - After a change that affects how the project works, update `CLAUDE.md`, this guide, and
   `testing.md` in `aod docs` if a flow changed.

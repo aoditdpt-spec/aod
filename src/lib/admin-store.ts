@@ -1,6 +1,7 @@
 "use client";
 
 import type { WorkDetails } from "./artist-store";
+import type { BookingItem } from "./booking-needs";
 import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
 import { createSampleDb } from "@/content/admin-sample";
@@ -28,7 +29,8 @@ export type Application = {
   phone: string;
   email: string;
   city: string;
-  category: string;
+  category: string; // main category slug
+  otherCategories: string[]; // other categories they also work in (src/lib/booking-needs.ts)
   services: string[];
   experience: string;
   languages: string[];
@@ -53,7 +55,8 @@ export type Artist = {
   phone: string;
   email: string;
   city: string;
-  category: string;
+  category: string; // main category slug
+  otherCategories: string[]; // other categories they also work in; matching offers them for any
   services: string[];
   experience: string;
   languages: string[];
@@ -85,12 +88,13 @@ export type BookingStatus =
   | "rescheduled";
 export type Booking = {
   id: string;
-  requestRef?: string; // AOD-1048: the website request it came from (one request can need several categories)
+  requestRef?: string; // AOD-1048: the customer's reference for the website request (same number as the booking)
   createdAt: string;
   audience: "Personal" | "Business";
   customer: { name: string; phone: string; email: string };
-  category: string;
-  service: string;
+  // What the order needs, one line per category ("Photographers × 2", "Models × 1"), each with
+  // the artists assigned to it (src/lib/booking-needs.ts).
+  items: BookingItem[];
   event: string;
   date: string; // yyyy-mm-dd
   time: string; // start, HH:MM
@@ -100,8 +104,7 @@ export type Booking = {
   budget: string;
   notes: string;
   status: BookingStatus;
-  artistId?: string;
-  shortlist: string[]; // artist ids offered to the customer
+  shortlist: string[]; // artist ids offered to the customer, from any of the order's categories
   quote?: number;
   advance?: number;
   delivery?: { link: string; expires: string };
@@ -324,6 +327,7 @@ function stopListening() {
 }
 function saveFinished() {
   saving--;
+  emit(); // the header's "Saving…" goes away
   if (!saving && reloadAfterSave) {
     reloadAfterSave = false;
     void loadLive(true);
@@ -351,12 +355,36 @@ function diff(before: Db, after: Db): AdminChanges {
 
 // ---- Database ----
 
+// Data saved by an older version of the preview: a booking was one category with one artist
+// (`category`, `service`, `artistId`, later `artistsNeeded` and `artistIds`), and artists and
+// applications had one category. Returns the data brought up to date, or null when it already is.
+type OldBooking = Booking & { category?: string; service?: string; artistId?: string; artistIds?: string[]; artistsNeeded?: number };
+function upgradePreviewDb(db: Db): Db | null {
+  const old =
+    !Array.isArray(db.cases) ||
+    db.bookings.some((b) => !Array.isArray(b.items)) ||
+    [...db.artists, ...db.applications].some((a) => !Array.isArray(a.otherCategories));
+  if (!old) return null;
+  return {
+    ...db,
+    // Saved before Resolution Centre cases existed: add the sample cases, keep everything else.
+    cases: Array.isArray(db.cases) ? db.cases : createSampleDb(new Date()).cases,
+    bookings: db.bookings.map(({ category, service, artistId, artistIds, artistsNeeded, ...b }: OldBooking) => {
+      if (Array.isArray(b.items)) return b;
+      const ids = Array.isArray(artistIds) ? artistIds : artistId ? [artistId] : [];
+      return { ...b, items: [{ category: category ?? "", service: service ?? "", count: Math.max(artistsNeeded ?? 1, ids.length, 1), artistIds: ids }] };
+    }),
+    artists: db.artists.map((a) => ({ ...a, otherCategories: a.otherCategories ?? [] })),
+    applications: db.applications.map((a) => ({ ...a, otherCategories: a.otherCategories ?? [] })),
+  };
+}
+
 function getPreviewDb(): Db {
   const db = readJson<Db>(DB_KEY);
   if (db && db.version === 1) {
-    if (Array.isArray(db.cases)) return db;
-    // Saved before Resolution Centre cases existed: add the sample cases, keep everything else.
-    store(DB_KEY, JSON.stringify({ ...db, cases: createSampleDb(new Date()).cases }));
+    const upgraded = upgradePreviewDb(db);
+    if (!upgraded) return db;
+    store(DB_KEY, JSON.stringify(upgraded));
     return readJson<Db>(DB_KEY)!;
   }
   // First visit (or an old format): seed sample data. Stored without notifying, because this
@@ -407,8 +435,8 @@ export function update(area: string, text: string, fn: (db: Db) => void, target?
   }
   // Live: show the change straight away, save it, and reload if the save is refused.
   const changes = { ...diff(before, db), activity: [entry] };
+  saving++; // before setLive, so the header shows "Saving…" with the change
   setLive({ db });
-  saving++;
   saveAdminChanges(changes)
     .then((res) => {
       if (!res.ok) {
@@ -469,6 +497,13 @@ const liveConnection = () => live.connection;
 const offConnection = () => "off" as const;
 export function useLiveConnection(): LiveStatus {
   return useSyncExternalStore(backendEnabled ? subscribe : noop, backendEnabled ? liveConnection : offConnection, offConnection);
+}
+
+// Live mode: whether a change is still being saved (the header shows "Saving…").
+const isSaving = () => saving > 0;
+const notSaving = () => false;
+export function useAdminSaving(): boolean {
+  return useSyncExternalStore(backendEnabled ? subscribe : noop, backendEnabled ? isSaving : notSaving, notSaving);
 }
 
 // Live mode: the last loading error, if any (shown instead of the panel).

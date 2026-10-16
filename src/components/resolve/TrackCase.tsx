@@ -7,6 +7,7 @@ import { AlertTriangle, Check } from "lucide-react";
 import { caseSteps, resolution } from "@/content/resolution";
 import { backendEnabled } from "@/lib/backend";
 import { escalateCase, trackCase, type TrackedCase } from "@/server/actions/resolution";
+import { Spinner } from "@/components/ui/Spinner";
 import { field } from "./CaseForm";
 import { sectionLink } from "@/lib/site-url";
 
@@ -104,8 +105,20 @@ export function TrackCase() {
           Email you raised it with
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className={input} />
         </label>
-        <button type="submit" disabled={!ready || busy} className="h-[3.125rem] rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40">
-          {busy ? "Looking…" : "Find case"}
+        <button
+          type="submit"
+          disabled={!ready || busy}
+          className={`inline-flex h-[3.125rem] items-center justify-center gap-2 rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover ${
+            busy ? "cursor-wait" : "disabled:cursor-not-allowed disabled:opacity-40"
+          }`}
+        >
+          {busy ? (
+            <>
+              <Spinner /> Looking…
+            </>
+          ) : (
+            "Find case"
+          )}
         </button>
       </form>
 
@@ -267,9 +280,17 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
                       await onEscalated();
                     } else setError(res.error);
                   }}
-                  className="inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className={`inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover ${
+                    busy ? "cursor-wait" : "disabled:cursor-not-allowed disabled:opacity-40"
+                  }`}
                 >
-                  {busy ? "Sending…" : "Escalate"}
+                  {busy ? (
+                    <>
+                      <Spinner /> Sending…
+                    </>
+                  ) : (
+                    "Escalate"
+                  )}
                 </button>
                 <button type="button" onClick={() => setEscalating(false)} className="text-sm font-medium text-muted hover:text-ink">
                   Cancel

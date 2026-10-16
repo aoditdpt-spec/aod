@@ -19,7 +19,7 @@ export function GetMatched() {
             </span>
             {getMatched.eyebrow}
           </p>
-          <h2 className="mt-6 text-4xl font-normal leading-[1.1] sm:text-5xl text-shadow-3d">{getMatched.title}</h2>
+          <h2 className="mt-6 text-4xl font-normal leading-[1.1] sm:text-5xl">{getMatched.title}</h2>
           <p className="mt-6 max-w-md text-body">{getMatched.text}</p>
           <div className="mt-6">
             <VerifiedArtists variant="inline" />

@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, Scale, Star, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
+import { canCancel, cancelDeadline, customerCancelHours, customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
 import { brand } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { portalHref } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
-import { customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
+import { cancelSentRequest, customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
 import { useHydrated } from "@/lib/motion-safe";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
+import { PageLoader, Spinner } from "@/components/ui/Spinner";
 import { requestCode, signOutAction, verifyCode } from "@/server/actions/auth";
-import { myOrders, submitReview, type MyOrders } from "@/server/actions/customer";
+import { cancelMyBooking, myOrders, submitReview, type MyOrders } from "@/server/actions/customer";
 import { useLiveRefresh } from "@/lib/live";
 
 const inr = (n?: number) => (n === undefined ? "—" : `₹${n.toLocaleString("en-IN")}`);
@@ -55,12 +56,13 @@ const fromRequest = (r: SentRequest): CustomerOrder => ({
   id: r.id,
   sample: false,
   createdAt: r.sentAt,
-  status: "sent",
+  status: r.cancelledAt ? "cancelled" : "sent",
   occasion: r.occasion,
   services: r.needs,
   date: r.date,
   city: r.city,
   notes: r.details,
+  artists: [],
   payments: [],
   history: [],
 });
@@ -79,9 +81,17 @@ function PreviewMyBookings() {
   const session = customerSessionStore.use();
   const sentRequests = sentRequestsStore.use();
   const [samples] = useState(() => sampleOrders(new Date()));
-  if (!hydrated) return <div className="mx-auto h-96 max-w-5xl animate-pulse rounded-[1.5rem] bg-wash" />;
+  if (!hydrated) return <PageLoader className="min-h-96" label="Loading your bookings…" />;
   return session ? (
-    <BookingsView email={session.email} orders={[...sentRequests.map(fromRequest), ...samples]} onSignOut={() => customerSessionStore.clear()} />
+    <BookingsView
+      email={session.email}
+      orders={[...sentRequests.map(fromRequest), ...samples]}
+      onSignOut={() => customerSessionStore.clear()}
+      onCancel={async (id) => {
+        cancelSentRequest(id);
+        return null;
+      }}
+    />
   ) : (
     <CustomerSignIn />
   );
@@ -112,7 +122,7 @@ function LiveMyBookings() {
       </div>
     );
   }
-  if (data === undefined) return <div className="mx-auto h-96 max-w-5xl animate-pulse rounded-[1.5rem] bg-wash" />;
+  if (data === undefined) return <PageLoader className="min-h-96" label="Loading your bookings…" />;
   if (data === null) return <CustomerSignIn onSignedIn={load} />;
   return (
     <BookingsView
@@ -121,6 +131,11 @@ function LiveMyBookings() {
       onSignOut={() => void signOutAction().then(() => setData(null))}
       onReview={async (id, rating, text) => {
         const res = await submitReview(id, rating, text);
+        if (res.ok) load();
+        return res.ok ? null : res.error;
+      }}
+      onCancel={async (id) => {
+        const res = await cancelMyBooking(id);
         if (res.ok) load();
         return res.ok ? null : res.error;
       }}
@@ -162,8 +177,11 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
           if (!backendEnabled) return customerSessionStore.set({ email: email.trim() });
           setBusy(true);
           const res = await verifyCode(email, code);
-          setBusy(false);
-          if (!res.ok) return setError(res.error);
+          if (!res.ok) {
+            setBusy(false);
+            return setError(res.error);
+          }
+          // Stays busy while the bookings load; this form then goes away.
           onSignedIn?.();
         }}
       >
@@ -196,8 +214,18 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
             {error}
           </p>
         )}
-        <button type="submit" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
-          {sent ? "Show my bookings" : (
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover disabled:opacity-60"
+        >
+          {busy ? (
+            <>
+              <Spinner /> {sent ? "Loading your bookings…" : "Sending the code…"}
+            </>
+          ) : sent ? (
+            "Show my bookings"
+          ) : (
             <>
               <Mail className="h-4 w-4" aria-hidden /> Send code by email
             </>
@@ -210,8 +238,21 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
 }
 
 type ReviewFn = (id: string, rating: number, text: string) => Promise<string | null>; // null = saved, else the error
+type CancelFn = (id: string) => Promise<string | null>; // null = cancelled, else the error
 
-function BookingsView({ email, orders, onSignOut, onReview }: { email: string; orders: CustomerOrder[]; onSignOut: () => void; onReview?: ReviewFn }) {
+function BookingsView({
+  email,
+  orders,
+  onSignOut,
+  onReview,
+  onCancel,
+}: {
+  email: string;
+  orders: CustomerOrder[];
+  onSignOut: () => void;
+  onReview?: ReviewFn;
+  onCancel: CancelFn;
+}) {
   const [tab, setTab] = useState<"active" | "past">("active");
   const [openId, setOpenId] = useState<string | null>(null);
   const isPast = (o: CustomerOrder) => ["delivered", "reviewed", "cancelled"].includes(o.status) || (o.date !== "" && o.date < todayKey());
@@ -222,7 +263,7 @@ function BookingsView({ email, orders, onSignOut, onReview }: { email: string; o
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-medium sm:text-4xl text-shadow-3d">{myBookingsCopy.title}</h1>
+          <h1 className="text-3xl font-medium sm:text-4xl">{myBookingsCopy.title}</h1>
           <p className="mt-1 text-sm text-muted">
             Signed in as {email} ·{" "}
             <button type="button" onClick={onSignOut} className="font-medium text-brand underline underline-offset-2">
@@ -299,7 +340,7 @@ function BookingsView({ email, orders, onSignOut, onReview }: { email: string; o
         </div>
 
         {open ? (
-          <OrderDetail key={open.id} order={open} onBack={() => setOpenId(null)} onReview={onReview} />
+          <OrderDetail key={open.id} order={open} onBack={() => setOpenId(null)} onReview={onReview} onCancel={onCancel} />
         ) : (
           <div className="hidden min-h-[20rem] items-center justify-center rounded-2xl border border-dashed border-line text-sm text-muted lg:flex">
             Choose a booking to see everything about it.
@@ -310,11 +351,86 @@ function BookingsView({ email, orders, onSignOut, onReview }: { email: string; o
   );
 }
 
-function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onBack: () => void; onReview?: ReviewFn }) {
+// "Changed your mind?": the customer cancels the booking themselves, for customerCancelHours after
+// making it (the server checks the time again). The time left is worked out again every 30
+// seconds, so the button goes away when the time is up.
+function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: CancelFn }) {
+  const [now, setNow] = useState(() => new Date());
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(t);
+  }, []);
+  if (!canCancel(o, now)) return null;
+  const deadline = cancelDeadline(o.createdAt);
+  const left = Math.max(1, Math.round((deadline.getTime() - now.getTime()) / 60_000));
+  const until = deadline.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+
+  return (
+    <div className="mt-4 rounded-xl border border-line p-4">
+      <p className="text-sm text-body">
+        <strong className="font-medium text-ink">Changed your mind?</strong> You can cancel this booking here until {until} (
+        {left < 60 ? `${left} min` : `${Math.floor(left / 60)} h ${left % 60} min`} left, {customerCancelHours} hours after booking). After that, message AOD;
+        the{" "}
+        <Link href="/refund-policy" className="font-medium text-brand underline underline-offset-2">
+          refund policy
+        </Link>{" "}
+        applies.
+      </p>
+      {confirming ? (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <p className="text-sm font-medium text-ink">Cancel {o.ref ?? o.id}? This can&apos;t be undone.</p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError(null);
+              const err = await onCancel(o.id).catch(() => "Couldn't cancel just now. Please try again, or message AOD on WhatsApp.");
+              setBusy(false);
+              if (err) setError(err);
+              else setConfirming(false);
+            }}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-wait"
+          >
+            {busy ? (
+              <>
+                <Spinner /> Cancelling…
+              </>
+            ) : (
+              "Yes, cancel it"
+            )}
+          </button>
+          <button type="button" disabled={busy} onClick={() => setConfirming(false)} className="text-sm font-medium text-muted hover:text-ink">
+            Keep it
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="mt-3 inline-flex h-10 items-center rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50"
+        >
+          Cancel booking
+        </button>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: CustomerOrder; onBack: () => void; onReview?: ReviewFn; onCancel: CancelFn }) {
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [sendingReview, setSendingReview] = useState(false);
   const s = statusInfo(o);
   const action = nextAction(o);
   const current = customerSteps.findIndex((x) => x.id === o.status);
@@ -373,6 +489,8 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
         )}
         {current >= 0 && <p className="mt-4 text-sm text-body">{customerSteps[current].text}</p>}
 
+        <CancelBox order={o} onCancel={onCancel} />
+
         {action && (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-peach/50 p-4">
             <p className="text-sm font-medium text-ink">{action.text}</p>
@@ -410,21 +528,34 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
         </div>
 
         <div className={box}>
-          <h3 className="text-ink font-bold">Your artist</h3>
-          {o.artist ? (
-            <div className="mt-3 flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-peach text-brand">
-                <UserRound className="h-6 w-6" aria-hidden />
-              </span>
-              <div>
-                <p className="font-medium text-ink">{o.artist.name}</p>
-                <p className="text-sm text-muted">
-                  {o.artist.craft} · {o.artist.city}
+          <h3 className="text-ink font-bold">{(o.needed ?? 1) > 1 || o.artists.length > 1 ? "Your artists" : "Your artist"}</h3>
+          {o.artists.length > 0 ? (
+            <>
+              <ul className="mt-3 space-y-3">
+                {o.artists.map((a, i) => (
+                  <li key={`${a.name}-${i}`} className="flex items-center gap-3">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-peach text-brand">
+                      <UserRound className="h-6 w-6" aria-hidden />
+                    </span>
+                    <div>
+                      <p className="font-medium text-ink">{a.name}</p>
+                      <p className="text-sm text-muted">
+                        {a.craft} · {a.city}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {o.needed && o.artists.length < o.needed && (
+                <p className="mt-3 text-sm text-muted">
+                  {o.artists.length} of {o.needed} matched so far. We&apos;ll share the rest as soon as they&apos;re confirmed.
                 </p>
-              </div>
-            </div>
+              )}
+            </>
           ) : (
-            <p className="mt-3 text-sm text-muted">We&apos;ll share the artist once we&apos;ve matched your request.</p>
+            <p className="mt-3 text-sm text-muted">
+              {o.needed ? `We'll share your ${o.needed} artists once we've matched your request.` : "We'll share the artist once we've matched your request."}
+            </p>
           )}
         </div>
 
@@ -510,9 +641,12 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
               className="mt-3"
               onSubmit={async (e) => {
                 e.preventDefault();
-                if (!review.trim()) return;
+                if (!review.trim() || sendingReview) return;
                 if (!onReview) return setReviewed(true);
-                const err = await onReview(o.id, rating, review);
+                setSendingReview(true);
+                setReviewError(null);
+                const err = await onReview(o.id, rating, review).catch(() => "Couldn't send your review just now. Please try again.");
+                setSendingReview(false);
                 if (err) setReviewError(err);
                 else setReviewed(true);
               }}
@@ -528,11 +662,21 @@ function OrderDetail({ order: o, onBack, onReview }: { order: CustomerOrder; onB
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
                 rows={3}
-                placeholder={`How was ${o.artist?.name ?? "your artist"}?`}
+                placeholder={o.artists.length === 1 ? `How was ${o.artists[0].name}?` : o.artists.length > 1 ? "How was the team?" : "How was your artist?"}
                 className="mt-3 w-full resize-none rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-brand"
               />
-              <button type="submit" disabled={!review.trim()} className="mt-2 inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-40">
-                Send review
+              <button
+                type="submit"
+                disabled={!review.trim() || sendingReview}
+                className="mt-2 inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-40"
+              >
+                {sendingReview ? (
+                  <>
+                    <Spinner /> Sending…
+                  </>
+                ) : (
+                  "Send review"
+                )}
               </button>
               {reviewError && (
                 <p className="mt-2 text-sm text-red-600" role="alert">

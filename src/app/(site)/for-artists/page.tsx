@@ -30,13 +30,9 @@ export default function ForArtistsPage() {
     <>
       <Container className="pt-8">
         <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-20">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-32 top-1/2 hidden h-[32.5rem] w-[32.5rem] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--color-tangerine)_30%,transparent)_0%,color-mix(in_srgb,var(--color-tangerine)_0%,transparent)_65%)] lg:block"
-          />
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{forArtists.eyebrow}</p>
-            <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] text-white sm:text-6xl text-shadow-3d">
+            <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] text-white sm:text-6xl">
               {forArtists.title}
             </h1>
             <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-xl sm:leading-snug">{forArtists.subtitle}</p>
@@ -60,7 +56,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container className="py-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{forArtists.whyTitle}</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.whyTitle}</h2>
         <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {forArtists.why.map((w, i) => {
             const I = whyIcons[i];
@@ -94,7 +90,7 @@ export default function ForArtistsPage() {
 
       <Container className="py-16">
         <section id="verification" className="scroll-mt-24">
-          <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">{forArtists.verificationTitle}</h2>
+          <h2 className="text-3xl font-normal sm:text-[2.5rem]">{forArtists.verificationTitle}</h2>
           <p className="mt-3 max-w-2xl text-body">{forArtists.verificationIntro}</p>
           <div className="mt-10">
             <StepFlow steps={howItWorks.artists} icons={stepIcons} />
@@ -103,7 +99,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container className="pb-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem] text-shadow-3d">Who we&apos;re onboarding</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">Who we&apos;re onboarding</h2>
         <ul className="mt-8 flex flex-wrap gap-3">
           {categories.map((c) => (
             <li key={c.slug} className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-ink">
@@ -115,7 +111,7 @@ export default function ForArtistsPage() {
 
       <Container>
         <section className="grain rounded-[1.25rem] bg-brand px-6 py-14 text-center">
-          <h2 className="text-3xl font-medium text-white sm:text-[2.5rem] text-shadow-3d">{forArtists.ctaTitle}</h2>
+          <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href={portalHref("/artists/apply")} variant="white">

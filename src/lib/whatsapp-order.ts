@@ -7,7 +7,7 @@
 export type ParsedOrder = {
   audience?: "Personal" | "Business";
   occasion?: string;
-  needs: string[]; // category names, as written in the message
+  needs: { name: string; count: number }[]; // category names as written in the message, and how many of each
   date?: string; // yyyy-mm-dd
   startTime?: string; // HH:MM, 24-hour
   endTime?: string; // HH:MM, 24-hour
@@ -43,6 +43,16 @@ function to24h(hour: string, minute: string, ampm?: string): string {
   return `${String(h).padStart(2, "0")}:${minute}`;
 }
 
+// "Photographers × 3" (as the booking form writes it), "Photographers x3", "Photographers (3)",
+// "3 x Photographers" or "3 Photographers"; no number means one. At most 20 (MAX_ARTISTS).
+function readNeed(item: string): { name: string; count: number } {
+  const text = item.trim();
+  const after = /^(.*?)\s*(?:[×xX*]\s*(\d{1,3})|\((\d{1,3})\))$/.exec(text);
+  const before = /^(\d{1,3})\s*(?:[×xX*]\s*)?([^\d].*)$/.exec(text);
+  const [name, n] = after ? [after[1], after[2] ?? after[3]] : before ? [before[2], before[1]] : [text, "1"];
+  return { name: name.trim(), count: Math.min(20, Math.max(1, Number(n) || 1)) };
+}
+
 export function parseOrderMessage(text: string): ParsedOrder {
   const fields: Record<string, string> = {};
   let current = "";
@@ -65,7 +75,7 @@ export function parseOrderMessage(text: string): ParsedOrder {
   if (audience.includes("business")) order.audience = "Business";
   else if (audience.includes("personal")) order.audience = "Personal";
   if (fields.occasion) order.occasion = fields.occasion;
-  if (fields.needs) order.needs = fields.needs.split(",").map((s) => s.trim()).filter(Boolean);
+  if (fields.needs) order.needs = fields.needs.split(",").map(readNeed).filter((n) => n.name);
   const date = /\d{4}-\d{2}-\d{2}/.exec(fields.date ?? "");
   if (date) order.date = date[0];
   const time = /(\d{1,2})[:.](\d{2})\s*([AaPp]\.?[Mm]\.?)?\s*(?:–|—|-|to)\s*(\d{1,2})[:.](\d{2})\s*([AaPp]\.?[Mm]\.?)?/.exec(fields.time ?? "");

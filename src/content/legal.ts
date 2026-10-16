@@ -205,7 +205,10 @@ export const refunds: LegalDoc = {
     {
       id: "how",
       heading: "How to cancel or reschedule",
-      body: [`Message us on WhatsApp or email ${brand.email} with your booking reference (for example B-1204). We'll confirm in writing and, for refunds, tell you the amount and timeline.`],
+      body: [
+        "Within 2 hours of making a booking, you can cancel it yourself in My bookings (sign in with the email you booked with).",
+        `After that, message us on WhatsApp or email ${brand.email} with your booking reference (for example B-1204). We'll confirm in writing and, for refunds, tell you the amount and timeline.`,
+      ],
     },
     {
       id: "customer",

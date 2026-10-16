@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AlertTriangle, CheckCircle2, Plus, X } from "lucide-react";
 import { resolution, type CaseRole } from "@/content/resolution";
 import { WhatsAppIcon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 import { backendEnabled } from "@/lib/backend";
 import { sectionLink, siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -289,9 +290,17 @@ export function CaseForm() {
         <button
           type="submit"
           disabled={missing.length > 0 || state.kind === "saving"}
-          className="inline-flex h-12 items-center rounded-lg bg-brand px-7 font-medium text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className={`inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-7 font-medium text-white transition-colors hover:bg-brand-hover ${
+            state.kind === "saving" ? "cursor-wait" : "disabled:cursor-not-allowed disabled:opacity-40"
+          }`}
         >
-          {state.kind === "saving" ? "Sending…" : "Raise the case"}
+          {state.kind === "saving" ? (
+            <>
+              <Spinner /> Sending your case…
+            </>
+          ) : (
+            "Raise the case"
+          )}
         </button>
         {missing.length > 0 && <p className="text-sm text-muted">Still needed: {missing.join(", ")}.</p>}
       </div>

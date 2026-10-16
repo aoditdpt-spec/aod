@@ -21,6 +21,7 @@ export type SentRequest = {
   date: string;
   city: string;
   details: string;
+  cancelledAt?: string; // cancelled in My bookings (allowed for customerCancelHours after sending)
 };
 
 export const sentRequestsStore = createStore<SentRequest[]>("aod-sent-requests", [], (v) =>
@@ -29,6 +30,10 @@ export const sentRequestsStore = createStore<SentRequest[]>("aod-sent-requests",
 
 export function addSentRequest(r: SentRequest) {
   sentRequestsStore.set([r, ...sentRequestsStore.get().filter((x) => x.id !== r.id)].slice(0, 20));
+}
+
+export function cancelSentRequest(id: string) {
+  sentRequestsStore.set(sentRequestsStore.get().map((r) => (r.id === id ? { ...r, cancelledAt: new Date().toISOString() } : r)));
 }
 
 // Short reference for a request sent from this browser, e.g. R-K3F9Q.

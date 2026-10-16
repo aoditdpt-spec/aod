@@ -19,10 +19,10 @@ export default function ResolvePage() {
     <>
       {/* Intro, with a picture of what tracking a case looks like. */}
       <section className="border-b border-line bg-wash">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.25fr_1fr] lg:py-20">
+        <div className="mx-auto grid w-full max-w-page items-center gap-10 px-4 py-14 sm:px-6 lg:px-8 lg:grid-cols-[1.25fr_1fr] lg:py-20">
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-brand">{resolution.title}</p>
-            <h1 className="mt-3 text-4xl font-medium leading-tight text-ink sm:text-5xl text-shadow-3d">{resolution.tagline}</h1>
+            <h1 className="mt-3 text-4xl font-medium leading-tight text-ink sm:text-5xl">{resolution.tagline}</h1>
             <p className="mt-5 max-w-xl text-lg text-body">{resolution.intro}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={sectionLink("/resolve/new")} className={buttonClasses("primary", "lg")}>
@@ -70,7 +70,7 @@ export default function ResolvePage() {
       </section>
 
       {/* What AOD promises. */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <section className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
         <ul className="grid gap-4 md:grid-cols-3">
           {resolution.promises.map((p, i) => {
             const Icon = promiseIcons[i];
@@ -89,8 +89,8 @@ export default function ResolvePage() {
 
       {/* How a case runs. */}
       <section className="border-y border-line bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <h2 className="text-3xl font-medium text-ink text-shadow-3d">How a case works</h2>
+        <div className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-medium text-ink">How a case works</h2>
           <ol className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {resolution.steps.map((s, i) => {
               const Icon = stepIcons[i];
@@ -110,8 +110,8 @@ export default function ResolvePage() {
       </section>
 
       {/* Who can raise a case, and about what. */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <h2 className="text-3xl font-medium text-ink text-shadow-3d">{resolution.whoTitle}</h2>
+      <section className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-medium text-ink">{resolution.whoTitle}</h2>
         <p className="mt-2 max-w-2xl text-body">{resolution.whoText}</p>
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
           {resolution.roles.map((r) => {
@@ -145,7 +145,7 @@ export default function ResolvePage() {
       </section>
 
       {/* Escalation. */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+      <section className="mx-auto w-full max-w-page px-4 pb-16 sm:px-6 lg:px-8">
         <div className="rounded-panel bg-night p-8 text-white sm:p-10">
           <h2 className="text-2xl font-bold !text-white sm:text-3xl">{resolution.escalateTitle}</h2>
           <p className="mt-3 max-w-2xl text-white/80">{resolution.escalateText}</p>

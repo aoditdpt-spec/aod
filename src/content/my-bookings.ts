@@ -25,6 +25,15 @@ export const customerSteps: { id: BookingStatus; label: string; text: string }[]
   { id: "reviewed", label: "Reviewed", text: "Thanks for your review." },
 ];
 
+// Customers can cancel a booking themselves in My bookings for this long after making it (the
+// server checks it again). After that they ask AOD, and the refund policy applies.
+export const customerCancelHours = 2;
+const notCancellable = ["cancelled", "completed", "delivered", "reviewed"];
+// When the customer's own cancelling closes for an order made at `createdAt`.
+export const cancelDeadline = (createdAt: string) => new Date(new Date(createdAt).getTime() + customerCancelHours * 3600_000);
+export const canCancel = (o: { createdAt: string; status: string; sample?: boolean }, now = new Date()) =>
+  !o.sample && !notCancellable.includes(o.status) && now < cancelDeadline(o.createdAt);
+
 export type CustomerOrder = {
   id: string;
   ref?: string; // AOD-1215: the request reference the customer got when sending it
@@ -39,7 +48,8 @@ export type CustomerOrder = {
   city: string;
   venue?: string;
   notes?: string;
-  artist?: { name: string; craft: string; city: string };
+  artists: { name: string; craft: string; city: string }[]; // the artists matched so far
+  needed?: number; // how many artists the booking needs, when more than one
   quote?: number;
   advance?: number;
   payments: { amount: number; utr: string; at: string; status: "pending" | "verified" }[];
@@ -75,7 +85,7 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       city: "Vadodara",
       venue: "Banquet hall, Alkapuri",
       notes: "About 250 guests, Bollywood and Garba mix.",
-      artist: { name: "DJ Rohan Bhatt", craft: "Musicians & DJs", city: "Ahmedabad" },
+      artists: [{ name: "DJ Rohan Bhatt", craft: "Musicians & DJs", city: "Ahmedabad" }],
       quote: 32000,
       advance: 9600,
       payments: [],
@@ -91,13 +101,17 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       createdAt: iso(-9, 10),
       status: "confirmed",
       occasion: "Wedding",
-      services: ["Wedding photography", "Candid photography"],
+      services: ["Wedding photography × 2"],
       date: ymd(24),
       time: "10:00",
       city: "Ahmedabad",
       venue: "Party plot, SG Highway",
       notes: "Two days: haldi and wedding.",
-      artist: { name: "Aarav Joshi", craft: "Photographers", city: "Ahmedabad" },
+      artists: [
+        { name: "Aarav Joshi", craft: "Photographers", city: "Ahmedabad" },
+        { name: "Dev Solanki", craft: "Photographers", city: "Surat" },
+      ],
+      needed: 2,
       quote: 70000,
       advance: 21000,
       payments: [{ amount: 21000, utr: "427100583349", at: iso(-6, 13), status: "verified" }],
@@ -121,7 +135,7 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       time: "07:00",
       city: "Vadodara",
       venue: "Laxmi Vilas grounds",
-      artist: { name: "Meera Trivedi", craft: "Photographers", city: "Vadodara" },
+      artists: [{ name: "Meera Trivedi", craft: "Photographers", city: "Vadodara" }],
       quote: 22000,
       advance: 8000,
       payments: [

@@ -8,6 +8,7 @@ import { roles, type Role } from "@/content/admin";
 import { backendEnabled } from "@/lib/backend";
 import { reloadAdmin, signIn, useAdminError, useBrowserReady, useSession } from "@/lib/admin-store";
 import { requestCode, verifyCode } from "@/server/actions/auth";
+import { Spinner } from "@/components/ui/Spinner";
 import { fieldClass } from "./ui";
 import { sectionLink } from "@/lib/site-url";
 
@@ -100,7 +101,15 @@ function LiveSignIn() {
             </p>
           )}
           <button type="submit" disabled={busy} className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover disabled:opacity-60">
-            {busy ? "Please wait…" : sent ? "Verify and sign in" : "Email me a code"} <ArrowRight className="h-4 w-4" aria-hidden />
+            {busy ? (
+              <>
+                <Spinner /> {sent ? "Signing you in…" : "Sending the code…"}
+              </>
+            ) : (
+              <>
+                {sent ? "Verify and sign in" : "Email me a code"} <ArrowRight className="h-4 w-4" aria-hidden />
+              </>
+            )}
           </button>
         </form>
         <p className="mt-4 flex items-start gap-2 text-xs text-muted">

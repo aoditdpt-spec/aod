@@ -25,6 +25,9 @@ const lowData = () => {
 //   otherwise), as AV1 (about 60% smaller; Chrome, Edge, Firefox, newer Safari) with H.264 as the
 //   fallback. 30 fps, no sound.
 // - No video for visitors who prefer reduced motion or are on Data Saver / 2G.
+// - Zoomed in 12% from the left edge (poster and video alike), which crops the right edge off so
+//   the "Million Minds Tech City" logo in the top-right corner of the footage never shows. The
+//   phones' cut is the middle of the frame, which leaves that corner out already, so it isn't zoomed.
 // The files are in public/media/, or wherever NEXT_PUBLIC_MEDIA_URL points (see Hero.tsx).
 export function HeroVideo({ base }: { base: string }) {
   const reduce = useReducedMotionSafe();
@@ -33,7 +36,7 @@ export function HeroVideo({ base }: { base: string }) {
   const showVideo = loaded && !reduce && !lowData();
 
   return (
-    <>
+    <div aria-hidden className="absolute inset-0 origin-left [@media(min-aspect-ratio:2/3)]:scale-[1.12]">
       <picture>
         <source media={PHONE} type="image/avif" srcSet={`${base}/hero-portrait.avif`} />
         <source media={PHONE} srcSet={`${base}/hero-portrait.webp`} />
@@ -57,6 +60,6 @@ export function HeroVideo({ base }: { base: string }) {
           <source src={`${base}/hero-1080.mp4`} type='video/mp4; codecs="avc1.640028"' />
         </video>
       )}
-    </>
+    </div>
   );
 }

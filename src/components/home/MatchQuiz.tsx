@@ -4,11 +4,14 @@ import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, MapPin, X } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
+import { CountPicker } from "@/components/ui/CountPicker";
+import { Spinner } from "@/components/ui/Spinner";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
 import { backendEnabled } from "@/lib/backend";
+import { needsText, withCount } from "@/lib/booking-needs";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -20,6 +23,11 @@ const audienceLabel: Record<Audience, string> = {
 };
 
 const titles = ["What's the occasion?", "Who do you need?", "When and where?"];
+
+const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+
+// One category the customer needs, and how many artists of it.
+type Need = { slug: string; count: number };
 
 // Earliest bookable date: tomorrow, in the visitor's local time, as YYYY-MM-DD.
 // (Today and earlier can't be picked.)
@@ -42,15 +50,17 @@ const slide: Variants = {
 // Picking the occasion moves straight on; the answers so far show as chips that jump back to edit.
 // `audience` picks the occasion list (personal or business); without it a mixed list is shown.
 // The city comes from the navbar picker (src/lib/city.ts); if it's already chosen, it isn't asked again.
+// "Who do you need?" takes any number of categories and how many artists of each (1 to 4, or "More"
+// for up to 20). A category page passes its own category in `initialNeeds`, already picked.
 // With the backend set up, "Send" saves the request first (createBookingRequest) and only then
 // says "received" and opens WhatsApp with its reference. Without it (preview) the request is kept
 // in this browser for My bookings and WhatsApp opens straight away.
-export function MatchQuiz({ audience }: { audience?: Audience }) {
+export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience; initialNeeds?: string[] }) {
   const occasionList = occasions[audience ?? "any"];
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   const [occasion, setOccasion] = useState("");
-  const [needs, setNeeds] = useState<string[]>([]);
+  const [needs, setNeeds] = useState<Need[]>(() => initialNeeds.map((slug) => ({ slug, count: 1 })));
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -112,7 +122,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
     "Hi Artists on Demand! I'd like curated matches.",
     audience && `Booking for: ${audienceLabel[audience]}`,
     `Occasion: ${occasion}`,
-    `Looking for: ${needs.join(", ")}`,
+    `Looking for: ${needsText(needs.map((n) => ({ name: categoryName(n.slug), count: n.count })))}`,
     `Date: ${date || "Not fixed yet"}`,
     startTime && endTime && `Time: ${timeRange(startTime, endTime)}`,
     `City: ${city ?? "Not selected"}`,
@@ -124,14 +134,19 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
     .filter(Boolean)
     .join("\n");
 
-  function toggleNeed(name: string) {
-    setNeeds((n) => (n.includes(name) ? n.filter((x) => x !== name) : [...n, name]));
+  function toggleNeed(slug: string) {
+    setNeeds((list) => (list.some((n) => n.slug === slug) ? list.filter((n) => n.slug !== slug) : [...list, { slug, count: 1 }]));
   }
+  function setCount(slug: string, count: number) {
+    setNeeds((list) => list.map((n) => (n.slug === slug ? { ...n, count } : n)));
+  }
+  // "Photographers × 3, Musicians & DJs": for the answer chip and this browser's request list.
+  const needLabels = needs.map((n) => withCount(categoryName(n.slug), n.count));
 
   // Answers given so far, shown above the current question.
   const summary = [
     step > 0 && occasion ? { label: occasion, to: 0 } : null,
-    step > 1 && needs.length ? { label: needs.join(", "), to: 1 } : null,
+    step > 1 && needs.length ? { label: needLabels.join(", "), to: 1 } : null,
   ].filter((x): x is { label: string; to: number } => x !== null);
 
   return (
@@ -208,26 +223,68 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
 
           {step === 1 && (
             <>
+              {initialNeeds.length > 0 && (
+                <p className="mt-3 text-sm text-body">
+                  Already added: {initialNeeds.map(categoryName).join(", ")}. Need anyone else for the same event? Add them too.
+                </p>
+              )}
               <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {categories.map((c) => {
-                  const on = needs.includes(c.name);
+                  const need = needs.find((n) => n.slug === c.slug);
                   return (
                     <li key={c.slug}>
                       <button
                         type="button"
-                        aria-pressed={on}
-                        onClick={() => toggleNeed(c.name)}
-                        className={`w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-ink transition-colors ${
-                          on ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
+                        aria-pressed={Boolean(need)}
+                        onClick={() => toggleNeed(c.slug)}
+                        className={`flex w-full items-center justify-between gap-2 rounded-xl px-4 py-3 text-left text-sm font-medium text-ink transition-colors ${
+                          need ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
                         }`}
                       >
                         {c.name}
+                        {need && (
+                          <span className="flex shrink-0 items-center gap-1 text-xs text-brand-hover">
+                            {need.count > 1 && `× ${need.count}`}
+                            <Check className="h-4 w-4" aria-hidden />
+                          </span>
+                        )}
                       </button>
                     </li>
                   );
                 })}
               </ul>
-              <p className="mt-3 text-xs text-muted">Pick as many as you need.</p>
+              <p className="mt-3 text-xs text-muted">Pick everyone you need, then say how many of each.</p>
+              {needs.length > 0 && (
+                <div className="mt-6 rounded-xl border border-line p-4 sm:p-5">
+                  <p className="text-sm font-bold text-ink">How many of each?</p>
+                  <ul className="mt-1 divide-y divide-line">
+                    {needs.map((n) => {
+                      const c = categories.find((x) => x.slug === n.slug);
+                      const name = categoryName(n.slug);
+                      return (
+                        // Phones: the name and remove button on one line, the numbers below; wider: one line.
+                        <li key={n.slug} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
+                          <span className="flex flex-1 items-center gap-2 text-sm font-medium text-ink">
+                            {c && <Icon name={c.icon} className="h-4 w-4 shrink-0 text-brand" />}
+                            {name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleNeed(n.slug)}
+                            aria-label={`Remove ${name}`}
+                            className="rounded-lg p-2 text-muted hover:bg-wash hover:text-ink sm:order-last"
+                          >
+                            <X className="h-4 w-4" aria-hidden />
+                          </button>
+                          <div className="w-full sm:w-auto">
+                            <CountPicker value={n.count} onChange={(count) => setCount(n.slug, count)} label={name.toLowerCase()} />
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               <StepNav onBack={() => go(0)} onNext={() => go(2)} nextDisabled={needs.length === 0} />
             </>
           )}
@@ -388,7 +445,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                         // Preview: remember the request in this browser so it shows under My bookings,
                         // with a reference the team can quote back.
                         const ref = newRequestRef();
-                        addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs, date, city: city ?? "", details });
+                        addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs: needLabels, date, city: city ?? "", details });
                         window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
                         setOpened(true);
                         return;
@@ -398,7 +455,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                       const tab = window.open("", "_blank");
                       setSending(true);
                       setSaveError(null);
-                      const input = { audience, occasion, needs, date, startTime, endTime, city: city ?? "", details, name, phone, email, website };
+                      const input = { audience, occasion, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, name, phone, email, website };
                       // A dropped connection throws instead of answering: try a second time before giving up,
                       // so the visitor is never left on "Saving your request…".
                       let res: Awaited<ReturnType<typeof createBookingRequest>>;
@@ -424,10 +481,18 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                       setOpened(true);
                     }}
                     className={`inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white ${
-                      canSend ? "hover:bg-brand-hover" : "cursor-not-allowed opacity-40"
+                      sending ? "cursor-wait" : canSend ? "hover:bg-brand-hover" : "cursor-not-allowed opacity-40"
                     }`}
                   >
-                    <WhatsAppIcon /> Send on WhatsApp
+                    {sending ? (
+                      <>
+                        <Spinner className="h-5 w-5" /> Saving…
+                      </>
+                    ) : (
+                      <>
+                        <WhatsAppIcon /> Send on WhatsApp
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

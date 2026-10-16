@@ -6,6 +6,10 @@ import {
   CalendarX,
   Camera,
   CircleQuestionMark,
+  FilePlus,
+  Gavel,
+  Scale,
+  Search,
   Handshake,
   Heart,
   Hotel,
@@ -58,6 +62,11 @@ const icons = {
   store: Store,
   hotel: Hotel,
   rocket: Rocket,
+  // The Resolution Centre's steps.
+  "file-plus": FilePlus,
+  search: Search,
+  gavel: Gavel,
+  scale: Scale,
 };
 
 export type AnyIconName = keyof typeof icons;

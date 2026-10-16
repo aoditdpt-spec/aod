@@ -5,6 +5,7 @@ import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "re
 import { can, templates, type Permission, type TemplateId, type Tone } from "@/content/admin";
 import { categories } from "@/content/site";
 import { useSession, type Db, type PortfolioFile } from "@/lib/admin-store";
+import { allCategories } from "@/lib/booking-needs";
 
 // ---- Formatting ----
 
@@ -54,6 +55,18 @@ export const daysUntil = (ymd: string) => Math.round((new Date(`${ymd}T00:00:00`
 export const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
 export const artistName = (db: Db, id?: string) => (id ? db.artists.find((a) => a.id === id)?.name ?? id : "—");
+
+// "Aarav Joshi, Dev Solanki": a booking's assigned artists, or "—".
+export const artistNames = (db: Db, ids: string[]) => (ids.length ? ids.map((id) => artistName(db, id)).join(", ") : "—");
+
+// "Aarav Joshi and Dev Solanki", for messages; `none` when nobody is assigned yet.
+export const artistList = (db: Db, ids: string[], none: string) => {
+  const names = ids.map((id) => artistName(db, id));
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : (names[0] ?? none);
+};
+
+// "Photographers, Cinematographers": an artist's or applicant's main category, then the others.
+export const categoryNames = (a: { category: string; otherCategories?: string[] }) => allCategories(a).map(categoryName).join(", ");
 
 // ---- WhatsApp ----
 

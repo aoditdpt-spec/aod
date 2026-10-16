@@ -2,9 +2,10 @@
 
 import { after } from "next/server";
 import { categories, cities, type Audience } from "@/content/site";
-import { bothLinksCategories, workQuestionShown, workQuestionsFor } from "@/content/artist-portal";
+import { bothLinksCategories, workQuestionShown, workQuestionsForAll } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
 import type { WorkDetails } from "@/lib/artist-store";
+import { MAX_ARTISTS, needsText, totalNeeded, withCount, type BookingItem } from "@/lib/booking-needs";
 import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eventMinutes, timeRange } from "@/lib/event-time";
@@ -41,7 +42,7 @@ const dateOk = (d: string) => {
 export type BookingRequestInput = {
   audience?: Audience;
   occasion: string;
-  needs: string[]; // category names, as picked in the quiz
+  needs: { category: string; count: number }[]; // category slugs as picked in the quiz, and how many artists of each (1–20)
   date: string; // yyyy-mm-dd
   startTime: string; // HH:MM
   endTime: string; // HH:MM (earlier than the start = ends after midnight)
@@ -58,7 +59,13 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
   const suspect = text(input.website, 200) !== "";
 
   const occasion = text(input.occasion, 80);
-  const needs = categories.filter((c) => Array.isArray(input.needs) && input.needs.includes(c.name));
+  // Each category once, in the order picked, with a whole number of artists from 1 to MAX_ARTISTS.
+  const picked = (Array.isArray(input.needs) ? input.needs : []).filter((n) => n && typeof n === "object");
+  const needs = categories
+    .map((c) => ({ ...c, count: Number(picked.find((n) => n.category === c.slug)?.count) }))
+    .filter((c) => picked.some((n) => n.category === c.slug))
+    .sort((a, b) => picked.findIndex((n) => n.category === a.slug) - picked.findIndex((n) => n.category === b.slug));
+  const wanted = needsText(needs);
   const date = text(input.date, 10);
   const startTime = text(input.startTime, 5);
   const endTime = text(input.endTime, 5);
@@ -70,6 +77,8 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
 
   if (!occasion) return { ok: false, error: "Pick the occasion." };
   if (!needs.length) return { ok: false, error: "Pick who you need." };
+  if (needs.some((c) => !Number.isInteger(c.count) || c.count < 1 || c.count > MAX_ARTISTS))
+    return { ok: false, error: `Choose how many of each you need, from 1 to ${MAX_ARTISTS}.` };
   // Every detail is required.
   if (!dateOk(date)) return { ok: false, error: "Choose the event date, from tomorrow onwards." };
   if (eventMinutes(startTime, endTime) === null) return { ok: false, error: "Add the event's start and end time." };
@@ -85,20 +94,23 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
   const now = new Date().toISOString();
 
   try {
-    // One booking per category they need (each gets its own artist and status in the admin),
-    // and one reference for the customer, taken from the first booking's number so it's unique:
-    // bookings B-1215 and B-1216 are request AOD-1215.
-    const rows = await insertWithNextId(db, "bookings", "B", 1201, (first) =>
-      needs.map((c, i) => ({
-        id: `B-${first + i}`,
-        request_ref: `AOD-${first}`,
+    // One order for the whole request (B-1215), with a line for each category they need and how
+    // many artists of it; the customer's reference has the same number (AOD-1215).
+    const items: BookingItem[] = needs.map((c) => ({ category: c.slug, service: c.name, count: c.count, artistIds: [] }));
+    const [row] = await insertWithNextId(db, "bookings", "B", 1201, (n) => [
+      {
+        id: `B-${n}`,
+        request_ref: `AOD-${n}`,
         created_at: now,
         audience,
         customer_name: name,
         customer_phone: phone,
         customer_email: email,
-        category: c.slug,
-        service: c.name,
+        items,
+        // The older single-category columns (src/server/rows.ts fills them the same way).
+        category: items[0].category,
+        service: items[0].service,
+        artists_needed: totalNeeded(items),
         event: occasion,
         event_date: date,
         event_time: startTime,
@@ -109,19 +121,23 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         history: [{ at: now, by: "Website", status: "new" }],
         notes_log: suspect ? [spamNote(now)] : [],
         source: "website",
-      })),
-    );
-    const ref = String(rows[0].request_ref);
+      },
+    ]);
+    const ref = String(row.request_ref);
+    const id = String(row.id);
 
     after(async () => {
       const received = istNow();
-      const sheetRow = (b: (typeof rows)[number]) => [
+      // The columns of `sheetHeader` (src/server/notify.ts); "Artists needed" is last, so rows
+      // written before it existed still line up. "All orders" gets one row for the order, listing
+      // everyone it needs; each category's tab gets a row with that category's part.
+      const sheetRow = (category: string, count: number) => [
         ref,
-        String(b.id),
+        id,
         received,
         audience,
         occasion,
-        String(b.service),
+        category,
         name,
         phone,
         email,
@@ -131,16 +147,17 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         details,
         "New",
         "Website",
+        String(count),
       ];
       const jobs: Job[] = [
-        { kind: "sheet", tab: ALL_ORDERS_TAB, rows: rows.map(sheetRow) },
-        ...rows.map((b): Job => ({ kind: "sheet", tab: String(b.service), rows: [sheetRow(b)] })),
+        { kind: "sheet", tab: ALL_ORDERS_TAB, rows: [sheetRow(wanted, totalNeeded(items))] },
+        ...needs.map((c): Job => ({ kind: "sheet", tab: c.name, rows: [sheetRow(c.name, c.count)] })),
       ];
       const summary = [
         `Ref: ${ref}`,
         `Type: ${audience}`,
         `Occasion: ${occasion}`,
-        `Looking for: ${needs.map((c) => c.name).join(", ")}`,
+        `Looking for: ${wanted}`,
         `Date: ${date}`,
         `Time: ${when}`,
         `City: ${city}`,
@@ -152,7 +169,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: spamSubject(suspect, `New booking request ${ref}: ${needs.map((c) => c.name).join(", ")} in ${city}`),
+          subject: spamSubject(suspect, `New booking request ${ref}: ${needs.map((c) => withCount(c.name, c.count)).join(", ")} in ${city}`),
           text: `${summary}\n\nCustomer: ${name}\nPhone: ${phone}\nEmail: ${email || "—"}\n\nOpen the admin: ${sectionUrl("admin", "/bookings")}`,
           replyTo: email || undefined,
         });
@@ -179,13 +196,13 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         await runJob({
           kind: "email",
           to: teamEmails(),
-          subject: `Couldn't save a booking request: add it in the admin (${name}, ${needs.map((c) => c.name).join(", ")})`,
+          subject: `Couldn't save a booking request: add it in the admin (${name}, ${needs.map((c) => withCount(c.name, c.count)).join(", ")})`,
           text: [
             "The website couldn't save this booking request, so it isn't in the admin. Add it there (Bookings → New booking).",
             "",
             `Type: ${audience}`,
             `Occasion: ${occasion}`,
-            `Looking for: ${needs.map((c) => c.name).join(", ")}`,
+            `Looking for: ${wanted}`,
             `Date: ${date}`,
             `Time: ${when}`,
             `City: ${city}`,
@@ -215,7 +232,8 @@ export type ApplicationInput = {
   phone: string;
   email: string;
   city: string;
-  category: string; // category slug
+  category: string; // main category slug
+  otherCategories?: string[]; // other categories they also work in
   services: string[];
   experience: string;
   languages: string[];
@@ -241,12 +259,17 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   if (!email || !emailOk(email)) return { ok: false, error: "Enter a valid email address." };
   if (!category) return { ok: false, error: "Pick your category." };
   if (!input.agreeTerms) return { ok: false, error: "Please accept the terms." };
+  // Known categories other than the main one, each once.
+  const others = categories.filter((c) => c.slug !== category.slug && Array.isArray(input.otherCategories) && input.otherCategories.includes(c.slug));
+  const slugs = [category.slug, ...others.map((c) => c.slug)];
+  const kinds = [category.name, ...others.map((c) => c.name)].join(", ");
 
-  // "Your work details": every required question for the category answered (only the listed
-  // choices are kept); a follow-up question counts only when its condition is met.
-  // Photographers and cinematographers also give both an Instagram link and a portfolio link.
+  // "Your work details": every required question for each of their categories answered (only the
+  // listed choices are kept); a follow-up question counts only when its condition is met.
+  // Photographers, cinematographers and the others in bothLinksCategories also give both an
+  // Instagram link and a portfolio link.
   const links = strings(input.links, 10, 300);
-  const questions = workQuestionsFor(category.slug);
+  const questions = workQuestionsForAll(category.slug, slugs.slice(1));
   const given = input.work ?? {};
   const details: WorkDetails = {};
   for (const q of questions) {
@@ -266,7 +289,7 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
     }
     details[q.id] = answer;
   }
-  if (bothLinksCategories.includes(category.slug)) {
+  if (slugs.some((s) => bothLinksCategories.includes(s))) {
     const insta = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
     if (!links.some(insta) || !links.some((l) => !insta(l)))
       return { ok: false, error: "Add both your Instagram link and a portfolio or showreel link." };
@@ -282,7 +305,8 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         email,
         city: text(input.city, 40),
         category: category.slug,
-        services: strings(input.services, 20, 80),
+        other_categories: slugs.slice(1),
+        services: strings(input.services, 40, 80),
         experience: text(input.experience, 40),
         languages: strings(input.languages, 10, 30),
         bio: text(input.bio, 2000),
@@ -298,8 +322,8 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: spamSubject(suspect, `New artist application ${app.id}: ${name} (${category.name})`),
-          text: `${name}, ${category.name}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}${
+          subject: spamSubject(suspect, `New artist application ${app.id}: ${name} (${kinds})`),
+          text: `${name}, ${kinds}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}${
             "\n\n" + questions.filter((q) => q.id in details).map((q) => `${q.short}: ${[details[q.id]].flat().join(", ")}`).join("\n")
           }\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
           replyTo: email,

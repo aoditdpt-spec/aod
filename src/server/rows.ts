@@ -1,4 +1,5 @@
 import type { Activity, Application, Artist, ArtistReply, Booking, Lead, Member, Payment, Payout, PortfolioFile, ResolutionCase, Settings } from "@/lib/admin-store";
+import { assignedArtists, clampCount, totalNeeded, type BookingItem } from "@/lib/booking-needs";
 
 // Converts between database rows (snake_case columns, see supabase/migrations) and the records
 // the admin screens use (src/lib/admin-store.ts). Missing values become safe defaults, so an
@@ -13,6 +14,17 @@ const list = (v: unknown) => (Array.isArray(v) ? v.map(str) : []);
 const json = <T>(v: unknown, fallback: T): T => (v == null ? fallback : (v as T));
 const nul = <T>(v: T | undefined) => (v === undefined ? null : v);
 
+// An order's lines (`items`). A booking saved before orders had lines gets one, made from its
+// single-category columns.
+function bookingItems(r: Row): BookingItem[] {
+  const items = (Array.isArray(r.items) ? r.items : [])
+    .filter((i): i is Row => Boolean(i) && typeof i === "object")
+    .map((i) => ({ category: str(i.category), service: str(i.service), count: clampCount(i.count), artistIds: list(i.artistIds) }));
+  if (items.length) return items;
+  const ids = list(r.artist_ids).length ? list(r.artist_ids) : r.artist_id ? [str(r.artist_id)] : [];
+  return [{ category: str(r.category), service: str(r.service), count: clampCount(Math.max(num(r.artists_needed) ?? 1, ids.length)), artistIds: ids }];
+}
+
 export const fromRow = {
   application: (r: Row): Application => ({
     id: str(r.id),
@@ -21,6 +33,7 @@ export const fromRow = {
     email: str(r.email),
     city: str(r.city),
     category: str(r.category),
+    otherCategories: list(r.other_categories),
     services: list(r.services),
     experience: str(r.experience),
     languages: list(r.languages),
@@ -42,6 +55,7 @@ export const fromRow = {
     email: str(r.email),
     city: str(r.city),
     category: str(r.category),
+    otherCategories: list(r.other_categories),
     services: list(r.services),
     experience: str(r.experience),
     languages: list(r.languages),
@@ -69,8 +83,7 @@ export const fromRow = {
     createdAt: str(r.created_at),
     audience: str(r.audience) === "Business" ? "Business" : "Personal",
     customer: { name: str(r.customer_name), phone: str(r.customer_phone), email: str(r.customer_email) },
-    category: str(r.category),
-    service: str(r.service),
+    items: bookingItems(r),
     event: str(r.event),
     date: str(r.event_date),
     time: str(r.event_time),
@@ -80,7 +93,6 @@ export const fromRow = {
     budget: str(r.budget),
     notes: str(r.notes),
     status: str(r.status) as Booking["status"],
-    artistId: opt(r.artist_id),
     shortlist: list(r.shortlist),
     quote: num(r.quote),
     advance: num(r.advance),
@@ -168,6 +180,7 @@ export const toRow = {
     email: a.email,
     city: a.city,
     category: a.category,
+    other_categories: a.otherCategories ?? [],
     services: a.services,
     experience: a.experience,
     languages: a.languages,
@@ -189,6 +202,7 @@ export const toRow = {
     email: a.email,
     city: a.city,
     category: a.category,
+    other_categories: a.otherCategories ?? [],
     services: a.services,
     experience: a.experience,
     languages: a.languages,
@@ -210,8 +224,11 @@ export const toRow = {
     customer_name: b.customer.name,
     customer_phone: b.customer.phone,
     customer_email: b.customer.email.trim().toLowerCase(),
-    category: b.category,
-    service: b.service,
+    items: b.items,
+    // The older columns, kept filled for the sheet, filters and anything still reading them.
+    category: b.items[0]?.category ?? "",
+    service: b.items[0]?.service ?? "",
+    artists_needed: Math.max(1, totalNeeded(b.items)),
     event: b.event,
     event_date: b.date,
     event_time: b.time,
@@ -221,7 +238,8 @@ export const toRow = {
     budget: b.budget,
     notes: b.notes,
     status: b.status,
-    artist_id: nul(b.artistId),
+    artist_ids: assignedArtists(b.items),
+    artist_id: assignedArtists(b.items)[0] ?? null,
     shortlist: b.shortlist,
     quote: nul(b.quote),
     advance: nul(b.advance),

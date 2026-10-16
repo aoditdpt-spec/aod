@@ -29,7 +29,7 @@ export default function ResolveLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-surface">
       <header className="sticky top-0 z-30 border-b border-line bg-white/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full max-w-page items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link href={sectionLink("/resolve")} className="flex items-center gap-2" aria-label={resolution.title}>
             <Image src="/aod-wordmark.png" alt="AOD" width={85} height={24} priority className="h-6 w-auto" />
             <span className="rounded-md bg-peach px-2 py-0.5 text-xs font-medium text-brand-hover">{resolution.name}</span>
@@ -58,7 +58,7 @@ export default function ResolveLayout({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-line bg-wash">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="mx-auto grid w-full max-w-page gap-8 px-4 py-10 text-sm sm:px-6 lg:px-8 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <p className="font-medium text-ink">Grievance officer</p>
             <p className="mt-2 text-muted">

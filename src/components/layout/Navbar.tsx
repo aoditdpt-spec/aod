@@ -13,13 +13,13 @@ import { CityChips, CityPicker } from "@/components/location/CityPicker";
 const links = [
   { href: "/business", label: "For Business" },
   { href: "/for-artists", label: "For Artists" },
-  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#resolution-centre", label: "Resolution Centre" },
   { href: "/about", label: "About us" },
 ];
 
 // Links that drop out of the desktop bar between 1024 and 1280px to make room for the search box
 // (they stay in the phone menu).
-const wideOnly = new Set(["/#how-it-works", "/about"]);
+const wideOnly = new Set(["/#resolution-centre", "/about"]);
 
 // The AOD. wordmark in the brand orange, on a transparent background (public/aod-wordmark.png).
 export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {

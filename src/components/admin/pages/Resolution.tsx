@@ -5,6 +5,7 @@ import { useState } from "react";
 import { caseStages } from "@/content/admin";
 import { resolution } from "@/content/resolution";
 import { currentUser, update, useDb, type CaseStatus, type ResolutionCase } from "@/lib/admin-store";
+import { itemsLabel } from "@/lib/booking-needs";
 import { sectionLink, sectionUrl } from "@/lib/site-url";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
@@ -152,7 +153,7 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
       <DrawerSection title="The case">
         <Details
           rows={[
-            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand hover:underline">{c.bookingRef} ({booking.service}, {booking.customer.name})</Link> : c.bookingRef],
+            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand hover:underline">{c.bookingRef} ({itemsLabel(booking.items)}, {booking.customer.name})</Link> : c.bookingRef],
             ["Happened on", fmtDate(c.incidentDate)],
             ["Wants", c.outcome],
             ["Raised", fmtDate(c.createdAt, true)],

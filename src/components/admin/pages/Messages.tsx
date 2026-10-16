@@ -3,10 +3,11 @@
 import { Mail } from "lucide-react";
 import { useMemo, useState } from "react";
 import { templates, type TemplateId } from "@/content/admin";
-import { useDb } from "@/lib/admin-store";
+import { useDb, type Db } from "@/lib/admin-store";
+import { assignedArtists, itemFor, itemsLabel } from "@/lib/booking-needs";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { artistName, Card, fieldClass, fmtDate, inr, Labelled, PageHeader, useCan, whatsappTo } from "../ui";
+import { artistList, artistName, Card, fieldClass, fmtDate, inr, Labelled, PageHeader, useCan, whatsappTo } from "../ui";
 
 const groups = [
   { to: "customer", label: "To customers" },
@@ -28,6 +29,13 @@ const automatic = [
   ["Application update", "Applicant", "On every status change"],
 ];
 
+// The bookings to pick from. A message to artists goes to one artist, so a booking with several
+// assigned artists is listed once for each ("B-1215:ART-201").
+const bookingRecords = (db: Db, to: string) =>
+  db.bookings.flatMap((b) =>
+    to === "artist" && assignedArtists(b.items).length ? assignedArtists(b.items).map((a) => ({ id: `${b.id}:${a}`, b, artistId: a as string | undefined })) : [{ id: b.id, b, artistId: undefined }],
+  );
+
 // Message templates with the details filled in from a booking or application, sent from the
 // team's WhatsApp until the WhatsApp Business Platform sends them automatically.
 export function Messages() {
@@ -45,13 +53,16 @@ export function Messages() {
       if (!a) return null;
       return { id: a.id, name: a.name, phone: a.phone, email: a.email, vars: { applicant: a.name.split(" ")[0], meeting: a.meeting ? fmtDate(a.meeting.at, true) : "{meeting}" } as Record<string, string> };
     }
-    const b = db.bookings.find((x) => x.id === recordId) ?? db.bookings[0];
-    if (!b) return null;
-    const artist = db.artists.find((a) => a.id === b.artistId);
+    const list = bookingRecords(db, t.to);
+    const record = list.find((x) => x.id === recordId) ?? list[0];
+    if (!record) return null;
+    const { b } = record;
+    const artist = db.artists.find((a) => a.id === record.artistId);
     const due = b.advance ?? b.quote;
     const vars: Record<string, string> = {
       customer: b.customer.name.split(" ")[0],
-      service: b.service,
+      // An artist hears about their own line of the order; the customer about the whole order.
+      service: t.to === "artist" ? (itemFor(b.items, record.artistId ?? "")?.service ?? itemsLabel(b.items)) : itemsLabel(b.items),
       event: b.event.toLowerCase(),
       date: fmtDate(b.date),
       city: b.city,
@@ -59,19 +70,25 @@ export function Messages() {
       amount: inr(due),
       quote: inr(b.quote),
       budget: b.budget,
-      artist: artistName(db, b.artistId),
+      artist: t.to === "artist" ? (artist?.name ?? "—") : artistList(db, assignedArtists(b.items), "—"),
       delivery: b.delivery?.link ?? "{delivery}",
       expiry: b.delivery ? fmtDate(b.delivery.expires) : "{expiry}",
     };
     return t.to === "artist"
-      ? { id: b.id, name: artist?.name ?? "No artist assigned", phone: artist?.phone ?? "", email: artist?.email ?? "", vars }
-      : { id: b.id, name: b.customer.name, phone: b.customer.phone, email: b.customer.email, vars };
+      ? { id: record.id, name: artist?.name ?? "No artist assigned", phone: artist?.phone ?? "", email: artist?.email ?? "", vars }
+      : { id: record.id, name: b.customer.name, phone: b.customer.phone, email: b.customer.email, vars };
   }, [db, t, recordId]);
 
   if (!db) return null;
   const filled = recipient ? t.text.replace(/\{(\w+)\}/g, (_, k: string) => recipient.vars[k] ?? `{${k}}`) : t.text;
   const text = edited ?? filled;
-  const records = t.to === "applicant" ? db.applications.map((a) => ({ id: a.id, label: `${a.id} · ${a.name}` })) : db.bookings.map((b) => ({ id: b.id, label: `${b.id} · ${b.customer.name} · ${b.service}` }));
+  const records =
+    t.to === "applicant"
+      ? db.applications.map((a) => ({ id: a.id, label: `${a.id} · ${a.name}` }))
+      : bookingRecords(db, t.to).map(({ id, b, artistId }) => ({
+          id,
+          label: `${b.id} · ${b.customer.name} · ${itemsLabel(b.items)}${artistId ? ` · ${artistName(db, artistId)}` : ""}`,
+        }));
 
   return (
     <div className="space-y-6">

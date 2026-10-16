@@ -31,7 +31,7 @@ export default function ArtistsHome() {
         <div className="mx-auto grid max-w-6xl items-start gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-brand">{portal.name}</p>
-            <h1 className="mt-4 text-4xl font-medium leading-[1.08] sm:text-5xl text-shadow-3d">{portal.signIn.title}</h1>
+            <h1 className="mt-4 text-4xl font-medium leading-[1.08] sm:text-5xl">{portal.signIn.title}</h1>
             <p className="mt-5 max-w-xl text-lg text-body">{backendEnabled ? portal.signIn.subtitleLive : portal.signIn.subtitle}</p>
             <ul className="mt-8 space-y-3">
               {portal.signIn.points.map((p) => (
