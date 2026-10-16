@@ -185,8 +185,10 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
       if (count === 0) return { ok: false, error: `Couldn't save ${labels[key]}: it may have been deleted, or your role can't change it.` };
     }
     if (removed.length) {
-      const { error } = await s.from(table).delete().in("id", removed);
+      // Row-level security refuses a delete silently (no error, nothing deleted), so count the rows.
+      const { error, count } = await s.from(table).delete({ count: "exact" }).in("id", removed);
       if (error) return { ok: false, error: `Couldn't delete from ${labels[key]}: ${error.message}` };
+      if ((count ?? 0) < removed.length) return { ok: false, error: `Couldn't delete from ${labels[key]}: it may already be gone, or your role can't delete it.` };
     }
   }
 

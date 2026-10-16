@@ -586,6 +586,36 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
       <DrawerSection title="Team notes">
         <NotesBox notes={b.notesLog} permission="bookings.edit" onAdd={(text) => edit(`Added a note to ${b.id}`, (x) => void x.notesLog.unshift({ at: new Date().toISOString(), by: currentUser(), text }))} />
       </DrawerSection>
+
+      {editable && (
+        <DrawerSection title="Delete">
+          <p className="text-xs text-muted">
+            Removes this booking for good, with the payments and payouts recorded for it and the artists&apos; replies. The activity log keeps a line saying
+            who deleted it. To keep a record of the booking, cancel it instead.
+          </p>
+          <ActionButton
+            permission="bookings.edit"
+            variant="danger"
+            className="mt-2"
+            onClick={() => {
+              if (!window.confirm(`Delete ${b.id} (${b.customer.name || "no name"}, ${b.service}) for good? Its payments and payouts go too. This can't be undone.`)) return;
+              update(
+                "Bookings",
+                `Deleted booking ${b.id} (${b.customer.name || "no name"}, ${b.service})`,
+                (d) => {
+                  d.bookings = d.bookings.filter((x) => x.id !== b.id);
+                  d.payments = d.payments.filter((p) => p.bookingId !== b.id);
+                  d.payouts = d.payouts.filter((p) => p.bookingId !== b.id);
+                },
+                b.id,
+              );
+              onClose();
+            }}
+          >
+            Delete booking
+          </ActionButton>
+        </DrawerSection>
+      )}
     </Drawer>
   );
 }

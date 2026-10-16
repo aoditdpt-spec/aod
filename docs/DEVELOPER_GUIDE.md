@@ -552,6 +552,7 @@ are baked into the browser code at build time.
 | --- | --- | --- |
 | Change any wording on the site | `src/content/*.ts` (mostly `site.ts`) | Build |
 | Add an order that only reached WhatsApp | Admin → Bookings → New booking → paste the message into "Paste a WhatsApp message", add the phone if it's missing | Nothing to code |
+| Delete a test or duplicate order | Admin → Bookings → open it → **Delete booking** (bottom of the drawer). Removes its payments and payouts too; cancel instead to keep a record | Nothing to code |
 | Change the booking form's WhatsApp message | `message` in `src/components/home/MatchQuiz.tsx` **and** the labels in `src/lib/whatsapp-order.ts` | Add a case to `scripts/order-check.mts`, run `check:orders` |
 | Add or rename a category | `categories` in `src/content/site.ts` (slug, name, icon, photo, services, keywords); add its photo to `public/categories/`; add its questions to `workQuestions` in `artist-portal.ts`; add a tab with the exact category name to the orders sheet | `npm run check:search` |
 | Change search results | `keywords` in `site.ts`; ranking in `src/lib/fuzzy.ts` | Add a case to `scripts/search-check.mts`, run `check:search` |
@@ -661,6 +662,7 @@ These are returned by server actions as `{ ok: false, error }` and shown on the 
 | "The team needs at least one active admin." | `actions/admin.ts` | Tried to remove or demote the last Admin |
 | "Someone else just added a record with the same number…" | `actions/admin.ts` | Two people created a record at the same moment; the page reloaded; try again |
 | `Couldn't save …: it may have been deleted, or your role can't change it.` | `actions/admin.ts` | The record is gone, or RLS refused the update |
+| `Couldn't delete from …: it may already be gone, or your role can't delete it.` | `actions/admin.ts` | Someone else deleted it first, or RLS refused the delete (it does so silently, so the server counts the deleted rows) |
 | "Availability opens once you're live on AOD." / "Booking requests open once you're live on AOD." | `actions/artist.ts` | An applicant (not yet an artist) tried an artist-only feature |
 | "This request isn't one of yours." / "This request has already been settled." | `actions/artist.ts` | Replying to someone else's or a closed booking request |
 | "Upload JPG, PNG, WebP or HEIC photos, or MP4 or MOV videos." / `You can keep up to 30 files…` / "The upload didn't finish…" | `actions/artist.ts` | Portfolio upload rules |
