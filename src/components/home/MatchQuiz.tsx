@@ -118,6 +118,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
     `City: ${city ?? "Not selected"}`,
     details && `Details: ${details}`,
     name.trim() && `Name: ${name.trim()}`,
+    phone.trim() && `Phone: ${phone.trim()}`,
     email.trim() && `Email: ${email.trim()}`,
   ]
     .filter(Boolean)
@@ -376,13 +377,12 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                   <p className="text-sm text-muted" aria-live="polite">
                     {sending ? "Saving your request…" : (missing ?? "All set. AOD will reply with curated matches.")}
                   </p>
-                  <a
-                    href={canSend ? whatsappUrl(message) : undefined}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-disabled={!canSend}
-                    onClick={async (e) => {
-                      e.preventDefault();
+                  {/* A button, not a wa.me link: "open in new tab" or a long press on a link would skip
+                      saving and send the request to WhatsApp only. */}
+                  <button
+                    type="button"
+                    disabled={!canSend}
+                    onClick={async () => {
                       if (!canSend) return;
                       if (!backendEnabled) {
                         // Preview: remember the request in this browser so it shows under My bookings,
@@ -398,9 +398,23 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                       const tab = window.open("", "_blank");
                       setSending(true);
                       setSaveError(null);
-                      const res = await createBookingRequest({ audience, occasion, needs, date, startTime, endTime, city: city ?? "", details, name, phone, email, website });
+                      const input = { audience, occasion, needs, date, startTime, endTime, city: city ?? "", details, name, phone, email, website };
+                      // A dropped connection throws instead of answering: try a second time before giving up,
+                      // so the visitor is never left on "Saving your request…".
+                      let res: Awaited<ReturnType<typeof createBookingRequest>>;
+                      try {
+                        res = await createBookingRequest(input);
+                      } catch {
+                        try {
+                          await new Promise((r) => setTimeout(r, 1500));
+                          res = await createBookingRequest(input);
+                        } catch {
+                          res = { ok: false, error: "Couldn't reach AOD just now, so your request goes to WhatsApp instead. The team will add it for you." };
+                        }
+                      }
                       setSending(false);
-                      const url = whatsappUrl(res.ok ? [message, `Ref: ${res.ref}`].join("\n") : message);
+                      // When it wasn't saved, the message says so: the team then pastes it into the admin's New booking.
+                      const url = whatsappUrl([message, res.ok ? `Ref: ${res.ref}` : "Ref: not saved on the website"].join("\n"));
                       if (res.ok) setSaved(res.ref);
                       else setSaveError(res.error);
                       if (tab) {
@@ -414,7 +428,7 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                     }`}
                   >
                     <WhatsAppIcon /> Send on WhatsApp
-                  </a>
+                  </button>
                 </div>
               </div>
               <p className="mt-3 text-right text-xs text-muted">

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "check:search": "node --experimental-strip-types --no-warnings scripts/search-check.mts",
     "check:links": "node --experimental-strip-types --no-warnings scripts/links-check.mts",
-    "check:db": "node --experimental-strip-types --no-warnings scripts/db-check.mts"
+    "check:db": "node --experimental-strip-types --no-warnings scripts/db-check.mts",
+    "check:orders": "node --experimental-strip-types --no-warnings scripts/order-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

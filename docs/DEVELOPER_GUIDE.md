@@ -97,7 +97,7 @@ on your machine.
 Before pushing, run:
 
 ```bash
-npm run build && npm run lint && npm run check:search && npm run check:links && npm run check:db
+npm run build && npm run lint && npm run check:search && npm run check:links && npm run check:db && npm run check:orders
 ```
 
 ---
@@ -183,6 +183,7 @@ aod/
 ├── scripts/                  Plain Node checks (npm run check:*)
 │   ├── db-check.mts          Runs the migrations on PGlite and tests who can read/change what
 │   ├── links-check.mts       Tests the portfolio-link rules
+│   ├── order-check.mts       Tests reading the booking form's WhatsApp message back into its fields
 │   └── search-check.mts      Tests search results for common queries and misspellings
 ├── supabase/
 │   └── migrations/           SQL files, run once each, in date order, in Supabase's SQL Editor
@@ -315,6 +316,7 @@ that way on purpose so the check scripts can test them alone.
 | `live.ts` | `listenLive()` / `useLiveRefresh()`: join Realtime channels, reload on change, poll every minute when disconnected |
 | `site-url.ts` | Addresses: `siteUrl`, `siteHref()`, `sectionUrl()`, `portalHref()`, `sectionLink()`, `sectionPath()` (see section 15) |
 | `whatsapp.ts` | `whatsappUrl()` (chat with AOD) and `whatsappShareUrl()`. Build every `wa.me` link here. |
+| `whatsapp-order.ts` | `parseOrderMessage()`: reads the booking form's WhatsApp message back into its fields for the admin's "Paste a WhatsApp message" box; `pickService()` guesses the service (no imports, tested by `check:orders`) |
 | `event-time.ts` | Event times: "8:00 PM – 1:00 AM (5 hours, ends next day)" (no imports) |
 | `fuzzy.ts` | Search ranking and typo tolerance (no imports, tested by `check:search`) |
 | `search.ts` | Builds the search index from `site.ts` |
@@ -389,6 +391,22 @@ already have been run: add a new dated file instead, and add a case to `scripts/
 4. In `after()`: a row on the sheet's "All orders" tab and on each category's tab, a team email,
    and a confirmation email to the customer (`src/server/notify.ts`). Failures go to `outbox`.
 5. Preview: no save; the request is kept in this browser (`customer-store.ts`) and sent on WhatsApp.
+
+**Making sure every order that reaches WhatsApp also reaches the admin:**
+
+- The send control is a `<button>`, not a `wa.me` link (a link could be opened in a new tab and
+  skip the save).
+- A dropped connection gets one retry before the quiz gives up.
+- If saving still fails, the WhatsApp message ends `Ref: not saved on the website`, and the server
+  emails the team the whole request directly through Resend (not through the database, which may
+  be what failed).
+- The WhatsApp message carries every field, including the phone number, so the team can paste it
+  into the admin: Bookings → New booking → "Paste a WhatsApp message" fills the form in
+  (`src/lib/whatsapp-order.ts`). Several categories become one booking each, sharing one AOD-
+  reference, with a note saying it came from WhatsApp.
+- A hidden spam-trap field never drops a request (it's saved with a "check this one" note).
+- Chats started with the floating WhatsApp button never touch the site; the team adds those with
+  New booking (only the WhatsApp Business API could capture them automatically).
 
 ### 7.2 An artist applies
 
@@ -533,6 +551,8 @@ are baked into the browser code at build time.
 | I want to… | Change | Then |
 | --- | --- | --- |
 | Change any wording on the site | `src/content/*.ts` (mostly `site.ts`) | Build |
+| Add an order that only reached WhatsApp | Admin → Bookings → New booking → paste the message into "Paste a WhatsApp message", add the phone if it's missing | Nothing to code |
+| Change the booking form's WhatsApp message | `message` in `src/components/home/MatchQuiz.tsx` **and** the labels in `src/lib/whatsapp-order.ts` | Add a case to `scripts/order-check.mts`, run `check:orders` |
 | Add or rename a category | `categories` in `src/content/site.ts` (slug, name, icon, photo, services, keywords); add its photo to `public/categories/`; add its questions to `workQuestions` in `artist-portal.ts`; add a tab with the exact category name to the orders sheet | `npm run check:search` |
 | Change search results | `keywords` in `site.ts`; ranking in `src/lib/fuzzy.ts` | Add a case to `scripts/search-check.mts`, run `check:search` |
 | Change the artist application questions | `workQuestions` in `src/content/artist-portal.ts` (kinds: `one`, `many`, `text`, `long`; `optional`; `showIf`) | Old answers stay saved by id and still show in the admin |
@@ -569,6 +589,7 @@ are baked into the browser code at build time.
 | `npm run check:search` | Search results for common queries and misspellings |
 | `npm run check:links` | Portfolio-link rules |
 | `npm run check:db` | Runs every migration on PGlite and checks each kind of user's access |
+| `npm run check:orders` | Reads sample WhatsApp messages from the booking form back into their fields (the admin's paste box) |
 
 There is no test runner. The checks are plain Node scripts in `scripts/`. Add a case when you
 change search, link rules or database access. The live walk-through (three browsers: staff,
@@ -627,7 +648,8 @@ These are returned by server actions as `{ ok: false, error }` and shown on the 
 | --- | --- | --- |
 | "Saving isn't set up yet." / "Sign-in isn't set up yet." / "The Resolution Centre isn't connected yet." / "Reviews aren't set up yet." | `actions/public.ts`, `auth.ts`, `resolution.ts`, `customer.ts` | Supabase keys (or `SUPABASE_SECRET_KEY`) missing in this deployment |
 | "Pick the occasion." / "Pick who you need." / "Choose the event date, from tomorrow onwards." / "Add the event's start and end time." / "Choose your city." / "Add a few event details." / "Enter your name." / "Enter a valid phone number." / "Enter a valid email address." | `public.ts` → `createBookingRequest` | Booking request failed validation |
-| "Couldn't save your request just now. Please send it on WhatsApp instead." | `createBookingRequest` | Database insert failed: check Supabase status and the Vercel function logs |
+| "Couldn't save your request just now. Please send it on WhatsApp instead." | `createBookingRequest` | Database insert failed: check Supabase status and the Vercel function logs. The team also gets a "Couldn't save a booking request" email with every detail, and the customer's WhatsApp message ends `Ref: not saved on the website`: paste it into New booking. |
+| "Couldn't reach AOD just now, so your request goes to WhatsApp instead…" | `MatchQuiz.tsx` | The visitor's connection dropped twice. The WhatsApp message ends `Ref: not saved on the website`: paste it into New booking. |
 | "Enter your full name." / "Pick your category." / "Please accept the terms." / `Answer "…" on the Your work details step.` / "Add both your Instagram link and a portfolio or showreel link." | `public.ts` → `createApplication` | Application failed validation |
 | "Couldn't save your application just now. Please try again, or send it on WhatsApp." | `createApplication` | Database insert failed |
 | "AOD has no artist or application with this email…" | `auth.ts` | Artist sign-in with an unknown email |

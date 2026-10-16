@@ -7,6 +7,7 @@ import { activeBookingStages, bookingStages, paymentStatuses, templates, type Te
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
+import { parseOrderMessage, pickService } from "@/lib/whatsapp-order";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
@@ -590,6 +591,12 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
 }
 
 export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  // A pasted WhatsApp message from the website's booking form fills the fields in
+  // (src/lib/whatsapp-order.ts). A request for several categories becomes one booking each,
+  // sharing one AOD- reference, as website requests do.
+  const [pasted, setPasted] = useState("");
+  const [extra, setExtra] = useState<string[]>([]); // further category slugs from the message
+  const [fromMessage, setFromMessage] = useState<{ ref?: string; filled: string[] } | null>(null);
   const [f, setF] = useState({
     name: "",
     phone: "",
@@ -608,7 +615,8 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
   });
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
   const cat = categories.find((c) => c.slug === f.category)!;
-  // Every detail is required, including the event's start and end time.
+  // The same details the website asks for are required, including the start and end time;
+  // venue and budget are optional (the website doesn't ask for them).
   const length = eventMinutes(f.time, f.endTime);
   const ok =
     f.name.trim().length >= 2 &&
@@ -617,59 +625,129 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
     f.event.trim() &&
     f.date &&
     length !== null &&
-    f.venue.trim() &&
-    f.budget.trim() &&
     f.notes.trim();
+
+  function fillFrom(text: string) {
+    setPasted(text);
+    const order = parseOrderMessage(text);
+    const found = order.needs
+      .map((n) => categories.find((c) => c.name.toLowerCase() === n.toLowerCase()))
+      .filter((c): c is (typeof categories)[number] => c !== undefined);
+    const about = `${order.occasion ?? ""} ${order.details ?? ""}`;
+    const filled = [
+      order.name && "name",
+      order.phone && "phone",
+      order.email && "email",
+      order.audience && "type",
+      found.length > 0 && "category",
+      order.occasion && "event",
+      order.date && "date",
+      order.startTime && "time",
+      order.city && cities.includes(order.city) && "city",
+      order.details && "notes",
+    ].filter((x): x is string => Boolean(x));
+    setF((x) => ({
+      ...x,
+      name: order.name ?? x.name,
+      phone: order.phone ?? x.phone,
+      email: order.email ?? x.email,
+      audience: order.audience ?? x.audience,
+      category: found[0]?.slug ?? x.category,
+      service: found[0] ? pickService(found[0].services.map((s) => s.name), about) : x.service,
+      event: order.occasion ?? x.event,
+      date: order.date ?? x.date,
+      time: order.startTime ?? x.time,
+      endTime: order.endTime ?? x.endTime,
+      city: order.city && cities.includes(order.city) ? order.city : x.city,
+      notes: order.details ?? x.notes,
+    }));
+    setExtra(found.slice(1).map((c) => c.slug));
+    setFromMessage(filled.length > 0 ? { ref: order.ref, filled } : null);
+  }
 
   return (
     <Drawer
       open
       onClose={onClose}
       title="New booking"
-      subtitle="For requests that came by phone, WhatsApp or in person. Every field is required. Website requests arrive here by themselves."
+      subtitle="For requests that came by phone, WhatsApp or in person. Website requests arrive here by themselves; if one only reached WhatsApp, paste the message below."
       footer={
         <ActionButton
           permission="bookings.edit"
           disabled={!ok}
           onClick={() => {
-            const id = newId("B");
+            const first = Number(newId("B").slice(2));
             const now = new Date().toISOString();
+            const about = `${f.event} ${f.notes}`;
+            const parts = [
+              { category: f.category, service: f.service },
+              ...extra.map((slug) => {
+                const c = categories.find((x) => x.slug === slug)!;
+                return { category: slug, service: pickService(c.services.map((s) => s.name), about) };
+              }),
+            ];
+            const ids = parts.map((_, i) => `B-${first + i}`);
+            const unsaved = fromMessage && (!fromMessage.ref || fromMessage.ref === "AOD-0");
+            const note = fromMessage
+              ? [{ at: now, by: currentUser(), text: `Added from a WhatsApp message${unsaved ? " (the website hadn't saved it)" : ` (website reference ${fromMessage.ref})`}.` }]
+              : [];
             update(
               "Bookings",
-              `Created booking ${id} for ${f.name}`,
+              `Created ${ids.length > 1 ? `bookings ${ids.join(", ")}` : `booking ${ids[0]}`} for ${f.name.trim()}${fromMessage ? " from a WhatsApp message" : ""}`,
               (db) => {
-                db.bookings.unshift({
-                  id,
-                  createdAt: now,
-                  audience: f.audience,
-                  customer: { name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim() },
-                  category: f.category,
-                  service: f.service,
-                  event: f.event.trim(),
-                  date: f.date,
-                  time: f.time,
-                  endTime: f.endTime,
-                  city: f.city,
-                  venue: f.venue.trim(),
-                  budget: f.budget.trim(),
-                  notes: f.notes.trim(),
-                  status: "new",
-                  shortlist: [],
-                  history: [{ at: now, by: currentUser(), status: "new" }],
-                  notesLog: [],
-                });
+                parts.forEach((p, i) =>
+                  db.bookings.unshift({
+                    id: ids[i],
+                    // One reference for the customer when it came from the website's message, as website requests have.
+                    requestRef: fromMessage ? `AOD-${first}` : undefined,
+                    createdAt: now,
+                    audience: f.audience,
+                    customer: { name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim().toLowerCase() },
+                    category: p.category,
+                    service: p.service,
+                    event: f.event.trim(),
+                    date: f.date,
+                    time: f.time,
+                    endTime: f.endTime,
+                    city: f.city,
+                    venue: f.venue.trim(),
+                    budget: f.budget.trim(),
+                    notes: f.notes.trim(),
+                    status: "new",
+                    shortlist: [],
+                    history: [{ at: now, by: currentUser(), status: "new" }],
+                    notesLog: note,
+                  }),
+                );
               },
-              id,
+              ids[0],
             );
             onClose();
-            onCreated(id);
+            onCreated(ids[0]);
           }}
         >
-          Create booking
+          {extra.length > 0 ? `Create ${extra.length + 1} bookings` : "Create booking"}
         </ActionButton>
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
+        <Labelled label="Paste a WhatsApp message (optional)" className="sm:col-span-2">
+          <textarea
+            value={pasted}
+            onChange={(e) => fillFrom(e.target.value)}
+            rows={4}
+            placeholder={"Paste the message the customer sent from the website's booking form\n(\"Hi Artists on Demand! I'd like curated matches. …\"). The fields below fill in by themselves."}
+            className={fieldClass}
+          />
+        </Labelled>
+        {fromMessage && (
+          <p className="-mt-2 rounded-lg bg-wash px-3 py-2 text-xs text-body sm:col-span-2" aria-live="polite">
+            Filled in: {fromMessage.filled.join(", ")}.
+            {!fromMessage.filled.includes("phone") && " Add the phone number from the WhatsApp chat."}
+            {extra.length > 0 && ` It also needs ${extra.map((s) => categories.find((c) => c.slug === s)?.name).join(", ")}: a booking is created for each.`}
+            {(!fromMessage.ref || fromMessage.ref === "AOD-0") && " The website hadn't saved this request, so creating it here is the only copy."}
+          </p>
+        )}
         <Labelled label="Customer name">
           <input value={f.name} onChange={set("name")} className={fieldClass} />
         </Labelled>
@@ -734,10 +812,10 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
             ))}
           </select>
         </Labelled>
-        <Labelled label="Venue / area" className="sm:col-span-2">
+        <Labelled label="Venue / area (optional)" className="sm:col-span-2">
           <input value={f.venue} onChange={set("venue")} className={fieldClass} />
         </Labelled>
-        <Labelled label="Budget">
+        <Labelled label="Budget (optional)">
           <input value={f.budget} onChange={set("budget")} placeholder="₹20,000–30,000" className={fieldClass} />
         </Labelled>
         <Labelled label="Notes" className="sm:col-span-2">

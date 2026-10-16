@@ -9,7 +9,7 @@ import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eventMinutes, timeRange } from "@/lib/event-time";
 import { insertWithNextId } from "@/server/ids";
-import { ALL_ORDERS_TAB, istNow, notifyEnabled, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
+import { ALL_ORDERS_TAB, istNow, notifyEnabled, runJob, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
 
 // The public website's forms, saved on the server. Visitors aren't signed in, so these use the
 // secret key; every field is checked here first. The website only says "received" after a save
@@ -171,6 +171,38 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
     return { ok: true, ref };
   } catch (e) {
     console.error("[booking request]", e);
+    // Don't let the request vanish: email the team everything straight away, without going
+    // through the database (it may be what failed). The visitor's WhatsApp message also says
+    // "not saved", so the team pastes it into the admin's New booking.
+    after(async () => {
+      try {
+        await runJob({
+          kind: "email",
+          to: teamEmails(),
+          subject: `Couldn't save a booking request: add it in the admin (${name}, ${needs.map((c) => c.name).join(", ")})`,
+          text: [
+            "The website couldn't save this booking request, so it isn't in the admin. Add it there (Bookings → New booking).",
+            "",
+            `Type: ${audience}`,
+            `Occasion: ${occasion}`,
+            `Looking for: ${needs.map((c) => c.name).join(", ")}`,
+            `Date: ${date}`,
+            `Time: ${when}`,
+            `City: ${city}`,
+            `Details: ${details}`,
+            "",
+            `Customer: ${name}`,
+            `Phone: ${phone}`,
+            `Email: ${email}`,
+            "",
+            `Error: ${e instanceof Error ? e.message : String(e)}`.slice(0, 500),
+          ].join("\n"),
+          replyTo: email || undefined,
+        });
+      } catch (mailError) {
+        console.error("[booking request] couldn't email the team either", mailError);
+      }
+    });
     return { ok: false, error: "Couldn't save your request just now. Please send it on WhatsApp instead." };
   }
 }
