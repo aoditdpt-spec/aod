@@ -5,7 +5,7 @@ import { bookingChoice } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { TiltCard, iconHover } from "@/components/motion/TiltCard";
+import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 
 export const metadata: Metadata = {
   title: "Book an artist",
@@ -33,21 +33,19 @@ export default function BookPage() {
       <StaggerList className="mt-12 grid gap-6 md:grid-cols-2">
         {options.map(({ href, icon: I, label, text }) => (
           <StaggerItem key={href}>
-            <Link href={href} className="block h-full rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4">
-              <TiltCard
-                max={5}
-                className="flex flex-col rounded-[1.5rem] border-2 border-line bg-white p-8 transition-[border-color,box-shadow] duration-300 hover:border-brand hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--color-brand-bright)_15%,transparent)] sm:p-10"
-              >
-              <span className={`flex h-14 w-14 items-center justify-center rounded-xl bg-peach/60 ${iconHover}`}>
+            <Link
+              href={href}
+              className={`flex h-full flex-col rounded-[1.5rem] bg-white p-8 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 sm:p-10 ${linkCard}`}
+            >
+              <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-peach/60">
                 <I className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />
               </span>
-              <span className="mt-8 text-2xl font-medium text-ink sm:text-3xl">{label}</span>
-              <span className="mt-2 flex-1 text-muted">{text}</span>
+              <span className={`mt-8 text-2xl font-medium text-ink sm:text-3xl ${linkTitle}`}>{label}</span>
+              <span className={`mt-2 flex-1 text-muted ${linkText}`}>{text}</span>
               <span className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-brand px-6 font-medium text-white transition-colors group-hover:bg-brand-hover">
                 {label}
                 <ArrowRight className="h-5 w-5" aria-hidden />
               </span>
-              </TiltCard>
             </Link>
           </StaggerItem>
         ))}

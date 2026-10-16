@@ -13,7 +13,8 @@ import { Rating } from "@/components/ui/Rating";
 import { FinalCta } from "@/components/home/FinalCta";
 import { MatchQuiz } from "@/components/home/MatchQuiz";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { linkCard, linkText, linkTitle, tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 // One static page per category, built at deploy time.
 export function generateStaticParams() {
@@ -91,16 +92,16 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {category.services.map((s) => (
             <StaggerItem key={s.name}>
-            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6 ${cardHover}`}>
+            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6`}>
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-bold">{s.name}</h3>
+                <h3 className={`text-lg font-bold ${tiltTitle}`}>{s.name}</h3>
                 {s.popular && (
-                  <span className="rounded-full bg-peach px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-ink">
+                  <span className={`rounded-full bg-peach px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-ink ${tiltZoom}`}>
                     Popular
                   </span>
                 )}
               </div>
-              <div className="mt-2">
+              <div className={`mt-2 ${tiltText}`}>
                 <Rating rating={s.rating} count={s.bookings} unit="bookings" />
               </div>
               {/* To the booking questions on this page, so the request is saved before WhatsApp opens. */}
@@ -141,16 +142,17 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       </section>
 
       <Container className="pt-16">
-        <h2 className="text-3xl font-normal sm:text-[2.5rem]">People also book</h2>
+        <h2 className="text-3xl font-normal sm:text-[2.5rem]">You can also book</h2>
         <StaggerList className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {others.map((c) => (
             <StaggerItem key={c.slug}>
-              <Link href={`/categories/${c.slug}`} className="block h-full rounded-card outline-none focus-visible:ring-2 focus-visible:ring-brand">
-                <TiltCard className={`flex flex-col gap-4 rounded-card border border-line bg-white p-5 ${cardHover}`}>
-                  <Icon name={c.icon} className={`h-7 w-7 text-brand-bright ${iconHover}`} strokeWidth={1.25} />
-                  <span className="font-bold text-ink">{c.name}</span>
-                  <span className="text-sm text-muted">{c.short}</span>
-                </TiltCard>
+              <Link
+                href={`/categories/${c.slug}`}
+                className={`flex h-full flex-col gap-4 rounded-card bg-white p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
+              >
+                <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
+                <span className={`font-bold text-ink ${linkTitle}`}>{c.name}</span>
+                <span className={`text-sm text-muted ${linkText}`}>{c.short}</span>
               </Link>
             </StaggerItem>
           ))}

@@ -317,7 +317,7 @@ export const hero = {
   searchPlaceholder: "Search for 'wedding photographer'",
   // Animated walk-through of a booking shown beside the headline. Illustrative steps, not real customers.
   demo: [
-    { icon: "camera", title: "Request sent", text: "Wedding photographer · Surat · 14 Oct" },
+    { icon: "camera", title: "Request sent", text: "Wedding photographer · Ahmedabad · 14 Oct" },
     { icon: "sparkles", title: "Curated matches ready", text: "Verified, with clear quotes" },
     { icon: "signature", title: "Booking confirmed", text: "Digital contract shared on WhatsApp" },
   ],

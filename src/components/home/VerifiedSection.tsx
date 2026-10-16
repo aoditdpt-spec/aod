@@ -2,7 +2,8 @@ import { CalendarCheck, Images, UserCheck } from "lucide-react";
 import { verifiedArtists } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { TiltCard } from "@/components/motion/TiltCard";
+import { tiltTitle, tiltZoom } from "@/components/ui/cards";
 
 const icons = [Images, UserCheck, CalendarCheck];
 
@@ -22,11 +23,11 @@ export function VerifiedSection() {
             const I = icons[i];
             return (
               <StaggerItem key={p}>
-                <TiltCard className={`flex items-center gap-4 rounded-card border border-line bg-white p-6 ${cardHover}`}>
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach/60 ${iconHover}`}>
+                <TiltCard className={`flex items-center gap-4 rounded-card border border-line bg-white p-6`}>
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach/60 ${tiltZoom}`}>
                     <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />
                   </span>
-                  <h3 className="text-lg font-bold">{p}</h3>
+                  <h3 className={`text-lg font-bold ${tiltTitle}`}>{p}</h3>
                 </TiltCard>
               </StaggerItem>
             );

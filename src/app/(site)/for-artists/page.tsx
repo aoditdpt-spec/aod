@@ -7,7 +7,8 @@ import { Container } from "@/components/ui/Container";
 import { Icon, WhatsAppIcon, type AnyIconName } from "@/components/ui/Icon";
 import { StepFlow } from "@/components/ui/StepFlow";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { TiltCard } from "@/components/motion/TiltCard";
+import { tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
 import { portalHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 
@@ -62,10 +63,10 @@ export default function ForArtistsPage() {
             const I = whyIcons[i];
             return (
               <StaggerItem key={w.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7 ${cardHover}`}>
-                  <I className={`h-9 w-9 text-brand-bright ${iconHover}`} strokeWidth={1.25} aria-hidden />
-                  <h3 className="mt-6 text-xl font-bold">{w.title}</h3>
-                  <p className="mt-2 text-body">{w.text}</p>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                  <I className={`h-9 w-9 text-brand-bright ${tiltZoom}`} strokeWidth={1.25} aria-hidden />
+                  <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{w.title}</h3>
+                  <p className={`mt-2 text-body ${tiltText}`}>{w.text}</p>
                 </TiltCard>
               </StaggerItem>
             );

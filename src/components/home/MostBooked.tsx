@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
 import { Rating } from "@/components/ui/Rating";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
+import { linkText, linkTitle } from "@/components/ui/cards";
 
 // The most-booked services as a list: no photos and no cards, just rows with the category's
 // symbol on a small tile, the service, its category, the rating and a link to the category.
@@ -39,14 +40,14 @@ export function MostBooked() {
             <StaggerItem key={item.service} className="border-b border-line">
               <Link
                 href={`/categories/${item.slug}`}
-                className="group -mx-3 flex items-center gap-5 rounded-lg px-3 py-5 transition-colors hover:bg-white sm:gap-6"
+                className="group -mx-3 flex items-center gap-5 rounded-lg border border-transparent px-3 py-5 transition-colors hover:border-brand hover:bg-peach/40 hover:ring-1 hover:ring-brand sm:gap-6"
               >
                 <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach transition-colors group-hover:bg-brand">
                   <Icon name={item.icon} className="h-5 w-5 text-brand transition-colors group-hover:text-white" strokeWidth={1.75} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-lg font-bold text-ink group-hover:text-brand">{item.service}</span>
-                  <span className="mt-0.5 block text-sm text-muted">{item.category}</span>
+                  <span className={`block truncate text-lg font-bold text-ink ${linkTitle}`}>{item.service}</span>
+                  <span className={`mt-0.5 block text-sm text-muted ${linkText}`}>{item.category}</span>
                   <span className="mt-1 block sm:hidden">
                     <Rating rating={item.rating} count={item.bookings} unit="bookings" />
                   </span>

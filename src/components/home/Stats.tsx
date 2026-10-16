@@ -5,7 +5,8 @@ import { Icon } from "@/components/ui/Icon";
 import { Stars } from "@/components/ui/Rating";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { BrandStrip } from "@/components/home/BrandStrip";
-import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { TiltCard } from "@/components/motion/TiltCard";
+import { tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
 
 const SHOWN_CATEGORIES = 4;
 
@@ -60,12 +61,12 @@ export function Stats() {
       <StaggerList className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <StaggerItem key={s.label}>
-            <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-white px-4 py-8 text-center ${cardHover}`}>
-              <p className="font-display text-4xl font-medium text-ink sm:text-5xl">{s.value}</p>
-              <div className={`mt-3 flex h-7 items-center ${iconHover}`}>
+            <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-white px-4 py-8 text-center`}>
+              <p className={`font-display text-4xl font-medium text-ink sm:text-5xl ${tiltTitle}`}>{s.value}</p>
+              <div className={`mt-3 flex h-7 items-center ${tiltZoom}`}>
                 <StatVisual visual={s.visual} value={s.value} />
               </div>
-              <p className="mt-3 text-sm text-muted">{s.label}</p>
+              <p className={`mt-3 text-sm text-muted ${tiltText}`}>{s.label}</p>
             </TiltCard>
           </StaggerItem>
         ))}

@@ -271,7 +271,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 | `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Resolution Centre's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
 | `layout/` | `Navbar` (client: phone menu, category dropdown, search, city), `Footer`, `AnnouncementBar`, `WhatsAppFab` |
 | `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
-| `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (card tilt, `cardHover`, `iconHover`), `Coverflow` (the 3D carousel), `ScrollProgress` |
+| `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
 | `search/` | `SearchBox`: navbar search with suggestions, keyboard navigation, typed placeholder |
 | `location/` | `CityPicker` and `CityChips`: the visitor's city |
 | `bookings/` | `MyBookings`: sign-in, list of the customer's bookings, progress, reviews |
@@ -564,8 +564,10 @@ are baked into the browser code at build time.
 - **Size:** `html { font-size: 81% }` in `globals.css` scales the whole site (everything is in rem).
 - **Width:** wrap page content in `Container` (`max-w-page`, about 1600px).
 - **Buttons:** use `buttonClasses()` / `ButtonLink` from `src/components/ui/Button.tsx`.
-- **Cards:** repeating card grids use `StaggerList` + `StaggerItem` + `TiltCard` with `cardHover`
-  and `iconHover` (`src/components/motion/`).
+- **Cards:** two kinds (`src/components/ui/cards.ts`). A card that opens a page gets `linkCard`
+  (orange border, light orange tint, bold text on hover; `linkTitle` / `linkText` on its text). A
+  card that doesn't open anything is a `TiltCard` (tilts, pops up and zooms; nothing else). Grids
+  arrive with `StaggerList` + `StaggerItem`. No light or glow on any card.
 - **Animation:** `m.*` components only (see section 15). Animated elements render their final
   content on the server and carry `data-reveal`; a `<noscript>` rule shows them when JavaScript is
   off. Respect reduced motion (`MotionProvider` sets `reducedMotion="user"`).

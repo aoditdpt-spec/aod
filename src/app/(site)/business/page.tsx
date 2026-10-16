@@ -6,7 +6,8 @@ import { Container } from "@/components/ui/Container";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { FinalCta } from "@/components/home/FinalCta";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { TiltCard, cardHover, iconHover } from "@/components/motion/TiltCard";
+import { TiltCard } from "@/components/motion/TiltCard";
+import { tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -45,10 +46,10 @@ export default function BusinessPage() {
             const I = segmentIcons[i];
             return (
               <StaggerItem key={s.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7 ${cardHover}`}>
-                  <I className={`h-9 w-9 text-brand-bright ${iconHover}`} strokeWidth={1.25} aria-hidden />
-                  <h3 className="mt-6 text-xl font-bold">{s.title}</h3>
-                  <p className="mt-2 text-body">{s.text}</p>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                  <I className={`h-9 w-9 text-brand-bright ${tiltZoom}`} strokeWidth={1.25} aria-hidden />
+                  <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{s.title}</h3>
+                  <p className={`mt-2 text-body ${tiltText}`}>{s.text}</p>
                 </TiltCard>
               </StaggerItem>
             );

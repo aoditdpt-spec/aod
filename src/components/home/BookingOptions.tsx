@@ -5,6 +5,7 @@ import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { TiltCard } from "@/components/motion/TiltCard";
+import { tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
 
 type Option = (typeof bookingOptions)[keyof typeof bookingOptions];
 
@@ -37,24 +38,22 @@ function OptionCard({ option, href, featured = false }: { option: Option; href: 
   return (
     <TiltCard
       max={4}
-      className={`flex flex-col rounded-[1.25rem] bg-white p-8 transition-colors duration-300 ${
-        featured ? "border border-apricot shadow-[0_8px_24px_color-mix(in_srgb,var(--color-brand-bright)_15%,transparent)] hover:border-brand/60" : "border border-line hover:border-brand/40"
-      }`}
+      className={`flex flex-col rounded-[1.25rem] bg-white p-8 ${featured ? "border border-apricot" : "border border-line"}`}
     >
       {featured && (
         <span className="absolute right-0 top-0 rounded-bl-xl rounded-tr-[1.25rem] bg-apricot px-3 py-1 text-xs font-medium uppercase tracking-wide text-ink">
           For brands
         </span>
       )}
-      <h3 className="text-2xl font-bold">{option.name}</h3>
-      <p className="mt-1 text-xs text-muted">{option.audience}</p>
-      <p className="mt-5 text-sm text-muted">{option.text}</p>
+      <h3 className={`text-2xl font-bold ${tiltTitle}`}>{option.name}</h3>
+      <p className={`mt-1 text-xs text-muted ${tiltText}`}>{option.audience}</p>
+      <p className={`mt-5 text-sm text-muted ${tiltText}`}>{option.text}</p>
       <hr className="my-6 border-line" />
-      <p className="text-ink">{option.includesLabel}</p>
-      <ul className="mt-5 flex-1 space-y-3 text-sm text-muted">
+      <p className={`text-ink ${tiltText}`}>{option.includesLabel}</p>
+      <ul className={`mt-5 flex-1 space-y-3 text-sm text-muted ${tiltText}`}>
         {option.features.map((f) => (
           <li key={f} className="flex gap-3">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden />
+            <Check className={`mt-0.5 h-4 w-4 shrink-0 text-ink ${tiltZoom}`} aria-hidden />
             {f}
           </li>
         ))}
