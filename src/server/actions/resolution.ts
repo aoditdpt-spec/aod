@@ -7,7 +7,7 @@ import { sectionUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CaseStatus } from "@/lib/admin-store";
 import { insertWithNextId } from "@/server/ids";
-import { notifyEnabled, runOrQueue, teamEmails, type Job } from "@/server/notify";
+import { notifyEnabled, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
 
 // The Resolution Centre's forms (/resolve). Like the other public forms, these use the secret key
 // and check every field first, and the page only says "received" once the case is saved. People
@@ -56,12 +56,12 @@ export type CaseInput = {
   phone: string;
   email: string;
   agree: boolean;
-  website?: string; // honeypot
+  website?: string; // the hidden spam-trap field (see spamNote in server/notify.ts)
 };
 
 export async function createCase(input: CaseInput): Promise<CaseResult<{ id: string }>> {
   if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return notSetUp;
-  if (text(input.website, 200)) return { ok: true, id: "RC-0" }; // a bot: pretend it worked
+  const suspect = text(input.website, 200) !== "";
 
   const role = resolution.roles.some((r) => r.id === input.role) ? input.role : null;
   const issue = text(input.issue, 80);
@@ -105,6 +105,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         evidence,
         status: "received",
         history: [{ at: now, by: "Website", status: "received" }],
+        notes: suspect ? [spamNote(now)] : [],
       },
     ]);
     const id = String(row.id);
@@ -127,16 +128,17 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: `New resolution case ${id}: ${issue} (${bookingRef})`,
+          subject: spamSubject(suspect, `New resolution case ${id}: ${issue} (${bookingRef})`),
           text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         });
-      jobs.push({
-        kind: "email",
-        to: [email],
-        subject: `AOD has received your case ${id}`,
-        text: `Hi ${name},\n\nAOD has received your case and someone will reply within 48 hours.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Resolution Centre`,
-      });
+      if (!suspect)
+        jobs.push({
+          kind: "email",
+          to: [email],
+          subject: `AOD has received your case ${id}`,
+          text: `Hi ${name},\n\nAOD has received your case and someone will reply within 48 hours.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Resolution Centre`,
+        });
       await runOrQueue(jobs);
     });
     return { ok: true, id };

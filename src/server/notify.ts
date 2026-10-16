@@ -40,6 +40,19 @@ export const teamEmails = () =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+// ---- The forms' spam trap ----
+
+// The forms carry a hidden spam-trap field (`website`) that people never see. A filled one used
+// to mean "bot: pretend it worked and save nothing", but a browser's autofill can fill it too
+// (it lost a real order on 2026-10-16), so now the record is saved anyway with an internal note
+// for the team, the team email is marked, and no confirmation goes to the address typed in.
+export const spamNote = (at: string) => ({
+  at,
+  by: "Website",
+  text: "Check this one: the hidden spam-trap field was filled. That's usually a bot, but a browser's autofill can do it too, so it was saved anyway and no confirmation email was sent.",
+});
+export const spamSubject = (suspect: boolean, subject: string) => (suspect ? `[Check: possible spam] ${subject}` : subject);
+
 // ---- Running jobs ----
 
 export async function runJob(job: Job) {

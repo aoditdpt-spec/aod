@@ -9,7 +9,7 @@ import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eventMinutes, timeRange } from "@/lib/event-time";
 import { insertWithNextId } from "@/server/ids";
-import { ALL_ORDERS_TAB, istNow, notifyEnabled, runOrQueue, teamEmails, type Job } from "@/server/notify";
+import { ALL_ORDERS_TAB, istNow, notifyEnabled, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
 
 // The public website's forms, saved on the server. Visitors aren't signed in, so these use the
 // secret key; every field is checked here first. The website only says "received" after a save
@@ -50,12 +50,12 @@ export type BookingRequestInput = {
   name: string;
   phone: string;
   email: string;
-  website?: string; // honeypot: a hidden field people never fill in
+  website?: string; // the hidden spam-trap field (see spamNote in server/notify.ts)
 };
 
 export async function createBookingRequest(input: BookingRequestInput): Promise<SaveResult<{ ref: string }>> {
   if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return notSetUp;
-  if (text(input.website, 200)) return { ok: true, ref: "AOD-0" }; // a bot: pretend it worked
+  const suspect = text(input.website, 200) !== "";
 
   const occasion = text(input.occasion, 80);
   const needs = categories.filter((c) => Array.isArray(input.needs) && input.needs.includes(c.name));
@@ -107,6 +107,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         notes: details,
         status: "new",
         history: [{ at: now, by: "Website", status: "new" }],
+        notes_log: suspect ? [spamNote(now)] : [],
         source: "website",
       })),
     );
@@ -151,12 +152,12 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: `New booking request ${ref}: ${needs.map((c) => c.name).join(", ")} in ${city}`,
+          subject: spamSubject(suspect, `New booking request ${ref}: ${needs.map((c) => c.name).join(", ")} in ${city}`),
           text: `${summary}\n\nCustomer: ${name}\nPhone: ${phone}\nEmail: ${email || "—"}\n\nOpen the admin: ${sectionUrl("admin", "/bookings")}`,
           replyTo: email || undefined,
         });
       }
-      if (email) {
+      if (email && !suspect) {
         jobs.push({
           kind: "email",
           to: [email],
@@ -194,7 +195,7 @@ export type ApplicationInput = {
 
 export async function createApplication(input: ApplicationInput): Promise<SaveResult<{ id: string }>> {
   if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return notSetUp;
-  if (text(input.website, 200)) return { ok: true, id: "APP-0" };
+  const suspect = text(input.website, 200) !== "";
 
   const name = text(input.fullName, 80);
   const phone = text(input.phone, 20);
@@ -256,6 +257,7 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         links,
         details,
         status: "submitted",
+        notes: suspect ? [spamNote(new Date().toISOString())] : [],
       },
     ]);
     after(async () => {
@@ -264,18 +266,19 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: `New artist application ${app.id}: ${name} (${category.name})`,
+          subject: spamSubject(suspect, `New artist application ${app.id}: ${name} (${category.name})`),
           text: `${name}, ${category.name}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}${
             "\n\n" + questions.filter((q) => q.id in details).map((q) => `${q.short}: ${[details[q.id]].flat().join(", ")}`).join("\n")
           }\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
           replyTo: email,
         });
-      jobs.push({
-        kind: "email",
-        to: [email],
-        subject: `We've received your AOD application (${app.id})`,
-        text: `Hi ${name},\n\nThanks for applying to Artists on Demand as ${category.singular.toLowerCase()}. Our team will review your application.\n\nYour reference: ${app.id}\n\n– Team AOD`,
-      });
+      if (!suspect)
+        jobs.push({
+          kind: "email",
+          to: [email],
+          subject: `We've received your AOD application (${app.id})`,
+          text: `Hi ${name},\n\nThanks for applying to Artists on Demand as ${category.singular.toLowerCase()}. Our team will review your application.\n\nYour reference: ${app.id}\n\n– Team AOD`,
+        });
       await runOrQueue(jobs);
     });
     return { ok: true, id: String(app.id) };

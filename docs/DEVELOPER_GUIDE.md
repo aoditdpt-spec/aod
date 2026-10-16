@@ -327,7 +327,7 @@ that way on purpose so the check scripts can test them alone.
 
 | File | What it does |
 | --- | --- |
-| `actions/public.ts` | `createBookingRequest`, `createApplication`: validate, check the honeypot field `website`, save with the secret key, then emails and sheet rows in `after()` |
+| `actions/public.ts` | `createBookingRequest`, `createApplication`: validate, save with the secret key, then emails and sheet rows in `after()`. A filled hidden spam-trap field (`website`) doesn't drop the request: it's saved with an internal "check this one" note (`spamNote` in `notify.ts`), the team email is marked "[Check: possible spam]" and no confirmation is sent. |
 | `actions/auth.ts` | `requestCode`, `verifyCode`: emailed 6-digit codes. Staff only if their email is in `staff`; artists only if AOD knows their email. |
 | `actions/customer.ts` | My bookings: `myOrders` (the signed-in customer's bookings), `submitReview` |
 | `actions/artist.ts` | Artist portal: load, profile, availability, replies to requests, portfolio uploads (signed upload links) |
@@ -663,6 +663,7 @@ Supabase → Table editor → `outbox`.
 | `Sheet tab "…" 400: Unable to parse range` | A tab named after the category is missing | Add a tab with exactly the category's name (and "All orders") |
 | `Sheet tab "…" 403: The caller does not have permission` | The sheet isn't shared with the service account | Share it with the service account's email as Editor |
 | `Sheet tab "…" 404` | Wrong sheet ID | Fix `ORDERS_SHEET_ID` |
+| A team email subject starts with "[Check: possible spam]" | The form's hidden spam-trap field was filled (a bot, or rarely a browser's autofill) | Open the record in the admin: it was saved, with a note. Delete it if it's spam; otherwise reply as usual (no confirmation email went to the person) |
 | Retry route answers `401 {"error":"Not allowed"}` | `CRON_SECRET` missing or the header is wrong | Header must be exactly `Authorization: Bearer <CRON_SECRET>`; redeploy after setting it |
 | Job status `failed` | 6 attempts used | Fix the cause, then set the row's `status` back to `pending` and `attempts` to `0` |
 

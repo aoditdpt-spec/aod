@@ -355,15 +355,16 @@ export function MatchQuiz({ audience }: { audience?: Audience }) {
                     className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
                   />
                 </label>
-                {/* Honeypot for bots: hidden from people and screen readers. */}
+                {/* Spam trap for bots: not displayed at all (display: none), so people, screen readers and
+                    browser autofill never reach it. Off-screen alone wasn't enough: autofill filled it. */}
                 <input
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
-                  name="website"
+                  name="aod_trap"
                   tabIndex={-1}
                   autoComplete="off"
                   aria-hidden
-                  className="absolute -left-[9999px] h-px w-px opacity-0"
+                  className="hidden"
                 />
               </div>
 

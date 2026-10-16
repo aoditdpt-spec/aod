@@ -253,7 +253,7 @@ export function CaseForm() {
         </div>
         <p className="mt-2 text-xs text-muted">AOD replies by email. You&apos;ll need this email and the case number to track the case.</p>
         {/* Honeypot: hidden from people, filled in by bots. */}
-        <input value={f.website} onChange={set("website")} name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
+        <input value={f.website} onChange={set("website")} name="aod_trap" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
         <label className="mt-5 flex items-start gap-3 text-sm text-body">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
           <span>
