@@ -46,6 +46,15 @@ export function siteManifest(): MetadataRoute.Manifest {
     scope: "/",
     categories: ["lifestyle", "entertainment", "business"],
     shortcuts: [shortcut("Book an artist", "/book"), shortcut("My bookings", "/my-bookings")],
+    // Android's install dialog shows these like an app store listing ("narrow" on phones, "wide" on
+    // laptops). Taken from the site as the installed app looks (public/screenshots/); retake them
+    // when the pages change a lot.
+    screenshots: [
+      { src: "/screenshots/home.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Book verified artists in Gujarat" },
+      { src: "/screenshots/book.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Three quick questions to book" },
+      { src: "/screenshots/menu.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Everything in AOD, one tap away" },
+      { src: "/screenshots/wide-home.webp", sizes: "1366x768", type: "image/webp", form_factor: "wide", label: "Artists On Demand" },
+    ],
   };
 }
 

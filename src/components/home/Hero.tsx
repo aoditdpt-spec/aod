@@ -26,7 +26,8 @@ export function Hero() {
   return (
     <section
       // Fills the screen under the sticky navbar: about 4.1rem tall from 1024px up, 7.3rem below that (it adds the search bar).
-      className="relative flex min-h-[calc(100svh-7.3rem)] items-stretch overflow-hidden bg-night lg:min-h-[calc(100svh-4.1rem)] lg:items-center"
+      // Inside the installed app the 4rem tab bar sits at the bottom too (AppTabBar).
+      className="relative flex min-h-[calc(100svh-7.3rem)] items-stretch standalone:max-lg:min-h-[calc(100svh-11.3rem-env(safe-area-inset-bottom))] overflow-hidden bg-night lg:min-h-[calc(100svh-4.1rem)] lg:items-center"
       style={
         hasVideo
           ? undefined

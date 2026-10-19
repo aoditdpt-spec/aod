@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* `standalone:` applies only inside the installed app (opened from the home screen), e.g. the
+   bottom tab bar (AppTabBar): `hidden standalone:max-lg:flex`. Pure CSS, so nothing flickers. */
+@custom-variant standalone (@media (display-mode: standalone));
+
 /*
  * AOD design tokens — three colours only: AOD orange (#ff6201), white and black. Every other
  * shade is a mix of those (orange with white for tints, orange with black for the deep shade,
@@ -100,6 +104,18 @@
     color: var(--color-body);
   }
 
+  /* Inside the installed app: taps don't flash a grey box and links don't open the long-press
+     preview, as in a native app. */
+  @media (display-mode: standalone) {
+    html {
+      -webkit-tap-highlight-color: transparent;
+    }
+    a,
+    button {
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+  }
 
   h1,
   h2,

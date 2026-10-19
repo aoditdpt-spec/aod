@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
-import { useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, MapPin, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, Mail, MapPin, X } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { Spinner } from "@/components/ui/Spinner";
@@ -15,6 +15,7 @@ import { needsText, withCount } from "@/lib/booking-needs";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { requestCode, signedInEmail, verifyCode, type Result } from "@/server/actions/auth";
 import { createBookingRequest } from "@/server/actions/public";
 
 const audienceLabel: Record<Audience, string> = {
@@ -52,9 +53,14 @@ const slide: Variants = {
 // The city comes from the navbar picker (src/lib/city.ts); if it's already chosen, it isn't asked again.
 // "Who do you need?" takes any number of categories and how many artists of each (1 to 4, or "More"
 // for up to 20). A category page passes its own category in `initialNeeds`, already picked.
+// Before a request is sent, its email is confirmed with a 6-digit code emailed to it (requestCode /
+// verifyCode, the same sign-in as My bookings, which it also signs them in to), so bots can't order;
+// the server refuses a request whose email isn't confirmed. Someone already signed in with that
+// email skips the code. If the code can't be sent, the request can still go to WhatsApp, marked
+// as not saved.
 // With the backend set up, "Send" saves the request first (createBookingRequest) and only then
-// says "received" and opens WhatsApp with its reference. Without it (preview) the request is kept
-// in this browser for My bookings and WhatsApp opens straight away.
+// says "received" and opens WhatsApp with its reference. Without it (preview) any 6 digits pass,
+// the request is kept in this browser for My bookings and WhatsApp opens straight away.
 export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience; initialNeeds?: string[] }) {
   const occasionList = occasions[audience ?? "any"];
   const [step, setStep] = useState(0);
@@ -76,7 +82,15 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState(""); // honeypot: hidden, only bots fill it in
   const [opened, setOpened] = useState(false);
-  const [sending, setSending] = useState(false);
+  // What the send button is waiting on: emailing the code, checking it, or saving the request.
+  const [busy, setBusy] = useState<null | "code" | "verify" | "save">(null);
+  // The email signed in on this browser (confirmed before), the email a code was sent to, and the code typed.
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [codeFor, setCodeFor] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeFailed, setCodeFailed] = useState(false); // the code couldn't be sent: offer WhatsApp instead
+  const sendButton = useRef<HTMLButtonElement>(null);
   const [saved, setSaved] = useState<string | null>(null); // the request reference, once saved
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -85,8 +99,13 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const phoneOk = phoneDigits.length >= 10 && phoneDigits.length <= 15;
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
   const detailsOk = details.trim().length >= 3;
+  const cleanEmail = email.trim().toLowerCase();
+  const verified = backendEnabled && verifiedEmail === cleanEmail;
+  const codeSent = !verified && codeFor === cleanEmail;
+  const codeOk = /^\d{6}$/.test(code);
   const canSend =
-    Boolean(occasion) && needs.length > 0 && Boolean(city) && dateOk && length !== null && detailsOk && nameOk && phoneOk && emailOk && !sending;
+    Boolean(occasion) && needs.length > 0 && Boolean(city) && dateOk && length !== null && detailsOk && nameOk && phoneOk && emailOk && !busy;
+  const ready = canSend && (!codeSent || codeOk);
   const missing = !dateOk
     ? date
       ? "Choose a date from tomorrow onwards."
@@ -106,6 +125,11 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                 : !emailOk
                   ? "Add your email address."
                   : null;
+
+  // Already signed in (My bookings, or an earlier request) with the email they type? Then no code.
+  useEffect(() => {
+    if (backendEnabled) signedInEmail().then(setVerifiedEmail, () => {});
+  }, []);
 
   // When the question changes (not on first load), keyboard focus moves to the new question
   // once it has slid in (it only mounts after the old one has slid out).
@@ -148,6 +172,112 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     step > 0 && occasion ? { label: occasion, to: 0 } : null,
     step > 1 && needs.length ? { label: needLabels.join(", "), to: 1 } : null,
   ].filter((x): x is { label: string; to: number } => x !== null);
+
+  // Emails the 6-digit code (preview: nothing is sent, any 6 digits pass).
+  async function sendCode() {
+    setBusy("code");
+    setCodeError(null);
+    setCodeFailed(false);
+    if (backendEnabled) {
+      let res: Result;
+      try {
+        res = await requestCode(cleanEmail, "customer");
+      } catch {
+        res = { ok: false, error: "Couldn't reach AOD just now." };
+      }
+      if (!res.ok) {
+        setBusy(null);
+        setCodeError(res.error);
+        setCodeFailed(true);
+        return;
+      }
+    }
+    setBusy(null);
+    setCode("");
+    setCodeFor(cleanEmail);
+  }
+
+  // Preview: remember the request in this browser so it shows under My bookings, with a
+  // reference the team can quote back.
+  function sendPreview() {
+    const ref = newRequestRef();
+    addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs: needLabels, date, city: city ?? "", details });
+    window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
+    setOpened(true);
+  }
+
+  // The code couldn't be sent: the request still reaches AOD on WhatsApp, marked as not saved,
+  // so the team adds it with the admin's New booking.
+  function sendUnsaved() {
+    window.open(whatsappUrl([message, "Ref: not saved on the website"].join("\n")), "_blank", "noopener,noreferrer");
+    setCodeError(null);
+    setSaveError("Your request wasn't saved on the website.");
+    setOpened(true);
+  }
+
+  // Live: `tab` was opened inside the click (so it isn't blocked as a pop-up); save the request,
+  // then point the tab at WhatsApp with the saved reference.
+  async function save(tab: Window | null) {
+    setBusy("save");
+    setSaveError(null);
+    const input = { audience, occasion, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, name, phone, email, website };
+    // A dropped connection throws instead of answering: try a second time before giving up,
+    // so the visitor is never left on "Saving your request…".
+    let res: Awaited<ReturnType<typeof createBookingRequest>>;
+    try {
+      res = await createBookingRequest(input);
+    } catch {
+      try {
+        await new Promise((r) => setTimeout(r, 1500));
+        res = await createBookingRequest(input);
+      } catch {
+        res = { ok: false, error: "Couldn't reach AOD just now, so your request goes to WhatsApp instead. The team will add it for you." };
+      }
+    }
+    setBusy(null);
+    // The sign-in ran out between confirming and saving: ask for a new code instead of sending.
+    if (!res.ok && res.verify) {
+      tab?.close();
+      setVerifiedEmail(null);
+      setCodeFor(null);
+      setCodeError(res.error);
+      return;
+    }
+    // When it wasn't saved, the message says so: the team then pastes it into the admin's New booking.
+    const url = whatsappUrl([message, res.ok ? `Ref: ${res.ref}` : "Ref: not saved on the website"].join("\n"));
+    if (res.ok) setSaved(res.ref);
+    else setSaveError(res.error);
+    if (tab) {
+      tab.opener = null;
+      tab.location.href = url;
+    } else window.open(url, "_blank", "noopener,noreferrer");
+    setOpened(true);
+  }
+
+  async function onSend() {
+    if (!ready) return;
+    if (!verified && !codeSent) return sendCode();
+    if (!backendEnabled) return sendPreview();
+    const tab = window.open("", "_blank");
+    if (codeSent) {
+      setBusy("verify");
+      setCodeError(null);
+      let res: Result;
+      try {
+        res = await verifyCode(cleanEmail, code);
+      } catch {
+        res = { ok: false, error: "Couldn't reach AOD just now. Please try again." };
+      }
+      if (!res.ok) {
+        tab?.close();
+        setBusy(null);
+        setCodeError(res.error);
+        return;
+      }
+      setVerifiedEmail(cleanEmail);
+    }
+    await save(tab);
+  }
 
   return (
     <div className="overflow-hidden rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10">
@@ -403,7 +533,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                   />
                 </label>
                 <label className="text-sm font-medium text-ink sm:col-span-2">
-                  Email <span className="font-normal text-muted">(for updates and My bookings)</span>
+                  Email <span className="font-normal text-muted">(we&apos;ll email you a code to confirm it)</span>
                   <input
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -426,71 +556,83 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                 />
               </div>
 
+              {codeSent && (
+                <div className="mt-6 rounded-xl border border-brand/40 bg-peach/40 p-4 sm:p-5">
+                  <p className="text-sm font-bold text-ink">Confirm your email</p>
+                  <p className="mt-1 text-sm text-body">
+                    We&apos;ve sent a 6-digit code to <strong className="font-medium text-ink">{cleanEmail}</strong>. Enter it, then press{" "}
+                    <strong className="font-medium text-ink">Confirm &amp; send</strong>. This keeps automated orders out, and signs you in to My
+                    bookings.
+                  </p>
+                  <label className="mt-4 block text-sm font-medium text-ink">
+                    6-digit code
+                    <input
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && codeOk) sendButton.current?.click();
+                      }}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      autoFocus
+                      placeholder="••••••"
+                      className="mt-1.5 block w-full max-w-[14rem] rounded-xl border border-line bg-white px-4 py-3 text-center text-xl font-normal tracking-[0.5em] outline-none focus:border-brand"
+                    />
+                  </label>
+                  <p className="mt-2 text-xs text-muted">
+                    Not in your inbox? Check spam, or{" "}
+                    <button type="button" onClick={sendCode} disabled={Boolean(busy)} className="font-medium text-brand underline underline-offset-2">
+                      send a new code
+                    </button>
+                    . Wrong email? Change it above.
+                  </p>
+                  {!backendEnabled && <p className="mt-2 rounded-lg bg-white p-3 text-xs text-muted">Preview: no email is sent yet. Enter any 6 digits.</p>}
+                </div>
+              )}
+
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
                 <button type="button" onClick={() => go(1)} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink">
                   <ArrowLeft className="h-4 w-4" aria-hidden /> Back
                 </button>
                 <div className="flex flex-wrap items-center justify-end gap-4">
                   <p className="text-sm text-muted" aria-live="polite">
-                    {sending ? "Saving your request…" : (missing ?? "All set. AOD will reply with curated matches.")}
+                    {busy === "save"
+                      ? "Saving your request…"
+                      : (missing ??
+                        (codeSent
+                          ? codeOk
+                            ? "Code entered. Press Confirm & send."
+                            : "Enter the 6-digit code from your email."
+                          : verified
+                            ? "All set. AOD will reply with curated matches."
+                            : "Next, we'll email you a code to confirm it's you."))}
                   </p>
                   {/* A button, not a wa.me link: "open in new tab" or a long press on a link would skip
                       saving and send the request to WhatsApp only. */}
                   <button
+                    ref={sendButton}
                     type="button"
-                    disabled={!canSend}
-                    onClick={async () => {
-                      if (!canSend) return;
-                      if (!backendEnabled) {
-                        // Preview: remember the request in this browser so it shows under My bookings,
-                        // with a reference the team can quote back.
-                        const ref = newRequestRef();
-                        addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs: needLabels, date, city: city ?? "", details });
-                        window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
-                        setOpened(true);
-                        return;
-                      }
-                      // Live: open the WhatsApp tab now (inside the click, so it isn't blocked as a pop-up),
-                      // save the request, then point the tab at WhatsApp with the saved reference.
-                      const tab = window.open("", "_blank");
-                      setSending(true);
-                      setSaveError(null);
-                      const input = { audience, occasion, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, name, phone, email, website };
-                      // A dropped connection throws instead of answering: try a second time before giving up,
-                      // so the visitor is never left on "Saving your request…".
-                      let res: Awaited<ReturnType<typeof createBookingRequest>>;
-                      try {
-                        res = await createBookingRequest(input);
-                      } catch {
-                        try {
-                          await new Promise((r) => setTimeout(r, 1500));
-                          res = await createBookingRequest(input);
-                        } catch {
-                          res = { ok: false, error: "Couldn't reach AOD just now, so your request goes to WhatsApp instead. The team will add it for you." };
-                        }
-                      }
-                      setSending(false);
-                      // When it wasn't saved, the message says so: the team then pastes it into the admin's New booking.
-                      const url = whatsappUrl([message, res.ok ? `Ref: ${res.ref}` : "Ref: not saved on the website"].join("\n"));
-                      if (res.ok) setSaved(res.ref);
-                      else setSaveError(res.error);
-                      if (tab) {
-                        tab.opener = null;
-                        tab.location.href = url;
-                      } else window.open(url, "_blank", "noopener,noreferrer");
-                      setOpened(true);
-                    }}
+                    disabled={!ready}
+                    onClick={onSend}
                     className={`inline-flex h-12 items-center gap-2 rounded-lg bg-brand px-6 font-medium text-white ${
-                      sending ? "cursor-wait" : canSend ? "hover:bg-brand-hover" : "cursor-not-allowed opacity-40"
+                      busy ? "cursor-wait" : ready ? "hover:bg-brand-hover" : "cursor-not-allowed opacity-40"
                     }`}
                   >
-                    {sending ? (
+                    {busy ? (
                       <>
-                        <Spinner className="h-5 w-5" /> Saving…
+                        <Spinner className="h-5 w-5" /> {busy === "code" ? "Sending code…" : busy === "verify" ? "Checking…" : "Saving…"}
+                      </>
+                    ) : verified ? (
+                      <>
+                        <WhatsAppIcon /> Send on WhatsApp
+                      </>
+                    ) : codeSent ? (
+                      <>
+                        <WhatsAppIcon /> Confirm &amp; send
                       </>
                     ) : (
                       <>
-                        <WhatsAppIcon /> Send on WhatsApp
+                        <Mail className="h-5 w-5" aria-hidden /> Email me a code
                       </>
                     )}
                   </button>
@@ -511,6 +653,20 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                 </Link>
                 .
               </p>
+              {codeError && (
+                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-ink" role="alert">
+                  <p>{codeError}</p>
+                  {codeFailed && (
+                    <p className="mt-2">
+                      You can also{" "}
+                      <button type="button" onClick={sendUnsaved} className="font-medium text-brand underline underline-offset-2">
+                        send your request on WhatsApp
+                      </button>{" "}
+                      instead; the AOD team will add it for you.
+                    </p>
+                  )}
+                </div>
+              )}
               {saved && (
                 <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-ink" role="status">
                   <strong>Request received · Ref {saved}.</strong> WhatsApp opened with it pre-filled; tap <strong>send</strong> to chat with
@@ -518,8 +674,8 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                   Track it under{" "}
                   <Link href="/my-bookings" className="font-medium text-brand underline underline-offset-2">
                     My bookings
-                  </Link>{" "}
-                  by signing in with {email.trim()}.
+                  </Link>
+                  , where you&apos;re signed in as {cleanEmail}.
                 </p>
               )}
               {saveError && (

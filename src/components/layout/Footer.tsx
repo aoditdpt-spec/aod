@@ -100,7 +100,13 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {brand.fullName} · {brand.domain}
           </p>
-          <p>Made in {brand.city}</p>
+          <p>
+            Made in {brand.city} ·{" "}
+            {/* The admin panel's sign-in (admin.aod.co.in), for the AOD team. */}
+            <SectionLink href={portalHref("/admin")} className="hover:text-apricot">
+              AOD team sign-in
+            </SectionLink>
+          </p>
         </div>
       </div>
     </footer>

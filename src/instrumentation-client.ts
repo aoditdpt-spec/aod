@@ -1,6 +1,7 @@
 // Runs in the browser before the app starts (Next.js loads this file by itself). It tells the
 // loading bar at the top of the page (src/components/ui/LoadingBar.tsx) when the app starts
 // moving to another page, and installs the service worker.
+import { keepInstallOffer, type InstallOffer } from "@/lib/install-app";
 import { NAVIGATE_EVENT } from "@/lib/navigate-event";
 
 export function onRouterTransitionStart(url: string) {
@@ -15,3 +16,11 @@ if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
   if (document.readyState === "complete") register();
   else window.addEventListener("load", register, { once: true });
 }
+
+// The browser's install offer, kept for the install popup (src/lib/install-app.ts). Holding it
+// back also stops Chrome's own small "Add to Home screen" bar, since the popup asks instead.
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  keepInstallOffer(e as InstallOffer);
+});
+window.addEventListener("appinstalled", () => keepInstallOffer(null));

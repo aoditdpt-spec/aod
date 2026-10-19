@@ -112,7 +112,8 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
-            className="rounded-lg p-2 lg:hidden"
+            // Inside the installed app the tab bar's "More" does this job.
+            className="rounded-lg p-2 lg:hidden standalone:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? "Close menu" : "Open menu"}

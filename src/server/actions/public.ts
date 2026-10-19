@@ -8,6 +8,7 @@ import type { WorkDetails } from "@/lib/artist-store";
 import { MAX_ARTISTS, needsText, totalNeeded, withCount, type BookingItem } from "@/lib/booking-needs";
 import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { eventMinutes, timeRange } from "@/lib/event-time";
 import { insertWithNextId } from "@/server/ids";
 import { ALL_ORDERS_TAB, istNow, notifyEnabled, runJob, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
@@ -16,7 +17,8 @@ import { ALL_ORDERS_TAB, istNow, notifyEnabled, runJob, runOrQueue, spamNote, sp
 // secret key; every field is checked here first. The website only says "received" after a save
 // has succeeded (CLAUDE.md rule). Sheet rows and emails run after the reply, through `after()`.
 
-export type SaveResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
+// `verify`: the booking's email hasn't been confirmed with an emailed code (see createBookingRequest).
+export type SaveResult<T = object> = ({ ok: true } & T) | { ok: false; error: string; verify?: boolean };
 
 const notSetUp = { ok: false as const, error: "Saving isn't set up yet." };
 
@@ -88,6 +90,13 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
   if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
   if (!email || !emailOk(email)) return { ok: false, error: "Enter a valid email address." };
   const when = timeRange(startTime, endTime);
+
+  // Keeps bots from ordering: the email must have been confirmed with the 6-digit code emailed to
+  // it (requestCode and verifyCode in actions/auth.ts, asked for by the booking form), which signs
+  // the visitor in as that email. A request whose email isn't the signed-in one isn't saved.
+  const { data: auth } = await (await createClient()).auth.getUser();
+  if (auth.user?.email?.toLowerCase() !== email)
+    return { ok: false, error: "Confirm your email with the 6-digit code we send to it.", verify: true };
 
   const db = createAdminClient();
   const audience = input.audience === "business" ? "Business" : "Personal";

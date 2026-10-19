@@ -467,6 +467,71 @@ export const howItWorks = {
   ],
 };
 
+// The installed app's bottom tab bar and its "More" sheet (src/components/layout/AppTabBar.tsx):
+// a way to every place in AOD, since the app has no address bar. Paths into the separate sites
+// (/artists, /admin, /resolve) open their own domains (portalHref()).
+export const appMenu = {
+  tabs: [
+    { href: "/", label: "Home", icon: "home" },
+    { href: "/book", label: "Book", icon: "book" },
+    { href: "/my-bookings", label: "My bookings", icon: "ticket" },
+  ],
+  more: "More",
+  title: "Everything in AOD",
+  groups: [
+    {
+      title: "Book",
+      links: [
+        { href: "/#categories", label: "Browse categories", note: "Photographers, DJs, anchors and more", icon: "grid" },
+        { href: "/business", label: "AOD for Business", note: "Brand shoots, events and retainers", icon: "building" },
+      ],
+    },
+    {
+      title: "Help",
+      links: [
+        { href: "/resolve", label: "Resolution Centre", note: "Raise or track a problem with a booking", icon: "scale" },
+        { href: "/about", label: "About us", note: "Who we are", icon: "info" },
+      ],
+    },
+    {
+      title: "For artists",
+      links: [
+        { href: "/artists", label: "Artist portal", note: "Sign in to your requests and profile", icon: "palette" },
+        { href: "/artists/apply", label: "Join as an artist", note: "Apply online", icon: "join" },
+      ],
+    },
+    {
+      title: "AOD team",
+      links: [{ href: "/admin", label: "Team sign-in", note: "The admin panel, for AOD staff", icon: "lock" }],
+    },
+  ],
+  share: "Share AOD",
+  shared: "Link copied",
+  shareText: "Book verified photographers, DJs, anchors, makeup artists and more with AOD.",
+  whatsapp: "Chat on WhatsApp",
+  call: "Call us",
+};
+
+// The "Get the AOD app" popup on phones and tablets (src/components/layout/InstallPrompt.tsx).
+// The safety points are what's true of an installed website: it comes from aod.co.in over HTTPS,
+// needs no app store or permissions, and is a few hundred KB.
+export const installApp = {
+  title: "Get the AOD app",
+  from: "aod.co.in",
+  text: "Book artists and follow your bookings from your home screen, in one tap.",
+  points: [
+    { icon: "shield", text: "Safe and secure: it installs straight from aod.co.in over a secure (HTTPS) connection." },
+    { icon: "phone", text: "No app store, no extra permissions, and it takes almost no space." },
+  ],
+  install: "Install app",
+  installNote: "Your browser asks you once to confirm.",
+  installing: "Done! Find AOD on your home screen.",
+  notNow: "Not now",
+  iosTitle: "Add AOD to your home screen",
+  iosSteps: ["Tap the Share button in your browser's bar", "Choose “Add to Home Screen”", "Tap “Add”"],
+  iosDone: "Got it",
+};
+
 // The homepage's "Everything in one place" section: the artist portal up front, then the
 // separate places customers use (each its own page, some planned for their own subdomain).
 export const portals = {

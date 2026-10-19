@@ -393,17 +393,24 @@ already have been run: add a new dated file instead, and add a case to `scripts/
    up to 20, through `CountPicker`), then event details and contact. Every field is required.
    Each category page runs the same quiz in its "Book …" section with that category already
    picked (`initialNeeds`), so a visitor sets how many and adds other artists for the same event.
-2. Live: the quiz calls `createBookingRequest()` (`src/server/actions/public.ts`). It validates
+2. **The email is confirmed first**, so bots can't order: the send button emails a 6-digit code
+   (`requestCode(email, "customer")`, the same sign-in as My bookings) and shows a code box;
+   "Confirm & send" checks it (`verifyCode`), which signs the visitor in as that email (and so into
+   My bookings). Someone already signed in with that email skips the code. `createBookingRequest()`
+   refuses a request whose email isn't the signed-in one (`verify: true`, and the quiz asks for a
+   new code). If the code can't be sent, the visitor can still send the request on WhatsApp,
+   marked `Ref: not saved on the website`. Preview: no email; any 6 digits pass.
+3. Live: the quiz calls `createBookingRequest()` (`src/server/actions/public.ts`). It validates
    everything again, then inserts **one booking for the whole request** (B-1201), with a line in
    `items` for each category and how many artists of it, and the customer's reference with the
    same number (`AOD-1201`). Photographers × 2, a model and an anchor are one order with three
    lines, one quote and one payment; the team assigns artists to each line.
-3. Only after the save succeeds does the visitor see "received" with the reference. WhatsApp then
+4. Only after the save succeeds does the visitor see "received" with the reference. WhatsApp then
    opens with the reference in the message. If saving fails, the visitor is told and WhatsApp
    carries the request instead.
-4. In `after()`: a row on the sheet's "All orders" tab and on each category's tab, a team email,
+5. In `after()`: a row on the sheet's "All orders" tab and on each category's tab, a team email,
    and a confirmation email to the customer (`src/server/notify.ts`). Failures go to `outbox`.
-5. Preview: no save; the request is kept in this browser (`customer-store.ts`) and sent on WhatsApp.
+6. Preview: no save; the request is kept in this browser (`customer-store.ts`) and sent on WhatsApp.
 
 **Making sure every order that reaches WhatsApp also reaches the admin:**
 
@@ -500,7 +507,29 @@ requests to the same domain: pages are network first with a copy kept, so a page
 opens offline and an unseen one shows `public/offline.html`; `/_next/static` is cache first; images
 and fonts show the cached copy and refresh in the background. Page data (RSC), `/api`, `/media`,
 anything marked `no-store`, Supabase and server actions always go to the network. `next.config.ts`
-serves `/sw.js` with `no-cache`, so a deploy reaches installed apps on their next visit. **Changing
+serves `/sw.js` with `no-cache`, so a deploy reaches installed apps on their next visit.
+
+**The "Get the AOD app" popup** (`src/components/layout/InstallPrompt.tsx`, in the customer site's
+layout; copy in `installApp` in `site.ts`) shows on phones and tablets 4 seconds after a page opens,
+never inside the installed app, on laptops or on the `/book` pages. On Android, Chrome sends an
+install offer (`beforeinstallprompt`), which `src/instrumentation-client.ts` catches early and keeps
+(`src/lib/install-app.ts`); the popup only shows once it has arrived, and "Install app" opens the
+browser's own install dialog with it (one more tap: no website can install itself without it).
+iPhones have no such offer, so the popup lists the Share → Add to Home Screen steps. "Not now"
+hides it for a week, the iPhone "Got it" for four (`aod-install-later` in localStorage).
+
+**Inside the installed app** (opened from the home screen) phones and tablets get a bottom tab bar,
+`src/components/layout/AppTabBar.tsx` (copy in `appMenu` in `site.ts`): Home, Book, My bookings and
+More, a sheet with every other place, including the artist portal, the Resolution Centre and the
+team's admin sign-in, since the app has no address bar. It uses the `standalone:` Tailwind variant
+(`@custom-variant` at the top of `globals.css`, `@media (display-mode: standalone)`), so it's pure
+CSS: the website in a browser tab is unchanged. In the app the hamburger hides, the WhatsApp button
+and the hero make room for the bar, and taps don't flash grey. Links to the separate sites open
+their own domains in an in-app browser tab; each of those installs as its own app.
+
+The manifest's `screenshots` (`public/screenshots/`: three phone shots of the app with its tab bar,
+780×1688, and one wide, 1366×768, WebP) show in Android's install dialog like a store listing.
+Retake them when the pages change a lot, and keep sample ratings out of them. **Changing
 how `sw.js` caches? Bump `VERSION` at its top**: the next visit deletes the old caches.
 
 ---
