@@ -31,6 +31,14 @@ export function proxy(request: NextRequest) {
     response.headers.set("Strict-Transport-Security", hsts);
     return response;
   }
+  // People type "www." out of habit: www.artists.aod.co.in (and www.admin…, www.resolve…) moves to
+  // the address without it. Needs those names in DNS and Vercel (backend-setup.md, 8.6).
+  const bare = host.replace(/^www\./, "");
+  if (bare !== host && sections.some((s) => bare.startsWith(s.prefix))) {
+    const response = NextResponse.redirect(`https://${bare}${request.nextUrl.pathname}${request.nextUrl.search}`, 308);
+    response.headers.set("Strict-Transport-Security", hsts);
+    return response;
+  }
   const section = sections.find((s) => host.startsWith(s.prefix));
   if (!section) return NextResponse.next();
 
