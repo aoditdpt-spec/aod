@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { brand } from "@/content/site";
 import { resolution } from "@/content/resolution";
 import { sectionLink, siteHref } from "@/lib/site-url";
+import { sectionManifestPath } from "@/lib/pwa";
 
 const description = "Raise a problem with an AOD booking, get a case number, follow it and escalate it. For customers, businesses and AOD artists.";
 
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
   description,
   alternates: { canonical: `https://resolve.${brand.domain}/` },
   openGraph: { title: resolution.title, description, siteName: brand.fullName },
+  // Installs as its own app (src/lib/pwa.ts).
+  manifest: sectionManifestPath("resolve"),
+  appleWebApp: { capable: true, title: "AOD Resolve", statusBarStyle: "default" },
 };
 
 const nav = [

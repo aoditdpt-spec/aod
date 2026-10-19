@@ -221,6 +221,8 @@ src/app/
 ├── layout.tsx            Root: <html>, the two fonts, site metadata, MotionProvider, <noscript> rule
 ├── globals.css           Tailwind import, design tokens (@theme), base styles, custom utilities
 ├── favicon.ico, icon.png, apple-icon.png    App icons (picked up by Next automatically)
+├── manifest.ts           The customer site's web app manifest (/manifest.webmanifest), from src/lib/pwa.ts
+├── manifests/[file]/     The artist portal's, admin's and Resolution Centre's manifests (/manifests/admin.webmanifest…)
 ├── not-found.tsx         404 page (renders its own navbar and footer)
 ├── sitemap.ts, robots.ts SEO files (sitemap lists the customer site only)
 ├── (site)/               THE CUSTOMER SITE
@@ -325,6 +327,7 @@ that way on purpose so the check scripts can test them alone.
 | `image-resize.ts` | Shrinks photos in the browser to WebP, max 2560px, before upload |
 | `xlsx.ts` | Writes .xlsx and CSV files for Reports & exports |
 | `swipe.ts`, `motion-safe.ts` | Carousel swipe handling; reduced-motion helpers |
+| `pwa.ts` | The web app manifests: `siteManifest()` and `sectionManifest()` (names, icons, start page, shortcuts), so each site installs as its own app (see 7.9) |
 
 ### 6.6 `src/server/`: server-only code
 
@@ -365,6 +368,8 @@ already have been run: add a new dated file instead, and add a case to `scripts/
   and exits non-zero on failure.
 - `public/` is served at the site root (`/aod-wordmark.png`). Files in `/media`, `/brands` and
   `/categories` are cached by browsers for 30 days, so **replace a file under a new name**.
+- `public/sw.js` is the service worker, `public/offline.html` the page it shows offline, and
+  `public/icons/` the app icons (see 7.9).
 - `context/` holds references for designers and planners only; nothing in it is used by the site.
 
 ### 6.9 Root config files
@@ -478,6 +483,25 @@ listing it on the artist's record. Limits: photos 15 MB, videos 50 MB, 30 files.
 No gateway. Staff send payment details on WhatsApp (templates in the admin fill in the amount),
 the customer pays by UPI or bank transfer, staff record the amount and UTR on the booking
 (**Record payment**), and verifying it in **Payments** confirms the booking.
+
+### 7.9 Installing as an app (PWA)
+
+Every site can be installed as an app: "Add to Home screen" on phones, the install button in the
+address bar on laptops. The customer site's manifest is `src/app/manifest.ts`; the artist portal,
+admin and Resolution Centre each link their own from their `layout.tsx` (`/manifests/<section>.webmanifest`,
+built from `src/lib/pwa.ts`), so each installs under its own name and opens at its own front page.
+Icons are in `public/icons/`: the rounded "A." tile (`icon-*`) and, for Android's shaped icons,
+a full-bleed orange square with "AOD." inside the safe zone (`maskable-*`). iPhones use
+`apple-icon.png` and the `appleWebApp` metadata.
+
+The service worker, `public/sw.js`, is registered by `src/instrumentation-client.ts` in production
+only (never under `npm run dev`; test it with `npm run build && npm start`). It touches only GET
+requests to the same domain: pages are network first with a copy kept, so a page seen before
+opens offline and an unseen one shows `public/offline.html`; `/_next/static` is cache first; images
+and fonts show the cached copy and refresh in the background. Page data (RSC), `/api`, `/media`,
+anything marked `no-store`, Supabase and server actions always go to the network. `next.config.ts`
+serves `/sw.js` with `no-cache`, so a deploy reaches installed apps on their next visit. **Changing
+how `sw.js` caches? Bump `VERSION` at its top**: the next visit deletes the old caches.
 
 ---
 
@@ -606,7 +630,9 @@ are baked into the browser code at build time.
 | Change who can read/change a table | New migration with the policy change | Add a case to `scripts/db-check.mts` |
 | Add a server action | A `"use server"` function in `src/server/actions/`; validate every input; use `supabase/server.ts` (as the user) or `supabase/admin.ts` (secret key, only after checking the caller) | Keep a preview fallback |
 | Load a script, font or image from a new website | Add its origin to the CSP in `next.config.ts` | Test with `npm run build && npm start` |
-| Add a subdomain | `sections` in `src/proxy.ts`, redirects in `next.config.ts`, `Section` in `site-url.ts`; domain in Vercel + DNS at GoDaddy | — |
+| Add a subdomain | `sections` in `src/proxy.ts`, redirects in `next.config.ts`, `Section` in `site-url.ts`; domain in Vercel + DNS at GoDaddy | Give it a manifest in `src/lib/pwa.ts` and link it from its layout |
+| Change the installed app's name, icons or shortcuts | `src/lib/pwa.ts`; icons in `public/icons/` | — |
+| Change what works offline | `public/sw.js` | Bump `VERSION`; test with `npm run build && npm start` |
 
 ---
 
@@ -670,6 +696,7 @@ customer, artist) is in `testing.md` in `aod docs`.
 | A link from a subdomain goes to the wrong place | Raw path used instead of the helpers | Inside a section use `sectionLink()`; to the customer site use `siteHref()`; into a section from elsewhere use `portalHref()` / `sectionUrl()` |
 | Admin menu highlights the wrong page in production | `usePathname()` used directly | Use `sectionPath()`, which adds the section prefix back |
 | A replaced photo or video still shows the old one | 30-day cache on `/media`, `/brands`, `/categories` | Give the new file a new name |
+| An old page, or "You're offline", while online | The service worker's copy (it serves its copy only when the network fails) | DevTools → Application → Service workers → Unregister, and Storage → Clear site data; if `sw.js` changed how it caches, bump `VERSION` |
 | Admin shows no green Live dot | Realtime can't connect (network, or the Realtime policy missing) | Check the second migration was run; the page still reloads every minute |
 
 ### 14.3 Messages people see on the forms (and where they come from)

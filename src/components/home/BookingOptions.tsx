@@ -15,7 +15,8 @@ export function BookingOptions() {
     <section className="relative py-20">
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-[26.25rem] bg-gradient-to-b from-wash to-transparent bg-[repeating-linear-gradient(135deg,transparent_0_14px,color-mix(in_srgb,var(--color-brand)_5%,transparent)_14px_15px)]"
+        className="absolute inset-x-0 top-0 h-[26.25rem] bg-wash [mask-image:linear-gradient(to_bottom,black,transparent)]"
+        style={{ backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-brand) 18%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
       />
       <Container className="relative">
         <h2 className="text-center text-3xl font-normal sm:text-[2.5rem]">Choose how you want to book</h2>

@@ -61,6 +61,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: securityHeaders },
       ...["/media/:path*", "/brands/:path*", "/categories/:path*"].map((source) => ({ source, headers: longCache })),
+      // The service worker (public/sw.js): browsers always check for a new one, so a deploy reaches
+      // installed apps on their next visit.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, max-age=0, must-revalidate" }] },
     ];
   },
   // The site answers only on aod.co.in and its subdomains. Vercel's own addresses (the project's

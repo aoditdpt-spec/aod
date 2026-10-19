@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Montserrat } from "next/font/google";
 import { brand } from "@/content/site";
 import { MotionProvider } from "@/components/motion/MotionProvider";
@@ -35,7 +35,13 @@ export const metadata: Metadata = {
     description,
   },
   twitter: { card: "summary_large_image" },
+  // Installed on an iPhone's home screen, it opens without Safari's bars (the manifest,
+  // src/app/manifest.ts, does the same on Android and desktop).
+  appleWebApp: { capable: true, title: brand.name, statusBarStyle: "default" },
 };
+
+// The browser's bar and the installed app's title bar: white, like the navbar.
+export const viewport: Viewport = { themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

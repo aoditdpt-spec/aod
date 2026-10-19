@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { portal } from "@/content/artist-portal";
 import { PortalFooter } from "@/components/artists/PortalChrome";
+import { sectionManifestPath } from "@/lib/pwa";
 
 const description = "Sign in or apply to join Artists on Demand: booking requests, your profile, portfolio and availability in one place.";
 
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
   description,
   robots: { index: false, follow: false },
   openGraph: { title: portal.name, description, siteName: portal.name },
+  // Installs as its own app (src/lib/pwa.ts).
+  manifest: sectionManifestPath("artists"),
+  appleWebApp: { capable: true, title: "AOD Artists", statusBarStyle: "default" },
 };
 
 export default function ArtistsLayout({ children }: { children: ReactNode }) {
