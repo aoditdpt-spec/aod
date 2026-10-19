@@ -9,26 +9,28 @@ import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { SearchBox } from "@/components/search/SearchBox";
 import { CityChips, CityPicker } from "@/components/location/CityPicker";
+import { SectionLink } from "@/components/ui/SectionLink";
+import { portalHref } from "@/lib/site-url";
 
 const links = [
   { href: "/business", label: "For Business" },
   { href: "/for-artists", label: "For Artists" },
-  { href: "/#resolution-centre", label: "Resolution Centre" },
+  // The Resolution Centre itself (resolve.aod.co.in in production, /resolve on localhost).
+  { href: portalHref("/resolve"), label: "Resolution Centre" },
   { href: "/about", label: "About us" },
 ];
 
-// Links that drop out of the desktop bar between 1024 and 1280px to make room for the search box
-// (they stay in the phone menu).
-const wideOnly = new Set(["/#resolution-centre", "/about"]);
 
-// The AOD. wordmark in the brand orange, on a transparent background (public/aod-wordmark.png).
+// The AOD. wordmark in the brand orange, on a transparent background: public/aod-wordmark-sm.png,
+// 84px tall (sharp at the footer's size on 2x screens), served as it is. Every logo uses this file
+// with `unoptimized`: Next.js's small AVIF copies of the full-size file turned the orange brown.
 export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {
   return (
     <Link href="/" aria-label={`${brand.name} home`} className="inline-block shrink-0">
       <Image
-        src="/aod-wordmark.png"
+        src="/aod-wordmark-sm.png"
         alt={brand.name}
-        // The display size (24 or 36px tall), so the browser fetches a small copy, not the 708px file.
+        unoptimized
         width={size === "nav" ? 85 : 127}
         height={size === "nav" ? 24 : 36}
         priority
@@ -46,15 +48,18 @@ export function Navbar() {
       <nav className="mx-auto flex h-16 w-full max-w-page items-center gap-4 px-4 sm:px-6 lg:px-8 xl:gap-6" aria-label="Main">
         <Logo />
 
-        <div className="hidden lg:block">
+        {/* Every link shows from 1024px. To fit them beside the search box on smaller laptops, the
+            links are a little smaller below 1280px and the city picker waits until 1152px (the
+            booking questions ask for the city when it isn't picked; phones pick it in the menu). */}
+        <div className="hidden min-[72rem]:block">
           <CityPicker />
         </div>
 
-        <ul className="hidden items-center gap-1 text-[0.9375rem] lg:flex">
+        <ul className="hidden items-center gap-0.5 text-sm lg:flex xl:gap-1 xl:text-[0.9375rem]">
           <li className="group relative">
             <button
               type="button"
-              className="flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 hover:text-brand"
+              className="flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-2 hover:text-brand xl:px-3"
               aria-haspopup="true"
             >
               Book an artist
@@ -75,10 +80,10 @@ export function Navbar() {
             </div>
           </li>
           {links.map((l) => (
-            <li key={l.href} className={wideOnly.has(l.href) ? "hidden xl:block" : undefined}>
-              <Link href={l.href} className="whitespace-nowrap rounded-md px-3 py-2 hover:text-brand">
+            <li key={l.href}>
+              <SectionLink href={l.href} className="whitespace-nowrap rounded-md px-2 py-2 hover:text-brand xl:px-3">
                 {l.label}
-              </Link>
+              </SectionLink>
             </li>
           ))}
         </ul>
@@ -127,30 +132,18 @@ export function Navbar() {
           <div className="pt-4">
             <CityChips />
           </div>
-          <p className="mt-5 border-t border-line pt-4 text-xs font-medium uppercase tracking-wider text-muted">Book an artist</p>
-          <ul className="mt-2 grid grid-cols-2 gap-1">
-            {categories.map((c) => (
-              <li key={c.slug}>
-                <Link
-                  href={`/categories/${c.slug}`}
-                  onClick={() => setMenuOpen(false)}
-                  className="block rounded-lg px-2 py-2 text-sm hover:bg-wash"
-                >
-                  {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* No category list here: phones reach categories through the search bar, the homepage
+              carousel and "Get your artist". */}
           <ul className="mt-4 space-y-1 border-t border-line pt-4">
             {links.map((l) => (
               <li key={l.href}>
-                <Link
+                <SectionLink
                   href={l.href}
                   onClick={() => setMenuOpen(false)}
                   className="block rounded-lg px-2 py-2 hover:bg-wash"
                 >
                   {l.label}
-                </Link>
+                </SectionLink>
               </li>
             ))}
           </ul>

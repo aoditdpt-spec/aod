@@ -258,12 +258,15 @@ export const mostBooked: { service: string; category: string }[] = [
   { service: "Wedding film", category: "cinematographers" },
 ];
 
+// The number of categories rounded down to the ten, as "10+" (11 categories today; 20 would read "20+").
+export const categoryCountLabel = `${Math.floor(categories.length / 10) * 10}+`;
+
 // Sample data — see note at top.
 export const stats = [
   // `visual` picks the small graphic under the number (drawn in src/components/home/Stats.tsx).
   { value: "150+", label: "verified artists", visual: "artists" },
   { value: "4.9", label: "average rating", visual: "stars" },
-  { value: String(categories.length), label: "talent categories", visual: "categories" },
+  { value: categoryCountLabel, label: "talent categories", visual: "categories" },
   { value: "Zero", label: "negotiation drama", visual: "handshake" },
 ] as const;
 

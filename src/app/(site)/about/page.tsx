@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { BadgeCheck, Building2, Handshake, LayoutGrid, Mail, MapPin, Phone, ShieldCheck, Tag } from "lucide-react";
-import { about, brand, categories, cities } from "@/content/site";
+import { about, brand, categoryCountLabel, cities } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
@@ -22,7 +22,7 @@ const valueIcons = [BadgeCheck, Tag, ShieldCheck, Handshake];
 
 const facts = [
   { icon: MapPin, label: `Based in ${brand.city}, Gujarat` },
-  { icon: LayoutGrid, label: `${categories.length} talent categories` },
+  { icon: LayoutGrid, label: `${categoryCountLabel} talent categories` },
   { icon: Building2, label: `Serving ${cities.join(", ")}` },
 ];
 

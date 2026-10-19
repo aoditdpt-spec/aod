@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { hsts } from "./src/lib/hsts";
 
 // Other places the browser may load from: Supabase (data, sign-in, live updates, portfolio
 // files) and NEXT_PUBLIC_MEDIA_URL when the hero footage lives on a bucket or CDN.
@@ -36,7 +37,13 @@ const csp = [
   .join("; ");
 
 const securityHeaders = [
-  ...(process.env.NODE_ENV === "production" ? [{ key: "Content-Security-Policy", value: csp }] : []),
+  ...(process.env.NODE_ENV === "production"
+    ? [
+        { key: "Content-Security-Policy", value: csp },
+        // HTTPS only, on every subdomain too (src/lib/hsts.ts).
+        { key: "Strict-Transport-Security", value: hsts },
+      ]
+    : []),
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

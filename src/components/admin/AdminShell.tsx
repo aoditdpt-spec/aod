@@ -289,7 +289,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           {menu ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
         </button>
         <Link href={sectionLink("/admin/dashboard")} className="flex shrink-0 items-center gap-2">
-          <Image src="/aod-wordmark.png" alt="AOD" width={71} height={20} priority className="h-5 w-auto" />
+          <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={71} height={20} priority className="h-5 w-auto" />
           <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
         </Link>
         <div className="hidden flex-1 justify-center md:flex">

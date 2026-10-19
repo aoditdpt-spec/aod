@@ -176,7 +176,7 @@ aod/
 │   ├── brands/               Original client logos the owner sent
 │   └── *.txt, *.docx, *.pdf  Old-site copy and the platform plan
 ├── public/                   Files served as-is at the site root
-│   ├── aod-wordmark.png      The orange "AOD." logo
+│   ├── aod-wordmark.png      The orange "AOD." logo (pages show aod-wordmark-sm.png, unoptimized: Next's small AVIF copy turned it brown)
 │   ├── brands/               Client logos for the brand strip (transparent PNGs)
 │   ├── categories/           One photo per category (mock photos for now)
 │   └── media/                Hero video cuts (AV1 + H.264, laptop + phone) and posters
@@ -695,6 +695,7 @@ customer, artist) is in `testing.md` in `aod docs`.
 | Console: `Refused to load … because it violates the Content Security Policy` (production only) | A new outside script, style, font, image, video or connection | Add its origin to the CSP in `next.config.ts` |
 | A link from a subdomain goes to the wrong place | Raw path used instead of the helpers | Inside a section use `sectionLink()`; to the customer site use `siteHref()`; into a section from elsewhere use `portalHref()` / `sectionUrl()` |
 | Admin menu highlights the wrong page in production | `usePathname()` used directly | Use `sectionPath()`, which adds the section prefix back |
+| Someone gets "Not secure" or a certificate warning on aod.co.in | Usually their phone or network still has an old address for the domain, or the phone's date is wrong; the site itself always redirects to https:// and sends HSTS (`src/lib/hsts.ts`) | Check `curl -sI http://aod.co.in`; ask for a screenshot of the exact message; once the domain is on the HSTS preload list, browsers never try http:// |
 | A replaced photo or video still shows the old one | 30-day cache on `/media`, `/brands`, `/categories` | Give the new file a new name |
 | An old page, or "You're offline", while online | The service worker's copy (it serves its copy only when the network fails) | DevTools → Application → Service workers → Unregister, and Storage → Clear site data; if `sw.js` changed how it caches, bump `VERSION` |
 | Admin shows no green Live dot | Realtime can't connect (network, or the Realtime policy missing) | Check the second migration was run; the page still reloads every minute |

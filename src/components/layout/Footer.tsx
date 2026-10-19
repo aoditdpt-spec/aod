@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
+import { SectionLink } from "@/components/ui/SectionLink";
 import { portalHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { Logo } from "./Navbar";
@@ -71,9 +71,9 @@ export function Footer() {
               <ul className="mt-4 space-y-3 text-[0.9375rem]">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={portalHref(l.href)} className="hover:text-apricot">
+                    <SectionLink href={portalHref(l.href)} className="hover:text-apricot">
                       {l.label}
-                    </Link>
+                    </SectionLink>
                   </li>
                 ))}
               </ul>

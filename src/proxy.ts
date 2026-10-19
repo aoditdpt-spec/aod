@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { hsts } from "@/lib/hsts";
 import { onOwnDomains } from "@/lib/site-url";
 
 // Serves each separate site at the root of its own domain:
@@ -11,6 +12,11 @@ import { onOwnDomains } from "@/lib/site-url";
 // address that has it (admin.aod.co.in/admin/bookings) redirects to the clean one.
 // On every other host these stay at /artists, /admin and /resolve. Vercel's *.vercel.app
 // addresses never get here: next.config.ts redirects them to www.aod.co.in.
+//
+// The bare domain, aod.co.in, moves to www.aod.co.in here. For this to run, aod.co.in must be
+// connected to Production in Vercel's domain settings rather than set to redirect: this redirect
+// carries the HTTPS-only header (src/lib/hsts.ts), which hstspreload.org looks for on aod.co.in,
+// and one made by Vercel or next.config.ts doesn't.
 
 const sections = [
   { prefix: "artists.", path: "/artists" },
@@ -20,6 +26,11 @@ const sections = [
 
 export function proxy(request: NextRequest) {
   const host = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+  if (host === "aod.co.in") {
+    const response = NextResponse.redirect(`https://www.aod.co.in${request.nextUrl.pathname}${request.nextUrl.search}`, 308);
+    response.headers.set("Strict-Transport-Security", hsts);
+    return response;
+  }
   const section = sections.find((s) => host.startsWith(s.prefix));
   if (!section) return NextResponse.next();
 

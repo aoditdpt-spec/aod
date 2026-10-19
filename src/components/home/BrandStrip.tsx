@@ -68,7 +68,7 @@ function LogoList({ brands, copy = false }: { brands: readonly Brand[]; copy?: b
 export function BrandStrip() {
   return (
     <div className="mt-14">
-      <p className="text-center text-2xl font-medium text-ink sm:text-3xl">Trusted by renowned brands</p>
+      <h3 className="text-center text-2xl font-bold sm:text-3xl">Trusted by renowned brands</h3>
       <div className="mt-8 space-y-2 overflow-hidden py-6 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] motion-reduce:space-y-8 motion-reduce:[mask-image:none]">
         {rows.map((brands, i) => (
           <div
