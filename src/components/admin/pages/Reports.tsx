@@ -45,8 +45,16 @@ export function masterWorkbook(db: Db): Sheet[] {
       rows: [["ID", "Submitted", "Name", "Phone", "Email", "Categories", "City", "Experience", "Status", "Meeting", "Links"], ...db.applications.map((a) => [a.id, a.submittedAt.slice(0, 10), a.name, a.phone, a.email, categoryNames(a), a.city, a.experience, stageLabel(applicationStages, a.status), a.meeting?.at.slice(0, 16).replace("T", " "), a.links.join(" ")])],
     },
     {
-      name: "Resolution cases",
+      name: "Disputes",
       rows: [["Case", "Raised", "Raised by", "Role", "Phone", "Email", "Booking", "Issue", "Happened on", "Wants", "Status", "Decision"], ...db.cases.map((c) => [c.id, c.createdAt.slice(0, 10), c.name, c.role, c.phone, c.email, c.bookingRef, c.issue, c.incidentDate, c.outcome, stageLabel(caseStages, c.status), c.resolution])],
+    },
+    {
+      name: "Newsletter subscribers",
+      rows: [["ID", "Email", "Status", "Signed up on", "Signed up", "Confirmed", "Unsubscribed"], ...db.subscribers.map((s) => [s.id, s.email, s.status, s.source, s.createdAt.slice(0, 10), s.confirmedAt?.slice(0, 10), s.unsubscribedAt?.slice(0, 10)])],
+    },
+    {
+      name: "Blog posts",
+      rows: [["ID", "Title", "Address", "Status", "Published", "Tags", "Author"], ...db.posts.map((p) => [p.id, p.title, `/blog/${p.slug}`, p.status, p.publishedAt?.slice(0, 10), p.tags.join(", "), p.author])],
     },
     { name: "Activity", rows: [["When", "Who", "Area", "What", "Record"], ...db.activity.map((a) => [a.at.slice(0, 16).replace("T", " "), a.by, a.area, a.text, a.target])] },
   ];

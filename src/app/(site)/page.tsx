@@ -31,12 +31,12 @@ export default function Home() {
       {/* 5. The trust differentiator: every artist verified */}
       <VerifiedSection />
       {/* 6. Where everyone goes: artists join or sign in, customers find My bookings, payments,
-          the Resolution Centre and AOD for Business. Straight after trust, so an artist who
-          landed here (or a customer with a problem) finds their way before the booking pitch. */}
+          the Dispute Desk and AOD for Business. Straight after trust, so an artist who
+          landed here (or someone with a dispute) finds their way before the booking pitch. */}
       <Reveal>
         <Portals />
       </Reveal>
-      {/* 7. What if something goes wrong: the Resolution Centre's steps (in place of "How it works";
+      {/* 7. If there's a dispute: the Dispute Desk's steps (in place of "How it works";
           booking's own steps still show beside the booking questions further down) */}
       <Reveal>
         <ResolutionFlow />

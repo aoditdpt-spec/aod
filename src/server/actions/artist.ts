@@ -1,6 +1,7 @@
 "use server";
 
 import { after } from "next/server";
+import { briefCommonRows, briefRows } from "@/content/artist-brief";
 import { experienceLevels, languages as languageList, onboardingStages, type BookingStatus as PortalStatus } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import type { ArtistProfile } from "@/lib/artist-store";
@@ -33,6 +34,7 @@ export type PortalBooking = {
   city: string;
   budget: string;
   note?: string;
+  brief?: { label: string; value: string }[]; // the customer's brief: this artist's category, then the shared answers
   status: PortalStatus;
   quote?: string;
   team?: number; // how many artists of this category the booking needs, when more than one
@@ -176,6 +178,10 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
       city: b.city,
       budget: b.budget || "Not given yet",
       note: b.notes || undefined,
+      brief: (() => {
+        const rows = [...(item ? briefRows(b.brief, item.category) : []), ...briefCommonRows(b.brief)];
+        return rows.length ? rows : undefined;
+      })(),
       status,
       quote: reply?.status === "quoted" && reply.quote ? String(reply.quote) : undefined,
       team: item && item.count > 1 ? item.count : undefined,

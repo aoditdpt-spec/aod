@@ -1,5 +1,6 @@
-import type { Activity, Application, Artist, ArtistReply, Booking, Lead, Member, Payment, Payout, PortfolioFile, ResolutionCase, Settings } from "@/lib/admin-store";
+import type { Activity, Application, Artist, ArtistReply, Booking, Lead, Member, Newsletter, Payment, Payout, PortfolioFile, Post, ResolutionCase, Settings, Subscriber } from "@/lib/admin-store";
 import { assignedArtists, clampCount, totalNeeded, type BookingItem } from "@/lib/booking-needs";
+import { briefIsEmpty, type Brief } from "@/content/artist-brief";
 
 // Converts between database rows (snake_case columns, see supabase/migrations) and the records
 // the admin screens use (src/lib/admin-store.ts). Missing values become safe defaults, so an
@@ -92,6 +93,7 @@ export const fromRow = {
     venue: str(r.venue),
     budget: str(r.budget),
     notes: str(r.notes),
+    brief: r.brief && typeof r.brief === "object" && !Array.isArray(r.brief) && !briefIsEmpty(r.brief as Brief) ? (r.brief as Brief) : undefined,
     status: str(r.status) as Booking["status"],
     shortlist: list(r.shortlist),
     quote: num(r.quote),
@@ -152,6 +154,41 @@ export const fromRow = {
     resolution: opt(r.resolution),
     history: json(r.history, []),
     notes: json(r.notes, []),
+  }),
+  post: (r: Row): Post => ({
+    id: str(r.id),
+    slug: str(r.slug),
+    title: str(r.title),
+    excerpt: str(r.excerpt),
+    body: str(r.body),
+    cover: str(r.cover),
+    coverAlt: str(r.cover_alt),
+    tags: list(r.tags),
+    author: str(r.author),
+    status: str(r.status) === "published" ? "published" : "draft",
+    publishedAt: opt(r.published_at),
+    createdAt: str(r.created_at),
+    updatedAt: str(r.updated_at ?? r.created_at),
+  }),
+  // The confirm/unsubscribe token stays on the server: the admin never needs it.
+  subscriber: (r: Row): Subscriber => ({
+    id: str(r.id),
+    email: str(r.email),
+    status: (["pending", "subscribed", "unsubscribed"].includes(str(r.status)) ? str(r.status) : "pending") as Subscriber["status"],
+    source: str(r.source),
+    createdAt: str(r.created_at),
+    confirmedAt: opt(r.confirmed_at),
+    unsubscribedAt: opt(r.unsubscribed_at),
+  }),
+  newsletter: (r: Row): Newsletter => ({
+    id: str(r.id),
+    subject: str(r.subject),
+    body: str(r.body),
+    status: str(r.status) === "sent" ? "sent" : "draft",
+    createdAt: str(r.created_at),
+    sentAt: opt(r.sent_at),
+    sentBy: str(r.sent_by),
+    recipients: num(r.recipients) ?? 0,
   }),
   member: (r: Row): Member => ({
     id: str(r.id),
@@ -237,6 +274,9 @@ export const toRow = {
     venue: b.venue,
     budget: b.budget,
     notes: b.notes,
+    // Only when there is one: the admin never writes a brief, and a booking it adds then saves
+    // even before the ninth migration has added the column.
+    ...(b.brief && !briefIsEmpty(b.brief) ? { brief: b.brief } : {}),
     status: b.status,
     artist_ids: assignedArtists(b.items),
     artist_id: assignedArtists(b.items)[0] ?? null,
@@ -299,6 +339,41 @@ export const toRow = {
     resolution: nul(c.resolution),
     history: c.history,
     notes: c.notes,
+  }),
+  post: (p: Post): Row => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    body: p.body,
+    cover: p.cover,
+    cover_alt: p.coverAlt,
+    tags: p.tags,
+    author: p.author,
+    status: p.status,
+    published_at: nul(p.publishedAt),
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+  }),
+  // Never written from the admin except a status change or a removal (the website adds them).
+  subscriber: (s: Subscriber): Row => ({
+    id: s.id,
+    email: s.email.trim().toLowerCase(),
+    status: s.status,
+    source: s.source,
+    created_at: s.createdAt,
+    confirmed_at: nul(s.confirmedAt),
+    unsubscribed_at: nul(s.unsubscribedAt),
+  }),
+  newsletter: (n: Newsletter): Row => ({
+    id: n.id,
+    subject: n.subject,
+    body: n.body,
+    status: n.status,
+    created_at: n.createdAt,
+    sent_at: nul(n.sentAt),
+    sent_by: n.sentBy,
+    recipients: n.recipients,
   }),
   member: (m: Member): Row => ({
     id: m.id,

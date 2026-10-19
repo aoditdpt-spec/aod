@@ -2,6 +2,7 @@ import { Mail, Phone } from "lucide-react";
 import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
 import { SectionLink } from "@/components/ui/SectionLink";
 import { portalHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -17,8 +18,9 @@ const columns = [
     links: [
       { href: "/book", label: "Get curated matches" },
       { href: "/my-bookings", label: "My bookings" },
-      { href: "/#resolution-centre", label: "If something goes wrong" },
+      { href: "/#resolution-centre", label: "Have a dispute?" },
       { href: "/business", label: "AOD for Business" },
+      { href: "/blog", label: "Blog" },
       { href: "/about", label: "About us" },
     ],
   },
@@ -33,15 +35,19 @@ const columns = [
   },
   {
     title: "Policies & help",
-    links: [...legalDocs.map((d) => ({ href: `/${d.slug}`, label: d.title })), { href: "/resolve", label: "Resolution Centre" }],
+    links: [...legalDocs.map((d) => ({ href: `/${d.slug}`, label: d.title })), { href: "/resolve", label: "Dispute Desk" }],
   },
 ];
 
-// Full-width dark band; the content lines up with the page column (max-w-page).
+// Full-width dark band; the content lines up with the page column (max-w-page). It opens with the
+// newsletter sign-up.
 export function Footer() {
   return (
     <footer className="mt-16 bg-night text-white">
       <div className="mx-auto max-w-page px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="mb-12 border-b border-night-line pb-10 lg:max-w-2xl">
+          <NewsletterSignup variant="dark" />
+        </div>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
             <Logo size="footer" />
@@ -96,7 +102,8 @@ export function Footer() {
           </a>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2 border-t border-night-line pt-6 text-sm text-white/60 sm:flex-row sm:justify-between">
+        {/* Right padding keeps the last words clear of the floating WhatsApp button. */}
+        <div className="mt-6 flex flex-col gap-2 border-t border-night-line pt-6 pr-20 text-sm text-white/60 sm:flex-row sm:justify-between">
           <p>
             © {new Date().getFullYear()} {brand.fullName} · {brand.domain}
           </p>

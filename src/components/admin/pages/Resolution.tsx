@@ -61,14 +61,14 @@ export function Resolution() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Resolution cases"
+        title="Dispute Desk"
         text={
           <>
-            Problems with a booking, raised on the{" "}
+            Disputes between the two sides of a booking, raised on the{" "}
             <Link href={sectionUrl("resolve")} target="_blank" className="text-brand hover:underline">
-              Resolution Centre
+              Dispute Desk
             </Link>{" "}
-            by customers, businesses and artists. Reply within 48 hours and decide within 30 days; the person sees the status and the decision when they track the case, never the notes.
+            by artists, customers and businesses. Hear both sides. Reply within 48 hours and decide within 30 days; the person sees the status and the decision when they track the case, never the notes.
           </>
         }
       />
@@ -131,7 +131,7 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
       footer={
         <>
           <a
-            href={whatsappTo(c.phone, `Hi ${first}, this is the AOD Resolution Centre about your case ${c.id}: `)}
+            href={whatsappTo(c.phone, `Hi ${first}, this is the AOD Dispute Desk about your case ${c.id}: `)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-whatsapp px-3.5 text-sm font-medium text-white hover:bg-whatsapp-hover"

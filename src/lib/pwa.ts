@@ -80,11 +80,11 @@ const sections: Record<Section, { name: string; short: string; description: stri
   },
   resolve: {
     name: resolution.title,
-    short: "AOD Resolve",
-    description: "Raise a problem with an AOD booking, follow it and escalate it.",
+    short: "Dispute Desk",
+    description: "Raise a dispute with a client or an artist on an AOD booking, follow it and escalate it.",
     shortcuts: [
-      ["Raise a case", "/resolve/new"],
-      ["Track a case", "/resolve/track"],
+      ["Raise a dispute", "/resolve/new"],
+      ["Track a dispute", "/resolve/track"],
     ],
   },
 };

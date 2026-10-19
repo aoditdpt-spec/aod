@@ -3,7 +3,8 @@
 // portfolio links point to example.com, so nothing here can reach a real person.
 // Dates are relative to "now", so the calendar and reminders always look current.
 
-import type { Application, Artist, Booking, BookingStatus, Db, Lead, Member, Payment, Payout, ResolutionCase } from "@/lib/admin-store";
+import type { Application, Artist, Booking, BookingStatus, Db, Lead, Member, Newsletter, Payment, Payout, ResolutionCase, Subscriber } from "@/lib/admin-store";
+import { samplePosts } from "./blog";
 import type { BookingItem } from "@/lib/booking-needs";
 
 export function createSampleDb(now: Date): Db {
@@ -184,7 +185,7 @@ export function createSampleDb(now: Date): Db {
   });
 
   const bookings: Booking[] = [
-    booking(1, { createdAt: iso(0, 9), audience: "Personal", customer: "Ritu Agarwal", ...svc("photographers", "Wedding photography"), event: "Wedding", date: date(24), time: "10:00", city: "Ahmedabad", venue: "Party plot, SG Highway", budget: "₹60,000–80,000", notes: "Two days: haldi and wedding.", status: "new", artistsNeeded: 2, more: [{ category: "drone-pilots", service: "Wedding flyover package", count: 1, artistIds: [] }, { category: "makeup-artists", service: "Bridal makeup", count: 1, artistIds: [] }] }),
+    booking(1, { createdAt: iso(0, 9), audience: "Personal", customer: "Ritu Agarwal", ...svc("photographers", "Wedding photography"), event: "Wedding", date: date(24), time: "10:00", city: "Ahmedabad", venue: "Party plot, SG Highway", budget: "₹60,000–80,000", notes: "Two days: haldi and wedding.", status: "new", artistsNeeded: 2, brief: { byCategory: { photographers: { style: ["Candid", "Cinematic"], coverage: "More than one day", deliverables: ["Edited photos", "Printed album"], shots: "Family portraits, the varmala" }, "makeup-artists": { looks: ["Bride / groom", "Family members"], people: "2–3", style: "HD / airbrush" } }, preferences: "A female makeup artist", references: "https://www.instagram.com/p/example" }, more: [{ category: "drone-pilots", service: "Wedding flyover package", count: 1, artistIds: [] }, { category: "makeup-artists", service: "Bridal makeup", count: 1, artistIds: [] }] }),
     booking(2, { createdAt: iso(-1, 17), audience: "Business", customer: "Lumen Cafe", ...svc("photographers", "Product photography"), event: "Menu shoot", date: date(6), time: "15:00", city: "Ahmedabad", venue: "Lumen Cafe, Prahlad Nagar", budget: "₹12,000–15,000", notes: "40 dishes, white background and lifestyle.", status: "new" }),
     booking(3, { createdAt: iso(-2, 12), audience: "Personal", customer: "Mohit Jain", ...svc("musicians-djs", "Wedding / sangeet DJ"), event: "Sangeet", date: date(12), time: "19:00", city: "Vadodara", venue: "Banquet hall, Alkapuri", budget: "₹25,000–35,000", notes: "", status: "matched", shortlist: ["ART-205"] }),
     booking(4, { createdAt: iso(-3, 11), audience: "Personal", customer: "Sneha Iyer", ...svc("makeup-artists", "Bridal makeup"), event: "Wedding", date: date(18), time: "06:00", city: "Surat", venue: "Home, Vesu", budget: "₹20,000–30,000", notes: "Bride + mother; trial needed.", status: "quoted", artistId: "ART-204", shortlist: ["ART-204"], quote: 26000 }),
@@ -257,10 +258,10 @@ export function createSampleDb(now: Date): Db {
       email: email("Kavita Shah"),
       phone: phone(61),
       bookingRef: "B-1207",
-      issue: "Files not delivered or incomplete",
+      issue: "Photos or videos not delivered",
       incidentDate: date(-12),
       description: "The wedding film was promised in 10 days. It's been 12 and the photographer isn't answering calls.",
-      outcome: "Replacement artist or re-shoot",
+      outcome: "The photos or videos delivered",
       evidence: [],
       status: "received",
       history: [{ at: iso(0, 8), by: "Website", status: "received" }],
@@ -274,10 +275,10 @@ export function createSampleDb(now: Date): Db {
       email: email("Rohan Bhatt"),
       phone: phone(62),
       bookingRef: "B-1196",
-      issue: "Payout not received or short",
+      issue: "Unpaid or delayed payment",
       incidentDate: date(-9),
-      description: "The payout for the sangeet on the 3rd was ₹4,000 less than agreed.",
-      outcome: "Payout released",
+      description: "The client approved two extra hours at the sangeet on the 3rd but won't pay the ₹4,000 for them.",
+      outcome: "Payment for the extra work",
       evidence: ["https://example.com/chat-screenshot"],
       status: "investigating",
       history: [
@@ -298,7 +299,7 @@ export function createSampleDb(now: Date): Db {
       issue: "Artist arrived late or left early",
       incidentDate: date(-14),
       description: "The anchor arrived 90 minutes late for the reception.",
-      outcome: "Partial refund",
+      outcome: "A refund (full or part)",
       evidence: [],
       status: "resolved",
       resolution: "AOD refunded ₹3,000 (a third of the fee) on the 2nd. The artist has been warned.",
@@ -311,6 +312,31 @@ export function createSampleDb(now: Date): Db {
     },
   ];
 
+  // Newsletter sign-ups (example.com addresses, so nothing reaches a real person) and one sent issue.
+  const subscribers: Subscriber[] = [
+    { id: "S-104", email: email("Meera Joshi"), status: "pending", source: "/blog", createdAt: iso(0, 9) },
+    { id: "S-103", email: email("Kunal Mehta"), status: "subscribed", source: "/", createdAt: iso(-3, 18), confirmedAt: iso(-3, 18) },
+    { id: "S-102", email: email("Sana Khan"), status: "subscribed", source: "/blog/how-to-choose-a-wedding-photographer", createdAt: iso(-6, 11), confirmedAt: iso(-6, 12) },
+    { id: "S-101", email: email("Dev Patel"), status: "unsubscribed", source: "/", createdAt: iso(-20, 15), confirmedAt: iso(-20, 15), unsubscribedAt: iso(-4, 9) },
+  ];
+  const newsletters: Newsletter[] = [
+    {
+      id: "N-101",
+      subject: "Wedding season is here: 7 questions to ask your photographer",
+      body: [
+        "Hi there,",
+        "Wedding season is here, so we've written down the questions we ask photographers on your behalf.",
+        "[Read: How to choose a wedding photographer](/blog/how-to-choose-a-wedding-photographer)",
+        "– Team AOD",
+      ].join("\n\n"),
+      status: "sent",
+      createdAt: iso(-2, 10),
+      sentAt: iso(-2, 11),
+      sentBy: "Aditya (Admin)",
+      recipients: 2,
+    },
+  ];
+
   return {
     version: 1,
     applications,
@@ -320,6 +346,9 @@ export function createSampleDb(now: Date): Db {
     payouts,
     leads,
     cases,
+    posts: samplePosts,
+    subscribers,
+    newsletters,
     team,
     activity: [
       { id: "ACT-3", at: iso(-1, 12), by: "Priya (Developer)", area: "Applications", text: "Added a note to Harsh Vyas", target: "APP-1042" },

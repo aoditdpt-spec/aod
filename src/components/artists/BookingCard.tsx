@@ -85,6 +85,20 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
         </li>
       </ul>
       {!compact && booking.note && <p className="mt-3 rounded-lg bg-wash p-3 text-sm text-ink">&ldquo;{booking.note}&rdquo;</p>}
+      {/* The customer's "Brief for the artists": what they want from this artist. */}
+      {!compact && booking.brief && booking.brief.length > 0 && (
+        <div className="mt-3 rounded-lg border border-line p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted">The customer&apos;s brief</p>
+          <dl className="mt-2 grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[auto_1fr]">
+            {booking.brief.map((r) => (
+              <div key={r.label} className="contents">
+                <dt className="text-muted">{r.label}</dt>
+                <dd className="whitespace-pre-line text-ink">{r.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
 
       {booking.status === "new" && (
         <div className="mt-4 border-t border-line pt-4">

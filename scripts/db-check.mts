@@ -235,5 +235,52 @@ check("a customer cannot join someone else's channel", !(await canJoin("asha@x.t
 check("an artist can join their own channel", await canJoin("kavya@x.test", "artist:ART-1"));
 check("an artist cannot join another artist's channel", !(await canJoin("kavya@x.test", "artist:ART-2")));
 
+// ---- The customer's brief for the artists (ninth migration) ----
+await as("dev@aod.test", async () => {
+  check("a booking's brief saves as an object", (await tries(`update bookings set brief = '{"byCategory":{"photographers":{"style":["Candid"]}},"note":"x"}' where id = 'B-1'`)).rows === 1);
+  check("…and nothing else (not a list or text)", !(await tries(`update bookings set brief = '["x"]' where id = 'B-1'`)).ok);
+});
+check("a booking saved before the brief existed has an empty one", (await count(`select count(*) n from bookings where id = 'B-3' and brief = '{}'::jsonb`)) === 1);
+
+// ---- The blog and the newsletter (eighth migration) ----
+await db.exec(`
+  insert into posts (id, slug, title, status, published_at) values
+    ('P-1', 'live-post', 'Live', 'published', now() - interval '1 day'),
+    ('P-2', 'draft-post', 'Draft', 'draft', null),
+    ('P-3', 'later-post', 'Later', 'published', now() + interval '1 day');
+  insert into subscribers (id, email, status, token) values ('S-1', 'reader@x.test', 'subscribed', 'tok-aaaaaaaaaaaaaaaaaaaaaaaa');
+  insert into newsletters (id, subject) values ('N-1', 'Hello');
+`);
+await as(null, async () => {
+  check("signed-out visitor reads published posts only (not drafts or scheduled ones)", (await count("select count(*) n from posts")) === 1);
+  check("signed-out visitor cannot add a post", !(await tries("insert into posts (id, slug, title) values ('P-9', 'x', 'X')")).ok);
+  check("signed-out visitor cannot read subscribers", !(await tries("select * from subscribers")).ok);
+  check("signed-out visitor cannot add a subscriber directly (sign-up goes through the server)", !(await tries("insert into subscribers (id, email, token) values ('S-9', 'x@x.test', 'tok-bbbbbbbbbbbbbbbbbbbbbbbb')")).ok);
+  check("signed-out visitor cannot read newsletters", !(await tries("select * from newsletters")).ok);
+});
+await as("asha@x.test", async () => {
+  check("a customer reads published posts only", (await count("select count(*) n from posts")) === 1);
+  check("a customer cannot read subscribers", (await count("select count(*) n from subscribers")) === 0);
+  check("a customer cannot change a post", (await tries("update posts set title = 'x' where id = 'P-1'")).rows === 0);
+});
+await as("dev@aod.test", async () => {
+  check("staff read every post, drafts and scheduled too", (await count("select count(*) n from posts")) === 3);
+  check("staff can add a post", (await tries("insert into posts (id, slug, title) values ('P-4', 'new-post', 'New')")).ok);
+  check("staff can publish a post", (await tries("update posts set status = 'published', published_at = now() where id = 'P-2'")).rows === 1);
+  check("a post's address must be lowercase words and dashes", !(await tries("update posts set slug = 'Not A Slug' where id = 'P-2'")).ok);
+  check("staff read subscribers", (await count("select count(*) n from subscribers")) === 1);
+  check("staff can unsubscribe someone", (await tries("update subscribers set status = 'unsubscribed' where id = 'S-1'")).rows === 1);
+  check("staff can remove a subscriber", (await tries("delete from subscribers where id = 'S-1'")).rows === 1);
+  check("staff cannot add a subscriber (only the person can, by confirming)", !(await tries("insert into subscribers (id, email, token) values ('S-8', 'y@x.test', 'tok-cccccccccccccccccccccccc')")).ok);
+  check("staff can write a newsletter", (await tries("update newsletters set body = 'Hi' where id = 'N-1'")).rows === 1);
+});
+await as("gone@aod.test", async () => {
+  check("deactivated staff see only published posts", (await count("select count(*) n from posts")) === 1);
+  check("deactivated staff cannot read subscribers", (await count("select count(*) n from subscribers")) === 0);
+});
+await db.exec("delete from realtime.messages");
+await db.exec("update posts set title = 'Live!' where id = 'P-1'");
+check("a post change reaches the staff channel (the admin reloads)", (await sentTo("staff")) === 1);
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

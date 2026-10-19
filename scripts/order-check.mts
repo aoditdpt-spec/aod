@@ -6,6 +6,52 @@ import { parseOrderMessage, pickService, type ParsedOrder } from "../src/lib/wha
 
 const cases: { name: string; text: string; expect: Partial<ParsedOrder> }[] = [
   {
+    name: "with the brief for the artists (it stays with the details; name, phone and email still read)",
+    text: [
+      "Hi Artists on Demand! I'd like curated matches.",
+      "Booking for: Personal event",
+      "Occasion: Wedding",
+      "Looking for: Photographers × 2, Makeup Artists",
+      "Date: 2026-12-12",
+      "Time: 6:00 PM – 11:00 PM (5 hours)",
+      "City: Ahmedabad",
+      "Details: About 200 guests at a farmhouse",
+      "Brief for the artists:",
+      "- Photographers: Photography style: Candid, Cinematic · Coverage: Full day",
+      "- Makeup Artists: Looks needed: Bride / groom · How many people: 2–3",
+      "- Artist preferences: A female makeup artist",
+      "- References: https://www.instagram.com/p/example",
+      "Name: Test Person",
+      "Phone: 98765 43210",
+      "Email: test@example.com",
+      "Ref: AOD-1301",
+    ].join("\n"),
+    expect: {
+      audience: "Personal",
+      occasion: "Wedding",
+      needs: [
+        { name: "Photographers", count: 2 },
+        { name: "Makeup Artists", count: 1 },
+      ],
+      date: "2026-12-12",
+      startTime: "18:00",
+      endTime: "23:00",
+      city: "Ahmedabad",
+      details: [
+        "About 200 guests at a farmhouse",
+        "Brief for the artists:",
+        "- Photographers: Photography style: Candid, Cinematic · Coverage: Full day",
+        "- Makeup Artists: Looks needed: Bride / groom · How many people: 2–3",
+        "- Artist preferences: A female makeup artist",
+        "- References: https://www.instagram.com/p/example",
+      ].join("\n"),
+      name: "Test Person",
+      phone: "9876543210",
+      email: "test@example.com",
+      ref: "AOD-1301",
+    },
+  },
+  {
     name: "the order lost on 16 October (Ref AOD-0)",
     text: [
       "Hi Artists on Demand! I'd like curated matches.",

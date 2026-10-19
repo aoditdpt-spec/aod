@@ -6,9 +6,9 @@ import { Container } from "@/components/ui/Container";
 import { StepFlow } from "@/components/ui/StepFlow";
 import { portalHref } from "@/lib/site-url";
 
-// "If something goes wrong": the Resolution Centre's four steps (raise a case, AOD looks into it,
-// a decision, escalation), its time promises, and links into it (resolve.aod.co.in). It took the
-// place of the homepage's "How it works"; the navbar's "Resolution Centre" link scrolls here.
+// The Dispute Desk (the Resolution Centre in the code): its four steps (tell us, AOD hears both
+// sides, a settlement, escalation), its time promises, and links into it (resolve.aod.co.in). It
+// took the place of the homepage's "How it works"; the footer's "Have a dispute?" scrolls here.
 // Copy in src/content/resolution.ts.
 export function ResolutionFlow() {
   return (
@@ -24,10 +24,10 @@ export function ResolutionFlow() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href={portalHref("/resolve/new")} className={buttonClasses("primary", "md")}>
-              Raise a case <ArrowRight className="h-4 w-4" aria-hidden />
+              Raise a dispute <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <Link href={portalHref("/resolve/track")} className={buttonClasses("outline", "md")}>
-              Track a case
+              Track a dispute
             </Link>
           </div>
         </div>
@@ -50,7 +50,7 @@ export function ResolutionFlow() {
         <p className="mt-4 text-sm text-muted">
           {resolution.notSupport}{" "}
           <Link href={portalHref("/resolve")} className="font-medium text-brand underline underline-offset-2">
-            More about the Resolution Centre
+            More about the Dispute Desk
           </Link>
         </p>
       </section>

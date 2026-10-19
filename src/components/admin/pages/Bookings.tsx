@@ -4,6 +4,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { CalendarDays, Columns3, List, MapPin, Plus, Star, Trash2, Users } from "lucide-react";
 import { useState, type DragEvent } from "react";
 import { activeBookingStages, bookingStages, paymentStatuses, templates, type TemplateId } from "@/content/admin";
+import { briefCommonRows, briefLines, briefRows } from "@/content/artist-brief";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Artist, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
 import { assignedArtists, itemFor, itemsLabel, MAX_ARTISTS, totalNeeded, withCount, worksIn, type BookingItem } from "@/lib/booking-needs";
@@ -261,7 +262,15 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   const send = (id: TemplateId, to: "customer" | Artist) =>
     to === "customer"
       ? whatsappTo(b.customer.phone, fillTemplate(id, vars))
-      : whatsappTo(to.phone, fillTemplate(id, { ...vars, service: itemFor(b.items, to.id, to)?.service ?? vars.service, artist: to.name }));
+      : whatsappTo(to.phone, artistMessage(id, to));
+  // To an artist: the template, and with a new request their part of the customer's brief (the
+  // questions for their category, and the answers for everyone).
+  function artistMessage(id: TemplateId, to: Artist) {
+    const line = itemFor(b.items, to.id, to);
+    const text = fillTemplate(id, { ...vars, service: line?.service ?? vars.service, artist: to.name });
+    const brief = id === "artist_request" && line ? briefLines(b.brief, categoryName, [line.category]) : [];
+    return brief.length ? `${text}\n\nBrief from the customer:\n${brief.map((l) => `- ${l}`).join("\n")}` : text;
+  }
   const edit = (text: string, fn: (x: Booking) => void) => update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!), b.id);
   const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-ink hover:border-ink";
   const first = (a: Artist) => a.name.split(" ")[0];
@@ -319,6 +328,23 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
           ]}
         />
       </DrawerSection>
+
+      {b.brief && (
+        <DrawerSection title="Brief for the artists">
+          <div className="space-y-3 text-sm">
+            {b.items
+              .filter((item) => briefRows(b.brief, item.category).length)
+              .map((item) => (
+                <div key={item.category} className="rounded-lg bg-wash/70 p-3">
+                  <p className="font-medium text-ink">{categoryName(item.category)}</p>
+                  <Details rows={briefRows(b.brief, item.category).map((r) => [r.label, r.value])} />
+                </div>
+              ))}
+            {briefCommonRows(b.brief).length > 0 && <Details rows={briefCommonRows(b.brief).map((r) => [r.label, <span key={r.label} className="whitespace-pre-line">{r.value}</span>])} />}
+          </div>
+          <p className="mt-2 text-xs text-muted">Each artist&apos;s &ldquo;new request&rdquo; WhatsApp message includes their part of it.</p>
+        </DrawerSection>
+      )}
 
       <DrawerSection title={b.items.length > 1 ? `Who they need · ${b.items.length} categories` : "Who they need"}>
         <p className="mb-3 text-sm text-muted">

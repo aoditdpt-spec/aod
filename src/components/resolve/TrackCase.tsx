@@ -20,10 +20,10 @@ const sampleCase: TrackedCase = {
   id: "RC-1001",
   createdAt: new Date(Date.now() - 4 * 86400_000).toISOString(),
   role: "customer",
-  issue: "Files not delivered or incomplete",
+  issue: "Photos or videos not delivered",
   bookingRef: "B-1207",
   incidentDate: new Date(Date.now() - 6 * 86400_000).toISOString().slice(0, 10),
-  outcome: "Replacement artist or re-shoot",
+  outcome: "The photos or videos delivered",
   status: "investigating",
   steps: [
     { status: "received", at: new Date(Date.now() - 4 * 86400_000).toISOString() },
@@ -124,7 +124,7 @@ export function TrackCase() {
 
       {error === "preview" ? (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-          <p>Case tracking starts once the Resolution Centre is connected. Until then, ask AOD for an update on WhatsApp.</p>
+          <p>Case tracking starts once the Dispute Desk is connected. Until then, ask AOD for an update on WhatsApp.</p>
           <button type="button" onClick={() => setFound({ c: sampleCase, sample: true })} className="mt-3 font-medium text-brand hover:underline">
             See what a tracked case looks like
           </button>
@@ -135,9 +135,9 @@ export function TrackCase() {
         </p>
       ) : null}
       <p className="mt-6 text-sm text-muted">
-        No case yet?{" "}
+        No dispute raised yet?{" "}
         <Link href={sectionLink("/resolve/new")} className="font-medium text-brand hover:underline">
-          Raise one
+          Raise a dispute
         </Link>
         .
       </p>
@@ -178,7 +178,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
           {[
             ["Booking", c.bookingRef],
             ["Happened on", c.incidentDate ? fmt(c.incidentDate) : "—"],
-            ["You asked for", c.outcome],
+            ["Would settle it", c.outcome],
             ["Raised as", roleLabel],
           ].map(([k, v]) => (
             <div key={k}>
@@ -240,7 +240,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
 
         {c.resolution && (
           <div className="mt-6 rounded-xl bg-wash p-5">
-            <p className="text-sm font-medium text-ink">AOD&apos;s decision</p>
+            <p className="text-sm font-medium text-ink">The outcome</p>
             <p className="mt-1 text-body">{c.resolution}</p>
           </div>
         )}

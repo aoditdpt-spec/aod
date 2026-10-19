@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   LockKeyhole,
   Menu,
+  Newspaper,
   Palette,
   Phone,
   Scale,
@@ -40,6 +41,7 @@ const icons: Record<string, LucideIcon> = {
   palette: Palette,
   join: UserPlus,
   lock: LockKeyhole,
+  blog: Newspaper,
 };
 
 // Inside the installed app only (the `standalone:` variant, so the website itself is unchanged),

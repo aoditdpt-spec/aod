@@ -484,12 +484,13 @@ export const appMenu = {
       links: [
         { href: "/#categories", label: "Browse categories", note: "Photographers, DJs, anchors and more", icon: "grid" },
         { href: "/business", label: "AOD for Business", note: "Brand shoots, events and retainers", icon: "building" },
+        { href: "/blog", label: "Blog", note: "Planning tips and artist stories", icon: "blog" },
       ],
     },
     {
       title: "Help",
       links: [
-        { href: "/resolve", label: "Resolution Centre", note: "Raise or track a problem with a booking", icon: "scale" },
+        { href: "/resolve", label: "Dispute Desk", note: "A dispute with a client or an artist", icon: "scale" },
         { href: "/about", label: "About us", note: "Who we are", icon: "info" },
       ],
     },
@@ -570,11 +571,11 @@ export const portals = {
     },
     {
       id: "resolve",
-      who: "If something goes wrong",
-      title: "Resolution Centre",
-      text: "A formal place to raise a problem with a booking, for customers and artists.",
+      who: "If there's a dispute",
+      title: "Dispute Desk",
+      text: "Client ghosted your invoice, or an artist didn't deliver? AOD hears both sides and helps settle it.",
       points: ["Get a case number straight away", "A reply within 48 hours", "Track it, and escalate if needed"],
-      cta: "Raise or track a case",
+      cta: "Raise or track a dispute",
       href: "/resolve",
     },
     {

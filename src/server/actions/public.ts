@@ -2,6 +2,7 @@
 
 import { after } from "next/server";
 import { categories, cities, type Audience } from "@/content/site";
+import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
 import { bothLinksCategories, workQuestionShown, workQuestionsForAll } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
 import type { WorkDetails } from "@/lib/artist-store";
@@ -50,6 +51,7 @@ export type BookingRequestInput = {
   endTime: string; // HH:MM (earlier than the start = ends after midnight)
   city: string;
   details: string;
+  brief?: Brief; // the optional "Brief for the artists" (src/content/artist-brief.ts)
   name: string;
   phone: string;
   email: string;
@@ -73,6 +75,10 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
   const endTime = text(input.endTime, 5);
   const city = text(input.city, 40);
   const details = text(input.details, 1500);
+  // Only known questions and choices for the categories booked (cleanBrief drops the rest).
+  const brief = cleanBrief(input.brief, needs.map((c) => c.slug));
+  const nameOf = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+  const briefText = briefLines(brief, nameOf);
   const name = text(input.name, 80);
   const phone = text(input.phone, 20);
   const email = text(input.email, 120).toLowerCase();
@@ -106,7 +112,10 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
     // One order for the whole request (B-1215), with a line for each category they need and how
     // many artists of it; the customer's reference has the same number (AOD-1215).
     const items: BookingItem[] = needs.map((c) => ({ category: c.slug, service: c.name, count: c.count, artistIds: [] }));
-    const [row] = await insertWithNextId(db, "bookings", "B", 1201, (n) => [
+    // `withBrief` false: the database hasn't had the brief's column added yet (the ninth migration),
+    // so the brief goes into the notes instead and the request is still saved.
+    const save = (withBrief: boolean) =>
+      insertWithNextId(db, "bookings", "B", 1201, (n) => [
       {
         id: `B-${n}`,
         request_ref: `AOD-${n}`,
@@ -125,22 +134,31 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         event_time: startTime,
         event_end_time: endTime,
         city,
-        notes: details,
+        notes: withBrief || !briefText.length ? details : `${details}\n\nBrief for the artists:\n${briefText.join("\n")}`,
+        ...(withBrief ? { brief } : {}),
         status: "new",
         history: [{ at: now, by: "Website", status: "new" }],
         notes_log: suspect ? [spamNote(now)] : [],
         source: "website",
       },
     ]);
+    let row: Record<string, unknown>;
+    try {
+      [row] = await save(true);
+    } catch (e) {
+      if (!/brief/i.test(e instanceof Error ? e.message : "")) throw e;
+      console.error("[booking request] the bookings table has no brief column yet: run the ninth migration");
+      [row] = await save(false);
+    }
     const ref = String(row.request_ref);
     const id = String(row.id);
 
     after(async () => {
       const received = istNow();
-      // The columns of `sheetHeader` (src/server/notify.ts); "Artists needed" is last, so rows
-      // written before it existed still line up. "All orders" gets one row for the order, listing
+      // The columns of `sheetHeader` (src/server/notify.ts); "Artists needed" and "Brief" are last,
+      // so rows written before them still line up. "All orders" gets one row for the order, listing
       // everyone it needs; each category's tab gets a row with that category's part.
-      const sheetRow = (category: string, count: number) => [
+      const sheetRow = (category: string, count: number, briefCell: string) => [
         ref,
         id,
         received,
@@ -157,10 +175,12 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         "New",
         "Website",
         String(count),
+        briefCell,
       ];
       const jobs: Job[] = [
-        { kind: "sheet", tab: ALL_ORDERS_TAB, rows: [sheetRow(wanted, totalNeeded(items))] },
-        ...needs.map((c): Job => ({ kind: "sheet", tab: c.name, rows: [sheetRow(c.name, c.count)] })),
+        { kind: "sheet", tab: ALL_ORDERS_TAB, rows: [sheetRow(wanted, totalNeeded(items), briefText.join("\n"))] },
+        // Each category's tab gets that category's part of the brief and the shared answers.
+        ...needs.map((c): Job => ({ kind: "sheet", tab: c.name, rows: [sheetRow(c.name, c.count, briefLines(brief, nameOf, [c.slug]).join("\n"))] })),
       ];
       const summary = [
         `Ref: ${ref}`,
@@ -173,6 +193,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         details && `Details: ${details}`,
       ]
         .filter(Boolean)
+        .concat(briefText.length ? ["", "Brief for the artists:", ...briefText.map((l) => `- ${l}`)] : [])
         .join("\n");
       if (await notifyEnabled("New booking request")) {
         jobs.push({

@@ -304,6 +304,8 @@ export type SampleBooking = {
   guests?: string;
   budget: string;
   note?: string;
+  // The customer's "Brief for the artists": the answers for this artist's category, then the ones for everyone.
+  brief?: { label: string; value: string }[];
   replyBy?: string;
   status: BookingStatus;
   team?: number; // the booking needs this many artists of the category (more than one)
@@ -319,6 +321,13 @@ export const sampleBookings: SampleBooking[] = [
     guests: "300–500 guests",
     budget: "₹40,000–60,000",
     note: "Sangeet on the first evening, ceremony the next morning.",
+    brief: [
+      { label: "Photography style", value: "Candid, Cinematic" },
+      { label: "Coverage", value: "More than one day" },
+      { label: "What you'd like", value: "Edited photos, Printed album" },
+      { label: "Must-have shots", value: "Family portraits, the varmala, the haldi" },
+      { label: "Artist preferences", value: "Someone who has shot a Gujarati wedding before" },
+    ],
     replyBy: "Reply within 18 hours",
     status: "new",
     team: 2,

@@ -11,8 +11,8 @@ const promiseIcons = [Clock, CalendarCheck, Scale];
 const stepIcons = [FilePlus, Search, Gavel, Scale];
 const roleIcons = { customer: User, business: Briefcase, artist: Palette };
 
-// The Resolution Centre's front page: what it's for, what AOD promises, how a case runs, who can
-// raise one, and how to escalate. All server-rendered.
+// The Dispute Desk's front page: what it's for, what AOD promises, how a dispute is settled, who
+// can raise one and about what (each side's disputes are about the other side), and how to escalate. All server-rendered.
 export default function ResolvePage() {
   const officer = resolution.grievanceOfficer;
   return (
@@ -26,10 +26,10 @@ export default function ResolvePage() {
             <p className="mt-5 max-w-xl text-lg text-body">{resolution.intro}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={sectionLink("/resolve/new")} className={buttonClasses("primary", "lg")}>
-                Raise a case <ArrowRight className="h-4 w-4" aria-hidden />
+                Raise a dispute <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link href={sectionLink("/resolve/track")} className={buttonClasses("outline", "lg")}>
-                Track a case
+                Track a dispute
               </Link>
             </div>
             <p className="mt-6 flex max-w-xl items-start gap-2 text-sm text-muted">
@@ -47,7 +47,7 @@ export default function ResolvePage() {
             <p className="text-xs font-medium uppercase tracking-wider text-muted">What you&apos;ll see</p>
             <div className="mt-3 flex items-center justify-between gap-3">
               <p className="text-xl font-medium text-ink">Case RC-1001</p>
-              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Being looked into</span>
+              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Hearing both sides</span>
             </div>
             <ol className="mt-6 space-y-5">
               {caseSteps.map((s, i) => (
@@ -87,10 +87,10 @@ export default function ResolvePage() {
         </ul>
       </section>
 
-      {/* How a case runs. */}
+      {/* How a dispute is settled. */}
       <section className="border-y border-line bg-white">
         <div className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-medium text-ink">How a case works</h2>
+          <h2 className="text-3xl font-medium text-ink">How a dispute is settled</h2>
           <ol className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {resolution.steps.map((s, i) => {
               const Icon = stepIcons[i];
@@ -109,7 +109,7 @@ export default function ResolvePage() {
         </div>
       </section>
 
-      {/* Who can raise a case, and about what. */}
+      {/* Who can raise a dispute, and about what. */}
       <section className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-medium text-ink">{resolution.whoTitle}</h2>
         <p className="mt-2 max-w-2xl text-body">{resolution.whoText}</p>
@@ -136,7 +136,7 @@ export default function ResolvePage() {
                   ))}
                 </ul>
                 <Link href={sectionLink(`/resolve/new?role=${r.id}`)} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
-                  Raise a case <ArrowRight className="h-4 w-4" aria-hidden />
+                  Raise a dispute <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </li>
             );

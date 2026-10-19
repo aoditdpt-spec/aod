@@ -14,6 +14,8 @@ import { backendEnabled } from "@/lib/backend";
 import { needsText, withCount } from "@/lib/booking-needs";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
+import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
+import { ArtistBrief } from "./ArtistBrief";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { requestCode, signedInEmail, verifyCode, type Result } from "@/server/actions/auth";
 import { createBookingRequest } from "@/server/actions/public";
@@ -77,6 +79,10 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const length = eventMinutes(startTime, endTime);
   const [changingCity, setChangingCity] = useState(false);
   const [details, setDetails] = useState("");
+  // The optional "Brief for the artists" (src/content/artist-brief.ts): only the kinds of artist still picked count.
+  const [brief, setBrief] = useState<Brief>({});
+  const cleanedBrief = cleanBrief(brief, needs.map((n) => n.slug));
+  const briefText = briefLines(cleanedBrief, categoryName);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -151,6 +157,8 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     startTime && endTime && `Time: ${timeRange(startTime, endTime)}`,
     `City: ${city ?? "Not selected"}`,
     details && `Details: ${details}`,
+    // After the details, so pasting the message into the admin's New booking keeps it with them.
+    ...(briefText.length ? ["Brief for the artists:", ...briefText.map((l) => `- ${l}`)] : []),
     name.trim() && `Name: ${name.trim()}`,
     phone.trim() && `Phone: ${phone.trim()}`,
     email.trim() && `Email: ${email.trim()}`,
@@ -220,7 +228,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   async function save(tab: Window | null) {
     setBusy("save");
     setSaveError(null);
-    const input = { audience, occasion, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, name, phone, email, website };
+    const input = { audience, occasion, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, brief: cleanedBrief, name, phone, email, website };
     // A dropped connection throws instead of answering: try a second time before giving up,
     // so the visitor is never left on "Saving your request…".
     let res: Awaited<ReturnType<typeof createBookingRequest>>;
@@ -511,6 +519,11 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                     className="mt-1.5 w-full resize-none rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
                   />
                 </label>
+              </div>
+
+              <ArtistBrief slugs={needs.map((n) => n.slug)} brief={brief} onChange={setBrief} />
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm font-medium text-ink">
                   Your name
                   <input

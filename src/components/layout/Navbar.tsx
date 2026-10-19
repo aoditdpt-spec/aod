@@ -15,10 +15,13 @@ import { portalHref } from "@/lib/site-url";
 const links = [
   { href: "/business", label: "For Business" },
   { href: "/for-artists", label: "For Artists" },
-  // The Resolution Centre itself (resolve.aod.co.in in production, /resolve on localhost).
-  { href: portalHref("/resolve"), label: "Resolution Centre" },
+  // The Dispute Desk (resolve.aod.co.in in production, /resolve on localhost).
+  { href: portalHref("/resolve"), label: "Dispute Desk" },
   { href: "/about", label: "About us" },
 ];
+
+// Only in the phone menu (the laptop bar is full); the footer links it everywhere.
+const menuOnly = [{ href: "/blog", label: "Blog" }];
 
 
 // The AOD. wordmark in the brand orange, on a transparent background: public/aod-wordmark-sm.png,
@@ -136,7 +139,7 @@ export function Navbar() {
           {/* No category list here: phones reach categories through the search bar, the homepage
               carousel and "Get your artist". */}
           <ul className="mt-4 space-y-1 border-t border-line pt-4">
-            {links.map((l) => (
+            {[...links, ...menuOnly].map((l) => (
               <li key={l.href}>
                 <SectionLink
                   href={l.href}

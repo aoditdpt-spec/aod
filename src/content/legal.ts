@@ -39,6 +39,8 @@ export const privacy: LegalDoc = {
         { list: ["Your name, phone number, email address and city.", "Event details: type, date, time, venue, budget, the services you want and any notes.", "Messages you send us on WhatsApp, email or phone.", "Payment details you share with us: the amount, and the UPI transaction ID (UTR) or bank reference. We never receive your UPI PIN, card number or bank login.", "Reviews and ratings you give."] },
         "If you apply or work with us as an artist:",
         { list: ["Your name, phone number, email address, city, craft, services, experience and languages.", "Your portfolio: photos, videos, links and resume you share.", "Identity verification through DigiLocker, via a KYC provider, when it is switched on: your verified name, date of birth and photo, and a masked Aadhaar number (last 4 digits). We never ask for your full Aadhaar number or a photo of your Aadhaar card.", "After your trial booking: bank account or UPI ID and PAN, for payouts and tax.", "Your availability, bookings, quotes, payouts and notes from our team."] },
+        "If you subscribe to the newsletter:",
+        { list: ["Your email address, the page you signed up on, and when you signed up, confirmed and unsubscribed. You're only subscribed after you confirm through the link we email you."] },
         "When you use the website:",
         { list: ["Basic technical data our hosting provider logs, such as your IP address, browser and the pages you open, to keep the site running and secure.", "Settings saved in your own browser (for example your chosen city and unfinished application answers). These stay on your device; they are not sent to us until you submit."] },
       ],
@@ -47,7 +49,7 @@ export const privacy: LegalDoc = {
       id: "use",
       heading: "Why we use it",
       body: [
-        { list: ["To take your booking request, match you with suitable artists, send quotes and confirm the booking.", "To verify payments, issue invoices, pay artists and keep accounting records.", "To review artist applications, check portfolios and identity, and keep our marketplace safe.", "To send booking updates, reminders and delivery links on WhatsApp, SMS or email.", "To answer questions, handle cancellations, refunds and complaints.", "To prevent fraud and misuse, and to meet legal and tax obligations.", "To send offers or news, only if you have agreed to it. You can stop these at any time."] },
+        { list: ["To take your booking request, match you with suitable artists, send quotes and confirm the booking.", "To verify payments, issue invoices, pay artists and keep accounting records.", "To review artist applications, check portfolios and identity, and keep our marketplace safe.", "To send booking updates, reminders and delivery links on WhatsApp, SMS or email.", "To answer questions, handle cancellations, refunds and complaints.", "To prevent fraud and misuse, and to meet legal and tax obligations.", "To send offers or news, such as the AOD newsletter, only if you have agreed to it. Every newsletter has a one-click unsubscribe link, and you can stop these at any time."] },
         "We use your data on the basis of your consent, or for the legitimate uses the DPDP Act allows, such as completing a booking you asked for and meeting legal obligations. You can withdraw consent at any time (see Your rights); this doesn't affect what we did before you withdrew it, and we may not be able to complete a booking without the details it needs.",
       ],
     },
@@ -64,7 +66,7 @@ export const privacy: LegalDoc = {
       id: "keep",
       heading: "How long we keep it",
       body: [
-        { list: ["Bookings, payments and invoices: as long as tax and accounting law requires (currently up to 8 years).", "Enquiries that didn't become bookings: up to 12 months after the last contact.", "Artist applications that weren't selected: up to 12 months, so you can reapply.", "Delivered photos and videos: only until the delivery link expires (we remind you to download before then).", "Marketing preferences: until you withdraw consent."] },
+        { list: ["Bookings, payments and invoices: as long as tax and accounting law requires (currently up to 8 years).", "Enquiries that didn't become bookings: up to 12 months after the last contact.", "Artist applications that weren't selected: up to 12 months, so you can reapply.", "Delivered photos and videos: only until the delivery link expires (we remind you to download before then).", "Marketing preferences: until you withdraw consent.", "Newsletter subscriptions: while you're subscribed. After you unsubscribe we keep your email address only to record that you unsubscribed, and delete it if you ask."] },
         "After that we delete the data or make it anonymous.",
       ],
     },

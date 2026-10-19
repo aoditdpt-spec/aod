@@ -604,7 +604,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
               <Mail className="h-4 w-4 text-brand" aria-hidden /> Change or cancel by email
             </a>
             <Link href={portalHref(`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`)} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
-              <Scale className="h-4 w-4 text-brand" aria-hidden /> Something went wrong? Raise a case
+              <Scale className="h-4 w-4 text-brand" aria-hidden /> A dispute with the artist? Raise it
             </Link>
             <Link href="/refund-policy" className="text-xs text-muted underline underline-offset-2 hover:text-ink">
               Cancellation & refund policy

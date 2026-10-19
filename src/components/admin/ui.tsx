@@ -205,8 +205,25 @@ export function Labelled({ label, children, className = "" }: { label: string; c
   );
 }
 
-// Right-hand panel for a record's details. Closes on Escape or the backdrop.
-export function Drawer({ open, onClose, title, subtitle, children, footer }: { open: boolean; onClose: () => void; title: ReactNode; subtitle?: ReactNode; children: ReactNode; footer?: ReactNode }) {
+// Right-hand panel for a record's details. Closes on Escape or the backdrop. `wide` for editors
+// (a blog post, a newsletter).
+export function Drawer({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+  footer,
+  wide = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
+  wide?: boolean;
+}) {
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -219,7 +236,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer }: { o
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-night/40" />
-      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl outline-none">
+      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className={`relative flex h-full w-full flex-col bg-white shadow-2xl outline-none ${wide ? "max-w-3xl" : "max-w-xl"}`}>
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
           <div className="min-w-0">
             <h2 className="truncate text-lg font-bold text-ink">{title}</h2>

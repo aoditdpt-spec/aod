@@ -1,12 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { roles, type Role } from "@/content/admin";
 import type { Activity, Db, Member, Session, Settings } from "@/lib/admin-store";
-import { backendEnabled } from "@/lib/backend";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { fromRow, settingsFromRow, toRow } from "@/server/rows";
+import { currentStaff } from "@/server/staff";
 import { runOrQueue } from "@/server/notify";
 import { sectionUrl } from "@/lib/site-url";
 
@@ -15,7 +15,18 @@ import { sectionUrl } from "@/lib/site-url";
 // records an action changed. Every call checks the signed-in staff member first, and the
 // database's own rules (row-level security) check the role again on every row.
 
-export type Collection = "applications" | "artists" | "bookings" | "payments" | "payouts" | "leads" | "cases" | "team";
+export type Collection =
+  | "applications"
+  | "artists"
+  | "bookings"
+  | "payments"
+  | "payouts"
+  | "leads"
+  | "cases"
+  | "posts"
+  | "subscribers"
+  | "newsletters"
+  | "team";
 
 // `changed` carries each record before and after the action, so only the fields that actually
 // changed are written: two people (or the team and an artist in the portal) editing different
@@ -39,6 +50,9 @@ const writeRoles: Record<Collection | "settings", Role[]> = {
   payouts: ["owner", "developer"],
   leads: ["owner", "developer"],
   cases: ["owner", "developer"],
+  posts: ["owner", "developer"],
+  subscribers: ["owner", "developer"],
+  newsletters: ["owner", "developer"],
   team: ["owner", "developer"],
   settings: ["owner", "developer"],
 };
@@ -51,6 +65,9 @@ const tables = {
   payouts: { table: "payouts", toRow: toRow.payout },
   leads: { table: "leads", toRow: toRow.lead },
   cases: { table: "cases", toRow: toRow.case },
+  posts: { table: "posts", toRow: toRow.post },
+  subscribers: { table: "subscribers", toRow: toRow.subscriber },
+  newsletters: { table: "newsletters", toRow: toRow.newsletter },
   team: { table: "staff", toRow: toRow.member },
 } as const;
 
@@ -61,22 +78,13 @@ const labels: Record<Collection | "settings", string> = {
   payments: "payments",
   payouts: "payouts",
   leads: "leads",
-  cases: "resolution cases",
+  cases: "Dispute Desk cases",
+  posts: "blog posts",
+  subscribers: "newsletter subscribers",
+  newsletters: "newsletters",
   team: "the team",
   settings: "settings",
 };
-
-// The signed-in, active staff member, with a database client acting as them.
-async function currentStaff() {
-  if (!backendEnabled) return null;
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  const email = auth.user?.email?.toLowerCase();
-  if (!email) return null;
-  const { data } = await supabase.from("staff").select("*").eq("email", email).eq("active", true).maybeSingle();
-  if (!data) return null;
-  return { supabase, staff: fromRow.member(data) };
-}
 
 export async function adminSession(): Promise<Session | null> {
   const me = await currentStaff();
@@ -99,7 +107,7 @@ export async function loadAdminDb(): Promise<Db | null> {
   const me = await currentStaff();
   if (!me) return null;
   const s = me.supabase;
-  const [applications, artists, bookings, payments, payouts, leads, cases, team, activity, settings, replies] = await Promise.all([
+  const [applications, artists, bookings, payments, payouts, leads, cases, posts, subscribers, newsletters, team, activity, settings, replies] = await Promise.all([
     s.from("applications").select("*").order("submitted_at", { ascending: false }),
     s.from("artists").select("*").order("joined_at", { ascending: false }),
     s.from("bookings").select("*").order("created_at", { ascending: false }),
@@ -107,6 +115,9 @@ export async function loadAdminDb(): Promise<Db | null> {
     s.from("payouts").select("*").order("id", { ascending: false }),
     s.from("leads").select("*").order("created_at", { ascending: false }),
     s.from("cases").select("*").order("created_at", { ascending: false }),
+    s.from("posts").select("*").order("created_at", { ascending: false }),
+    s.from("subscribers").select("id, email, status, source, created_at, confirmed_at, unsubscribed_at").order("created_at", { ascending: false }),
+    s.from("newsletters").select("*").order("created_at", { ascending: false }),
     s.from("staff").select("*").order("created_at", { ascending: true }),
     s.from("activity").select("*").order("at", { ascending: false }).limit(500),
     s.from("settings").select("*").eq("id", 1).maybeSingle(),
@@ -114,6 +125,9 @@ export async function loadAdminDb(): Promise<Db | null> {
   ]);
   const failed = [applications, artists, bookings, payments, payouts, leads, cases, team, activity, settings, replies].find((r) => r.error);
   if (failed?.error) throw new Error(failed.error.message);
+  // The blog and newsletter tables come with the eighth migration: until it has been run, the
+  // admin still works, with those lists empty (saving to them fails with Supabase's message).
+  for (const r of [posts, subscribers, newsletters]) if (r.error) console.error("[admin] blog/newsletter tables missing? Run the eighth migration.", r.error.message);
 
   return {
     version: 1,
@@ -129,6 +143,9 @@ export async function loadAdminDb(): Promise<Db | null> {
     payouts: (payouts.data ?? []).map(fromRow.payout),
     leads: (leads.data ?? []).map(fromRow.lead),
     cases: (cases.data ?? []).map(fromRow.case),
+    posts: (posts.data ?? []).map(fromRow.post),
+    subscribers: (subscribers.data ?? []).map(fromRow.subscriber),
+    newsletters: (newsletters.data ?? []).map(fromRow.newsletter),
     team: (team.data ?? []).map(fromRow.member),
     activity: (activity.data ?? []).map(fromRow.activity),
     settings: settingsFromRow(settings.data) ?? defaultSettings,
@@ -202,6 +219,13 @@ export async function saveAdminChanges(changes: AdminChanges): Promise<SaveResul
     const rows = changes.activity.map((a) => toRow.activity({ ...a, by: me.staff.name }));
     const { error } = await s.from("activity").insert(rows);
     if (error) console.error("[admin] activity log", error.message);
+  }
+
+  // A post was added, changed or removed: the blog's cached pages (src/app/(site)/blog) and the
+  // sitemap are rebuilt on their next visit, so it shows on the site straight away.
+  if (touched.has("posts")) {
+    revalidatePath("/blog", "layout");
+    revalidatePath("/sitemap.xml");
   }
 
   // People just added in Team & roles get an email telling them how to sign in.

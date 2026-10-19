@@ -9,7 +9,7 @@ import type { CaseStatus } from "@/lib/admin-store";
 import { insertWithNextId } from "@/server/ids";
 import { notifyEnabled, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
 
-// The Resolution Centre's forms (/resolve). Like the other public forms, these use the secret key
+// The Dispute Desk's forms (/resolve; "resolution" in the code). Like the other public forms, these use the secret key
 // and check every field first, and the page only says "received" once the case is saved. People
 // track a case with its number plus the email they raised it with; they never see internal notes
 // or who on the team handled it.
@@ -30,7 +30,7 @@ export type TrackedCase = {
   steps: { status: CaseStatus; at: string }[];
 };
 
-const notSetUp = { ok: false as const, error: "The Resolution Centre isn't connected yet." };
+const notSetUp = { ok: false as const, error: "The Dispute Desk isn't connected yet." };
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
@@ -74,12 +74,12 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
   const phone = text(input.phone, 20);
   const email = text(input.email, 120).toLowerCase();
 
-  if (!role) return { ok: false, error: "Choose who you are." };
-  if (!resolution.issues[role].includes(issue)) return { ok: false, error: "Choose what went wrong." };
+  if (!role) return { ok: false, error: "Choose which side you're on." };
+  if (!resolution.issues[role].includes(issue)) return { ok: false, error: "Choose what the dispute is about." };
   if (bookingRef.length < 3) return { ok: false, error: "Add the booking or request number." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(incidentDate) || incidentDate > todayIst()) return { ok: false, error: "Add the date it happened (today or earlier)." };
   if (description.length < 20) return { ok: false, error: "Describe what happened in a little more detail." };
-  if (!resolution.outcomes.includes(outcome)) return { ok: false, error: "Choose what you'd like AOD to do." };
+  if (!resolution.outcomes[role].includes(outcome)) return { ok: false, error: "Choose what would settle it for you." };
   if (evidence.some((l) => !linkOk(l))) return { ok: false, error: "Evidence links must be full web addresses (https://…)." };
   if (name.length < 2) return { ok: false, error: "Enter your name." };
   if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
@@ -116,9 +116,9 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         `Case: ${id}`,
         `From: ${name} (${roleLabel})`,
         `Booking: ${bookingRef}`,
-        `What went wrong: ${issue}`,
+        `Dispute: ${issue}`,
         `When: ${incidentDate}`,
-        `Wants: ${outcome}`,
+        `Would settle it: ${outcome}`,
         "",
         description,
         ...(evidence.length ? ["", "Evidence:", ...evidence] : []),
@@ -128,7 +128,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: spamSubject(suspect, `New resolution case ${id}: ${issue} (${bookingRef})`),
+          subject: spamSubject(suspect, `New dispute ${id}: ${issue} (${bookingRef})`),
           text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         });
@@ -136,8 +136,8 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         jobs.push({
           kind: "email",
           to: [email],
-          subject: `AOD has received your case ${id}`,
-          text: `Hi ${name},\n\nAOD has received your case and someone will reply within 48 hours.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Resolution Centre`,
+          subject: `The AOD Dispute Desk has your case ${id}`,
+          text: `Hi ${name},\n\nThe AOD Dispute Desk has your case. Someone will reply within 48 hours, and AOD will hear from the other side of the booking too.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
         });
       await runOrQueue(jobs);
     });
@@ -211,7 +211,7 @@ export async function escalateCase(idInput: string, emailInput: string, reasonIn
         {
           kind: "email",
           to: teamEmails(),
-          subject: `Escalated to the grievance officer: ${id}`,
+          subject: `Dispute escalated to the grievance officer: ${id}`,
           text: `${r.name} has escalated case ${id} (${r.issue}, booking ${r.booking_ref}).\n\nWhy: ${reason}\n\nOpen it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         },
@@ -219,7 +219,7 @@ export async function escalateCase(idInput: string, emailInput: string, reasonIn
           kind: "email",
           to: [email],
           subject: `Your case ${id} has been escalated`,
-          text: `Hi ${r.name},\n\nAOD's grievance officer will review case ${id} afresh and reply by email.\n\nYour reason: ${reason}\n\nFollow it: ${sectionUrl("resolve", `/track?id=${id}`)}\n\n– AOD Resolution Centre`,
+          text: `Hi ${r.name},\n\nAOD's grievance officer will review case ${id} afresh and reply by email.\n\nYour reason: ${reason}\n\nFollow it: ${sectionUrl("resolve", `/track?id=${id}`)}\n\n– AOD Dispute Desk`,
         },
       ]);
     });

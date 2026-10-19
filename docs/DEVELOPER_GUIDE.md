@@ -5,7 +5,7 @@ is built, where every file lives and what it does, how data moves, how to change
 the common errors mean.
 
 - **Live sites:** `www.aod.co.in` (customers), `artists.aod.co.in` (artist portal),
-  `admin.aod.co.in` (staff admin panel), `resolve.aod.co.in` (Resolution Centre).
+  `admin.aod.co.in` (staff admin panel), `resolve.aod.co.in` (Dispute Desk).
 - **Code:** GitHub `aoditdpt-spec/aod`, branch `main`. Every push to `main` deploys to production
   on Vercel.
 - **Passwords and keys are not in this repo.** They live in `E:\Projects\Internship\aod docs\`
@@ -48,7 +48,7 @@ WhatsApp). It has four parts:
 | Customer site | `www.aod.co.in` | Customers and businesses | Browse categories, search, send a booking request, follow bookings in **My bookings**, read policies |
 | Artist portal | `artists.aod.co.in` | Artists and applicants | Apply to join, sign in, see onboarding status, edit profile, upload portfolio, set days off, quote or decline booking requests |
 | Admin panel | `admin.aod.co.in` | AOD staff | Review applications, manage artists and bookings, record and verify payments, handle cases, messages, reports, team, settings |
-| Resolution Centre | `resolve.aod.co.in` | Anyone with a booking problem | Raise a formal case, track it, escalate it |
+| Dispute Desk | `resolve.aod.co.in` | Anyone with a booking problem | Raise a formal case, track it, escalate it |
 
 WhatsApp stays the main contact channel (click-to-chat links only, no WhatsApp API). Payments are
 taken by UPI or bank transfer outside the site; staff record them in the admin. There is no
@@ -89,7 +89,7 @@ Opening the separate sites locally:
 | Customer site | `http://localhost:3000` |
 | Artist portal | `http://localhost:3000/artists` or `http://artists.localhost:3000` |
 | Admin panel | `http://localhost:3000/admin` or `http://admin.localhost:3000` |
-| Resolution Centre | `http://localhost:3000/resolve` or `http://resolve.localhost:3000` |
+| Dispute Desk | `http://localhost:3000/resolve` or `http://resolve.localhost:3000` |
 
 In `.env.local` for development, set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` so links stay
 on your machine.
@@ -97,7 +97,7 @@ on your machine.
 Before pushing, run:
 
 ```bash
-npm run build && npm run lint && npm run check:search && npm run check:links && npm run check:db && npm run check:orders
+npm run build && npm run lint && npm run check:search && npm run check:links && npm run check:db && npm run check:orders && npm run check:markdown
 ```
 
 ---
@@ -222,7 +222,7 @@ src/app/
 ├── globals.css           Tailwind import, design tokens (@theme), base styles, custom utilities
 ├── favicon.ico, icon.png, apple-icon.png    App icons (picked up by Next automatically)
 ├── manifest.ts           The customer site's web app manifest (/manifest.webmanifest), from src/lib/pwa.ts
-├── manifests/[file]/     The artist portal's, admin's and Resolution Centre's manifests (/manifests/admin.webmanifest…)
+├── manifests/[file]/     The artist portal's, admin's and Dispute Desk's manifests (/manifests/admin.webmanifest…)
 ├── not-found.tsx         404 page (renders its own navbar and footer)
 ├── sitemap.ts, robots.ts SEO files (sitemap lists the customer site only)
 ├── (site)/               THE CUSTOMER SITE
@@ -270,7 +270,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 
 | Folder | What's in it |
 | --- | --- |
-| `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Resolution Centre's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
+| `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Dispute Desk's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
 | `layout/` | `Navbar` (client: phone menu, category dropdown, search, city), `Footer`, `AnnouncementBar`, `WhatsAppFab` |
 | `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
@@ -295,7 +295,7 @@ Change words here, not in JSX.
 | `admin.ts` | Admin pipelines (application and booking stages), roles and permissions, WhatsApp message templates (the admin menu itself is `nav` in `AdminShell.tsx`) |
 | `admin-sample.ts` | Sample data for the admin preview (phones start with 55, emails use example.com) |
 | `my-bookings.ts` | Sample bookings for the My bookings preview |
-| `resolution.ts` | Resolution Centre copy, promises, case types, statuses, grievance officer (draft) |
+| `resolution.ts` | Dispute Desk copy, promises, case types, statuses, grievance officer (draft) |
 | `legal.ts` | Privacy policy, terms, cancellation & refund policy (drafts) |
 
 ### 6.5 `src/lib/`: shared helpers and browser state
@@ -327,6 +327,7 @@ that way on purpose so the check scripts can test them alone.
 | `image-resize.ts` | Shrinks photos in the browser to WebP, max 2560px, before upload |
 | `xlsx.ts` | Writes .xlsx and CSV files for Reports & exports |
 | `swipe.ts`, `motion-safe.ts` | Carousel swipe handling; reduced-motion helpers |
+| `markdown.ts` | The blog and newsletter's simple Markdown: `parse()` into blocks, `toHtml()` / `toText()` for emails, `safeHref()` / `safeImage()`, `slugify()`, `readingMinutes()` (no imports, tested by `check:markdown`) |
 | `pwa.ts` | The web app manifests: `siteManifest()` and `sectionManifest()` (names, icons, start page, shortcuts), so each site installs as its own app (see 7.9) |
 
 ### 6.6 `src/server/`: server-only code
@@ -338,9 +339,14 @@ that way on purpose so the check scripts can test them alone.
 | `actions/customer.ts` | My bookings: `myOrders` (the signed-in customer's bookings), `submitReview`, `cancelMyBooking` (within 2 hours of booking) |
 | `actions/artist.ts` | Artist portal: load, profile, availability, replies to requests, portfolio uploads (signed upload links) |
 | `actions/admin.ts` | `adminSession`, `loadAdminDb`, `saveAdminChanges`: checks the staff role, then saves the changed records |
+| `actions/newsletter.ts` | `subscribe` (double opt-in: saves a pending sign-up, emails a confirmation link), `confirmSubscription`, `unsubscribe`, `sendNewsletter` (staff: a test to yourself, or every confirmed subscriber through Resend's batch API) |
+| `actions/blog.ts` | `startBlogUpload`: a one-time upload link to the `blog` bucket, staff only |
 | `actions/resolution.ts` | Raise, track and escalate a case. Tracking needs the case number plus the email; never returns internal notes. |
 | `notify.ts` | Emails (Resend), sheet rows (Google Sheets), `runOrQueue()` (try now, queue failures in `outbox`), `runJob()` (used by the retry route), team email list, notify settings |
 | `rows.ts` | `fromRow` / `toRow`: database rows (snake_case) ↔ admin types (camelCase) |
+| `staff.ts` | `currentStaff()`: the signed-in, active staff member (the admin's actions, blog uploads and the newsletter check it) |
+| `blog.ts` | `publishedPosts()`, `postBySlug()`: published posts for the public pages, read without signing in (preview: the sample posts) |
+| `email-layout.ts` | The look of AOD's HTML emails (newsletter, confirmation): `emailLayout()`, `emailButton()`, `emailStyles` |
 | `ids.ts` | `insertWithNextId()`: readable IDs (B-1201, APP-201…), retrying on a duplicate |
 | `live.ts` | Realtime channel names (`customer:<sha256 email>`, `artist:<id>`…) |
 
@@ -495,7 +501,7 @@ the customer pays by UPI or bank transfer, staff record the amount and UTR on th
 
 Every site can be installed as an app: "Add to Home screen" on phones, the install button in the
 address bar on laptops. The customer site's manifest is `src/app/manifest.ts`; the artist portal,
-admin and Resolution Centre each link their own from their `layout.tsx` (`/manifests/<section>.webmanifest`,
+admin and Dispute Desk each link their own from their `layout.tsx` (`/manifests/<section>.webmanifest`,
 built from `src/lib/pwa.ts`), so each installs under its own name and opens at its own front page.
 Icons are in `public/icons/`: the rounded "A." tile (`icon-*`) and, for Android's shaped icons,
 a full-bleed orange square with "AOD." inside the safe zone (`maskable-*`). iPhones use
@@ -520,7 +526,7 @@ hides it for a week, the iPhone "Got it" for four (`aod-install-later` in localS
 
 **Inside the installed app** (opened from the home screen) phones and tablets get a bottom tab bar,
 `src/components/layout/AppTabBar.tsx` (copy in `appMenu` in `site.ts`): Home, Book, My bookings and
-More, a sheet with every other place, including the artist portal, the Resolution Centre and the
+More, a sheet with every other place, including the artist portal, the Dispute Desk and the
 team's admin sign-in, since the app has no address bar. It uses the `standalone:` Tailwind variant
 (`@custom-variant` at the top of `globals.css`, `@media (display-mode: standalone)`), so it's pure
 CSS: the website in a browser tab is unchanged. In the app the hamburger hides, the WhatsApp button
@@ -532,13 +538,60 @@ The manifest's `screenshots` (`public/screenshots/`: three phone shots of the ap
 Retake them when the pages change a lot, and keep sample ratings out of them. **Changing
 how `sw.js` caches? Bump `VERSION` at its top**: the next visit deletes the old caches.
 
+### 7.9a The brief for the artists
+
+The booking quiz's optional section after the event details (`ArtistBrief`, questions in
+`src/content/artist-brief.ts`): quick questions for each kind of artist picked, then preferences,
+reference links and anything else. `cleanBrief()` keeps only known questions and choices (the form
+and the server both run it); `briefRows()` / `briefCommonRows()` / `briefLines()` turn it into rows
+and lines. It's saved in `bookings.brief` (jsonb, ninth migration) and shown or sent in: the
+WhatsApp message (after the details, so a pasted message keeps it with the notes), the emails, the
+sheet's "Brief" column, the admin drawer, each artist's "new request" WhatsApp message and their
+portal card (their category plus the shared answers). To change a question, edit
+`briefQuestions`; answers saved before keep their old wording, and answers to a removed question
+stop showing.
+
+### 7.10 The blog and the newsletter
+
+**Writing a post** (admin → Blog): New post makes a draft (P-101) and opens the editor: title (the
+address is made from it, `slugify()`, and can be edited), summary, cover photo, the text, tags,
+author and a publish date. The text is simple Markdown (`src/lib/markdown.ts`); the toolbar types
+headings, bold, lists, links and photos in for you, and Preview shows it as the site will.
+Photos are shrunk in the browser and uploaded to the public `blog` bucket through a one-time link
+(`startBlogUpload`, staff only). **Publish** sets the status and date; a future date schedules it.
+Saving goes through `saveAdminChanges`, which calls `revalidatePath("/blog", "layout")`, so the
+site shows the change on the next visit.
+
+**On the site:** `/blog` and `/blog/<address>` read published posts through `src/server/blog.ts`
+with the publishable key and nobody signed in: row-level security only ever returns published posts
+whose date has passed, and the pages stay cached (`revalidate = 3600`). A post page has Open
+Graph tags (its cover is the WhatsApp preview), article data for search engines, a WhatsApp share
+button, a booking prompt and the newsletter sign-up. `/blog/rss.xml` is the feed; `sitemap.ts`
+lists the posts. Until the eighth migration is run, the blog shows as empty and the admin's Blog
+and Newsletter lists are empty (nothing else breaks).
+
+**Signing up** (`NewsletterSignup`, in the footer and on the blog): `subscribe()` saves the email
+as pending and emails a confirmation link; only a click on it makes the person subscribed, so a bot
+or someone typing another person's address can't sign anyone up. It answers the same whatever the
+address, sends at most one confirmation per address every 10 minutes, and ignores the hidden
+spam-trap field. `/newsletter/confirm` and `/newsletter/unsubscribe` ask with a button, because
+some mail filters open every link in an email by themselves.
+
+**Sending an issue** (admin → Newsletter): write it (or add a blog post's title, summary and link),
+**Send me a test**, then **Send to N**. `sendNewsletter` sends one email per confirmed subscriber
+through Resend's batch API (100 per call), each with its own unsubscribe link and the
+List-Unsubscribe header (Gmail's own Unsubscribe button calls `/api/newsletter/unsubscribe`). The
+issue is marked sent with how many it reached; if Resend stops part-way (its free plan sends 100
+emails a day), the admin says how many got it.
+
 ---
 
 ## 8. Database
 
 **Tables** (all in `public`): `applications`, `artists`, `bookings`, `payments`, `payouts`,
 `leads`, `cases`, `staff`, `activity`, `settings`, `artist_replies` (an artist's quote or decline),
-`outbox` (retries). Storage bucket: `portfolio` (public; artists' photos and videos).
+`posts`, `subscribers`, `newsletters` (the blog and newsletter, eighth migration), `outbox` (retries).
+Storage buckets: `portfolio` (public; artists' photos and videos) and `blog` (public; the blog's photos).
 
 **IDs** are readable references: `B-1201` (booking), `AOD-1201` (a customer request, from its first
 booking), `APP-201` (application), `ART-101` (artist), `PAY-3101` (payment), `L-401` (lead),
@@ -662,6 +715,10 @@ are baked into the browser code at build time.
 | Add a subdomain | `sections` in `src/proxy.ts`, redirects in `next.config.ts`, `Section` in `site-url.ts`; domain in Vercel + DNS at GoDaddy | Give it a manifest in `src/lib/pwa.ts` and link it from its layout |
 | Change the installed app's name, icons or shortcuts | `src/lib/pwa.ts`; icons in `public/icons/` | — |
 | Change what works offline | `public/sw.js` | Bump `VERSION`; test with `npm run build && npm start` |
+| Change the brief's questions | `briefQuestions` in `src/content/artist-brief.ts` (kinds `one`, `many`, `text`) | Run `check:orders` if the message lines change |
+| Write or publish a blog post | Admin → Blog → New post (or open one) → Publish | Shows on the site straight away |
+| Change what the blog's Markdown understands | `src/lib/markdown.ts` (and `src/components/blog/Markdown.tsx` for how it looks) | Add a case to `scripts/markdown-check.mts`, run `check:markdown` |
+| Change the newsletter's wording or emails | `newsletter` in `src/content/blog.ts`; the email look in `src/server/email-layout.ts` | Send yourself a test from admin → Newsletter |
 
 ---
 
@@ -677,6 +734,7 @@ are baked into the browser code at build time.
 | `npm run check:links` | Portfolio-link rules |
 | `npm run check:db` | Runs every migration on PGlite and checks each kind of user's access |
 | `npm run check:orders` | Reads sample WhatsApp messages from the booking form back into their fields (the admin's paste box) |
+| `npm run check:markdown` | The blog and newsletter's Markdown: what each piece of formatting shows, and that scripts, `javascript:` links and outside photos never get through |
 
 There is no test runner. The checks are plain Node scripts in `scripts/`. Add a case when you
 change search, link rules or database access. The live walk-through (three browsers: staff,
@@ -735,7 +793,7 @@ These are returned by server actions as `{ ok: false, error }` and shown on the 
 
 | Message | Raised in | Meaning |
 | --- | --- | --- |
-| "Saving isn't set up yet." / "Sign-in isn't set up yet." / "The Resolution Centre isn't connected yet." / "Reviews aren't set up yet." | `actions/public.ts`, `auth.ts`, `resolution.ts`, `customer.ts` | Supabase keys (or `SUPABASE_SECRET_KEY`) missing in this deployment |
+| "Saving isn't set up yet." / "Sign-in isn't set up yet." / "The Dispute Desk isn't connected yet." / "Reviews aren't set up yet." | `actions/public.ts`, `auth.ts`, `resolution.ts`, `customer.ts` | Supabase keys (or `SUPABASE_SECRET_KEY`) missing in this deployment |
 | "Pick the occasion." / "Pick who you need." / "Choose the event date, from tomorrow onwards." / "Add the event's start and end time." / "Choose your city." / "Add a few event details." / "Enter your name." / "Enter a valid phone number." / "Enter a valid email address." | `public.ts` → `createBookingRequest` | Booking request failed validation |
 | "Couldn't save your request just now. Please send it on WhatsApp instead." | `createBookingRequest` | Database insert failed: check Supabase status and the Vercel function logs. The team also gets a "Couldn't save a booking request" email with every detail, and the customer's WhatsApp message ends `Ref: not saved on the website`: paste it into New booking. |
 | "Couldn't reach AOD just now, so your request goes to WhatsApp instead…" | `MatchQuiz.tsx` | The visitor's connection dropped twice. The WhatsApp message ends `Ref: not saved on the website`: paste it into New booking. |

@@ -2,6 +2,7 @@
 
 import type { WorkDetails } from "./artist-store";
 import type { BookingItem } from "./booking-needs";
+import type { Brief } from "@/content/artist-brief";
 import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
 import { createSampleDb } from "@/content/admin-sample";
@@ -103,6 +104,7 @@ export type Booking = {
   venue: string;
   budget: string;
   notes: string;
+  brief?: Brief; // the customer's "Brief for the artists" from the booking form (src/content/artist-brief.ts)
   status: BookingStatus;
   shortlist: string[]; // artist ids offered to the customer, from any of the order's categories
   quote?: number;
@@ -173,6 +175,50 @@ export type ResolutionCase = {
   notes: Note[]; // internal, never shown to the person
 };
 
+// A blog post (aod.co.in/blog), written in the admin's Blog page. `body` is Markdown
+// (src/lib/markdown.ts). The site shows it once it's published and `publishedAt` has passed.
+export type PostStatus = "draft" | "published";
+export type Post = {
+  id: string; // P-101
+  slug: string; // its address: /blog/<slug>
+  title: string;
+  excerpt: string;
+  body: string;
+  cover: string; // photo address ("" for none)
+  coverAlt: string;
+  tags: string[];
+  author: string;
+  status: PostStatus;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// A newsletter sign-up. The website adds it as "pending" and it becomes "subscribed" when the
+// person clicks the link in the confirmation email (src/server/actions/newsletter.ts).
+export type SubscriberStatus = "pending" | "subscribed" | "unsubscribed";
+export type Subscriber = {
+  id: string; // S-101
+  email: string;
+  status: SubscriberStatus;
+  source: string; // the page they signed up on
+  createdAt: string;
+  confirmedAt?: string;
+  unsubscribedAt?: string;
+};
+
+// A newsletter issue, written and sent from the admin's Newsletter page.
+export type Newsletter = {
+  id: string; // N-101
+  subject: string;
+  body: string; // Markdown
+  status: "draft" | "sent";
+  createdAt: string;
+  sentAt?: string;
+  sentBy: string;
+  recipients: number;
+};
+
 export type Member = { id: string; name: string; email: string; role: Role; active: boolean; twoFactor: boolean; lastActive: string };
 
 export type Activity = { id: string; at: string; by: string; area: string; text: string; target?: string };
@@ -194,6 +240,9 @@ export type Db = {
   payouts: Payout[];
   leads: Lead[];
   cases: ResolutionCase[];
+  posts: Post[];
+  subscribers: Subscriber[];
+  newsletters: Newsletter[];
   team: Member[];
   activity: Activity[];
   settings: Settings;
@@ -334,7 +383,7 @@ function saveFinished() {
   }
 }
 
-const collections: Collection[] = ["applications", "artists", "bookings", "payments", "payouts", "leads", "cases", "team"];
+const collections: Collection[] = ["applications", "artists", "bookings", "payments", "payouts", "leads", "cases", "posts", "subscribers", "newsletters", "team"];
 
 // What an action changed: records added, changed or removed in each list, and the settings.
 function diff(before: Db, after: Db): AdminChanges {
@@ -362,6 +411,9 @@ type OldBooking = Booking & { category?: string; service?: string; artistId?: st
 function upgradePreviewDb(db: Db): Db | null {
   const old =
     !Array.isArray(db.cases) ||
+    !Array.isArray(db.posts) ||
+    !Array.isArray(db.subscribers) ||
+    !Array.isArray(db.newsletters) ||
     db.bookings.some((b) => !Array.isArray(b.items)) ||
     [...db.artists, ...db.applications].some((a) => !Array.isArray(a.otherCategories));
   if (!old) return null;
@@ -369,6 +421,10 @@ function upgradePreviewDb(db: Db): Db | null {
     ...db,
     // Saved before Resolution Centre cases existed: add the sample cases, keep everything else.
     cases: Array.isArray(db.cases) ? db.cases : createSampleDb(new Date()).cases,
+    // Saved before the blog and newsletter existed: add their samples too.
+    posts: Array.isArray(db.posts) ? db.posts : createSampleDb(new Date()).posts,
+    subscribers: Array.isArray(db.subscribers) ? db.subscribers : createSampleDb(new Date()).subscribers,
+    newsletters: Array.isArray(db.newsletters) ? db.newsletters : createSampleDb(new Date()).newsletters,
     bookings: db.bookings.map(({ category, service, artistId, artistIds, artistsNeeded, ...b }: OldBooking) => {
       if (Array.isArray(b.items)) return b;
       const ids = Array.isArray(artistIds) ? artistIds : artistId ? [artistId] : [];
@@ -408,7 +464,7 @@ export function useDb(): Db | null {
 // Next number in a series: B-1215 after B-1214, PAY-3102 after PAY-3101.
 export function newId(prefix: string): string {
   const db = getDb();
-  const ids = [db.applications, db.artists, db.bookings, db.payments, db.payouts, db.leads, db.cases, db.team].flat().map((x) => x.id);
+  const ids = [db.applications, db.artists, db.bookings, db.payments, db.payouts, db.leads, db.cases, db.posts, db.subscribers, db.newsletters, db.team].flat().map((x) => x.id);
   const nums = ids.filter((id) => id.startsWith(`${prefix}-`)).map((id) => Number(id.slice(prefix.length + 1))).filter(Number.isFinite);
   return `${prefix}-${(nums.length ? Math.max(...nums) : 100) + 1}`;
 }

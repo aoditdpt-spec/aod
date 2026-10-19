@@ -63,6 +63,8 @@ const nextConfig: NextConfig = {
     // AVIF first (about 20% smaller than WebP), and optimised copies are kept for 30 days.
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2592000,
+    // Blog cover photos, in the public `blog` storage bucket.
+    remotePatterns: supabase ? [new URL(`${supabase}/storage/v1/object/public/blog/**`)] : [],
   },
   async headers() {
     return [

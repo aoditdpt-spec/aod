@@ -8,7 +8,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // so nothing is lost while keys are missing.
 
 export type SheetJob = { kind: "sheet"; tab: string; rows: string[][] };
-export type EmailJob = { kind: "email"; to: string[]; subject: string; text: string; replyTo?: string };
+// `html` is optional (plain text is always sent too); `headers` carries List-Unsubscribe for the newsletter.
+export type EmailJob = { kind: "email"; to: string[]; subject: string; text: string; html?: string; replyTo?: string; headers?: Record<string, string> };
 export type Job = SheetJob | EmailJob;
 
 // Column headings for the orders sheet: "All orders" and one tab per category use the same columns.
@@ -31,6 +32,7 @@ export const sheetHeader = [
   "Status",
   "Source",
   "Artists needed",
+  "Brief", // the "Brief for the artists" answers (src/content/artist-brief.ts)
 ];
 export const ALL_ORDERS_TAB = "All orders";
 
@@ -93,7 +95,15 @@ async function sendEmail(job: EmailJob) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to, subject: job.subject, text: job.text, ...(job.replyTo ? { reply_to: job.replyTo } : {}) }),
+    body: JSON.stringify({
+      from,
+      to,
+      subject: job.subject,
+      text: job.text,
+      ...(job.html ? { html: job.html } : {}),
+      ...(job.replyTo ? { reply_to: job.replyTo } : {}),
+      ...(job.headers ? { headers: job.headers } : {}),
+    }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }

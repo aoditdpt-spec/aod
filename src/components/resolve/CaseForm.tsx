@@ -24,8 +24,8 @@ const today = () => {
 const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
 const linkOk = (l: string) => /^https?:\/\/[^\s]+\.[^\s]+$/i.test(l.trim());
 
-// The "Raise a case" form. `?role=` and `?ref=` pre-fill it (links from My bookings and the
-// artist portal). Every field is required except evidence links. It only says "received" once
+// The Dispute Desk's "Raise a dispute" form. `?role=` and `?ref=` pre-fill it (links from My
+// bookings and the artist portal). The disputes and outcomes offered depend on the side picked. Every field is required except evidence links. It only says "received" once
 // the case is saved; until the backend is connected it hands the case to WhatsApp instead.
 export function CaseForm() {
   const params = useSearchParams();
@@ -47,14 +47,15 @@ export function CaseForm() {
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
 
   const issues = role ? resolution.issues[role] : [];
+  const outcomes = role ? resolution.outcomes[role] : [];
   const links = evidence.map((l) => l.trim()).filter(Boolean);
   const missing = [
-    !role && "who you are",
-    !issues.includes(f.issue) && "what went wrong",
+    !role && "which side you're on",
+    !issues.includes(f.issue) && "what the dispute is about",
     f.bookingRef.trim().length < 3 && "the booking number",
     (!f.incidentDate || f.incidentDate > today()) && "the date it happened",
     f.description.trim().length < 20 && "what happened (a few sentences)",
-    !f.outcome && "what you'd like done",
+    !outcomes.includes(f.outcome) && "what would settle it",
     links.some((l) => !linkOk(l)) && "full evidence links (https://…)",
     f.name.trim().length < 2 && "your name",
     f.phone.replace(/\D/g, "").length < 10 && "your phone number",
@@ -64,13 +65,13 @@ export function CaseForm() {
 
   const roleLabel = resolution.roles.find((r) => r.id === role)?.label ?? "";
   const message = [
-    "Hi AOD, I'd like to raise a case with the Resolution Centre.",
+    "Hi AOD, I'd like to raise a dispute with the Dispute Desk.",
     `Who: ${f.name.trim()} (${roleLabel})`,
     `Booking: ${f.bookingRef.trim()}`,
-    `What went wrong: ${f.issue}`,
+    `Dispute: ${f.issue}`,
     `When: ${f.incidentDate}`,
     `What happened: ${f.description.trim()}`,
-    `I'd like: ${f.outcome}`,
+    `Would settle it: ${f.outcome}`,
     ...links.map((l) => `Evidence: ${l}`),
     `Phone: ${f.phone.trim()}`,
     `Email: ${f.email.trim()}`,
@@ -120,9 +121,9 @@ export function CaseForm() {
     >
       {/* 1. Who */}
       <fieldset className="rounded-panel border border-line bg-white p-6 sm:p-8">
-        <legend className="sr-only">Who you are</legend>
+        <legend className="sr-only">Which side you&apos;re on</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">1</span> Who are you?
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">1</span> Which side are you on?
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {resolution.roles.map((r) => (
@@ -137,7 +138,11 @@ export function CaseForm() {
                 checked={role === r.id}
                 onChange={() => {
                   setRole(r.id);
-                  setF((x) => ({ ...x, issue: resolution.issues[r.id].includes(x.issue) ? x.issue : "" }));
+                  setF((x) => ({
+                    ...x,
+                    issue: resolution.issues[r.id].includes(x.issue) ? x.issue : "",
+                    outcome: resolution.outcomes[r.id].includes(x.outcome) ? x.outcome : "",
+                  }));
                 }}
                 className="sr-only"
               />
@@ -150,16 +155,16 @@ export function CaseForm() {
 
       {/* 2. What happened */}
       <fieldset disabled={!role} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
-        <legend className="sr-only">What happened</legend>
+        <legend className="sr-only">The dispute</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">2</span> What happened?
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">2</span> The dispute
         </p>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <label className="block text-sm font-medium text-ink">
-            What went wrong
+            What it&apos;s about
             <select value={f.issue} onChange={set("issue")} className={input} required>
               <option value="" disabled>
-                {role ? "Choose one" : "Pick who you are first"}
+                {role ? "Choose one" : "Pick your side first"}
               </option>
               {issues.map((i) => (
                 <option key={i}>{i}</option>
@@ -176,24 +181,24 @@ export function CaseForm() {
             <span className="mt-1.5 block text-xs font-normal text-muted">{resolution.bookingRefHint}</span>
           </label>
           <label className="block text-sm font-medium text-ink sm:col-span-2">
-            Tell AOD what happened
+            What happened
             <textarea
               value={f.description}
               onChange={set("description")}
               rows={5}
-              placeholder="What was agreed, what happened instead, and anything you've already tried."
+              placeholder="What was agreed, what the other side did instead, and anything you've already tried."
               className={input}
               required
             />
             <span className="mt-1.5 block text-xs font-normal text-muted">{f.description.trim().length < 20 ? "A few sentences, at least 20 characters." : `${f.description.trim().length} characters`}</span>
           </label>
           <label className="block text-sm font-medium text-ink sm:col-span-2">
-            What would you like AOD to do?
+            What would settle it for you?
             <select value={f.outcome} onChange={set("outcome")} className={input} required>
               <option value="" disabled>
-                Choose one
+                {role ? "Choose one" : "Pick your side first"}
               </option>
-              {resolution.outcomes.map((o) => (
+              {outcomes.map((o) => (
                 <option key={o}>{o}</option>
               ))}
             </select>
@@ -258,7 +263,7 @@ export function CaseForm() {
         <label className="mt-5 flex items-start gap-3 text-sm text-body">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
           <span>
-            These details are true. AOD may share them with the other side of the booking to resolve the case (see the{" "}
+            These details are true. AOD may share them with the other side of the booking to settle the dispute (see the{" "}
             <a href={siteHref("/privacy")} className="text-brand hover:underline">
               privacy policy
             </a>
@@ -271,7 +276,7 @@ export function CaseForm() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
           <p>{resolution.previewNotice}</p>
           <a href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex h-11 items-center gap-2 rounded-lg bg-whatsapp px-5 font-medium text-white hover:bg-whatsapp-hover">
-            <WhatsAppIcon className="h-4 w-4" /> Send the case on WhatsApp
+            <WhatsAppIcon className="h-4 w-4" /> Send the dispute on WhatsApp
           </a>
         </div>
       )}
@@ -299,7 +304,7 @@ export function CaseForm() {
               <Spinner /> Sending your case…
             </>
           ) : (
-            "Raise the case"
+            "Raise the dispute"
           )}
         </button>
         {missing.length > 0 && <p className="text-sm text-muted">Still needed: {missing.join(", ")}.</p>}

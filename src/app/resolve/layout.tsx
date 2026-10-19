@@ -7,9 +7,10 @@ import { resolution } from "@/content/resolution";
 import { sectionLink, siteHref } from "@/lib/site-url";
 import { sectionManifestPath } from "@/lib/pwa";
 
-const description = "Raise a problem with an AOD booking, get a case number, follow it and escalate it. For customers, businesses and AOD artists.";
+const description =
+  "Client ghosted your invoice, or an artist didn't deliver? Raise a dispute with the other side of an AOD booking, get a case number, follow it and escalate it. Free.";
 
-// The Resolution Centre, at resolve.aod.co.in (src/proxy.ts; /resolve on localhost). Its own small
+// The Dispute Desk (the Resolution Centre in the code), at resolve.aod.co.in (src/proxy.ts; /resolve on localhost). Its own small
 // header and footer, so it reads as a separate, formal place rather than part of the booking site.
 // Links inside are written as /resolve/… and go through sectionLink(), which gives /new, /track…
 // on its own domain; links back to the customer site go through siteHref().
@@ -24,8 +25,8 @@ export const metadata: Metadata = {
 };
 
 const nav = [
-  { href: sectionLink("/resolve/new"), label: "Raise a case" },
-  { href: sectionLink("/resolve/track"), label: "Track a case" },
+  { href: sectionLink("/resolve/new"), label: "Raise a dispute" },
+  { href: sectionLink("/resolve/track"), label: "Track a dispute" },
 ];
 
 export default function ResolveLayout({ children }: { children: ReactNode }) {
@@ -99,7 +100,7 @@ export default function ResolveLayout({ children }: { children: ReactNode }) {
             </ul>
           </div>
           <div>
-            <p className="font-medium text-ink">Not a problem, just a question?</p>
+            <p className="font-medium text-ink">Not a dispute, just a question?</p>
             <p className="mt-2 text-muted">Quotes, changes and questions go to AOD on WhatsApp or {brand.phoneDisplay}.</p>
           </div>
         </div>
