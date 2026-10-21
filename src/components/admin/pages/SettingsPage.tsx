@@ -6,7 +6,8 @@ import { legalDocs } from "@/content/legal";
 import { siteHref } from "@/lib/site-url";
 import { backendEnabled } from "@/lib/backend";
 import { resetDb, update, useDb, type Settings } from "@/lib/admin-store";
-import { buildXlsx, download, XLSX_TYPE } from "@/lib/xlsx";
+import { buildXlsx } from "@/lib/xlsx";
+import { useExcelExport } from "../ExcelExport";
 import { ActionButton, Card, fieldBase, Labelled, PageHeader, useCan } from "../ui";
 import { masterWorkbook } from "./Reports";
 
@@ -30,6 +31,8 @@ export function SettingsPage() {
   const db = useDb();
   const allowed = useCan();
   const [draft, setDraft] = useState<Partial<Settings>>({});
+  // The download is password-protected (ExcelExport.tsx).
+  const { exportExcel, dialog } = useExcelExport();
   if (!db) return null;
   const s = { ...db.settings, ...draft };
   const changed = numbers.some((n) => s[n.key] !== db.settings[n.key]);
@@ -120,11 +123,12 @@ export function SettingsPage() {
         </Card>
 
         <Card title="Data">
+          {dialog}
           <div className="flex flex-wrap gap-2">
             {allowed("export") && (
               <button
                 type="button"
-                onClick={() => download(`aod-master-${new Date().toISOString().slice(0, 10)}.xlsx`, buildXlsx(masterWorkbook(db)), XLSX_TYPE)}
+                onClick={() => exportExcel(`aod-master-${new Date().toISOString().slice(0, 10)}.xlsx`, () => buildXlsx(masterWorkbook(db)))}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-3.5 text-sm font-medium text-ink hover:border-ink"
               >
                 <Download className="h-4 w-4" aria-hidden /> Export everything

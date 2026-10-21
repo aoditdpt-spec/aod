@@ -327,6 +327,7 @@ that way on purpose so the check scripts can test them alone.
 | `image-resize.ts` | Shrinks photos in the browser to WebP, max 2560px, before upload |
 | `xlsx.ts` | Writes .xlsx and CSV files for Reports & exports |
 | `swipe.ts`, `motion-safe.ts` | Carousel swipe handling; reduced-motion helpers |
+| `xlsx-encrypt.ts` | `encryptXlsx(bytes, password)`: password-protects an .xlsx the way Excel does (AES-256, SHA-512 × 100,000, HMAC), in the browser; the admin's Excel buttons use it through `useExcelExport()` (tested by `check:xlsx`) |
 | `markdown.ts` | The blog and newsletter's simple Markdown: `parse()` into blocks, `toHtml()` / `toText()` for emails, `safeHref()` / `safeImage()`, `slugify()`, `readingMinutes()` (no imports, tested by `check:markdown`) |
 | `pwa.ts` | The web app manifests: `siteManifest()` and `sectionManifest()` (names, icons, start page, shortcuts), so each site installs as its own app (see 7.9) |
 
@@ -716,6 +717,7 @@ are baked into the browser code at build time.
 | Change the installed app's name, icons or shortcuts | `src/lib/pwa.ts`; icons in `public/icons/` | — |
 | Change what works offline | `public/sw.js` | Bump `VERSION`; test with `npm run build && npm start` |
 | Change the brief's questions | `briefQuestions` in `src/content/artist-brief.ts` (kinds `one`, `many`, `text`) | Run `check:orders` if the message lines change |
+| Change how admin Excel files are protected | `src/components/admin/ExcelExport.tsx` (the password box, minimum length) and `src/lib/xlsx-encrypt.ts` (the encryption) | Run `check:xlsx`, then open a downloaded file in Excel |
 | Write or publish a blog post | Admin → Blog → New post (or open one) → Publish | Shows on the site straight away |
 | Change what the blog's Markdown understands | `src/lib/markdown.ts` (and `src/components/blog/Markdown.tsx` for how it looks) | Add a case to `scripts/markdown-check.mts`, run `check:markdown` |
 | Change the newsletter's wording or emails | `newsletter` in `src/content/blog.ts`; the email look in `src/server/email-layout.ts` | Send yourself a test from admin → Newsletter |
@@ -734,6 +736,7 @@ are baked into the browser code at build time.
 | `npm run check:links` | Portfolio-link rules |
 | `npm run check:db` | Runs every migration on PGlite and checks each kind of user's access |
 | `npm run check:orders` | Reads sample WhatsApp messages from the booking form back into their fields (the admin's paste box) |
+| `npm run check:xlsx` | Encrypts a workbook, then an independent decryptor (officecrypto-tool, dev only) opens it with the password, refuses a wrong one and gets the same bytes back. Pass a folder (`npm run check:xlsx -- <folder>`) to save the file and open it in Excel by hand |
 | `npm run check:markdown` | The blog and newsletter's Markdown: what each piece of formatting shows, and that scripts, `javascript:` links and outside photos never get through |
 
 There is no test runner. The checks are plain Node scripts in `scripts/`. Add a case when you

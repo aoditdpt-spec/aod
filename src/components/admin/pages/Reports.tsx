@@ -3,7 +3,8 @@
 import { Download, FileSpreadsheet, RefreshCw } from "lucide-react";
 import { applicationStages, bookingStages, caseStages, paymentStatuses } from "@/content/admin";
 import { useDb, type Db } from "@/lib/admin-store";
-import { buildXlsx, download, XLSX_TYPE, type Sheet } from "@/lib/xlsx";
+import { buildXlsx, type Sheet } from "@/lib/xlsx";
+import { useExcelExport } from "../ExcelExport";
 import { assignedArtists, itemFor, itemsLabel, totalNeeded } from "@/lib/booking-needs";
 import { artistName, artistNames, Card, categoryName, categoryNames, inr, PageHeader, Stat, useCan } from "../ui";
 
@@ -80,6 +81,8 @@ function Bars({ rows }: { rows: { label: string; value: number; display?: string
 export function Reports() {
   const db = useDb();
   const allowed = useCan();
+  // Every download is password-protected (ExcelExport.tsx).
+  const { exportExcel, dialog } = useExcelExport();
   if (!db) return null;
 
   const live = db.bookings.filter((b) => b.status !== "cancelled");
@@ -96,6 +99,7 @@ export function Reports() {
 
   return (
     <div className="space-y-6">
+      {dialog}
       <PageHeader
         title="Reports & exports"
         text="How the business is doing, and every list as an Excel file."
@@ -103,7 +107,7 @@ export function Reports() {
           allowed("export") && (
             <button
               type="button"
-              onClick={() => download(`aod-master-${stamp}.xlsx`, buildXlsx(masterWorkbook(db)), XLSX_TYPE)}
+              onClick={() => exportExcel(`aod-master-${stamp}.xlsx`, () => buildXlsx(masterWorkbook(db)))}
               className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-brand-hover"
             >
               <Download className="h-4 w-4" aria-hidden /> Master Excel (all sheets)
@@ -140,7 +144,7 @@ export function Reports() {
                   <FileSpreadsheet className="h-4 w-4 text-emerald-700" aria-hidden /> {s.name} <span className="text-muted">({s.rows.length - 1} rows)</span>
                 </span>
                 {allowed("export") && (
-                  <button type="button" onClick={() => download(`aod-${s.name.toLowerCase().replace(/\W+/g, "-")}-${stamp}.xlsx`, buildXlsx([s]), XLSX_TYPE)} className="text-sm font-medium text-brand hover:text-brand-hover">
+                  <button type="button" onClick={() => exportExcel(`aod-${s.name.toLowerCase().replace(/\W+/g, "-")}-${stamp}.xlsx`, () => buildXlsx([s]))} className="text-sm font-medium text-brand hover:text-brand-hover">
                     Excel
                   </button>
                 )}

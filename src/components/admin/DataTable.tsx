@@ -2,7 +2,8 @@
 
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
-import { buildCsv, buildXlsx, download, XLSX_TYPE, type Cell } from "@/lib/xlsx";
+import { buildCsv, buildXlsx, download, type Cell } from "@/lib/xlsx";
+import { useExcelExport } from "./ExcelExport";
 import { fieldBase, fieldClass, useCan } from "./ui";
 
 export type Column<T> = {
@@ -42,6 +43,8 @@ export function DataTable<T>({
   initialSort?: { key: string; dir: "asc" | "desc" };
 }) {
   const allowed = useCan();
+  // Excel downloads are password-protected (ExcelExport.tsx).
+  const { exportExcel, dialog } = useExcelExport();
   const [query, setQuery] = useState("");
   const [filterValues, setFilterValues] = useState<string[]>(filters.map(() => ""));
   const [sort, setSort] = useState(initialSort ?? null);
@@ -111,7 +114,7 @@ export function DataTable<T>({
           <div className="flex gap-1">
             <button
               type="button"
-              onClick={() => download(`aod-${exportName}-${stamp}.xlsx`, buildXlsx([{ name: exportName, rows: table() }]), XLSX_TYPE)}
+              onClick={() => exportExcel(`aod-${exportName}-${stamp}.xlsx`, () => buildXlsx([{ name: exportName, rows: table() }]))}
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-medium text-ink hover:border-ink"
             >
               <Download className="h-4 w-4" aria-hidden /> Excel
@@ -125,6 +128,7 @@ export function DataTable<T>({
             </button>
           </div>
         )}
+        {dialog}
       </div>
 
       {shown.length === 0 ? (
