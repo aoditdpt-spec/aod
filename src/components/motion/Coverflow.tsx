@@ -272,7 +272,10 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
           <ArrowRight className="h-5 w-5" />
         </button>
       </div>
-      <p className="mt-3 text-center text-xs text-muted">Drag or swipe, use the arrows or press ← →</p>
+      <p className="mt-3 text-center text-xs text-muted">
+        <span className="lg:hidden">Swipe to see more, or tap a card</span>
+        <span className="max-lg:hidden">Drag or swipe, use the arrows or press ← →</span>
+      </p>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { AppTabBar } from "@/components/layout/AppTabBar";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 
@@ -20,6 +21,7 @@ export default function NotFound() {
         </Container>
       </main>
       <Footer />
+      <AppTabBar />
     </>
   );
 }

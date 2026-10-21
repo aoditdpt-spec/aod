@@ -228,6 +228,7 @@ src/app/
 ├── (site)/               THE CUSTOMER SITE
 │   ├── layout.tsx        Adds Navbar, Footer, WhatsAppFab, ScrollProgress
 │   ├── page.tsx          Homepage: only composes sections (order explained in comments)
+│   ├── categories/page.tsx          Every category as photo tiles (the phone tab bar's Categories tab), then Most booked
 │   ├── categories/[slug]/page.tsx   One page per category, built from `categories` in site.ts, with the booking quiz (its category already picked)
 │   ├── book/page.tsx              "Personal or business?" choice
 │   ├── book/[audience]/page.tsx   The booking quiz (MatchQuiz) for personal / business
@@ -271,11 +272,12 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 | Folder | What's in it |
 | --- | --- |
 | `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `HeroMotion`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Dispute Desk's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
-| `layout/` | `Navbar` (client: phone menu, category dropdown, search, city), `Footer`, `AnnouncementBar`, `WhatsAppFab` |
-| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
+| `layout/` | `Navbar` (client: category dropdown, search, city; on phones an app-style top bar with a back arrow and the city pill), `AppTabBar` (the bottom tab bar on phones and tablets and its More sheet), `Footer`, `AnnouncementBar`, `WhatsAppFab`, `InstallPrompt` |
+| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Sheet` (the phone bottom sheet used for menus and pickers), `ScrollRow` (Headout-style sideways card row with See all and ← → buttons), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
 | `search/` | `SearchBox`: navbar search with suggestions, keyboard navigation, typed placeholder |
-| `location/` | `CityPicker` and `CityChips`: the visitor's city |
+| `location/` | `CityPicker`, `CitySheetButton` (phones) and `CityChips`: the visitor's city |
+| `categories/` | `CategoryTiles` (a photo tile per category, used on the homepage and `/categories`), `StickyBookBar` (a category page's Book bar on phones) |
 | `bookings/` | `MyBookings`: sign-in, list of the customer's bookings, progress, reviews |
 | `artists/` | The artist portal: `ApplyForm`, `SignIn`, `PortalGate`, `PortalChrome`, `PortalNav`, `AccountMenu`, `Dashboard`, `OnboardingTimeline`, `ProfileEditor`, `PortfolioManager`, `FileDrop`, `LinkEditor`, `AvailabilityCalendar`, `BookingsBoard`, `BookingCard`, `DocumentsPanel`, `DigiLockerCard`, `form.tsx` (Field, ChipGroup, CheckRow, input styles) |
 | `admin/` | `AdminShell` (sidebar, header, Live dot), `AdminSignIn`, `DataTable` (sortable/filterable table), `ui.tsx` (drawer, badges, sections), `useOpen.ts` (`?open=<id>` drawers), `pages/` (one component per admin page) |

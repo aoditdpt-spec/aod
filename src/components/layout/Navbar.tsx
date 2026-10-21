@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { ChevronDown, Menu, Ticket, X } from "lucide-react";
-import { legalDocs } from "@/content/legal";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { ChevronDown, ChevronLeft, Ticket } from "lucide-react";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { SearchBox } from "@/components/search/SearchBox";
-import { CityChips, CityPicker } from "@/components/location/CityPicker";
+import { CityPicker, CitySheetButton } from "@/components/location/CityPicker";
 import { SectionLink } from "@/components/ui/SectionLink";
 import { portalHref } from "@/lib/site-url";
 
@@ -19,10 +19,6 @@ const links = [
   { href: portalHref("/resolve"), label: "Dispute Desk" },
   { href: "/about", label: "About us" },
 ];
-
-// Only in the phone menu (the laptop bar is full); the footer links it everywhere.
-const menuOnly = [{ href: "/blog", label: "Blog" }];
-
 
 // The AOD. wordmark in the brand orange, on a transparent background: public/aod-wordmark-sm.png,
 // 84px tall (sharp at the footer's size on 2x screens), served as it is. Every logo uses this file
@@ -43,17 +39,45 @@ export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {
   );
 }
 
-export function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+// Phones and tablets on any page but the homepage: a back arrow before the logo, as apps have
+// (the installed app has no browser back button). It goes back within the site, or home when the
+// visitor arrived on this page from elsewhere.
+function BackButton() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const moves = useRef(-1); // page changes inside the site since it opened (the first render counts as none)
+  useEffect(() => {
+    moves.current += 1;
+  }, [pathname]);
 
+  if (pathname === "/") return null;
   return (
-    <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex h-16 w-full max-w-page items-center gap-4 px-4 sm:px-6 lg:px-8 xl:gap-6" aria-label="Main">
-        <Logo />
+    <button
+      type="button"
+      onClick={() => (moves.current > 0 ? router.back() : router.push("/"))}
+      aria-label="Back"
+      className="press -ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-wash lg:hidden"
+    >
+      <ChevronLeft className="h-6 w-6" aria-hidden />
+    </button>
+  );
+}
+
+// Laptops: logo, city, links, search, My bookings and "Get your artist" in one row.
+// Phones and tablets (an app-style top bar): back arrow on inner pages, logo, the city pill, and
+// the search bar under them; everything else is in the bottom tab bar (AppTabBar) and its More sheet.
+export function Navbar() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur max-lg:border-line">
+      <nav className="mx-auto flex h-14 w-full max-w-page items-center gap-3 px-4 sm:px-6 lg:h-16 lg:gap-4 lg:px-8 xl:gap-6" aria-label="Main">
+        <div className="flex min-w-0 items-center">
+          <BackButton />
+          <Logo />
+        </div>
 
         {/* Every link shows from 1024px. To fit them beside the search box on smaller laptops, the
             links are a little smaller below 1280px and the city picker waits until 1152px (the
-            booking questions ask for the city when it isn't picked; phones pick it in the menu). */}
+            booking questions ask for the city when it isn't picked; phones and tablets use the city pill). */}
         <div className="hidden min-[72rem]:block">
           <CityPicker />
         </div>
@@ -98,7 +122,11 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:gap-4">
+        <div className="ml-auto flex min-w-0 lg:hidden">
+          <CitySheetButton />
+        </div>
+
+        <div className="hidden items-center gap-4 lg:flex">
           {/* Customers' own bookings: a quiet outlined button, icon-only where space is tight. */}
           <Link
             href="/my-bookings"
@@ -107,75 +135,18 @@ export function Navbar() {
             className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-2.5 text-[0.9375rem] text-ink transition-colors hover:border-brand hover:text-brand"
           >
             <Ticket className="h-[1.125rem] w-[1.125rem]" aria-hidden />
-            <span className="hidden sm:inline lg:hidden xl:inline">My bookings</span>
+            <span className="hidden xl:inline">My bookings</span>
           </Link>
-          <Link href="/book" className={buttonClasses("primary", "md", "hidden lg:inline-flex")}>
+          <Link href="/book" className={buttonClasses("primary", "md")}>
             Get your artist
           </Link>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            // Inside the installed app the tab bar's "More" does this job.
-            className="rounded-lg p-2 lg:hidden standalone:hidden"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-          >
-            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
         </div>
       </nav>
 
       {/* Phones and tablets: an always-visible search bar under the logo row (Blinkit-style). */}
-      <div className="px-4 pb-3 sm:px-6 lg:hidden">
+      <div className="px-4 pb-2.5 sm:px-6 lg:hidden">
         <SearchBox variant="nav" />
       </div>
-
-      {menuOpen && (
-        <div id="mobile-menu" className="border-t border-line bg-white px-4 pb-6 lg:hidden">
-          <div className="pt-4">
-            <CityChips />
-          </div>
-          {/* No category list here: phones reach categories through the search bar, the homepage
-              carousel and "Get your artist". */}
-          <ul className="mt-4 space-y-1 border-t border-line pt-4">
-            {[...links, ...menuOnly].map((l) => (
-              <li key={l.href}>
-                <SectionLink
-                  href={l.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block rounded-lg px-2 py-2 hover:bg-wash"
-                >
-                  {l.label}
-                </SectionLink>
-              </li>
-            ))}
-          </ul>
-          <Link
-            href="/my-bookings"
-            onClick={() => setMenuOpen(false)}
-            className="mt-4 flex items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:border-brand"
-          >
-            <Ticket className="h-4 w-4 text-brand" aria-hidden /> My bookings
-          </Link>
-          <Link
-            href="/book"
-            onClick={() => setMenuOpen(false)}
-            className={buttonClasses("primary", "lg", "mt-3 w-full")}
-          >
-            Get your artist
-          </Link>
-          <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-4 text-xs text-muted">
-            {legalDocs.map((d) => (
-              <li key={d.slug}>
-                <Link href={`/${d.slug}`} onClick={() => setMenuOpen(false)} className="hover:text-brand">
-                  {d.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </header>
   );
 }

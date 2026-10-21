@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { Check, ChevronDown, MapPin } from "lucide-react";
 import { cities } from "@/content/site";
 import { setCity, useCity } from "@/lib/city";
+import { Sheet } from "@/components/ui/Sheet";
 
 // Navbar location button: opens a list of the cities AOD serves and remembers the choice.
 export function CityPicker() {
@@ -92,5 +93,49 @@ export function CityChips() {
         ))}
       </ul>
     </div>
+  );
+}
+
+// Phones and tablets: the city as a small pill in the top bar (as delivery apps show the address);
+// a tap opens the cities in a bottom sheet, and picking one closes it.
+export function CitySheetButton() {
+  const city = useCity();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        className="press flex min-w-0 items-center gap-1 rounded-full bg-wash py-1.5 pl-2 pr-2.5 text-left text-sm font-semibold text-ink"
+      >
+        <MapPin className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+        <span className="truncate">{city ?? "Select city"}</span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden />
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} title="Choose your city">
+        <p className="text-sm text-muted">We find artists near you, and the booking questions use it.</p>
+        <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line">
+          {cities.map((c) => (
+            <li key={c}>
+              <button
+                type="button"
+                aria-pressed={c === city}
+                onClick={() => {
+                  setCity(c);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-wash ${c === city ? "font-semibold text-brand" : "text-ink"}`}
+              >
+                <MapPin className={`h-5 w-5 shrink-0 ${c === city ? "text-brand" : "text-muted"}`} aria-hidden />
+                <span className="flex-1">{c}</span>
+                {c === city && <Check className="h-5 w-5" aria-hidden />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Sheet>
+    </>
   );
 }

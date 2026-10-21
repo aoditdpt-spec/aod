@@ -18,11 +18,11 @@ export function VerifiedSection() {
           <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{verifiedArtists.title}</h2>
           <p className="mt-4 max-w-3xl text-lg text-body">{verifiedArtists.text}</p>
         </Reveal>
-        <StaggerList className="mt-10 grid gap-5 sm:grid-cols-3">
+        <StaggerList className="swipe-row mt-10 grid gap-5 sm:grid-cols-3">
           {verifiedArtists.points.map((p, i) => {
             const I = icons[i];
             return (
-              <StaggerItem key={p}>
+              <StaggerItem key={p} className="swipe-item">
                 <TiltCard className={`flex items-center gap-4 rounded-card border border-line bg-white p-6`}>
                   <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach/60 ${tiltZoom}`}>
                     <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />

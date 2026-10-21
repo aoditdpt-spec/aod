@@ -7,7 +7,7 @@ import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
 import { ScrollProgress } from "@/components/motion/ScrollProgress";
 
 // Chrome for the customer site (aod.co.in): navbar, footer, the WhatsApp button and, on phones,
-// the "Get the AOD app" popup; inside the installed app, the bottom tab bar.
+// the "Get the AOD app" popup and the app-style bottom tab bar (website and installed app alike).
 // The artist portal under /artists uses its own layout instead.
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (

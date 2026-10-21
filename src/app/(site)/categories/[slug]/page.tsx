@@ -15,6 +15,7 @@ import { MatchQuiz } from "@/components/home/MatchQuiz";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { linkCard, linkText, linkTitle, tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
 import { TiltCard } from "@/components/motion/TiltCard";
+import { StickyBookBar } from "@/components/categories/StickyBookBar";
 
 // One static page per category, built at deploy time.
 export function generateStaticParams() {
@@ -89,9 +90,9 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
       <Container className="py-16">
         <h2 className="text-3xl font-normal sm:text-[2.5rem]">What you can book</h2>
         <p className="mt-3 text-body">Pick a service and ask for a quote below — we&apos;ll reply with curated matches.</p>
-        <StaggerList className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerList className="swipe-row mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {category.services.map((s) => (
-            <StaggerItem key={s.name}>
+            <StaggerItem key={s.name} className="swipe-item">
             <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6`}>
               <div className="flex items-start justify-between gap-3">
                 <h3 className={`text-lg font-bold ${tiltTitle}`}>{s.name}</h3>
@@ -120,6 +121,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
           ))}
         </ul>
       </Container>
+
+      <StickyBookBar name={category.name} label={categoryBooking.barButton} />
 
       {/* The booking questions with this category already picked: how many of them, and anyone
           else for the same event. */}

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* `standalone:` applies only inside the installed app (opened from the home screen), e.g. the
-   bottom tab bar (AppTabBar): `hidden standalone:max-lg:flex`. Pure CSS, so nothing flickers. */
+/* `standalone:` applies only inside the installed app (opened from the home screen), e.g.
+   `standalone:hidden`. Pure CSS, so nothing flickers. (The bottom tab bar shows on every phone.) */
 @custom-variant standalone (@media (display-mode: standalone));
 
 /*
@@ -104,16 +104,23 @@
     color: var(--color-body);
   }
 
-  /* Inside the installed app: taps don't flash a grey box and links don't open the long-press
-     preview, as in a native app. */
-  @media (display-mode: standalone) {
+  /* On touch screens taps don't flash a grey box and respond at once (no double-tap zoom wait);
+     buttons and cards press in instead (`press`, `buttonClasses`, `linkCard`). Inside the installed
+     app links also don't open the long-press preview, as in a native app. */
+  @media (hover: none) {
     html {
       -webkit-tap-highlight-color: transparent;
     }
     a,
+    button,
+    summary {
+      touch-action: manipulation;
+    }
+  }
+  @media (display-mode: standalone) {
+    a,
     button {
       -webkit-touch-callout: none;
-      touch-action: manipulation;
     }
   }
 
@@ -157,5 +164,44 @@
     opacity: 0.22;
     mix-blend-mode: overlay;
     pointer-events: none;
+  }
+}
+
+/* A tap presses the element in a little, as in a native app (touch screens only). */
+@utility press {
+  transition-property: transform, background-color, border-color, color;
+  transition-duration: 150ms;
+  @media (hover: none) {
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+}
+
+/* Phones (below 640px): a grid of cards becomes a row you swipe sideways, each card snapping into
+   place and the next one peeking in, as app home screens do. Put `swipe-row` on the grid and
+   `swipe-item` on each card; from 640px the grid's own classes take over. The row runs to the
+   screen's edges (the negative margin undoes the page gutter of 1rem). */
+@utility swipe-row {
+  @media (width < 40rem) {
+    /* !important: these beat the grid classes on the same element (grid, gap-5…). */
+    display: flex !important;
+    gap: 0.875rem !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    margin-inline: -1rem;
+    padding: 0.25rem 1rem 0.75rem;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+@utility swipe-item {
+  @media (width < 40rem) {
+    flex-shrink: 0;
+    width: 82%;
+    scroll-snap-align: start;
   }
 }

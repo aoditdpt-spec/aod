@@ -258,6 +258,39 @@ export const mostBooked: { service: string; category: string }[] = [
   { service: "Wedding film", category: "cinematographers" },
 ];
 
+// The homepage's "Book from these categories" panel, under the category carousel: a tile per
+// category straight to that category's booking questions, and a last tile for anyone unsure.
+export const bookByCategory = {
+  eyebrow: "Book now",
+  title: "Book from these categories",
+  text: "Pick who you need. Tell us about your event and we'll send curated matches with clear quotes.",
+  button: "Book now",
+  tileAction: "Book now",
+  unsure: { title: "Not sure who to book?", action: "Get matched" },
+};
+
+// The Categories page (/categories), the app tab bar's Categories tab.
+export const categoriesPage = {
+  title: "All categories",
+  text: "Every kind of artist AOD books, all verified. Pick one to tell us about your event.",
+};
+
+// "Most booked services" on the homepage (cards modelled on Headout's experience cards).
+// The perks repeat promises from `features` below — confirm them with the founder before launch.
+export const mostBookedSection = {
+  eyebrow: "What Gujarat books most",
+  title: "Most booked services",
+  text: "Verified artists, real reviews. Get matched in minutes — no haggling.",
+  seeAll: "See all",
+  badge: "Verified artists",
+  perks: [
+    { icon: "calendar-sync", label: "Reschedule if plans change" },
+    { icon: "refresh", label: "Replacement guarantee" },
+  ],
+  priceLabel: "Clear, upfront quote",
+  action: "Get a quote",
+} as const;
+
 // The number of categories rounded down to the ten, as "10+" (11 categories today; 20 would read "20+").
 export const categoryCountLabel = `${Math.floor(categories.length / 10) * 10}+`;
 
@@ -427,6 +460,7 @@ export const artistJoinMessage = "Hi Artists on Demand! I am an artist and I wan
 export const categoryBooking = {
   eyebrow: (name: string) => `Book ${name.toLowerCase()}`,
   title: "Tell us what you need",
+  barButton: "Book now", // the phone bar at the bottom of a category page
   text: (name: string) =>
     `Say how many ${name.toLowerCase()} you need, and add any other artists for the same event. One request, and we reply with curated matches for each.`,
 };
@@ -467,22 +501,24 @@ export const howItWorks = {
   ],
 };
 
-// The installed app's bottom tab bar and its "More" sheet (src/components/layout/AppTabBar.tsx):
-// a way to every place in AOD, since the app has no address bar. Paths into the separate sites
+// The bottom tab bar on phones and tablets (website and installed app alike) and its "More" sheet
+// (src/components/layout/AppTabBar.tsx): a way to every place in AOD, since the app has no address bar. Paths into the separate sites
 // (/artists, /admin, /resolve) open their own domains (portalHref()).
 export const appMenu = {
   tabs: [
-    { href: "/", label: "Home", icon: "home" },
+    { href: "/", label: "Explore", icon: "explore" },
+    { href: "/categories", label: "Categories", icon: "grid" },
     { href: "/book", label: "Book", icon: "book" },
-    { href: "/my-bookings", label: "My bookings", icon: "ticket" },
+    { href: "/my-bookings", label: "Bookings", icon: "ticket" },
   ],
   more: "More",
   title: "Everything in AOD",
+  cityTitle: "Your city",
   groups: [
     {
       title: "Book",
       links: [
-        { href: "/#categories", label: "Browse categories", note: "Photographers, DJs, anchors and more", icon: "grid" },
+        { href: "/categories", label: "All categories", note: "Photographers, DJs, anchors and more", icon: "grid" },
         { href: "/business", label: "AOD for Business", note: "Brand shoots, events and retainers", icon: "building" },
         { href: "/blog", label: "Blog", note: "Planning tips and artist stories", icon: "blog" },
       ],

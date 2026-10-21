@@ -77,11 +77,11 @@ export function Portals() {
       </section>
 
       {/* Customers and companies */}
-      <StaggerList className="mt-6 grid gap-5 md:grid-cols-3">
+      <StaggerList className="swipe-row mt-6 grid gap-5 md:grid-cols-3">
         {portals.places.map((p) => {
           const I = icons[p.id as keyof typeof icons];
           return (
-            <StaggerItem key={p.id}>
+            <StaggerItem key={p.id} className="swipe-item">
               <Link href={portalHref(p.href)} className={`flex h-full flex-col rounded-card bg-white p-6 ${linkCard}`}>
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach">
                   <I className="h-5 w-5 text-brand" aria-hidden />

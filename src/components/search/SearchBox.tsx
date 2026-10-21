@@ -18,7 +18,7 @@ const styles = {
     label: "hidden sm:inline",
   },
   nav: {
-    box: "h-10 rounded-lg border border-line bg-white pl-3 pr-1 focus-within:border-brand",
+    box: "h-10 rounded-lg border border-line bg-white pl-3 pr-1 focus-within:border-brand max-lg:rounded-xl max-lg:border-transparent max-lg:bg-wash max-lg:focus-within:bg-white",
     input: "text-sm text-body",
     button: "h-8 rounded-md bg-brand px-3 text-sm text-white hover:bg-brand-hover",
     icon: "h-4 w-4",
