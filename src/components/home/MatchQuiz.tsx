@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
@@ -375,11 +376,20 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                         type="button"
                         aria-pressed={Boolean(need)}
                         onClick={() => toggleNeed(c.slug)}
-                        className={`flex w-full items-center justify-between gap-2 rounded-xl px-4 py-3 text-left text-sm font-medium text-ink transition-colors ${
+                        className={`press flex h-full w-full items-center justify-between gap-2 rounded-xl py-2 pl-2 pr-3 text-left text-sm font-medium text-ink ${
                           need ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
                         }`}
                       >
-                        {c.name}
+                        <span className="flex min-w-0 items-center gap-2.5">
+                          {c.image ? (
+                            <Image src={c.image.src} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                          ) : (
+                            <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white">
+                              <Icon name={c.icon} className="h-5 w-5 text-brand" />
+                            </span>
+                          )}
+                          <span className="leading-tight">{c.name}</span>
+                        </span>
                         {need && (
                           <span className="flex shrink-0 items-center gap-1 text-xs text-brand-hover">
                             {need.count > 1 && `× ${need.count}`}

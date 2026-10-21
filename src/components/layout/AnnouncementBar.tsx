@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 
-// Warm promo strip, just below the full-screen hero.
+// Warm promo strip, just below the hero.
 export function AnnouncementBar() {
   return (
     <Container className="pt-6">

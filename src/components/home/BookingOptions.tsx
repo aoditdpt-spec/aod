@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { bookingOptions } from "@/content/site";
@@ -39,13 +40,17 @@ function OptionCard({ option, href, featured = false }: { option: Option; href: 
   return (
     <TiltCard
       max={4}
-      className={`flex flex-col rounded-[1.25rem] bg-white p-8 ${featured ? "border border-apricot" : "border border-line"}`}
+      className={`flex flex-col overflow-hidden rounded-[1.25rem] bg-white p-8 ${featured ? "border border-apricot" : "border border-line"}`}
     >
-      {featured && (
-        <span className="absolute right-0 top-0 rounded-bl-xl rounded-tr-[1.25rem] bg-apricot px-3 py-1 text-xs font-medium uppercase tracking-wide text-ink">
-          For brands
-        </span>
-      )}
+      {/* The photo runs to the card's edges at the top (the card's padding is undone). */}
+      <div className="relative -mx-8 -mt-8 mb-7 aspect-[16/7] overflow-hidden rounded-t-[1.25rem] bg-peach">
+        <Image src={option.image} alt="" fill sizes="(min-width: 768px) 45vw, 100vw" className={`object-cover ${tiltZoom}`} />
+        {featured && (
+          <span className="absolute right-0 top-0 rounded-bl-xl bg-apricot px-3 py-1 text-xs font-medium uppercase tracking-wide text-ink">
+            For brands
+          </span>
+        )}
+      </div>
       <h3 className={`text-2xl font-bold ${tiltTitle}`}>{option.name}</h3>
       <p className={`mt-1 text-xs text-muted ${tiltText}`}>{option.audience}</p>
       <p className={`mt-5 text-sm text-muted ${tiltText}`}>{option.text}</p>

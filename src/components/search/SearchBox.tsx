@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
 import { useHydrated, useReducedMotionSafe } from "@/lib/motion-safe";
 import { ArrowRight, Search } from "lucide-react";
 import { categories, hero } from "@/content/site";
@@ -9,19 +10,28 @@ import { searchServices } from "@/lib/search";
 
 type Variant = "hero" | "nav";
 
+// The photo of the category a suggestion leads to (a category or one of its services).
+function photoFor(href: string) {
+  return categories.find((c) => href === `/categories/${c.slug}`)?.image;
+}
+
 const styles = {
+  // Headout-style: a big white box with a soft shadow, the magnifier on the left and an orange
+  // button (just the icon on phones).
   hero: {
-    box: "h-14 rounded-xl bg-white pl-6 pr-1.5",
-    input: "text-body",
-    button: "h-11 rounded-lg bg-night px-4 text-lg text-white hover:bg-black sm:px-5",
-    icon: "h-5 w-5 text-tangerine",
+    box: "h-14 rounded-2xl border border-line bg-white pl-4 pr-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-within:border-brand sm:h-16 sm:pl-5 sm:pr-2",
+    lead: "mr-3 h-5 w-5 text-muted",
+    input: "text-base text-ink",
+    button: "h-11 justify-center rounded-xl bg-brand px-3 text-white hover:bg-brand-hover sm:h-12 sm:px-6",
+    icon: "h-5 w-5 sm:hidden",
     label: "hidden sm:inline",
   },
   nav: {
     box: "h-10 rounded-lg border border-line bg-white pl-3 pr-1 focus-within:border-brand max-lg:rounded-xl max-lg:border-transparent max-lg:bg-wash max-lg:focus-within:bg-white",
+    lead: "mr-2 h-4 w-4 text-muted",
     input: "text-sm text-body",
     button: "h-8 rounded-md bg-brand px-3 text-sm text-white hover:bg-brand-hover",
-    icon: "h-4 w-4",
+    icon: "h-4 w-4 2xl:hidden",
     label: "hidden 2xl:inline",
   },
 } satisfies Record<Variant, Record<string, string>>;
@@ -43,64 +53,66 @@ function shuffled<T>(list: T[]): T[] {
 
 // Types a word, pauses, deletes it, then types the next one in random order (Blinkit-style).
 // With `swapOnly` (visitor prefers reduced motion) it just shows a new word every few seconds.
-function useTypedPlaceholder(active: boolean, swapOnly: boolean): string {
-  const [text, setText] = useState("");
+// It writes straight into `text` (no React re-render per letter) and only runs while `box` is on
+// screen, so a hidden or scrolled-away search box costs nothing.
+function useTypedPlaceholder(text: RefObject<HTMLSpanElement | null>, box: RefObject<HTMLElement | null>, active: boolean, swapOnly: boolean) {
   useEffect(() => {
-    if (!active) return;
-    if (swapOnly) {
-      let words = shuffled(TYPED_WORDS);
-      let w = 0;
-      const show = () => {
-        setText(words[w]);
-        w++;
-        if (w === words.length) {
-          words = shuffled(TYPED_WORDS);
-          w = 0;
-        }
-      };
-      const first = window.setTimeout(show, 0);
-      const id = window.setInterval(show, 2800);
-      return () => {
-        window.clearTimeout(first);
-        window.clearInterval(id);
-      };
-    }
+    const el = text.current;
+    const area = box.current;
+    if (!active || !el || !area) return;
     let words = shuffled(TYPED_WORDS);
     let w = 0;
     let i = 0;
     let deleting = false;
     let timer = 0;
-    const tick = () => {
+    let visible = false;
+    const nextWord = () => {
+      w++;
+      if (w === words.length) {
+        words = shuffled(TYPED_WORDS);
+        w = 0;
+      }
+    };
+    const later = (ms: number) => {
+      timer = window.setTimeout(tick, ms);
+    };
+    function tick() {
+      timer = 0;
+      if (!visible || !el) return; // resumes when the box comes back into view
+      if (swapOnly) {
+        el.textContent = words[w];
+        nextWord();
+        return later(2800);
+      }
       const word = words[w];
       if (!deleting) {
         i++;
-        setText(word.slice(0, i));
+        el.textContent = word.slice(0, i);
         if (i === word.length) {
           deleting = true;
-          timer = window.setTimeout(tick, 1500);
-          return;
+          return later(1500);
         }
-        timer = window.setTimeout(tick, 65 + Math.random() * 50);
-      } else {
-        i--;
-        setText(word.slice(0, i));
-        if (i === 0) {
-          deleting = false;
-          w++;
-          if (w === words.length) {
-            words = shuffled(TYPED_WORDS);
-            w = 0;
-          }
-          timer = window.setTimeout(tick, 350);
-          return;
-        }
-        timer = window.setTimeout(tick, 30);
+        return later(65 + Math.random() * 50);
       }
+      i--;
+      el.textContent = word.slice(0, i);
+      if (i === 0) {
+        deleting = false;
+        nextWord();
+        return later(350);
+      }
+      later(30);
+    }
+    const seen = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !timer) later(400);
+    });
+    seen.observe(area);
+    return () => {
+      seen.disconnect();
+      window.clearTimeout(timer);
     };
-    timer = window.setTimeout(tick, 500);
-    return () => window.clearTimeout(timer);
-  }, [active, swapOnly]);
-  return text;
+  }, [text, box, active, swapOnly]);
 }
 
 // Search input with ranked, typo-tolerant suggestions (see src/lib/fuzzy.ts).
@@ -126,7 +138,9 @@ export function SearchBox({
   const reduce = useReducedMotionSafe();
   // Runs for everyone while the box is empty and not focused (only swaps words under reduced motion).
   const animatePlaceholder = hydrated && !focused && query === "";
-  const typed = useTypedPlaceholder(animatePlaceholder, reduce);
+  const formRef = useRef<HTMLFormElement>(null);
+  const typedRef = useRef<HTMLSpanElement>(null);
+  useTypedPlaceholder(typedRef, formRef, animatePlaceholder, reduce);
   const s = styles[variant];
 
   const hasQuery = query.trim().length > 0;
@@ -157,6 +171,7 @@ export function SearchBox({
 
   return (
     <form
+      ref={formRef}
       role="search"
       className="relative w-full"
       onSubmit={(e) => {
@@ -166,7 +181,7 @@ export function SearchBox({
       }}
     >
       <div className={`flex items-center ${s.box}`}>
-        {variant === "nav" && <Search className="mr-2 h-4 w-4 shrink-0 text-muted" aria-hidden />}
+        <Search className={`shrink-0 ${s.lead}`} aria-hidden />
         <label htmlFor={`${id}-input`} className="sr-only">
           Search artists and services
         </label>
@@ -201,7 +216,7 @@ export function SearchBox({
               className={`pointer-events-none absolute inset-0 flex items-center overflow-hidden text-muted/70 ${s.input}`}
             >
               <span className="truncate">
-                Search &ldquo;{typed}
+                Search &ldquo;<span ref={typedRef} />
                 {!reduce && <span className="mx-px inline-block h-[1em] w-[1.5px] translate-y-[0.12em] animate-caret bg-muted/50" />}
                 &rdquo;
               </span>
@@ -209,7 +224,7 @@ export function SearchBox({
           )}
         </div>
         <button type="submit" aria-label="Search" className={`inline-flex shrink-0 items-center gap-2 font-medium ${s.button}`}>
-          {variant === "hero" ? <Search className={s.icon} aria-hidden /> : <Search className={`${s.icon} 2xl:hidden`} aria-hidden />}
+          <Search className={s.icon} aria-hidden />
           <span className={s.label}>Search</span>
         </button>
       </div>
@@ -230,11 +245,23 @@ export function SearchBox({
               onMouseDown={(e) => e.preventDefault()}
               onMouseEnter={() => setActive(i)}
               onClick={() => go(r.href)}
-              className={`flex cursor-pointer items-center justify-between gap-4 px-4 py-2.5 text-sm ${
+              className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm ${
                 i === active ? "bg-wash" : ""
               }`}
             >
-              <span className={r.hint === "Category" ? "font-medium text-ink" : "text-ink"}>{r.label}</span>
+              <span className="flex min-w-0 items-center gap-3">
+                {(() => {
+                  const photo = photoFor(r.href);
+                  return photo ? (
+                    <Image src={photo.src} alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wash">
+                      <Search className="h-4 w-4 text-muted" />
+                    </span>
+                  );
+                })()}
+                <span className={`truncate ${r.hint === "Category" ? "font-medium text-ink" : "text-ink"}`}>{r.label}</span>
+              </span>
               <span className="shrink-0 text-xs text-muted">{r.hint === "Category" ? "All services" : r.hint}</span>
             </li>
           ))}

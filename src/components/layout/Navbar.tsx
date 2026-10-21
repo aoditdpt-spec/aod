@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, Ticket } from "lucide-react";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
@@ -63,12 +63,33 @@ function BackButton() {
   );
 }
 
+// On the homepage the hero has its own big search box, so on phones and tablets the navbar's search
+// row stays tucked away until that box has scrolled up under the navbar, then slides in.
+function useHeroSearchGone(home: boolean) {
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (!home) return;
+    const box = document.getElementById("hero-search");
+    if (!box) return;
+    const seen = new IntersectionObserver(([entry]) => setGone(!entry.isIntersecting && entry.boundingClientRect.top < 0), {
+      rootMargin: "-56px 0px 0px 0px",
+    });
+    seen.observe(box);
+    return () => seen.disconnect();
+  }, [home]);
+  return home && gone;
+}
+
 // Laptops: logo, city, links, search, My bookings and "Get your artist" in one row.
 // Phones and tablets (an app-style top bar): back arrow on inner pages, logo, the city pill, and
 // the search bar under them; everything else is in the bottom tab bar (AppTabBar) and its More sheet.
 export function Navbar() {
+  const home = usePathname() === "/";
+  const searchGone = useHeroSearchGone(home);
+
   return (
-    <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur max-lg:border-line">
+    // Solid white on phones (a blurred see-through bar costs every frame of scrolling there).
+    <header className="sticky top-0 z-40 border-b border-transparent bg-white max-lg:border-line lg:bg-white/95 lg:backdrop-blur">
       <nav className="mx-auto flex h-14 w-full max-w-page items-center gap-3 px-4 sm:px-6 lg:h-16 lg:gap-4 lg:px-8 xl:gap-6" aria-label="Main">
         <div className="flex min-w-0 items-center">
           <BackButton />
@@ -97,9 +118,14 @@ export function Navbar() {
               <ul className="grid grid-cols-2 gap-1">
                 {categories.map((c) => (
                   <li key={c.slug}>
-                    <Link href={`/categories/${c.slug}`} className="block rounded-lg px-3 py-2 hover:bg-wash">
-                      <span className="block text-sm font-medium text-ink">{c.name}</span>
-                      <span className="block truncate text-xs text-muted">{c.short}</span>
+                    <Link href={`/categories/${c.slug}`} className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-wash">
+                      {c.image && (
+                        <Image src={c.image.src} alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+                      )}
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-ink">{c.name}</span>
+                        <span className="block truncate text-xs text-muted">{c.short}</span>
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -143,8 +169,16 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Phones and tablets: an always-visible search bar under the logo row (Blinkit-style). */}
-      <div className="px-4 pb-2.5 sm:px-6 lg:hidden">
+      {/* Phones and tablets: a search bar under the logo row (Blinkit-style). On the homepage it
+          hangs below the bar (out of the page flow, so nothing jumps) and only slides in once the
+          hero's own search box has scrolled away. */}
+      <div
+        className={`px-4 pb-2.5 sm:px-6 lg:hidden ${
+          home
+            ? `absolute inset-x-0 top-full border-b border-line bg-white pt-0.5 transition duration-200 ${searchGone ? "" : "pointer-events-none invisible -translate-y-2 opacity-0"}`
+            : ""
+        }`}
+      >
         <SearchBox variant="nav" />
       </div>
     </header>

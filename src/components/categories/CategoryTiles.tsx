@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { bookByCategory, categories } from "@/content/site";
+import { bookByCategory, categories, type Category } from "@/content/site";
 import { Icon } from "@/components/ui/Icon";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
@@ -9,11 +9,12 @@ import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 // A photo tile per category, straight to that category's booking questions (/categories/<slug>#book),
 // plus a last tile for anyone unsure, so the grid fills evenly: 12 tiles, 3 per row on phones (as in
 // Urban Company's app), 4 on tablets, 6 on laptops. Used by the homepage's "Book from these
-// categories" and the Categories page (the app tab bar's Categories tab).
-export function CategoryTiles({ className = "" }: { className?: string }) {
+// categories", the Categories page (the app tab bar's Categories tab) and, with five `items`, a
+// category page's "You can also book" (5 + the last tile = 6, still even rows).
+export function CategoryTiles({ items = categories, className = "" }: { items?: Category[]; className?: string }) {
   return (
     <StaggerList className={`grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-6 ${className}`}>
-      {categories.map((c) => (
+      {items.map((c) => (
         <StaggerItem key={c.slug}>
           <Link
             href={`/categories/${c.slug}#book`}

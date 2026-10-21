@@ -56,7 +56,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           e.preventDefault();
           void submit();
         }}
-        className="mt-3 flex flex-col gap-2 sm:flex-row"
+        className="mt-4 flex flex-col gap-2.5 sm:flex-row"
       >
         <label className="sr-only" htmlFor={`newsletter-${variant}`}>
           Email address
@@ -68,7 +68,8 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={newsletter.placeholder}
-          className={`h-11 min-w-0 flex-1 rounded-lg border px-4 text-sm outline-none transition-colors ${
+          // `sm:flex-1`, not `flex-1`: in the stacked phone layout flex-1 let the box shrink to a sliver.
+          className={`h-14 w-full min-w-0 rounded-xl border px-5 text-base outline-none transition-colors sm:flex-1 ${
             dark ? "border-white/20 bg-white/10 text-white placeholder:text-white/40 focus:border-apricot" : "border-line bg-white text-ink placeholder:text-muted/60 focus:border-brand"
           }`}
         />
@@ -77,7 +78,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
         <button
           type="submit"
           disabled={!valid || state.kind === "sending"}
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+          className="press inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-base font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state.kind === "sending" ? (
             <>
@@ -88,7 +89,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           )}
         </button>
       </form>
-      <p className={`mt-2 text-xs ${dark ? "text-white/50" : "text-muted"}`} role={state.kind === "error" || state.kind === "preview" ? "alert" : undefined}>
+      <p className={`mt-2.5 text-xs ${dark ? "text-white/50" : "text-muted"}`} role={state.kind === "error" || state.kind === "preview" ? "alert" : undefined}>
         {state.kind === "error" ? state.error : state.kind === "preview" ? newsletter.preview : newsletter.consent}
       </p>
     </div>

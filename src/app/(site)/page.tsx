@@ -19,7 +19,8 @@ import { Reveal } from "@/components/motion/Reveal";
 export default function Home() {
   return (
     <>
-      {/* 1. The promise and the main actions, filling the first screen */}
+      {/* 1. The promise, the search box and every category one tap away ("What are you looking for?"),
+          as Headout and Urban Company open their homepages */}
       <Hero />
       <AnnouncementBar />
       {/* 2. Instant proof: numbers and the brands that trust us */}

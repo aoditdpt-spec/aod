@@ -1,13 +1,12 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { artistJoinMessage, hero } from "@/content/site";
-import { buttonClasses } from "@/components/ui/Button";
+import Image from "next/image";
+import { BadgeCheck } from "lucide-react";
+import { artistJoinMessage, getCategory, hero, verifiedArtists } from "@/content/site";
 import { Container } from "@/components/ui/Container";
-import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
+import { SearchBox } from "@/components/search/SearchBox";
 import { whatsappUrl } from "@/lib/whatsapp";
-import { HeroDemo } from "./HeroMotion";
+import { ExploreGrid } from "./ExploreGrid";
 import { HeroVideo } from "./HeroVideo";
 
 // Background footage (the files HeroVideo lists): served from public/media/, or from a storage
@@ -17,86 +16,80 @@ const mediaUrl = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, "");
 const mediaBase = mediaUrl || "/media";
 const hasVideo = Boolean(mediaUrl) || existsSync(join(process.cwd(), "public", "media", "hero-1080.mp4"));
 
-// Full-screen hero in the style of a brand campaign page: the footage fills the whole first
-// screen edge to edge (under the sticky navbar), a dark gradient keeps the white text readable
-// on the left, and the live booking steps float on the right in a frosted-glass panel. Below 1024px
-// the text splits: the heading, subtitle and verified line at the top, the buttons and "Join AOD"
-// at the bottom, so the middle of the footage stays clear.
+// The two category photos beside the footage in the laptop mosaic.
+const mosaic = ["makeup-artists", "musicians-djs"].map((slug) => getCategory(slug)?.image).filter((i) => i !== undefined);
+
+// The hero, modelled on Headout's and Urban Company's homepages. One grid, laid out two ways:
+// - Phones and tablets (Headout): the footage as a rounded banner with the heading over its
+//   bottom, the search box overlapping the banner's lower edge, then "What are you looking for?"
+//   (ExploreGrid). The navbar's own search row stays out of the way until this one scrolls off.
+// - Laptops (Urban Company): heading, search and the explore card on the left; on the right a
+//   mosaic of the footage and two category photos.
+// The heading block shares the banner's grid cell on phones (laid over it) and has its own cell on
+// laptops, so the page has one h1 and one video element.
 export function Hero() {
-  return (
-    <section
-      // Fills the screen under the sticky navbar: about 4.1rem tall from 1024px up, 6.7rem below that
-      // (it adds the search bar), where the app's tab bar (AppTabBar, 4.25rem) sits at the bottom too.
-      className="relative flex min-h-[calc(100svh-11rem-env(safe-area-inset-bottom))] items-stretch overflow-hidden bg-night lg:min-h-[calc(100svh-4.1rem)] lg:items-center"
-      style={
-        hasVideo
-          ? undefined
-          : { backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-tangerine) 18%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }
-      }
-    >
-      {hasVideo && (
-        <>
-          <HeroVideo base={mediaBase} />
-          {/* A light veil (the footage stays about 90% visible), a touch darker behind the text so the
-              white text reads on bright frames: on the left from 1024px, at the top and bottom below
-              that, leaving the middle clear. The text itself has no shadow or glow. */}
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 via-45% to-transparent max-lg:bg-gradient-to-b max-lg:from-black/50 max-lg:via-transparent max-lg:via-50% max-lg:to-black/40"
-          />
-          <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/25 to-transparent" />
-        </>
+  const media = (
+    <div className="relative h-full overflow-hidden rounded-[1.75rem] bg-night">
+      {hasVideo ? (
+        <HeroVideo base={mediaBase} />
+      ) : (
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-tangerine) 30%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
+        />
       )}
-      <Container className="relative flex flex-col pb-12 pt-8 sm:pb-14 sm:pt-12 lg:block lg:py-20">
-        <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16">
-          <div className="flex flex-1 flex-col justify-between gap-10 lg:block">
-            <div>
-              {/* The brand name is the page heading and the largest text in the hero. */}
-              <h1 className="text-5xl font-bold leading-[0.95] tracking-[-0.01em] text-white sm:text-7xl lg:text-[clamp(3.5rem,5.1vw,5.6rem)]">
-                {hero.eyebrow}
-              </h1>
-              <p className="mt-6 max-w-[35rem] text-lg text-white/90 sm:text-xl sm:leading-snug">
-                {hero.subtitle.map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-              </p>
-              <div className="mt-6">
-                <VerifiedArtists variant="inline" dark />
-              </div>
-            </div>
+      {/* Darker towards the bottom, where the heading sits on phones. */}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 via-55% to-black/10 lg:from-black/30 lg:via-transparent" />
+    </div>
+  );
 
-            {/* The bottom padding keeps the buttons clear of the WhatsApp button on phones. */}
-            <div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 lg:mt-8">
-                <Link href="/book" className={buttonClasses("primary", "lg", "sm:min-w-[12.5rem]")}>
-                  {hero.primaryCta}
-                  <ArrowRight className="h-5 w-5" aria-hidden />
-                </Link>
-                <Link href="/#categories" className={buttonClasses("ghost-light", "lg", "backdrop-blur-sm sm:min-w-[12.5rem]")}>
-                  {hero.secondaryCta}
-                </Link>
-              </div>
-
-              <p className="mt-6 text-sm text-white/70 lg:mt-10">
-                Are you an artist?{" "}
-                <a
-                  href={whatsappUrl(artistJoinMessage)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-apricot underline underline-offset-4 hover:text-white"
-                >
-                  Join AOD
-                </a>
-              </p>
+  return (
+    <section className="pb-8 pt-3 sm:pt-5 lg:pb-14 lg:pt-10">
+      <Container>
+        <div className="grid [grid-template-areas:'media'_'search'_'explore'] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-14 lg:[grid-template-areas:'text_media'_'search_media'_'explore_media']">
+          {/* The footage: the banner on phones, the big tile of the mosaic on laptops. */}
+          <div className="grid aspect-[4/5] max-h-[60svh] w-full [grid-area:media] sm:aspect-[16/10] lg:aspect-auto lg:max-h-none lg:min-h-[36rem] lg:grid-cols-[1.45fr_1fr] lg:gap-3">
+            {media}
+            <div className="hidden grid-rows-2 gap-3 lg:grid">
+              {mosaic.map((img) => (
+                <div key={img.src} className="relative overflow-hidden rounded-[1.75rem] bg-peach">
+                  <Image src={img.src} alt="" fill sizes="20vw" className="object-cover" />
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Live booking steps on dark, lightly blurred glass (laptops and up): narrower than the
-              column, set to its right edge and a little below centre. */}
-          <div className="hidden w-full max-w-[38rem] justify-self-end rounded-[1.5rem] border border-white/15 bg-black/30 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-[5px] lg:mt-20 lg:block">
-            <HeroDemo />
+          {/* Heading: over the banner on phones (white), beside the mosaic on laptops. */}
+          <div className="relative z-[1] self-end px-5 pb-12 [grid-area:media] sm:px-8 lg:self-end lg:px-0 lg:pb-0 lg:[grid-area:text]">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm lg:bg-peach lg:text-ink lg:backdrop-blur-none">
+              <BadgeCheck className="h-4 w-4 text-apricot lg:text-brand" aria-hidden />
+              {verifiedArtists.short}
+            </p>
+            <h1 className="mt-3 text-[2.35rem] font-bold leading-[1.05] !text-white sm:text-5xl lg:mt-5 lg:text-[clamp(2.75rem,3.9vw,4.1rem)] lg:!text-ink">
+              {hero.title}
+            </h1>
+            <p className="mt-3 max-w-xl text-[0.9375rem] text-white/85 sm:text-lg lg:mt-5 lg:text-body">{hero.subtitle}</p>
+          </div>
+
+          {/* The search box, overlapping the banner's lower edge on phones. */}
+          <div id="hero-search" className="relative z-[2] -mt-7 px-3 [grid-area:search] sm:px-6 lg:mt-8 lg:px-0">
+            <SearchBox variant="hero" />
+          </div>
+
+          <div className="mt-7 [grid-area:explore] lg:mt-8">
+            <ExploreGrid />
+            <p className="mt-5 text-sm text-muted">
+              {hero.artistLine}{" "}
+              <a
+                href={whatsappUrl(artistJoinMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-brand underline underline-offset-4 hover:text-brand-hover"
+              >
+                {hero.artistLink}
+              </a>
+            </p>
           </div>
         </div>
       </Container>

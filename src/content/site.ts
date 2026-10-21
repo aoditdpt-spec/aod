@@ -48,6 +48,7 @@ export type Service = {
 export type Category = {
   slug: string;
   name: string;
+  shortName?: string; // for small tiles (the hero's explore grid); `name` when not set
   singular: string;
   icon: IconName;
   // Category photo, with its pixel size (pages use it to show the whole photo without cropping).
@@ -83,6 +84,7 @@ export const categories: Category[] = [
     slug: "cinematographers",
     image: { src: "/categories/cinematographers.jpg", width: 900, height: 619 },
     name: "Cinematographers",
+    shortName: "Videographers",
     singular: "Cinematographer",
     icon: "video",
     keywords: ["video", "videography", "videographer", "cinematography", "film", "filmmaker", "movie", "shoot", "reels", "camera"],
@@ -164,6 +166,7 @@ export const categories: Category[] = [
     slug: "comedians",
     image: { src: "/categories/comedians.jpg", width: 1000, height: 688 },
     name: "Stand-up Comedians",
+    shortName: "Comedians",
     singular: "Comedian",
     icon: "ticket",
     keywords: ["comedy", "comedian", "stand up", "standup", "comic", "humour", "humor"],
@@ -179,6 +182,7 @@ export const categories: Category[] = [
     slug: "singers",
     image: { src: "/categories/singers.jpg", width: 535, height: 291 },
     name: "Singers & Vocalists",
+    shortName: "Singers",
     singular: "Singer",
     icon: "mic-vocal",
     keywords: ["singer", "singing", "vocalist", "vocals", "sufi", "ghazal", "garba", "bollywood"],
@@ -227,6 +231,7 @@ export const categories: Category[] = [
   {
     slug: "content-creators",
     name: "Content & Instagram Reels",
+    shortName: "Reels creators",
     singular: "Content & reels creator",
     icon: "smartphone",
     // A stock photo (iStock 1311101155) for the preview, like the other category photos.
@@ -345,18 +350,13 @@ export const guarantees = [
 ] as const;
 
 export const hero = {
-  eyebrow: "Artists On Demand",
-  // Each entry is shown on its own line.
-  subtitle: ["Get yours now or browse categories", "and find your perfect match."],
-  primaryCta: "Get yours now",
-  secondaryCta: "Browse categories",
+  title: "Book verified artists for every event",
+  subtitle: "Photographers, DJs, anchors, makeup artists and more across Gujarat. Curated matches, clear quotes.",
+  exploreTitle: "What are you looking for?",
+  exploreMore: { label: "Get matched", note: "Not sure?" },
+  artistLine: "Are you an artist?",
+  artistLink: "Join AOD",
   searchPlaceholder: "Search for 'wedding photographer'",
-  // Animated walk-through of a booking shown beside the headline. Illustrative steps, not real customers.
-  demo: [
-    { icon: "camera", title: "Request sent", text: "Wedding photographer · Ahmedabad · 14 Oct" },
-    { icon: "sparkles", title: "Curated matches ready", text: "Verified, with clear quotes" },
-    { icon: "signature", title: "Booking confirmed", text: "Digital contract shared on WhatsApp" },
-  ],
 };
 
 // Booking features shown on the homepage ("Book with confidence"). Cancellation and
@@ -426,16 +426,25 @@ export const occasions = {
 export type Audience = "personal" | "business";
 
 // The choosing screen at /book.
+// Photos for the personal / business choices (/book and the homepage's "Choose how you want to
+// book"): category photos for now (mock, see `image` on categories); swap in real AOD shoots.
+export const bookingPhotos = {
+  personal: "/categories/photographers.jpg", // a wedding shoot
+  business: "/categories/anchors-hosts.jpg", // an anchor on a corporate stage
+};
+
 export const bookingChoice = {
   title: "How are you booking?",
   subtitle: "Pick one — we'll ask a few quick questions and send curated matches.",
   personal: {
     label: "For personal events",
     text: "Weddings, sangeets, parties, pre-wedding and portrait shoots.",
+    image: bookingPhotos.personal,
   },
   business: {
     label: "For business",
     text: "Corporate events, expos, brand shoots and recurring content on contract.",
+    image: bookingPhotos.business,
   },
 };
 
@@ -629,6 +638,7 @@ export const portals = {
 export const bookingOptions = {
   personal: {
     name: "Personal events",
+    image: bookingPhotos.personal,
     audience: "Weddings, sangeets, parties and one-off shoots",
     text: "Photographers, DJs, anchors, makeup artists & more — booked as easily as a cab.",
     includesLabel: "Every booking includes:",
@@ -644,6 +654,7 @@ export const bookingOptions = {
     cta: "Get yours now",
   },
   business: {
+    image: bookingPhotos.business,
     name: "AOD for Business",
     audience: "Hotels, cafés, agencies, corporates and expos",
     text: "Product catalogues, event coverage, brand films and expo visuals — delivered by verified talent under one contract, one invoice, one point of contact.",

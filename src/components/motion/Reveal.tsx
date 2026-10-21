@@ -6,13 +6,14 @@ import type { CSSProperties, ReactNode } from "react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Fades and lifts its content into place the first time it scrolls into view.
+// Fades and lifts its content into place the first time it scrolls into view. Kept short and
+// small (half a second, 16px), so content never seems to trail behind a fast scroll on phones.
 // `data-reveal` lets the <noscript> rule in layout.tsx show it when JavaScript is off.
 export function Reveal({
   children,
   className = "",
   delay = 0,
-  y = 28,
+  y = 16,
 }: {
   children: ReactNode;
   className?: string;
@@ -25,8 +26,8 @@ export function Reveal({
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.8, ease: EASE, delay }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.5, ease: EASE, delay }}
     >
       {children}
     </m.div>
@@ -35,12 +36,12 @@ export function Reveal({
 
 const group: Variants = {
   hidden: {},
-  shown: { transition: { staggerChildren: 0.07 } },
+  shown: { transition: { staggerChildren: 0.04 } },
 };
 
 const item: Variants = {
-  hidden: { opacity: 0, y: 24, scale: 0.97 },
-  shown: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: EASE } },
+  hidden: { opacity: 0, y: 14, scale: 0.98 },
+  shown: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: EASE } },
 };
 
 // A list whose items appear one after another in a wave (staggered grid).
@@ -53,7 +54,7 @@ export function StaggerList({ children, className = "", style }: { children: Rea
       variants={group}
       initial="hidden"
       whileInView="shown"
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{ once: true, amount: 0.08 }}
     >
       {children}
     </m.ul>
