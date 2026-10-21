@@ -277,7 +277,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
 | `search/` | `SearchBox`: navbar search with suggestions, keyboard navigation, typed placeholder |
 | `location/` | `CityPicker`, `CitySheetButton` (phones) and `CityChips`: the visitor's city |
-| `categories/` | `CategoryTiles` (a photo tile per category, used on the homepage and `/categories`), `StickyBookBar` (a category page's Book bar on phones) |
+| `categories/` | `CategoryTiles` (a photo tile per category, used on `/categories` and in a category page's "You can also book"), `StickyBookBar` (a category page's Book bar on phones) |
 | `bookings/` | `MyBookings`: sign-in, list of the customer's bookings, progress, reviews |
 | `artists/` | The artist portal: `ApplyForm`, `SignIn`, `PortalGate`, `PortalChrome`, `PortalNav`, `AccountMenu`, `Dashboard`, `OnboardingTimeline`, `ProfileEditor`, `PortfolioManager`, `FileDrop`, `LinkEditor`, `AvailabilityCalendar`, `BookingsBoard`, `BookingCard`, `DocumentsPanel`, `DigiLockerCard`, `form.tsx` (Field, ChipGroup, CheckRow, input styles) |
 | `admin/` | `AdminShell` (sidebar, header, Live dot), `AdminSignIn`, `DataTable` (sortable/filterable table), `ui.tsx` (drawer, badges, sections), `useOpen.ts` (`?open=<id>` drawers), `pages/` (one component per admin page) |

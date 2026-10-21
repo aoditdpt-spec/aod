@@ -11,9 +11,8 @@ import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 // The most-booked services as a sideways row of cards, modelled on Headout's experience cards:
 // the category photo with a badge, "★ rating (bookings) · category", the service, two promises
 // with icons, and where Headout shows a price, "Get a quote" (AOD quotes per request). Four
-// cards fit on laptops; the rest scroll in with the arrows or a swipe. Phones get Headout's
-// "Top 10 trending" list instead: the photo on the left with a big rank number, the details on the
-// right. Each card or row opens the category page's booking questions.
+// cards fit on laptops; the rest scroll in with the arrows or a swipe. Phones get a list instead,
+// as Headout's "Top trending": the photo on the left, the details on the right. Each card or row opens the category page's booking questions.
 export function MostBooked() {
   const items = mostBooked.map(({ service, category }) => {
     const cat = getCategory(category)!;
@@ -30,8 +29,8 @@ export function MostBooked() {
             seeAll={{ href: "/categories", label: copy.seeAll }}
             listClassName="max-sm:hidden"
             after={
-              <ol className="mt-5 space-y-3 sm:hidden">
-                {items.map((item, i) => (
+              <ul className="mt-5 space-y-3 sm:hidden">
+                {items.map((item) => (
                   <li key={item.service}>
                     <Link href={`/categories/${item.slug}#book`} className={`flex gap-3.5 rounded-2xl bg-white p-2.5 ${linkCard}`}>
                       <span className="relative block aspect-[4/5] w-[6.5rem] shrink-0 overflow-hidden rounded-xl bg-peach">
@@ -42,13 +41,6 @@ export function MostBooked() {
                             <Icon name={item.icon} className="h-8 w-8 text-brand" strokeWidth={1.5} />
                           </span>
                         )}
-                        {/* The rank in big outlined figures over the photo's corner, as on Headout. */}
-                        <span
-                          aria-hidden
-                          className="absolute right-1.5 top-0.5 font-display text-[2.6rem] font-extrabold italic leading-none text-brand [-webkit-text-stroke:2px_white] [paint-order:stroke_fill]"
-                        >
-                          {i + 1}
-                        </span>
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col py-0.5">
                         <span className={`flex items-center gap-1 text-xs text-muted ${linkText}`}>
@@ -57,7 +49,6 @@ export function MostBooked() {
                           <span>({item.bookings})</span>
                         </span>
                         <span className={`mt-1 text-[1.0625rem] font-bold leading-snug text-ink ${linkTitle}`}>
-                          <span className="sr-only">{i + 1}. </span>
                           {item.service}
                         </span>
                         <span className="mt-0.5 text-sm text-muted">{item.category}</span>
@@ -69,7 +60,7 @@ export function MostBooked() {
                     </Link>
                   </li>
                 ))}
-              </ol>
+              </ul>
             }
             heading={
               <>
