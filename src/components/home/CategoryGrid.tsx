@@ -1,13 +1,14 @@
-import Link from "next/link";
-import { categories } from "@/content/site";
+import { ArrowRight } from "lucide-react";
+import { bookByCategory, categories } from "@/content/site";
 import { Container } from "@/components/ui/Container";
-import { Icon } from "@/components/ui/Icon";
+import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
 import { CategoryCoverflow } from "./CategoryCoverflow";
+import { ExploreTiles } from "./ExploreGrid";
 
-// "Find artists for every kind of event": the categories in a 3D coverflow, with every category
-// also listed below as quick links on laptops. (On phones and tablets the hero's "What are you
-// looking for?" already lists every category as tiles, so there is no second grid there.)
+// "Find artists for every kind of event": the categories in a 3D coverflow, then, on laptops,
+// "Book from these services": the phone hero's "What are you looking for?" tiles (ExploreTiles).
+// (On phones and tablets those tiles are already in the hero, so there is no second grid there.)
 export function CategoryGrid({ title = "Find artists for every kind of event" }: { title?: string }) {
   return (
     <Container className="py-12">
@@ -21,24 +22,23 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
           <CategoryCoverflow />
         </Reveal>
 
-        <Reveal delay={0.15} className="hidden lg:block">
-          {/* Equal-size buttons, 5 per row. */}
-          <ul className="mt-10 grid grid-cols-5 gap-3">
-            {categories.map((c) => (
-              <li key={c.slug}>
-                <Link
-                  href={`/categories/${c.slug}`}
-                  className="group flex h-16 w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-base font-medium text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-peach/60 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-                    <Icon name={c.icon} className="h-5 w-5 text-brand" />
-                  </span>
-                  <span className="leading-tight">{c.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Reveal>
+        {/* Laptops only: phones and tablets already have these tiles in the hero. */}
+        <div className="mt-14 hidden rounded-3xl bg-wash p-10 lg:block">
+          <Reveal className="flex items-end justify-between gap-5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-brand">{bookByCategory.eyebrow}</p>
+              <h3 className="mt-2 text-3xl font-bold">{bookByCategory.title}</h3>
+              <p className="mt-2 max-w-xl text-body">{bookByCategory.text}</p>
+            </div>
+            <ButtonLink href="/book" size="lg" className="shrink-0">
+              {bookByCategory.button} <ArrowRight className="h-4 w-4" aria-hidden />
+            </ButtonLink>
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <ExploreTiles className="mt-8 lg:grid-cols-6 lg:gap-x-6 lg:gap-y-6 xl:grid-cols-12 xl:gap-x-4" sizes="(min-width: 1280px) 9vw, 15vw" />
+          </Reveal>
+        </div>
       </section>
     </Container>
   );

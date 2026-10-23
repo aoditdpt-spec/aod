@@ -263,9 +263,14 @@ export const mostBooked: { service: string; category: string }[] = [
   { service: "Wedding film", category: "cinematographers" },
 ];
 
-// The category photo tiles (CategoryTiles, on /categories and a category page's "You can also
-// book"): a tile per category straight to its booking questions, and a last tile for anyone unsure.
+// The laptop homepage's "Book from these services" panel under the category carousel (eyebrow to
+// button), and the category photo tiles (CategoryTiles, on /categories and a category page's "You
+// can also book"): a tile per category straight to its booking questions, and one for anyone unsure.
 export const bookByCategory = {
+  eyebrow: "Book now",
+  title: "Book from these services",
+  text: "Pick who you need. Tell us about your event and we'll send curated matches with clear quotes.",
+  button: "Book now",
   tileAction: "Book now",
   unsure: { title: "Not sure who to book?", action: "Get matched" },
 };
