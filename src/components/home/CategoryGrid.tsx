@@ -36,7 +36,7 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
           </Reveal>
 
           <Reveal delay={0.1}>
-            <ExploreTiles className="mt-8 lg:grid-cols-6 lg:gap-x-6 lg:gap-y-6 xl:grid-cols-12 xl:gap-x-4" sizes="(min-width: 1280px) 9vw, 15vw" />
+            <ExploreTiles variant="panel" className="mt-10" />
           </Reveal>
         </div>
       </section>

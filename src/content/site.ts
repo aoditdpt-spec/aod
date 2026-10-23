@@ -253,12 +253,15 @@ export function getCategory(slug: string) {
   return categories.find((c) => c.slug === slug);
 }
 
-// "Most booked services" on the old homepage, in its original order.
-export const mostBooked: { service: string; category: string }[] = [
-  { service: "Event photography", category: "photographers" },
+// "Most booked services" on the old homepage, in its original order. `image` is the service's own
+// photo (in public/services/, 1600×960); without one the card shows the category's photo. The
+// three here are AI-generated mock photos (Gemini, its watermark cropped off) for the preview:
+// replace them with real AOD artists' work before launch, like the category photos.
+export const mostBooked: { service: string; category: string; image?: { src: string; width: number; height: number } }[] = [
+  { service: "Event photography", category: "photographers", image: { src: "/services/event-photography.jpg", width: 1600, height: 960 } },
   { service: "Wedding photography", category: "photographers" },
-  { service: "Party makeup", category: "makeup-artists" },
-  { service: "Candid photography", category: "photographers" },
+  { service: "Party makeup", category: "makeup-artists", image: { src: "/services/party-makeup.jpg", width: 1600, height: 960 } },
+  { service: "Candid photography", category: "photographers", image: { src: "/services/candid-photography.jpg", width: 1600, height: 960 } },
   { service: "Bridal makeup", category: "makeup-artists" },
   { service: "Wedding film", category: "cinematographers" },
 ];

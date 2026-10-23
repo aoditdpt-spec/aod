@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Star } from "lucide-react";
-import { getCategory, mostBooked, mostBookedSection as copy, type IconName } from "@/content/site";
+import { ArrowRight, Star } from "lucide-react";
+import { getCategory, mostBooked, mostBookedSection as copy } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
 import { Rating } from "@/components/ui/Rating";
@@ -15,15 +15,17 @@ import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 //   where Headout shows a price, "Get a quote" (AOD quotes per request). Two cards fit; the rest
 //   scroll in with the arrows or a swipe.
 // - Phones: a list, as Headout's "Top trending": the photo on the left, the details on the right.
-// - Laptops: a plain two-column list (MostBookedList), without photos.
-// Each card or phone row opens the category page's booking questions.
-export function MostBooked() {
-  const items = mostBooked.map(({ service, category }) => {
-    const cat = getCategory(category)!;
-    const s = cat.services.find((x) => x.name === service)!;
-    return { service, category: cat.name, slug: cat.slug, icon: cat.icon, image: cat.image, rating: s.rating, bookings: s.bookings };
-  });
+// - Laptops: the phone's list, wider and in two columns (MostBookedList).
+// Each card or row shows the service's own photo (`image` in `mostBooked`), or else its category's,
+// and opens the category page's booking questions.
+const items = mostBooked.map(({ service, category, image }) => {
+  const cat = getCategory(category)!;
+  const s = cat.services.find((x) => x.name === service)!;
+  return { service, category: cat.name, slug: cat.slug, icon: cat.icon, image: image ?? cat.image, rating: s.rating, bookings: s.bookings };
+});
+type Item = (typeof items)[number];
 
+export function MostBooked() {
   return (
     <section className="bg-wash py-16">
       <Container>
@@ -135,9 +137,9 @@ export function MostBooked() {
   );
 }
 
-// Laptops: no photos and no cards, just rows with the category's symbol on a small tile, the
-// service, its category, the rating and a link to the category, in two columns.
-function MostBookedList({ items }: { items: { service: string; category: string; slug: string; icon: IconName; rating: number; bookings: number }[] }) {
+// Laptops: the phone's list, wider: a white card per service with its photo on the left, then the
+// service, its category, the rating and "Get a quote", in two columns.
+function MostBookedList({ items }: { items: Item[] }) {
   return (
     <div className="hidden lg:block">
       <Reveal className="flex items-end justify-between gap-4">
@@ -153,29 +155,32 @@ function MostBookedList({ items }: { items: { service: string; category: string;
 
       {/* Top to bottom, then the second column, so the list reads in order of popularity. */}
       <StaggerList
-        className="mt-10 grid grid-flow-col grid-cols-2 gap-x-16 border-t border-line"
+        className="mt-10 grid grid-flow-col grid-cols-2 gap-x-6 gap-y-4"
         style={{ gridTemplateRows: `repeat(${Math.ceil(items.length / 2)}, auto)` }}
       >
         {items.map((item) => (
-          <StaggerItem key={item.service} className="border-b border-line">
-            <Link
-              href={`/categories/${item.slug}`}
-              className="group -mx-3 flex items-center gap-6 rounded-lg border border-transparent px-3 py-5 transition-colors hover:border-brand hover:bg-peach/40 hover:ring-1 hover:ring-brand"
-            >
-              <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach transition-colors group-hover:bg-brand">
-                <Icon name={item.icon} className="h-5 w-5 text-brand transition-colors group-hover:text-white" strokeWidth={1.75} />
+          <StaggerItem key={item.service}>
+            <Link href={`/categories/${item.slug}#book`} className={`flex h-full items-center gap-5 rounded-2xl bg-white p-3 ${linkCard}`}>
+              <span className="relative block aspect-[4/3] w-44 shrink-0 overflow-hidden rounded-xl bg-peach xl:w-52">
+                {item.image ? (
+                  <Image src={item.image.src} alt="" fill sizes="13rem" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <span className="flex h-full items-center justify-center">
+                    <Icon name={item.icon} className="h-9 w-9 text-brand" strokeWidth={1.5} />
+                  </span>
+                )}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className={`block truncate text-lg font-bold text-ink ${linkTitle}`}>{item.service}</span>
-                <span className={`mt-0.5 block text-sm text-muted ${linkText}`}>{item.category}</span>
+              <span className="min-w-0 flex-1 py-1">
+                <span className={`block truncate text-xl font-bold text-ink ${linkTitle}`}>{item.service}</span>
+                <span className={`mt-1 block text-sm text-muted ${linkText}`}>{item.category}</span>
+                <span className="mt-3 block">
+                  <Rating rating={item.rating} count={item.bookings} unit="bookings" />
+                </span>
               </span>
-              <span className="shrink-0">
-                <Rating rating={item.rating} count={item.bookings} unit="bookings" />
+              <span className="inline-flex shrink-0 items-center gap-1 pr-3 text-sm font-semibold text-brand">
+                {copy.action}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </span>
-              <ArrowUpRight
-                className="h-5 w-5 shrink-0 text-muted transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand"
-                aria-hidden
-              />
             </Link>
           </StaggerItem>
         ))}

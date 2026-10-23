@@ -543,7 +543,9 @@ own app.
 
 **Laptops keep the desktop design** (1024px and up, `lg:`): the full-screen video hero (`HeroDesktop`
 in `Hero.tsx`, with the booking walk-through from `HeroMotion.tsx`, copy in `hero.desktop`), the
-"Book from these services" under the coverflow (the phone hero's photo tiles, `ExploreTiles`), the plain two-column Most booked list, the /book choices
+"Book from these services" under the coverflow (the phone hero's photo tiles, bigger, 6 above and
+5 below: `ExploreTiles variant="panel"`), Most booked as the phone's photo list in two columns
+(service photos from `public/services/` where `mostBooked` gives one), the /book choices
 and booking options without photos, text-only category menu and search suggestions, and the smaller
 newsletter box. The two designs are meant to stay different: put app-only changes behind `max-lg:` /
 `lg:hidden` and leave the laptop layout as it is unless asked. Where a whole section differs, the
