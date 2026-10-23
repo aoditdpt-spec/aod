@@ -278,6 +278,16 @@ await as("gone@aod.test", async () => {
   check("deactivated staff see only published posts", (await count("select count(*) n from posts")) === 1);
   check("deactivated staff cannot read subscribers", (await count("select count(*) n from subscribers")) === 0);
 });
+// Order IDs (src/lib/order-id.ts): one number per order in a year, whatever the category code.
+await as("dev@aod.test", async () => {
+  const order = (id: string) => tries(`insert into bookings (id, customer_name, category, status) values ('${id}', 'X', 'photographers', 'new')`);
+  check("staff can add an order with a new-style ID", (await order("AOD-PH-102601")).ok);
+  check("a second order can't take the same number under another category", !(await order("AOD-MIX-102601")).ok);
+  check("…nor in another month of the same year", !(await order("AOD-DJ-112601")).ok);
+  check("the number starts again in a new year", (await order("AOD-PH-012701")).ok);
+  check("numbers past 99 have three digits and don't clash with two", (await order("AOD-PH-1026100")).ok && (await order("AOD-PH-102610")).ok);
+});
+
 await db.exec("delete from realtime.messages");
 await db.exec("update posts set title = 'Live!' where id = 'P-1'");
 check("a post change reaches the staff channel (the admin reloads)", (await sentTo("staff")) === 1);

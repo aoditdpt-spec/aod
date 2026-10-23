@@ -9,7 +9,7 @@ import { sectionLink } from "@/lib/site-url";
 // Where a record id leads.
 const hrefFor = (target?: string) => {
   if (!target) return null;
-  if (target.startsWith("B-")) return sectionLink(`/admin/bookings?open=${target}`);
+  if (target.startsWith("B-") || /^AOD-[A-Z]+-\d+$/.test(target)) return sectionLink(`/admin/bookings?open=${target}`);
   if (target.startsWith("APP-")) return sectionLink(`/admin/applications?open=${target}`);
   if (target.startsWith("ART-")) return sectionLink(`/admin/artists?open=${target}`);
   if (target.startsWith("PAY-")) return sectionLink(`/admin/payments?tab=all&open=${target}`);

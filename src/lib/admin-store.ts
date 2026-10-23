@@ -2,6 +2,7 @@
 
 import type { WorkDetails } from "./artist-store";
 import type { BookingItem } from "./booking-needs";
+import { nextOrderNumber, orderId } from "./order-id";
 import type { Brief } from "@/content/artist-brief";
 import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
@@ -89,7 +90,7 @@ export type BookingStatus =
   | "rescheduled";
 export type Booking = {
   id: string;
-  requestRef?: string; // AOD-1048: the customer's reference for the website request (same number as the booking)
+  requestRef?: string; // the customer's reference: the same as `id` for new orders (AOD-PH-102601); AOD-1048 for older ones (booking B-1048)
   createdAt: string;
   audience: "Personal" | "Business";
   customer: { name: string; phone: string; email: string };
@@ -461,7 +462,12 @@ export function useDb(): Db | null {
   return useSyncExternalStore(subscribe, backendEnabled ? getLiveDb : getPreviewDb, () => null);
 }
 
-// Next number in a series: B-1215 after B-1214, PAY-3102 after PAY-3101.
+// A new booking's order ID for these categories (AOD-PH-102601, AOD-MIX-… for several; src/lib/order-id.ts).
+export function newOrderId(categories: string[]): string {
+  return orderId(categories, nextOrderNumber(getDb().bookings.map((b) => b.id)));
+}
+
+// Next number in a series: PAY-3102 after PAY-3101, APP-206 after APP-205.
 export function newId(prefix: string): string {
   const db = getDb();
   const ids = [db.applications, db.artists, db.bookings, db.payments, db.payouts, db.leads, db.cases, db.posts, db.subscribers, db.newsletters, db.team].flat().map((x) => x.id);

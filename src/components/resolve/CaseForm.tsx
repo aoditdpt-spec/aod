@@ -177,7 +177,7 @@ export function CaseForm() {
           </label>
           <label className="block text-sm font-medium text-ink sm:col-span-2">
             Booking or request number
-            <input value={f.bookingRef} onChange={set("bookingRef")} placeholder="B-1215 or AOD-1215" className={input} required />
+            <input value={f.bookingRef} onChange={set("bookingRef")} placeholder="AOD-PH-102601" className={input} required />
             <span className="mt-1.5 block text-xs font-normal text-muted">{resolution.bookingRefHint}</span>
           </label>
           <label className="block text-sm font-medium text-ink sm:col-span-2">

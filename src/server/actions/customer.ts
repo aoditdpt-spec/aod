@@ -40,8 +40,10 @@ export async function myOrders(): Promise<MyOrders | null> {
   const refs = [...new Set(bookings.flatMap((b) => [b.id, b.requestRef]).filter((x): x is string => Boolean(x)))];
   const { data: payRows } = await db.from("payments").select("*").in("booking_id", refs);
   const payments = (payRows ?? []).map(fromRow.payment);
-  // Request AOD-1215 starts with booking B-1215 (src/server/actions/public.ts).
-  const firstOfRequest = (b: (typeof bookings)[number]) => !b.requestRef || b.id === `B-${b.requestRef.replace(/^AOD-/, "")}`;
+  // An older request AOD-1215 starts with booking B-1215; a new order's reference is its own ID
+  // (AOD-PH-102601, src/server/actions/public.ts).
+  const firstOfRequest = (b: (typeof bookings)[number]) =>
+    !b.requestRef || b.id === b.requestRef || b.id === `B-${b.requestRef.replace(/^AOD-/, "")}`;
 
   // Name and city of the artists matched to each booking (their craft is the line they're on).
   const artistIds = [...new Set(bookings.flatMap((b) => assignedArtists(b.items)))];

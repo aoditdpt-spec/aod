@@ -10,7 +10,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 import { Spinner } from "@/components/ui/Spinner";
 import { Badge, inputBase } from "./form";
 
-export type Booking = SampleBooking & { quote?: string };
+export type Booking = SampleBooking & { quote?: string; ref?: string };
 
 // Live: the artist's real requests and bookings. Preview: the sample bookings with whatever the
 // artist has done to them in this browser.
@@ -54,7 +54,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
     <article className="rounded-xl border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-xs text-muted">{booking.id}</p>
+          <p className="text-xs text-muted">{booking.ref ?? booking.id}</p>
           <h3 className="mt-0.5 text-lg font-bold text-ink">
             {booking.event} · {booking.service}
           </h3>
@@ -188,7 +188,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
 
       {(booking.status === "confirmed" || booking.status === "selected") && !compact && (
         <a
-          href={whatsappUrl(`Hi AOD, about booking ${booking.id} (${booking.event}, ${booking.date}).`)}
+          href={whatsappUrl(`Hi AOD, about booking ${booking.ref ?? booking.id} (${booking.event}, ${booking.date}).`)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-4 inline-flex text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-hover"

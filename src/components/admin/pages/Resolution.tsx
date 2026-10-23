@@ -6,6 +6,7 @@ import { caseStages } from "@/content/admin";
 import { resolution } from "@/content/resolution";
 import { currentUser, update, useDb, type CaseStatus, type ResolutionCase } from "@/lib/admin-store";
 import { itemsLabel } from "@/lib/booking-needs";
+import { sameOrder } from "@/lib/order-id";
 import { sectionLink, sectionUrl } from "@/lib/site-url";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
@@ -99,7 +100,8 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
   const db = useDb();
   const editable = useCan()("cases.edit");
   const [decision, setDecision] = useState(c.resolution ?? "");
-  const booking = db?.bookings.find((b) => b.id === c.bookingRef || b.requestRef === c.bookingRef);
+  // A case may name the order or one of its lines (AOD-DR-102602 of AOD-MIX-102602).
+  const booking = db?.bookings.find((b) => b.requestRef === c.bookingRef || sameOrder(b.id, c.bookingRef));
   const due = caseDue(c);
   const first = c.name.split(" ")[0];
 

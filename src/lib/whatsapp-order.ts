@@ -16,7 +16,7 @@ export type ParsedOrder = {
   name?: string;
   email?: string;
   phone?: string;
-  ref?: string; // AOD-1201. Missing, or AOD-0, means the website didn't save the request.
+  ref?: string; // AOD-PH-102601 (or an older AOD-1201). Missing, or AOD-0, means the website didn't save the request.
 };
 
 // The labels the booking form writes, and a few a person might type instead.
@@ -90,7 +90,7 @@ export function parseOrderMessage(text: string): ParsedOrder {
   if (email) order.email = email[0].toLowerCase();
   const phone = (fields.phone ?? "").replace(/[^\d+]/g, "");
   if (phone.replace(/\D/g, "").length >= 10) order.phone = phone;
-  const ref = /AOD-\d+/i.exec(fields.ref ?? "");
+  const ref = /AOD-(?:[A-Z]{2,3}-)?\d+/i.exec(fields.ref ?? "");
   if (ref) order.ref = ref[0].toUpperCase();
   return order;
 }

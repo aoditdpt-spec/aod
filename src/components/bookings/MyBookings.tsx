@@ -314,7 +314,7 @@ function BookingsView({
                     >
                       <span className="flex items-center justify-between gap-2 text-xs text-muted">
                         <span>
-                          {o.ref ? `${o.ref} · ${o.id}` : o.id}
+                          {o.ref && o.ref !== o.id ? `${o.ref} · ${o.id}` : o.id}
                           {o.sample && <span className="ml-2 rounded bg-wash px-1.5 py-0.5">Sample</span>}
                         </span>
                         <span className={`rounded-md px-2 py-0.5 font-medium ${s.tone}`}>{s.label}</span>

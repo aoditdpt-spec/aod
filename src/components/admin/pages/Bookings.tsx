@@ -6,9 +6,10 @@ import { useState, type DragEvent } from "react";
 import { activeBookingStages, bookingStages, paymentStatuses, templates, type TemplateId } from "@/content/admin";
 import { briefCommonRows, briefLines, briefRows } from "@/content/artist-brief";
 import { categories, cities } from "@/content/site";
-import { currentUser, newId, update, useDb, type Artist, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
+import { currentUser, newId, newOrderId, update, useDb, type Artist, type Booking, type BookingStatus, type Db } from "@/lib/admin-store";
 import { assignedArtists, itemFor, itemsLabel, MAX_ARTISTS, totalNeeded, withCount, worksIn, type BookingItem } from "@/lib/booking-needs";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
+import { lineId } from "@/lib/order-id";
 import { parseOrderMessage, pickService } from "@/lib/whatsapp-order";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { WhatsAppIcon } from "@/components/ui/Icon";
@@ -258,7 +259,8 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
     delivery: b.delivery?.link ?? delivery,
     expiry: fmtDate(b.delivery?.expires ?? expiry),
   };
-  // A message to the customer, or to one artist (named in it, about their own line of the order).
+  // A message to the customer, or to one artist (named in it, about their own line of the order,
+  // under that line's ID: AOD-DR-102602 of order AOD-MIX-102602).
   const send = (id: TemplateId, to: "customer" | Artist) =>
     to === "customer"
       ? whatsappTo(b.customer.phone, fillTemplate(id, vars))
@@ -267,13 +269,17 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
   // questions for their category, and the answers for everyone).
   function artistMessage(id: TemplateId, to: Artist) {
     const line = itemFor(b.items, to.id, to);
-    const text = fillTemplate(id, { ...vars, service: line?.service ?? vars.service, artist: to.name });
+    const text = fillTemplate(id, { ...vars, ref: line ? lineId(b.id, line.category) : vars.ref, service: line?.service ?? vars.service, artist: to.name });
     const brief = id === "artist_request" && line ? briefLines(b.brief, categoryName, [line.category]) : [];
     return brief.length ? `${text}\n\nBrief from the customer:\n${brief.map((l) => `- ${l}`).join("\n")}` : text;
   }
   const edit = (text: string, fn: (x: Booking) => void) => update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!), b.id);
   const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-ink hover:border-ink";
   const first = (a: Artist) => a.name.split(" ")[0];
+  const artistRef = (a: Artist) => {
+    const line = itemFor(b.items, a.id, a);
+    return line ? lineId(b.id, line.category) : b.id;
+  };
 
   return (
     <Drawer
@@ -291,7 +297,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             <WhatsAppIcon className="h-4 w-4" /> Customer
           </a>
           {artist && (
-            <a href={whatsappTo(artist.phone, `Hi ${first(artist)}, about ${b.id}: `)} target="_blank" rel="noopener noreferrer" className={waBtn}>
+            <a href={whatsappTo(artist.phone, `Hi ${first(artist)}, about ${artistRef(artist)}: `)} target="_blank" rel="noopener noreferrer" className={waBtn}>
               <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Artist
             </a>
           )}
@@ -688,7 +694,11 @@ function OrderLine({
   return (
     <div className="rounded-lg border border-line p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-medium text-ink">{name}</p>
+        <p className="font-medium text-ink">
+          {name}
+          {/* Each line of an order for several categories has its own ID: the order's number with its category's code. */}
+          {b.items.length > 1 && lineId(b.id, item.category) !== b.id && <span className="ml-2 text-xs font-normal text-muted">{lineId(b.id, item.category)}</span>}
+        </p>
         <span className={`text-xs ${full ? "text-emerald-700" : "text-muted"}`}>
           {item.artistIds.length} of {item.count} assigned
         </span>
@@ -960,7 +970,7 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
           permission="bookings.edit"
           disabled={!ok}
           onClick={() => {
-            const id = newId("B");
+            const id = newOrderId(lines.map((l) => l.category));
             const now = new Date().toISOString();
             const unsaved = fromMessage && (!fromMessage.ref || fromMessage.ref === "AOD-0");
             const note = fromMessage
@@ -972,8 +982,8 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
               (db) =>
                 void db.bookings.unshift({
                   id,
-                  // A customer reference like a website request's when it came from the website's message.
-                  requestRef: fromMessage ? `AOD-${id.slice(2)}` : undefined,
+                  // The order ID is also the customer's reference, as for a website request.
+                  requestRef: id,
                   createdAt: now,
                   audience: f.audience,
                   customer: { name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim().toLowerCase() },

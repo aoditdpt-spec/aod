@@ -2,6 +2,8 @@
 // (src/lib/whatsapp-order.ts), as the admin's "Paste a WhatsApp message" box does.
 // Run with: npm run check:orders
 import { needsText } from "../src/lib/booking-needs.ts";
+import { categories } from "../src/content/site.ts";
+import { categoryCodes, lineId, nextOrderNumber, orderId, sameOrder } from "../src/lib/order-id.ts";
 import { parseOrderMessage, pickService, type ParsedOrder } from "../src/lib/whatsapp-order.ts";
 
 const cases: { name: string; text: string; expect: Partial<ParsedOrder> }[] = [
@@ -185,6 +187,33 @@ for (const [text, expected] of services) {
   const ok = got === expected;
   if (!ok) failed++;
   console.log(`${ok ? "✓" : "✗"} service for ${JSON.stringify(text)} → ${got}${ok ? "" : `   (expected ${expected})`}`);
+}
+
+// Order IDs (src/lib/order-id.ts): AOD-<category code>-<MMYY><number>, numbered through the year.
+const oct = new Date("2026-10-23T10:00:00+05:30");
+const ids: [string, string, string][] = [
+  ["one category", orderId(["photographers"], 1, oct), "AOD-PH-102601"],
+  ["several categories are MIX", orderId(["photographers", "drone-pilots", "makeup-artists"], 2, oct), "AOD-MIX-102602"],
+  ["two lines of one category are still that category", orderId(["photographers", "photographers"], 3, oct), "AOD-PH-102603"],
+  ["past 99 the number grows", orderId(["musicians-djs"], 100, oct), "AOD-DJ-1026100"],
+  ["the month and year are India's (31 Dec 23:00 UTC is already January)", orderId(["models"], 1, new Date("2026-12-31T23:00:00Z")), "AOD-MO-012701"],
+  ["a line of a MIX order", lineId("AOD-MIX-102602", "drone-pilots"), "AOD-DR-102602"],
+  ["an older order's lines keep its ID", lineId("B-1215", "photographers"), "B-1215"],
+  ["the next number counts every category this year", String(nextOrderNumber(["AOD-PH-102601", "AOD-MIX-112607", "AOD-DJ-122505", "B-1300"], oct)), "8"],
+  ["a new year starts at 1", String(nextOrderNumber(["AOD-PH-122699"], new Date("2027-01-02T10:00:00+05:30"))), "1"],
+  ["past 99", String(nextOrderNumber(["AOD-PH-102699", "AOD-PH-1026100"], oct)), "101"],
+  ["a line ID names its order", String(sameOrder("AOD-MIX-102602", "aod-dr-102602")), "true"],
+  ["…but not another order", String(sameOrder("AOD-MIX-102602", "AOD-DR-102603")), "false"],
+  ["an older ID matches itself", String(sameOrder("B-1215", "b-1215")), "true"],
+  ["every category has its own code", String(new Set(Object.values(categoryCodes)).size === Object.keys(categoryCodes).length), "true"],
+  ["every category on the site has a code (add one in categoryCodes)", categories.filter((c) => !categoryCodes[c.slug]).map((c) => c.slug).join(", "), ""],
+  ["a new-style reference reads back from a WhatsApp message", parseOrderMessage("Booking for: Personal event\nName: Asha\nRef: AOD-MIX-102602").ref ?? "", "AOD-MIX-102602"],
+  ["an older reference still reads back", parseOrderMessage("Booking for: Personal event\nName: Asha\nRef: AOD-1230").ref ?? "", "AOD-1230"],
+];
+for (const [label, got, expected] of ids) {
+  const ok = got === expected;
+  if (!ok) failed++;
+  console.log(`${ok ? "✓" : "✗"} order ID: ${label} → ${got}${ok ? "" : `   (expected ${expected})`}`);
 }
 
 console.log(failed ? `\n${failed} failed` : "\nAll passed");

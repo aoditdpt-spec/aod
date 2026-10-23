@@ -132,7 +132,7 @@ export const templates = [
     id: "artist_request",
     to: "artist",
     name: "Availability check (artist)",
-    text: "Hi {artist}, new request: {service} for a {event} on {date} in {city}, budget {budget}. Are you available? Reply YES or NO. – Team AOD",
+    text: "Hi {artist}, new request {ref}: {service} for a {event} on {date} in {city}, budget {budget}. Are you available? Reply YES or NO. – Team AOD",
   },
   {
     id: "artist_confirmed",

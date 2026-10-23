@@ -112,7 +112,7 @@ export const resolution = {
   evidenceHint:
     "Links to the chats, invoice, contract, photos or payment screenshots (Google Drive, Google Photos, Dropbox…). You can also send them on WhatsApp later, quoting your case number.",
   bookingRefHint:
-    "The AOD booking or request number, like B-1215 or AOD-1215. Can't find it? Write the client's or artist's name and the event date.",
+    "The AOD booking or request number, like AOD-PH-102601. Can't find it? Write the client's or artist's name and the event date.",
   previewNotice:
     "The Dispute Desk isn't connected yet, so this case can't be saved here. Send it to AOD on WhatsApp instead; nothing has been sent until you do.",
   trackTitle: "Track a dispute",

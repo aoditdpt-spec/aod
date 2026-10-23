@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { templates, type TemplateId } from "@/content/admin";
 import { useDb, type Db } from "@/lib/admin-store";
 import { assignedArtists, itemFor, itemsLabel } from "@/lib/booking-needs";
+import { lineId } from "@/lib/order-id";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { artistList, artistName, Card, fieldClass, fmtDate, inr, Labelled, PageHeader, useCan, whatsappTo } from "../ui";
@@ -30,11 +31,16 @@ const automatic = [
 ];
 
 // The bookings to pick from. A message to artists goes to one artist, so a booking with several
-// assigned artists is listed once for each ("B-1215:ART-201").
+// assigned artists is listed once for each ("AOD-MIX-102602:ART-201").
 const bookingRecords = (db: Db, to: string) =>
   db.bookings.flatMap((b) =>
     to === "artist" && assignedArtists(b.items).length ? assignedArtists(b.items).map((a) => ({ id: `${b.id}:${a}`, b, artistId: a as string | undefined })) : [{ id: b.id, b, artistId: undefined }],
   );
+
+const lineRef = (b: Db["bookings"][number], artistId?: string) => {
+  const line = itemFor(b.items, artistId ?? "");
+  return line ? lineId(b.id, line.category) : b.id;
+};
 
 // Message templates with the details filled in from a booking or application, sent from the
 // team's WhatsApp until the WhatsApp Business Platform sends them automatically.
@@ -66,7 +72,8 @@ export function Messages() {
       event: b.event.toLowerCase(),
       date: fmtDate(b.date),
       city: b.city,
-      ref: b.id,
+      // An artist's own line ID (AOD-DR-102602 of order AOD-MIX-102602).
+      ref: t.to === "artist" ? lineRef(b, record.artistId) : b.id,
       amount: inr(due),
       quote: inr(b.quote),
       budget: b.budget,

@@ -1,9 +1,9 @@
 // How many artists of each category a booking needs, and which categories an artist works in.
 // No imports, so the server, the browser and scripts/order-check.mts can all use it.
 //
-// A request is one order (one booking, B-1215) however many kinds of artist it needs: one line
-// (`BookingItem`) per category, each saying how many artists ("Photographers × 3") and holding the
-// artists the team assigns to it. An artist has a main category and may also work in others.
+// A request is one order (one booking, AOD-MIX-102602: src/lib/order-id.ts) however many kinds of
+// artist it needs: one line (`BookingItem`) per category, each saying how many artists
+// ("Photographers × 3") and holding the artists the team assigns to it. An artist has a main category and may also work in others.
 
 // The most artists of one category a customer can ask for in one request.
 export const MAX_ARTISTS = 20;

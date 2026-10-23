@@ -11,7 +11,8 @@ import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { eventMinutes, timeRange } from "@/lib/event-time";
-import { insertWithNextId } from "@/server/ids";
+import { lineId } from "@/lib/order-id";
+import { insertOrder, insertWithNextId } from "@/server/ids";
 import { ALL_ORDERS_TAB, istNow, notifyEnabled, runJob, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
 
 // The public website's forms, saved on the server. Visitors aren't signed in, so these use the
@@ -109,16 +110,16 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
   const now = new Date().toISOString();
 
   try {
-    // One order for the whole request (B-1215), with a line for each category they need and how
-    // many artists of it; the customer's reference has the same number (AOD-1215).
+    // One order for the whole request (AOD-PH-102601, or AOD-MIX-… for several categories:
+    // src/lib/order-id.ts), with a line for each category they need and how many artists of it;
+    // the customer's reference is the same ID.
     const items: BookingItem[] = needs.map((c) => ({ category: c.slug, service: c.name, count: c.count, artistIds: [] }));
     // `withBrief` false: the database hasn't had the brief's column added yet (the ninth migration),
     // so the brief goes into the notes instead and the request is still saved.
     const save = (withBrief: boolean) =>
-      insertWithNextId(db, "bookings", "B", 1201, (n) => [
-      {
-        id: `B-${n}`,
-        request_ref: `AOD-${n}`,
+      insertOrder(db, items.map((i) => i.category), (id) => ({
+        id,
+        request_ref: id,
         created_at: now,
         audience,
         customer_name: name,
@@ -140,15 +141,14 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         history: [{ at: now, by: "Website", status: "new" }],
         notes_log: suspect ? [spamNote(now)] : [],
         source: "website",
-      },
-    ]);
+      }));
     let row: Record<string, unknown>;
     try {
-      [row] = await save(true);
+      row = await save(true);
     } catch (e) {
       if (!/brief/i.test(e instanceof Error ? e.message : "")) throw e;
       console.error("[booking request] the bookings table has no brief column yet: run the ninth migration");
-      [row] = await save(false);
+      row = await save(false);
     }
     const ref = String(row.request_ref);
     const id = String(row.id);
@@ -157,9 +157,10 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
       const received = istNow();
       // The columns of `sheetHeader` (src/server/notify.ts); "Artists needed" and "Brief" are last,
       // so rows written before them still line up. "All orders" gets one row for the order, listing
-      // everyone it needs; each category's tab gets a row with that category's part.
-      const sheetRow = (category: string, count: number, briefCell: string) => [
-        ref,
+      // everyone it needs; each category's tab gets a row with that category's part, under its line
+      // ID (AOD-DR-102602 of order AOD-MIX-102602).
+      const sheetRow = (lineRef: string, category: string, count: number, briefCell: string) => [
+        lineRef,
         id,
         received,
         audience,
@@ -178,15 +179,17 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
         briefCell,
       ];
       const jobs: Job[] = [
-        { kind: "sheet", tab: ALL_ORDERS_TAB, rows: [sheetRow(wanted, totalNeeded(items), briefText.join("\n"))] },
+        { kind: "sheet", tab: ALL_ORDERS_TAB, rows: [sheetRow(ref, wanted, totalNeeded(items), briefText.join("\n"))] },
         // Each category's tab gets that category's part of the brief and the shared answers.
-        ...needs.map((c): Job => ({ kind: "sheet", tab: c.name, rows: [sheetRow(c.name, c.count, briefLines(brief, nameOf, [c.slug]).join("\n"))] })),
+        ...needs.map((c): Job => ({ kind: "sheet", tab: c.name, rows: [sheetRow(lineId(id, c.slug), c.name,c.count, briefLines(brief, nameOf, [c.slug]).join("\n"))] })),
       ];
       const summary = [
         `Ref: ${ref}`,
         `Type: ${audience}`,
         `Occasion: ${occasion}`,
         `Looking for: ${wanted}`,
+        // An order for several categories: each line's own ID.
+        needs.length > 1 && `Lines: ${needs.map((c) => `${lineId(id, c.slug)} ${withCount(c.name, c.count)}`).join(", ")}`,
         `Date: ${date}`,
         `Time: ${when}`,
         `City: ${city}`,

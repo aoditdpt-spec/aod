@@ -350,7 +350,7 @@ that way on purpose so the check scripts can test them alone.
 | `staff.ts` | `currentStaff()`: the signed-in, active staff member (the admin's actions, blog uploads and the newsletter check it) |
 | `blog.ts` | `publishedPosts()`, `postBySlug()`: published posts for the public pages, read without signing in (preview: the sample posts) |
 | `email-layout.ts` | The look of AOD's HTML emails (newsletter, confirmation): `emailLayout()`, `emailButton()`, `emailStyles` |
-| `ids.ts` | `insertWithNextId()`: readable IDs (B-1201, APP-201…), retrying on a duplicate |
+| `ids.ts` | `insertWithNextId()`: readable IDs (APP-201, PAY-3101…), and `insertOrder()`: a new booking's order ID (AOD-PH-102601, `src/lib/order-id.ts`); both retry on a duplicate |
 | `live.ts` | Realtime channel names (`customer:<sha256 email>`, `artist:<id>`…) |
 
 Files in `src/server/actions/` start with `"use server"`: each exported function can be called
@@ -367,6 +367,9 @@ from the browser and runs on the server. Treat every argument as untrusted input
 | `20261014010000_outbox_rule.sql` | A "server only" policy on `outbox` |
 | `20261016000000_team_bookings.sql` | Several artists per booking (`artists_needed` 1–20, `artist_ids`; `artist_id` stays as the first), artists in several categories (`other_categories` on artists and applications), live updates for every assigned artist |
 | `20261016010000_one_order_per_request.sql` | One booking per request with a line per category (`items`), `artists_needed` may go above 20 in all, the "Customer cancelled a booking" alert; repeats the sixth step, so it works without it |
+| `20261019000000_blog_and_newsletter.sql` | The blog and newsletter: `posts`, `subscribers`, `newsletters`, the public `blog` bucket |
+| `20261019010000_artist_brief.sql` | The booking's `brief` column ("Brief for the artists") |
+| `20261023000000_order_ids.sql` | A unique index so no two orders share a year and number under different category codes (AOD-PH-102605 and AOD-DJ-102605) |
 
 Each file is run **once**, in date order, in Supabase's SQL Editor. Never edit a file that may
 already have been run: add a new dated file instead, and add a case to `scripts/db-check.mts`.
@@ -410,10 +413,12 @@ already have been run: add a new dated file instead, and add a case to `scripts/
    new code). If the code can't be sent, the visitor can still send the request on WhatsApp,
    marked `Ref: not saved on the website`. Preview: no email; any 6 digits pass.
 3. Live: the quiz calls `createBookingRequest()` (`src/server/actions/public.ts`). It validates
-   everything again, then inserts **one booking for the whole request** (B-1201), with a line in
-   `items` for each category and how many artists of it, and the customer's reference with the
-   same number (`AOD-1201`). Photographers × 2, a model and an anchor are one order with three
-   lines, one quote and one payment; the team assigns artists to each line.
+   everything again, then inserts **one booking for the whole request** with a line in `items`
+   for each category and how many artists of it (`insertOrder()` in `src/server/ids.ts`). Its ID,
+   which is also the customer's reference, is AOD-<category code>-<MMYY><number>: AOD-PH-102601
+   for photographers only, AOD-MIX-102602 for several categories (see **IDs** in section 8).
+   Photographers × 2, a model and an anchor are one order with three lines, one quote and one
+   payment; the team assigns artists to each line.
 4. Only after the save succeeds does the visitor see "received" with the reference. WhatsApp then
    opens with the reference in the message. If saving fails, the visitor is told and WhatsApp
    carries the request instead.
@@ -538,7 +543,7 @@ own app.
 
 **Laptops keep the desktop design** (1024px and up, `lg:`): the full-screen video hero (`HeroDesktop`
 in `Hero.tsx`, with the booking walk-through from `HeroMotion.tsx`, copy in `hero.desktop`), the
-category quick links under the coverflow, the plain two-column Most booked list, the /book choices
+"Book from these services" under the coverflow (the phone hero's photo tiles, `ExploreTiles`), the plain two-column Most booked list, the /book choices
 and booking options without photos, text-only category menu and search suggestions, and the smaller
 newsletter box. The two designs are meant to stay different: put app-only changes behind `max-lg:` /
 `lg:hidden` and leave the laptop layout as it is unless asked. Where a whole section differs, the
@@ -604,9 +609,23 @@ emails a day), the admin says how many got it.
 `posts`, `subscribers`, `newsletters` (the blog and newsletter, eighth migration), `outbox` (retries).
 Storage buckets: `portfolio` (public; artists' photos and videos) and `blog` (public; the blog's photos).
 
-**IDs** are readable references: `B-1201` (booking), `AOD-1201` (a customer request, from its first
-booking), `APP-201` (application), `ART-101` (artist), `PAY-3101` (payment), `L-401` (lead),
-`RC-1001` (case), `U-1` (staff member). The next number is the highest existing one plus one.
+**IDs** are readable references: `APP-201` (application), `ART-101` (artist), `PAY-3101`
+(payment), `L-401` (lead), `RC-1001` (case), `U-1` (staff member); the next number is the highest
+existing one plus one.
+
+**Order IDs** (`src/lib/order-id.ts`, no imports, tested by `check:orders`): a booking is
+`AOD-<category code>-<MMYY><number>`, such as `AOD-PH-102601`: the two-letter code of its category
+(`categoryCodes`: PH, CN, DR, AH, ED, DJ, CO, SI, MU, MO, CC; add one for a new category), the
+month and year it was made (India time), and its number in the year. The number counts every
+order of the year whatever its category (01 … 99, then 100 …) and starts again at 01 each January.
+An order of several categories is `AOD-MIX-…`; each of its lines has the same number with its own
+code (`lineId()`: `AOD-DR-102602` of `AOD-MIX-102602`), shown on the line's block in the admin
+drawer, the category tabs of the orders sheet, the artist's WhatsApp messages and the artist
+portal. `sameOrder()` matches a line ID to its order (the Dispute Desk). The ID is also the
+customer's reference (`request_ref`). The website takes the next number with `insertOrder()`, the
+admin with `newOrderId()`; the tenth migration's unique index refuses a second order with the same
+year and number, and the website then tries the next one. Orders made before keep `B-1201` with
+the customer's reference `AOD-1201`. An order that gets another category later keeps its ID.
 
 **Who can do what (row-level security):**
 
@@ -745,7 +764,7 @@ are baked into the browser code at build time.
 | `npm run check:search` | Search results for common queries and misspellings |
 | `npm run check:links` | Portfolio-link rules |
 | `npm run check:db` | Runs every migration on PGlite and checks each kind of user's access |
-| `npm run check:orders` | Reads sample WhatsApp messages from the booking form back into their fields (the admin's paste box) |
+| `npm run check:orders` | Reads sample WhatsApp messages from the booking form back into their fields (the admin's paste box), and checks the order IDs (codes, MIX, line IDs, the yearly count) |
 | `npm run check:xlsx` | Encrypts a workbook, then an independent decryptor (officecrypto-tool, dev only) opens it with the password, refuses a wrong one and gets the same bytes back. Pass a folder (`npm run check:xlsx -- <folder>`) to save the file and open it in Excel by hand |
 | `npm run check:markdown` | The blog and newsletter's Markdown: what each piece of formatting shows, and that scripts, `javascript:` links and outside photos never get through |
 

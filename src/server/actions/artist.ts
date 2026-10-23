@@ -8,6 +8,7 @@ import type { ArtistProfile } from "@/lib/artist-store";
 import type { ApplicationStatus, PortfolioFile } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
 import { allCategories, assignedArtists, itemFor, totalNeeded, type BookingItem } from "@/lib/booking-needs";
+import { lineId } from "@/lib/order-id";
 import { sectionUrl } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
@@ -28,6 +29,7 @@ export type Result = { ok: true } | { ok: false; error: string };
 // One booking request or booking, as the portal's cards show it.
 export type PortalBooking = {
   id: string;
+  ref?: string; // the ID the artist sees: their line's (AOD-DR-102602 of order AOD-MIX-102602), when it differs from `id`
   event: string;
   service: string;
   date: string; // display text: "Sat, 21 Nov 2026 · 8:00 PM – 1:00 AM (5 hours, ends next day)"
@@ -172,6 +174,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
     if (!status) continue; // went to other artists, or cancelled before they were picked
     bookings.push({
       id: b.id,
+      ref: item ? lineId(b.id, item.category) : undefined,
       event: b.event || "Event",
       service: (item ?? b.items[0])?.service ?? "",
       date: showDate(b.date, b.time, b.endTime),
