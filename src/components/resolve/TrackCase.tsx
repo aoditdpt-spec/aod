@@ -176,7 +176,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
         </div>
         <dl className="mt-6 grid gap-4 border-t border-line pt-5 text-sm sm:grid-cols-4">
           {[
-            ["Booking", c.bookingRef],
+            c.otherParty || !c.bookingRef ? ["With", c.otherParty ?? resolution.throughAod.outsideLabel] : ["Booking", c.bookingRef],
             ["Happened on", c.incidentDate ? fmt(c.incidentDate) : "—"],
             ["Would settle it", c.outcome],
             ["Raised as", roleLabel],

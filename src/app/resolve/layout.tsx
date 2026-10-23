@@ -8,7 +8,7 @@ import { sectionLink, siteHref } from "@/lib/site-url";
 import { sectionManifestPath } from "@/lib/pwa";
 
 const description =
-  "Client ghosted your invoice, or an artist didn't deliver? Raise a dispute with the other side of an AOD booking, get a case number, follow it and escalate it. Free.";
+  "Client ghosted your invoice, or an artist didn't deliver? Raise a dispute with the other side of a booking, made through AOD or not, get a case number, follow it and escalate it. Free.";
 
 // The Dispute Desk (the Resolution Centre in the code), at resolve.aod.co.in (src/proxy.ts; /resolve on localhost). Its own small
 // header and footer, so it reads as a separate, formal place rather than part of the booking site.

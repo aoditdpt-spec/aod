@@ -638,7 +638,7 @@ export const portals = {
       id: "resolve",
       who: "If there's a dispute",
       title: "Dispute Desk",
-      text: "Client ghosted your invoice, or an artist didn't deliver? AOD hears both sides and helps settle it.",
+      text: "Client ghosted your invoice, or an artist didn't deliver? Booked through AOD or not, AOD hears both sides and helps settle it.",
       points: ["Get a case number straight away", "A reply within 48 hours", "Track it, and escalate if needed"],
       cta: "Raise or track a dispute",
       href: "/resolve",

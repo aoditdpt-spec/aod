@@ -25,14 +25,19 @@ const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
 const linkOk = (l: string) => /^https?:\/\/[^\s]+\.[^\s]+$/i.test(l.trim());
 
 // The Dispute Desk's "Raise a dispute" form. `?role=` and `?ref=` pre-fill it (links from My
-// bookings and the artist portal). The disputes and outcomes offered depend on the side picked. Every field is required except evidence links. It only says "received" once
-// the case is saved; until the backend is connected it hands the case to WhatsApp instead.
+// bookings and the artist portal; a `ref` answers "booked through AOD?" with yes). The disputes and
+// outcomes offered depend on the side picked. A booking through AOD needs its number; one made
+// outside AOD needs who the dispute is with instead. Every field is required except evidence
+// links. It only says "received" once the case is saved; until the backend is connected it hands
+// the case to WhatsApp instead.
 export function CaseForm() {
   const params = useSearchParams();
   const [role, setRole] = useState<CaseRole | null>(isRole(params.get("role")) ? (params.get("role") as CaseRole) : null);
+  const [throughAod, setThroughAod] = useState<boolean | null>(params.get("ref") ? true : null);
   const [f, setF] = useState({
     issue: "",
     bookingRef: (params.get("ref") ?? "").slice(0, 60),
+    otherParty: "",
     incidentDate: "",
     description: "",
     outcome: "",
@@ -52,7 +57,9 @@ export function CaseForm() {
   const missing = [
     !role && "which side you're on",
     !issues.includes(f.issue) && "what the dispute is about",
-    f.bookingRef.trim().length < 3 && "the booking number",
+    throughAod === null && "whether it was booked through AOD",
+    throughAod === true && f.bookingRef.trim().length < 3 && "the booking number",
+    throughAod === false && f.otherParty.trim().length < 3 && "who the dispute is with",
     (!f.incidentDate || f.incidentDate > today()) && "the date it happened",
     f.description.trim().length < 20 && "what happened (a few sentences)",
     !outcomes.includes(f.outcome) && "what would settle it",
@@ -67,7 +74,7 @@ export function CaseForm() {
   const message = [
     "Hi AOD, I'd like to raise a dispute with the Dispute Desk.",
     `Who: ${f.name.trim()} (${roleLabel})`,
-    `Booking: ${f.bookingRef.trim()}`,
+    throughAod ? `Booking: ${f.bookingRef.trim()}` : `${resolution.throughAod.outsideLabel}. With: ${f.otherParty.trim()}`,
     `Dispute: ${f.issue}`,
     `When: ${f.incidentDate}`,
     `What happened: ${f.description.trim()}`,
@@ -78,10 +85,10 @@ export function CaseForm() {
   ].join("\n");
 
   async function submit() {
-    if (missing.length || !role) return;
+    if (missing.length || !role || throughAod === null) return;
     if (!backendEnabled) return setState({ kind: "preview" });
     setState({ kind: "saving" });
-    const res = await createCase({ role, ...f, evidence: links, agree });
+    const res = await createCase({ role, ...f, throughAod, evidence: links, agree });
     setState(res.ok ? { kind: "saved", id: res.id } : { kind: "error", error: res.error });
   }
 
@@ -175,11 +182,45 @@ export function CaseForm() {
             When it happened
             <input type="date" max={today()} value={f.incidentDate} onChange={set("incidentDate")} className={input} required />
           </label>
-          <label className="block text-sm font-medium text-ink sm:col-span-2">
-            Booking or request number
-            <input value={f.bookingRef} onChange={set("bookingRef")} placeholder="AOD-PH-102601" className={input} required />
-            <span className="mt-1.5 block text-xs font-normal text-muted">{resolution.bookingRefHint}</span>
-          </label>
+          <div className="sm:col-span-2" role="radiogroup" aria-label={resolution.throughAod.question}>
+            <p className="text-sm font-medium text-ink">{resolution.throughAod.question}</p>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {([true, false] as const).map((v) => (
+                <label
+                  key={String(v)}
+                  className={`cursor-pointer rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
+                    throughAod === v ? "border-brand bg-peach/40 text-ink" : "border-line text-ink hover:border-ink"
+                  }`}
+                >
+                  <input type="radio" name="throughAod" checked={throughAod === v} onChange={() => setThroughAod(v)} className="sr-only" />
+                  {v ? resolution.throughAod.yes : resolution.throughAod.no}
+                </label>
+              ))}
+            </div>
+          </div>
+          {throughAod === true && (
+            <label className="block text-sm font-medium text-ink sm:col-span-2">
+              {resolution.bookingRefLabel}
+              <input value={f.bookingRef} onChange={set("bookingRef")} placeholder="AOD-PH-102601" className={input} required />
+              <span className="mt-1.5 block text-xs font-normal text-muted">{resolution.bookingRefHint}</span>
+            </label>
+          )}
+          {throughAod === false && (
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-ink">
+                {resolution.throughAod.otherPartyLabel}
+                <input
+                  value={f.otherParty}
+                  onChange={set("otherParty")}
+                  placeholder="e.g. Rahul Shah (photographer), +91 98…, @rahulclicks"
+                  className={input}
+                  required
+                />
+                <span className="mt-1.5 block text-xs font-normal text-muted">{resolution.throughAod.otherPartyHint}</span>
+              </label>
+              <p className="mt-3 rounded-xl bg-wash px-4 py-3 text-sm text-body">{resolution.throughAod.outsideNote}</p>
+            </div>
+          )}
           <label className="block text-sm font-medium text-ink sm:col-span-2">
             What happened
             <textarea
@@ -263,7 +304,7 @@ export function CaseForm() {
         <label className="mt-5 flex items-start gap-3 text-sm text-body">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
           <span>
-            These details are true. AOD may share them with the other side of the booking to settle the dispute (see the{" "}
+            These details are true. AOD may share them with the other side to settle the dispute (see the{" "}
             <a href={siteHref("/privacy")} className="text-brand hover:underline">
               privacy policy
             </a>

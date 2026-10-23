@@ -1,7 +1,9 @@
 // AOD's Dispute Desk (/resolve, at resolve.aod.co.in; called the Resolution Centre in the code):
-// where an artist or the person who booked them raises a dispute with the other side of an AOD
-// booking, gets a case number, tracks it, and can escalate it. AOD sits in the middle: it hears
-// both sides and works towards a settlement. The wording points at the other side of the booking
+// where an artist or the person who booked them raises a dispute with the other side of a booking,
+// gets a case number, tracks it, and can escalate it. The booking can be one made through AOD or
+// not (booked directly, through another platform or by word of mouth). AOD sits in the middle: it
+// hears both sides and works towards a settlement; for a booking outside AOD it mediates, since it
+// never held the money. The wording points at the other side of the booking
 // (a client who ghosted an invoice, an artist who didn't deliver), never at AOD itself. It isn't a
 // help desk: questions and changes go to WhatsApp as usual.
 //
@@ -18,16 +20,16 @@ export const resolution = {
   title: "AOD Dispute Desk",
   tagline: "A dispute with a client or an artist? We'll help you settle it.",
   intro:
-    "Client ghosted your invoice, cancelled at the last minute, or an artist didn't deliver what was agreed? Raise it here. You get a case number, AOD hears both sides, and works towards a fair settlement. Free.",
+    "Client ghosted your invoice, cancelled at the last minute, or an artist didn't deliver what was agreed? Raise it here, whether or not the booking was made through AOD. You get a case number, AOD hears both sides, and works towards a fair settlement. Free.",
   notSupport:
-    "Questions, quotes or changes to a booking? Message AOD on WhatsApp instead. The Dispute Desk is for disagreements between a client and an artist that need settling.",
+    "Questions, quotes or changes to an AOD booking? Message AOD on WhatsApp instead. The Dispute Desk is for disagreements between a client and an artist that need settling.",
   promises: [
     { title: "A reply within 48 hours", text: "Someone at the Dispute Desk reads your case and gets in touch by email within two days." },
     { title: "An outcome within 30 days", text: "Most disputes settle in a few days. Every case gets an outcome within a month." },
     { title: "Escalate any time", text: "Not happy with the outcome? AOD's grievance officer reviews the case afresh." },
   ],
   steps: [
-    { title: "Tell us what happened", text: "Which booking, what the other side did or didn't do, and what would settle it for you." },
+    { title: "Tell us what happened", text: "Who it's with, what was agreed, what the other side did or didn't do, and what would settle it for you." },
     { title: "We hear both sides", text: "AOD contacts the client or the artist, and looks at the chats, invoices and booking records." },
     { title: "A fair settlement", text: "Payment of what's owed, a refund of the advance, a re-shoot, credit given, or a written agreement both sides sign." },
     { title: "Escalation if needed", text: "Still not settled? AOD's grievance officer reviews it, and you can take it further." },
@@ -101,7 +103,20 @@ export const resolution = {
   } satisfies Record<CaseRole, string[]>,
   grievanceOfficer: { name: "[name to add]", email: brand.email, phone: brand.phoneDisplay, phoneHref: brand.phoneHref },
   whoTitle: "Who can use the Dispute Desk",
-  whoText: "Both sides of an AOD booking: artists, and the people and businesses who book them. Pick the side you're on; the form asks the right questions.",
+  whoText:
+    "Both sides of a booking: artists, and the people and businesses who book them. It doesn't have to be an AOD booking: we also help with work booked directly, through another platform or by word of mouth. Pick the side you're on; the form asks the right questions.",
+  // The form's "Was it booked through AOD?" question. A booking outside AOD has no booking number,
+  // so the form asks who the dispute is with instead, and says what AOD can and can't do there.
+  throughAod: {
+    question: "Was it booked through AOD?",
+    yes: "Yes, through AOD",
+    no: "No, directly or elsewhere",
+    outsideLabel: "Not booked through AOD",
+    otherPartyLabel: "Who is the dispute with?",
+    otherPartyHint: "Their name and how to reach them: phone, email or Instagram. AOD contacts them to hear their side.",
+    outsideNote:
+      "For a booking made outside AOD, we mediate: we hear both sides and help you reach a settlement you both agree to in writing. AOD didn't handle the payment, so it can't refund or pay out money itself.",
+  },
   escalateTitle: "Not happy with the outcome?",
   escalateText:
     "Escalate the case from its tracking page and AOD's grievance officer reviews it afresh. You can also contact them directly:",
@@ -113,6 +128,7 @@ export const resolution = {
     "Links to the chats, invoice, contract, photos or payment screenshots (Google Drive, Google Photos, Dropbox…). You can also send them on WhatsApp later, quoting your case number.",
   bookingRefHint:
     "The AOD booking or request number, like AOD-PH-102601. Can't find it? Write the client's or artist's name and the event date.",
+  bookingRefLabel: "AOD booking or request number",
   previewNotice:
     "The Dispute Desk isn't connected yet, so this case can't be saved here. Send it to AOD on WhatsApp instead; nothing has been sent until you do.",
   trackTitle: "Track a dispute",

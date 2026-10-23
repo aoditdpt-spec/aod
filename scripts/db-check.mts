@@ -288,6 +288,13 @@ await as("dev@aod.test", async () => {
   check("numbers past 99 have three digits and don't clash with two", (await order("AOD-PH-1026100")).ok && (await order("AOD-PH-102610")).ok);
 });
 
+// Dispute Desk cases for a booking made outside AOD: no booking number, who it's with instead.
+await db.exec("insert into cases (id, role, name, email, issue, description, other_party) values ('RC-2', 'artist', 'Kavya', 'kavya@x.test', 'Unpaid or delayed payment', 'x', 'Rahul Shah, +91 98000 00000')");
+check(
+  "a case can be about a booking outside AOD (other_party, no booking number)",
+  (await db.query<{ other_party: string; booking_ref: string }>("select other_party, booking_ref from cases where id = 'RC-2'")).rows[0]?.booking_ref === "",
+);
+
 await db.exec("delete from realtime.messages");
 await db.exec("update posts set title = 'Live!' where id = 'P-1'");
 check("a post change reaches the staff channel (the admin reloads)", (await sentTo("staff")) === 1);

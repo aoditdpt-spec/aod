@@ -37,7 +37,7 @@ const columns: Column<ResolutionCase>[] = [
   { key: "id", label: "Case", render: (c) => <span className="font-medium">{c.id}</span>, value: (c) => c.id },
   { key: "name", label: "Raised by", render: (c) => c.name, value: (c) => c.name },
   { key: "issue", label: "Issue", render: (c) => <span className="line-clamp-1">{c.issue}</span>, value: (c) => c.issue },
-  { key: "booking", label: "Booking", render: (c) => c.bookingRef, value: (c) => c.bookingRef, hideOnMobile: true },
+  { key: "booking", label: "Booking", render: (c) => c.bookingRef || resolution.throughAod.outsideLabel, value: (c) => c.bookingRef || c.otherParty || "", hideOnMobile: true },
   { key: "created", label: "Raised", render: (c) => ago(c.createdAt), value: (c) => c.createdAt, hideOnMobile: true },
   {
     key: "due",
@@ -101,7 +101,8 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
   const editable = useCan()("cases.edit");
   const [decision, setDecision] = useState(c.resolution ?? "");
   // A case may name the order or one of its lines (AOD-DR-102602 of AOD-MIX-102602).
-  const booking = db?.bookings.find((b) => b.requestRef === c.bookingRef || sameOrder(b.id, c.bookingRef));
+  // Empty for a booking made outside AOD (then `otherParty` says who the dispute is with).
+  const booking = c.bookingRef ? db?.bookings.find((b) => b.requestRef === c.bookingRef || sameOrder(b.id, c.bookingRef)) : undefined;
   const due = caseDue(c);
   const first = c.name.split(" ")[0];
 
@@ -155,7 +156,8 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
       <DrawerSection title="The case">
         <Details
           rows={[
-            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand hover:underline">{c.bookingRef} ({itemsLabel(booking.items)}, {booking.customer.name})</Link> : c.bookingRef],
+            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand hover:underline">{c.bookingRef} ({itemsLabel(booking.items)}, {booking.customer.name})</Link> : c.bookingRef || resolution.throughAod.outsideLabel],
+            ...(c.otherParty ? [["With", c.otherParty] as [string, string]] : []),
             ["Happened on", fmtDate(c.incidentDate)],
             ["Wants", c.outcome],
             ["Raised", fmtDate(c.createdAt, true)],

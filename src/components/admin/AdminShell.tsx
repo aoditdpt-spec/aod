@@ -120,7 +120,7 @@ function GlobalSearch({ db }: { db: Db }) {
       ...db.bookings.filter((b) => hit(b.id, b.customer.name, b.city, ...b.items.map((i) => i.service))).map((b) => ({ href: sectionLink(`/admin/bookings?open=${b.id}`), label: `${b.id} · ${b.customer.name}`, hint: "Booking" })),
       ...db.artists.filter((a) => hit(a.id, a.name, a.city)).map((a) => ({ href: sectionLink(`/admin/artists?open=${a.id}`), label: a.name, hint: "Artist" })),
       ...db.applications.filter((a) => hit(a.id, a.name)).map((a) => ({ href: sectionLink(`/admin/applications?open=${a.id}`), label: a.name, hint: "Application" })),
-      ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.issue)).map((c) => ({ href: sectionLink(`/admin/resolution?open=${c.id}`), label: `${c.id} · ${c.name}`, hint: "Case" })),
+      ...db.cases.filter((c) => hit(c.id, c.name, c.bookingRef, c.otherParty, c.issue)).map((c) => ({ href: sectionLink(`/admin/resolution?open=${c.id}`), label: `${c.id} · ${c.name}`, hint: "Case" })),
       ...db.payments.filter((p) => hit(p.id, p.utr, p.payer, p.bookingId)).map((p) => ({ href: sectionLink(`/admin/payments?open=${p.id}`), label: `${p.id} · ${p.payer}`, hint: "Payment" })),
     ].slice(0, 8);
   }, [q, db]);

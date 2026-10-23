@@ -47,7 +47,7 @@ export function masterWorkbook(db: Db): Sheet[] {
     },
     {
       name: "Disputes",
-      rows: [["Case", "Raised", "Raised by", "Role", "Phone", "Email", "Booking", "Issue", "Happened on", "Wants", "Status", "Decision"], ...db.cases.map((c) => [c.id, c.createdAt.slice(0, 10), c.name, c.role, c.phone, c.email, c.bookingRef, c.issue, c.incidentDate, c.outcome, stageLabel(caseStages, c.status), c.resolution])],
+      rows: [["Case", "Raised", "Raised by", "Role", "Phone", "Email", "Booking", "With (outside AOD)", "Issue", "Happened on", "Wants", "Status", "Decision"], ...db.cases.map((c) => [c.id, c.createdAt.slice(0, 10), c.name, c.role, c.phone, c.email, c.bookingRef, c.otherParty, c.issue, c.incidentDate, c.outcome, stageLabel(caseStages, c.status), c.resolution])],
     },
     {
       name: "Newsletter subscribers",

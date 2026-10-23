@@ -164,7 +164,8 @@ export type ResolutionCase = {
   name: string;
   email: string;
   phone: string;
-  bookingRef: string;
+  bookingRef: string; // the AOD booking or request number; empty for a booking made outside AOD
+  otherParty?: string; // who the dispute is with, for a booking made outside AOD
   issue: string;
   incidentDate: string; // yyyy-mm-dd
   description: string;

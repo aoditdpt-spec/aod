@@ -22,7 +22,8 @@ export type TrackedCase = {
   createdAt: string;
   role: CaseRole;
   issue: string;
-  bookingRef: string;
+  bookingRef: string; // empty for a booking made outside AOD
+  otherParty?: string;
   incidentDate: string;
   outcome: string;
   status: CaseStatus;
@@ -47,7 +48,9 @@ const caseId = (v: unknown) => text(v, 20).toUpperCase().replace(/\s+/g, "");
 export type CaseInput = {
   role: CaseRole;
   issue: string;
+  throughAod: boolean; // booked through AOD (with a booking number), or outside it (who it's with)
   bookingRef: string;
+  otherParty: string;
   incidentDate: string; // yyyy-mm-dd
   description: string;
   outcome: string;
@@ -65,7 +68,9 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
 
   const role = resolution.roles.some((r) => r.id === input.role) ? input.role : null;
   const issue = text(input.issue, 80);
-  const bookingRef = text(input.bookingRef, 60);
+  const throughAod = input.throughAod !== false;
+  const bookingRef = throughAod ? text(input.bookingRef, 60) : "";
+  const otherParty = throughAod ? "" : text(input.otherParty, 200);
   const incidentDate = text(input.incidentDate, 10);
   const description = text(input.description, 4000);
   const outcome = text(input.outcome, 80);
@@ -76,7 +81,8 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
 
   if (!role) return { ok: false, error: "Choose which side you're on." };
   if (!resolution.issues[role].includes(issue)) return { ok: false, error: "Choose what the dispute is about." };
-  if (bookingRef.length < 3) return { ok: false, error: "Add the booking or request number." };
+  if (throughAod && bookingRef.length < 3) return { ok: false, error: "Add the booking or request number." };
+  if (!throughAod && otherParty.length < 3) return { ok: false, error: "Say who the dispute is with and how to reach them." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(incidentDate) || incidentDate > todayIst()) return { ok: false, error: "Add the date it happened (today or earlier)." };
   if (description.length < 20) return { ok: false, error: "Describe what happened in a little more detail." };
   if (!resolution.outcomes[role].includes(outcome)) return { ok: false, error: "Choose what would settle it for you." };
@@ -89,7 +95,10 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
   try {
     const db = createAdminClient();
     const now = new Date().toISOString();
-    const [row] = await insertWithNextId(db, "cases", "RC", 1001, (n) => [
+    // `withOtherParty` false: the database hasn't had the other_party column added yet (the eleventh
+    // migration), so who the dispute is with goes into booking_ref instead and the case still saves.
+    const save = (withOtherParty: boolean) =>
+      insertWithNextId(db, "cases", "RC", 1001, (n) => [
       {
         id: `RC-${n}`,
         created_at: now,
@@ -97,7 +106,8 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         name,
         email,
         phone,
-        booking_ref: bookingRef,
+        booking_ref: withOtherParty || throughAod ? bookingRef : `${resolution.throughAod.outsideLabel}: ${otherParty}`,
+        ...(withOtherParty ? { other_party: otherParty } : {}),
         issue,
         incident_date: incidentDate,
         description,
@@ -108,14 +118,23 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         notes: suspect ? [spamNote(now)] : [],
       },
     ]);
+    let row: Record<string, unknown>;
+    try {
+      [row] = await save(true);
+    } catch (e) {
+      if (!/other_party/i.test(e instanceof Error ? e.message : "")) throw e;
+      console.error("[resolution case] the cases table has no other_party column yet: run the eleventh migration");
+      [row] = await save(false);
+    }
     const id = String(row.id);
+    const about = throughAod ? `Booking: ${bookingRef}` : `${resolution.throughAod.outsideLabel}. With: ${otherParty}`;
     const roleLabel = resolution.roles.find((r) => r.id === role)!.label;
 
     after(async () => {
       const summary = [
         `Case: ${id}`,
         `From: ${name} (${roleLabel})`,
-        `Booking: ${bookingRef}`,
+        about,
         `Dispute: ${issue}`,
         `When: ${incidentDate}`,
         `Would settle it: ${outcome}`,
@@ -128,7 +147,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
         jobs.push({
           kind: "email",
           to: teamEmails(),
-          subject: spamSubject(suspect, `New dispute ${id}: ${issue} (${bookingRef})`),
+          subject: spamSubject(suspect, `New dispute ${id}: ${issue} (${throughAod ? bookingRef : resolution.throughAod.outsideLabel.toLowerCase()})`),
           text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         });
@@ -137,7 +156,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
           kind: "email",
           to: [email],
           subject: `The AOD Dispute Desk has your case ${id}`,
-          text: `Hi ${name},\n\nThe AOD Dispute Desk has your case. Someone will reply within 48 hours, and AOD will hear from the other side of the booking too.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
+          text: `Hi ${name},\n\nThe AOD Dispute Desk has your case. Someone will reply within 48 hours, and AOD will hear from the other side too.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
         });
       await runOrQueue(jobs);
     });
@@ -175,6 +194,7 @@ export async function trackCase(idInput: string, emailInput: string): Promise<Ca
         role: r.role as CaseRole,
         issue: String(r.issue),
         bookingRef: String(r.booking_ref ?? ""),
+        otherParty: r.other_party ? String(r.other_party) : undefined,
         incidentDate: String(r.incident_date ?? ""),
         outcome: String(r.outcome ?? ""),
         status: r.status as CaseStatus,
@@ -212,7 +232,7 @@ export async function escalateCase(idInput: string, emailInput: string, reasonIn
           kind: "email",
           to: teamEmails(),
           subject: `Dispute escalated to the grievance officer: ${id}`,
-          text: `${r.name} has escalated case ${id} (${r.issue}, booking ${r.booking_ref}).\n\nWhy: ${reason}\n\nOpen it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
+          text: `${r.name} has escalated case ${id} (${r.issue}, ${r.other_party ? `with ${r.other_party}, not booked through AOD` : `booking ${r.booking_ref}`}).\n\nWhy: ${reason}\n\nOpen it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
         },
         {
