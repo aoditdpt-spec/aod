@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useReducedMotionSafe } from "@/lib/motion-safe";
 
 // Phones held upright (narrower than 2:3) get the phone-shaped cut; every other screen the 1080p one.
@@ -11,6 +11,23 @@ const subscribeLoad = (onChange: () => void) => {
   return () => window.removeEventListener("load", onChange);
 };
 const pageLoaded = () => document.readyState === "complete";
+// Whether a media query matches, kept up to date (false on the server).
+function useMedia(query: string | undefined) {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!query) return () => {};
+      const list = window.matchMedia(query);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
+    },
+    [query],
+  );
+  return useSyncExternalStore(
+    subscribe,
+    () => !query || window.matchMedia(query).matches,
+    () => false,
+  );
+}
 // Data Saver on, or a 2G connection: keep the still poster.
 const lowData = () => {
   const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
@@ -28,12 +45,16 @@ const lowData = () => {
 // - Zoomed in 12% from the left edge (poster and video alike), which crops the right edge off so
 //   the "Million Minds Tech City" logo in the top-right corner of the footage never shows. The
 //   phones' cut is the middle of the frame, which leaves that corner out already, so it isn't zoomed.
+// - `media`: only fetch and play the video while this media query matches. The homepage has two
+//   heroes (the app-style one below 1024px, the full-screen one on laptops) and hides one with
+//   CSS, so this keeps the hidden one from downloading the video too.
 // The files are in public/media/, or wherever NEXT_PUBLIC_MEDIA_URL points (see Hero.tsx).
-export function HeroVideo({ base }: { base: string }) {
+export function HeroVideo({ base, media }: { base: string; media?: string }) {
   const reduce = useReducedMotionSafe();
   const loaded = useSyncExternalStore(subscribeLoad, pageLoaded, () => false);
   const [playing, setPlaying] = useState(false);
-  const showVideo = loaded && !reduce && !lowData();
+  const shown = useMedia(media);
+  const showVideo = loaded && shown && !reduce && !lowData();
 
   return (
     <div aria-hidden className="absolute inset-0 origin-left [@media(min-aspect-ratio:2/3)]:scale-[1.12]">

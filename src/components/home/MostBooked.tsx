@@ -1,18 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
-import { getCategory, mostBooked, mostBookedSection as copy } from "@/content/site";
+import { ArrowRight, ArrowUpRight, Star } from "lucide-react";
+import { getCategory, mostBooked, mostBookedSection as copy, type IconName } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
+import { Rating } from "@/components/ui/Rating";
 import { ScrollRow } from "@/components/ui/ScrollRow";
-import { Reveal } from "@/components/motion/Reveal";
+import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 
-// The most-booked services as a sideways row of cards, modelled on Headout's experience cards:
-// the category photo with a badge, "★ rating (bookings) · category", the service, two promises
-// with icons, and where Headout shows a price, "Get a quote" (AOD quotes per request). Four
-// cards fit on laptops; the rest scroll in with the arrows or a swipe. Phones get a list instead,
-// as Headout's "Top trending": the photo on the left, the details on the right. Each card or row opens the category page's booking questions.
+// The most-booked services, shown three ways:
+// - Tablets: a sideways row of cards modelled on Headout's experience cards: the category photo
+//   with a badge, "★ rating (bookings) · category", the service, two promises with icons, and
+//   where Headout shows a price, "Get a quote" (AOD quotes per request). Two cards fit; the rest
+//   scroll in with the arrows or a swipe.
+// - Phones: a list, as Headout's "Top trending": the photo on the left, the details on the right.
+// - Laptops: a plain two-column list (MostBookedList), without photos.
+// Each card or phone row opens the category page's booking questions.
 export function MostBooked() {
   const items = mostBooked.map(({ service, category }) => {
     const cat = getCategory(category)!;
@@ -23,7 +27,7 @@ export function MostBooked() {
   return (
     <section className="bg-wash py-16">
       <Container>
-        <Reveal>
+        <Reveal className="lg:hidden">
           <ScrollRow
             label="most booked services"
             seeAll={{ href: "/categories", label: copy.seeAll }}
@@ -73,7 +77,7 @@ export function MostBooked() {
             {items.map((item) => (
               <li
                 key={item.service}
-                className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3*1.25rem)/4)]"
+                className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)]"
               >
                 <Link href={`/categories/${item.slug}#book`} className={`flex h-full flex-col rounded-2xl bg-white p-2 ${linkCard}`}>
                   <span className="relative block aspect-[4/3] overflow-hidden rounded-xl bg-peach">
@@ -82,7 +86,7 @@ export function MostBooked() {
                         src={item.image.src}
                         alt=""
                         fill
-                        sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 78vw"
+                        sizes="(min-width: 640px) 45vw, 78vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
@@ -125,7 +129,57 @@ export function MostBooked() {
             ))}
           </ScrollRow>
         </Reveal>
+        <MostBookedList items={items} />
       </Container>
     </section>
+  );
+}
+
+// Laptops: no photos and no cards, just rows with the category's symbol on a small tile, the
+// service, its category, the rating and a link to the category, in two columns.
+function MostBookedList({ items }: { items: { service: string; category: string; slug: string; icon: IconName; rating: number; bookings: number }[] }) {
+  return (
+    <div className="hidden lg:block">
+      <Reveal className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{copy.eyebrow}</p>
+          <h2 className="mt-3 text-[2.5rem] font-normal">{copy.title}</h2>
+          <p className="mt-3 text-body">{copy.text}</p>
+        </div>
+        <Link href="/book" className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-hover">
+          {copy.desktopLink} <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </Reveal>
+
+      {/* Top to bottom, then the second column, so the list reads in order of popularity. */}
+      <StaggerList
+        className="mt-10 grid grid-flow-col grid-cols-2 gap-x-16 border-t border-line"
+        style={{ gridTemplateRows: `repeat(${Math.ceil(items.length / 2)}, auto)` }}
+      >
+        {items.map((item) => (
+          <StaggerItem key={item.service} className="border-b border-line">
+            <Link
+              href={`/categories/${item.slug}`}
+              className="group -mx-3 flex items-center gap-6 rounded-lg border border-transparent px-3 py-5 transition-colors hover:border-brand hover:bg-peach/40 hover:ring-1 hover:ring-brand"
+            >
+              <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach transition-colors group-hover:bg-brand">
+                <Icon name={item.icon} className="h-5 w-5 text-brand transition-colors group-hover:text-white" strokeWidth={1.75} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block truncate text-lg font-bold text-ink ${linkTitle}`}>{item.service}</span>
+                <span className={`mt-0.5 block text-sm text-muted ${linkText}`}>{item.category}</span>
+              </span>
+              <span className="shrink-0">
+                <Rating rating={item.rating} count={item.bookings} unit="bookings" />
+              </span>
+              <ArrowUpRight
+                className="h-5 w-5 shrink-0 text-muted transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand"
+                aria-hidden
+              />
+            </Link>
+          </StaggerItem>
+        ))}
+      </StaggerList>
+    </div>
   );
 }

@@ -376,15 +376,15 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                         type="button"
                         aria-pressed={Boolean(need)}
                         onClick={() => toggleNeed(c.slug)}
-                        className={`press flex h-full w-full items-center justify-between gap-2 rounded-xl py-2 pl-2 pr-3 text-left text-sm font-medium text-ink ${
+                        className={`press flex h-full w-full items-center justify-between gap-2 rounded-xl py-2 pl-2 pr-3 text-left text-sm font-medium text-ink lg:h-auto lg:px-4 lg:py-3 ${
                           need ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-2.5">
                           {c.image ? (
-                            <Image src={c.image.src} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                            <Image src={c.image.src} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover lg:hidden" />
                           ) : (
-                            <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white">
+                            <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white lg:hidden">
                               <Icon name={c.icon} className="h-5 w-5 text-brand" />
                             </span>
                           )}

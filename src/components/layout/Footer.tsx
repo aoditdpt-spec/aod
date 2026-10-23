@@ -125,7 +125,7 @@ export function Footer() {
         </div>
 
         {/* Right padding keeps the last words clear of the floating WhatsApp button. */}
-        <div className="mt-6 flex flex-col gap-2 border-t border-night-line pt-6 pr-16 text-sm text-white/60 sm:flex-row sm:justify-between">
+        <div className="mt-6 flex flex-col gap-2 border-t border-night-line pt-6 pr-16 text-sm text-white/60 lg:pr-20 sm:flex-row sm:justify-between">
           <p>
             © {new Date().getFullYear()} {brand.fullName} · {brand.domain}
           </p>

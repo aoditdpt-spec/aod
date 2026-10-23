@@ -271,7 +271,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 
 | Folder | What's in it |
 | --- | --- |
-| `home/` | One file per homepage section: `Hero` (+ `HeroVideo`, `ExploreGrid`: "What are you looking for?"), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Dispute Desk's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
+| `home/` | One file per homepage section: `Hero` (phones: `ExploreGrid`, "What are you looking for?"; laptops: the full-screen hero with `HeroDemo` from `HeroMotion`; both use `HeroVideo`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `MostBooked`, `VerifiedSection`, `Portals`, `ResolutionFlow` (the Dispute Desk's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
 | `layout/` | `Navbar` (client: category dropdown, search, city; on phones an app-style top bar with a back arrow and the city pill), `AppTabBar` (the bottom tab bar on phones and tablets and its More sheet), `Footer`, `AnnouncementBar`, `WhatsAppFab`, `InstallPrompt` |
 | `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Sheet` (the phone bottom sheet used for menus and pickers), `ScrollRow` (Headout-style sideways card row with See all and ← → buttons), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
@@ -527,14 +527,22 @@ browser's own install dialog with it (one more tap: no website can install itsel
 iPhones have no such offer, so the popup lists the Share → Add to Home Screen steps. "Not now"
 hides it for a week, the iPhone "Got it" for four (`aod-install-later` in localStorage).
 
-**Inside the installed app** (opened from the home screen) phones and tablets get a bottom tab bar,
-`src/components/layout/AppTabBar.tsx` (copy in `appMenu` in `site.ts`): Home, Book, My bookings and
-More, a sheet with every other place, including the artist portal, the Dispute Desk and the
-team's admin sign-in, since the app has no address bar. It uses the `standalone:` Tailwind variant
-(`@custom-variant` at the top of `globals.css`, `@media (display-mode: standalone)`), so it's pure
-CSS: the website in a browser tab is unchanged. In the app the hamburger hides, the WhatsApp button
-and the hero make room for the bar, and taps don't flash grey. Links to the separate sites open
-their own domains in an in-app browser tab; each of those installs as its own app.
+**Phones and tablets work like an app** (below 1024px, in a browser tab and in the installed app
+alike): a bottom tab bar, `src/components/layout/AppTabBar.tsx` (copy in `appMenu` in `site.ts`):
+Explore, Categories, Book, Bookings and More, a sheet with every other place, including the artist
+portal, the Dispute Desk and the team's admin sign-in, since the app has no address bar. The navbar
+becomes an app-style top bar (back arrow, logo, city pill, search), the homepage hero is a
+Headout-style banner with "What are you looking for?", and the WhatsApp button and footer make room
+for the tab bar. Links to the separate sites open their own domains; each of those installs as its
+own app.
+
+**Laptops keep the desktop design** (1024px and up, `lg:`): the full-screen video hero (`HeroDesktop`
+in `Hero.tsx`, with the booking walk-through from `HeroMotion.tsx`, copy in `hero.desktop`), the
+category quick links under the coverflow, the plain two-column Most booked list, the /book choices
+and booking options without photos, text-only category menu and search suggestions, and the smaller
+newsletter box. The two designs are meant to stay different: put app-only changes behind `max-lg:` /
+`lg:hidden` and leave the laptop layout as it is unless asked. Where a whole section differs, the
+component renders both versions and hides one with CSS (the hero's video only plays in the one shown).
 
 The manifest's `screenshots` (`public/screenshots/`: three phone shots of the app with its tab bar,
 780×1688, and one wide, 1366×768, WebP) show in Android's install dialog like a store listing.

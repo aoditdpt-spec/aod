@@ -13,7 +13,7 @@ import { Rating } from "@/components/ui/Rating";
 import { FinalCta } from "@/components/home/FinalCta";
 import { MatchQuiz } from "@/components/home/MatchQuiz";
 import { StaggerItem, StaggerList } from "@/components/motion/Reveal";
-import { tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
+import { linkCard, linkText, linkTitle, tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
 import { TiltCard } from "@/components/motion/TiltCard";
 import { StickyBookBar } from "@/components/categories/StickyBookBar";
 import { CategoryTiles } from "@/components/categories/CategoryTiles";
@@ -147,7 +147,22 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
 
       <Container className="pt-16">
         <h2 className="text-3xl font-normal sm:text-[2.5rem]">You can also book</h2>
-        <CategoryTiles items={others} className="mt-8" />
+        {/* Phones and tablets: photo tiles. Laptops: text cards with the category's symbol. */}
+        <CategoryTiles items={others} className="mt-8 lg:hidden" />
+        <StaggerList className="mt-8 hidden grid-cols-5 gap-4 lg:grid">
+          {others.map((c) => (
+            <StaggerItem key={c.slug}>
+              <Link
+                href={`/categories/${c.slug}`}
+                className={`flex h-full flex-col gap-4 rounded-card bg-white p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
+              >
+                <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
+                <span className={`font-bold text-ink ${linkTitle}`}>{c.name}</span>
+                <span className={`text-sm text-muted ${linkText}`}>{c.short}</span>
+              </Link>
+            </StaggerItem>
+          ))}
+        </StaggerList>
       </Container>
 
       <FinalCta />

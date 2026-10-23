@@ -36,17 +36,21 @@ export default function BookPage() {
           <StaggerItem key={href}>
             <Link
               href={href}
-              className={`flex h-full flex-col rounded-[1.5rem] bg-white p-3 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 sm:p-4 ${linkCard}`}
+              className={`flex h-full flex-col rounded-[1.5rem] bg-white p-3 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 sm:p-4 lg:p-10 ${linkCard}`}
             >
-              {/* The photo on top with the icon on a small tile, as Headout's cards. */}
-              <span className="relative block aspect-[16/9] overflow-hidden rounded-[1.1rem] bg-peach">
+              {/* Phones and tablets: the photo on top with the icon on a small tile, as Headout's
+                  cards. Laptops: the icon alone, without a photo. */}
+              <span className="hidden h-14 w-14 items-center justify-center rounded-xl bg-peach/60 lg:flex">
+                <I className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />
+              </span>
+              <span className="relative block aspect-[16/9] overflow-hidden rounded-[1.1rem] bg-peach lg:hidden">
                 <Image src={image} alt="" fill preload sizes="(min-width: 768px) 40rem, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
                 <span className="absolute bottom-3 left-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm">
                   <I className="h-6 w-6 text-brand" strokeWidth={1.5} aria-hidden />
                 </span>
               </span>
-              <span className="flex flex-1 flex-col px-3 pb-3 sm:px-5 sm:pb-5">
-                <span className={`mt-6 text-2xl font-medium text-ink sm:text-3xl ${linkTitle}`}>{label}</span>
+              <span className="flex flex-1 flex-col px-3 pb-3 sm:px-5 sm:pb-5 lg:p-0">
+                <span className={`mt-6 lg:mt-8 text-2xl font-medium text-ink sm:text-3xl ${linkTitle}`}>{label}</span>
                 <span className={`mt-2 flex-1 text-muted ${linkText}`}>{text}</span>
                 <span className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-brand px-6 font-medium text-white transition-colors group-hover:bg-brand-hover">
                   {label}

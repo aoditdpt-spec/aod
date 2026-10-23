@@ -283,6 +283,7 @@ export const mostBookedSection = {
   title: "Most booked services",
   text: "Verified artists, real reviews. Get matched in minutes — no haggling.",
   seeAll: "See all",
+  desktopLink: "Get your artist", // laptops' list links to /book instead of the cards' "See all"
   badge: "Verified artists",
   perks: [
     { icon: "calendar-sync", label: "Reschedule if plans change" },
@@ -353,6 +354,21 @@ export const hero = {
   artistLine: "Are you an artist?",
   artistLink: "Join AOD",
   searchPlaceholder: "Search for 'wedding photographer'",
+  // Laptops keep the full-screen video hero (HeroDesktop): the brand name as the heading, two
+  // buttons and the booking walk-through. The fields above are the phone and tablet hero's.
+  desktop: {
+    title: "Artists On Demand",
+    // Each entry is shown on its own line.
+    subtitle: ["Get yours now or browse categories", "and find your perfect match."],
+    primaryCta: "Get yours now",
+    secondaryCta: "Browse categories",
+    // Animated walk-through of a booking shown beside the headline. Illustrative steps, not real customers.
+    demo: [
+      { icon: "camera", title: "Request sent", text: "Wedding photographer · Ahmedabad · 14 Oct" },
+      { icon: "sparkles", title: "Curated matches ready", text: "Verified, with clear quotes" },
+      { icon: "signature", title: "Booking confirmed", text: "Digital contract shared on WhatsApp" },
+    ],
+  },
 };
 
 // Booking features shown on the homepage ("Book with confidence"). Cancellation and

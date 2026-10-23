@@ -56,7 +56,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           e.preventDefault();
           void submit();
         }}
-        className="mt-4 flex flex-col gap-2.5 sm:flex-row"
+        className="mt-4 flex flex-col gap-2.5 sm:flex-row lg:mt-3 lg:gap-2"
       >
         <label className="sr-only" htmlFor={`newsletter-${variant}`}>
           Email address
@@ -69,7 +69,8 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           onChange={(e) => setEmail(e.target.value)}
           placeholder={newsletter.placeholder}
           // `sm:flex-1`, not `flex-1`: in the stacked phone layout flex-1 let the box shrink to a sliver.
-          className={`h-14 w-full min-w-0 rounded-xl border px-5 text-base outline-none transition-colors sm:flex-1 ${
+          // Bigger on phones and tablets; laptops keep the smaller box.
+          className={`h-14 w-full min-w-0 rounded-xl border px-5 text-base outline-none transition-colors sm:flex-1 lg:h-11 lg:rounded-lg lg:px-4 lg:text-sm ${
             dark ? "border-white/20 bg-white/10 text-white placeholder:text-white/40 focus:border-apricot" : "border-line bg-white text-ink placeholder:text-muted/60 focus:border-brand"
           }`}
         />
@@ -78,7 +79,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
         <button
           type="submit"
           disabled={!valid || state.kind === "sending"}
-          className="press inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-base font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+          className="press inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-base font-semibold text-white hover:bg-brand-hover lg:h-11 lg:rounded-lg lg:px-5 lg:text-sm lg:font-medium disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state.kind === "sending" ? (
             <>
@@ -89,7 +90,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           )}
         </button>
       </form>
-      <p className={`mt-2.5 text-xs ${dark ? "text-white/50" : "text-muted"}`} role={state.kind === "error" || state.kind === "preview" ? "alert" : undefined}>
+      <p className={`mt-2.5 lg:mt-2 text-xs ${dark ? "text-white/50" : "text-muted"}`} role={state.kind === "error" || state.kind === "preview" ? "alert" : undefined}>
         {state.kind === "error" ? state.error : state.kind === "preview" ? newsletter.preview : newsletter.consent}
       </p>
     </div>

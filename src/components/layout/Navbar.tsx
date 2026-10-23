@@ -118,14 +118,9 @@ export function Navbar() {
               <ul className="grid grid-cols-2 gap-1">
                 {categories.map((c) => (
                   <li key={c.slug}>
-                    <Link href={`/categories/${c.slug}`} className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-wash">
-                      {c.image && (
-                        <Image src={c.image.src} alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
-                      )}
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium text-ink">{c.name}</span>
-                        <span className="block truncate text-xs text-muted">{c.short}</span>
-                      </span>
+                    <Link href={`/categories/${c.slug}`} className="block rounded-lg px-3 py-2 hover:bg-wash">
+                      <span className="block text-sm font-medium text-ink">{c.name}</span>
+                      <span className="block truncate text-xs text-muted">{c.short}</span>
                     </Link>
                   </li>
                 ))}

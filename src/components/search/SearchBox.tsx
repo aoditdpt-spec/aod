@@ -245,17 +245,18 @@ export function SearchBox({
               onMouseDown={(e) => e.preventDefault()}
               onMouseEnter={() => setActive(i)}
               onClick={() => go(r.href)}
-              className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm ${
+              className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm lg:gap-4 lg:px-4 lg:py-2.5 ${
                 i === active ? "bg-wash" : ""
               }`}
             >
               <span className="flex min-w-0 items-center gap-3">
+                {/* A photo (or the magnifier) before each suggestion on phones and tablets; laptops show the text alone. */}
                 {(() => {
                   const photo = photoFor(r.href);
                   return photo ? (
-                    <Image src={photo.src} alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                    <Image src={photo.src} alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-lg object-cover lg:hidden" />
                   ) : (
-                    <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wash">
+                    <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wash lg:hidden">
                       <Search className="h-4 w-4 text-muted" />
                     </span>
                   );
