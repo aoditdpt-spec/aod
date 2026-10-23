@@ -218,6 +218,26 @@ export const workQuestionsForAll = (main: string, others: string[] = []) => work
 export const workQuestionShown = (q: WorkQuestion, answers: Record<string, string | string[]> | undefined) =>
   !q.showIf || [answers?.[q.showIf.id] ?? []].flat().includes(q.showIf.is);
 
+// "None" means nothing else applies, so it can't be picked alongside another choice (picking it
+// clears the others, and picking another clears it). "Other" asks the applicant to write their own
+// answer, kept in the answer as "Other: <what they wrote>" so it reads the same in the review step,
+// the admin and the emails.
+export const exclusiveChoices = ["None"];
+export const OTHER = "Other";
+const otherPrefix = `${OTHER}: `;
+export const isOther = (answer: string) => answer === OTHER || answer.startsWith(otherPrefix);
+export const otherText = (answers: string[]) => answers.find((a) => a.startsWith(otherPrefix))?.slice(otherPrefix.length) ?? "";
+export const withOtherText = (text: string) => (text.trim() ? `${otherPrefix}${text.trimStart().slice(0, 60)}` : OTHER);
+// A question's answers after a tap on a choice: `next` as the chips give it, with "None" kept on
+// its own and the written "Other" answer kept while "Other" stays picked.
+export function pickChoices(previous: string[], next: string[]): string[] {
+  const added = next.find((c) => !previous.some((p) => p === c || (isOther(p) && c === OTHER)));
+  const picked = added && exclusiveChoices.includes(added) ? [added] : added ? next.filter((c) => !exclusiveChoices.includes(c)) : next;
+  return picked.map((c) => (c === OTHER ? previous.find(isOther) ?? OTHER : c));
+}
+// Whether a "many" or "one" answer is complete: a picked "Other" needs its own words.
+export const choicesComplete = (answers: string[]) => !answers.includes(OTHER);
+
 // These categories give both an Instagram link and a portfolio / showreel link (AOD's registration
 // forms ask each of them for both).
 export const bothLinksCategories = ["photographers", "cinematographers", "editors", "anchors-hosts", "comedians", "makeup-artists"];
@@ -261,7 +281,6 @@ export const uploadRules = {
     hint: "JPG, PNG, WebP or HEIC photos up to 15 MB; MP4 or MOV videos up to 200 MB. At least 6, up to 30.",
   },
   resume: { accept: "application/pdf", maxMb: 5, hint: "PDF up to 5 MB. Optional, but it helps for corporate and expo work." },
-  gst: { accept: "application/pdf,image/jpeg,image/png", maxMb: 5, hint: "Only if you invoice as a registered business. PDF or image up to 5 MB." },
 };
 
 // Identity: done through DigiLocker by a KYC provider, never by uploading an Aadhaar card.

@@ -83,8 +83,22 @@ export function FileDrop({
     if (pick) onChange([pick, ...files.filter((f) => f.id !== id)]);
   }
 
+  // The whole box opens the file picker, not only the "browse" word (a click on the hidden input
+  // itself, which the picker sends back up, is ignored so it doesn't open twice).
   const zone = (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${label}: drag ${multiple ? "files" : "a file"} here or click to choose`}
+      onClick={(e) => {
+        if (e.target !== inputRef.current) inputRef.current?.click();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
@@ -95,7 +109,7 @@ export function FileDrop({
         setOver(false);
         add(e.dataTransfer.files);
       }}
-      className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition-colors ${
+      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center outline-none transition-colors focus-visible:border-brand ${
         over ? "border-brand bg-peach/40" : "border-line bg-wash/60 hover:border-brand/50"
       }`}
     >
@@ -104,9 +118,7 @@ export function FileDrop({
       </span>
       <p className="text-sm text-ink">
         Drag {multiple ? "files" : "a file"} here or{" "}
-        <button type="button" onClick={() => inputRef.current?.click()} className="font-medium text-brand underline underline-offset-4">
-          browse
-        </button>
+        <span className="font-medium text-brand underline underline-offset-4">browse</span>
       </p>
       <p className="max-w-md text-xs text-muted">{hint}</p>
       <input
@@ -114,6 +126,7 @@ export function FileDrop({
         id={inputId}
         type="file"
         aria-label={label}
+        tabIndex={-1}
         accept={limits.accept}
         multiple={multiple}
         className="sr-only"

@@ -7,11 +7,10 @@ import { DigiLockerCard } from "./DigiLockerCard";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { Badge, Panel } from "./form";
 
-// Identity, resume, GST, agreement and payouts. Only what AOD needs, asked for when it's needed:
+// Identity, resume, agreement and payouts. Only what AOD needs, asked for when it's needed:
 // payout details come after the trial booking, and identity goes through DigiLocker.
 export function DocumentsPanel() {
   const [resume, setResume] = useState<PickedFile[]>([]);
-  const [gst, setGst] = useState<PickedFile[]>([]);
 
   return (
     <div className="mt-8 grid items-start gap-6 xl:grid-cols-[1.6fr_1fr]">
@@ -24,9 +23,6 @@ export function DocumentsPanel() {
           <FileDrop label="Resume" variant="single" files={resume} onChange={setResume} limits={uploadRules.resume} hint={uploadRules.resume.hint} />
         </Panel>
 
-        <Panel title="GST certificate" text="Only if you invoice as a registered business.">
-          <FileDrop label="GST certificate" variant="single" files={gst} onChange={setGst} limits={uploadRules.gst} hint={uploadRules.gst.hint} />
-        </Panel>
       </div>
 
       <div className="space-y-6">

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { inputBase } from "./form";
 
-// Portfolio links (Instagram, YouTube, Behance, Drive, website…). Each link is checked as it's
+// Portfolio links (Instagram, YouTube or Google Drive only). Each link is checked as it's
 // added: it must be a real public address, and chat links or private addresses are turned away.
 export function LinkEditor({ links, onChange, max = 8 }: { links: string[]; onChange: (links: string[]) => void; max?: number }) {
   const [draft, setDraft] = useState("");
@@ -74,7 +74,7 @@ export function LinkEditor({ links, onChange, max = 8 }: { links: string[]; onCh
                 add();
               }
             }}
-            placeholder="instagram.com/yourname or a YouTube, Behance or website link"
+            placeholder="instagram.com/yourname, or a YouTube or Google Drive link"
             aria-label="Portfolio link"
             aria-invalid={!!error}
             inputMode="url"

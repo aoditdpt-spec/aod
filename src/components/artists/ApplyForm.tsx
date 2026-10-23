@@ -4,7 +4,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { applySteps, bothLinksCategories, experienceLevels, languages, uploadRules, workQuestionShown, workQuestionsForAll, workSections } from "@/content/artist-portal";
+import {
+  applySteps,
+  bothLinksCategories,
+  choicesComplete,
+  experienceLevels,
+  isOther,
+  languages,
+  OTHER,
+  otherText,
+  pickChoices,
+  uploadRules,
+  withOtherText,
+  workQuestionShown,
+  workQuestionsForAll,
+  workSections,
+} from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { allCategories } from "@/lib/booking-needs";
@@ -20,7 +35,7 @@ import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
 import { LinkEditor } from "./LinkEditor";
 
-type Files = { samples: PickedFile[]; resume: PickedFile[]; gst: PickedFile[] };
+type Files = { samples: PickedFile[]; resume: PickedFile[] };
 
 const phoneDigits = (v: string) => v.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
 const validPhone = (v: string) => /^[6-9]\d{9}$/.test(phoneDigits(v));
@@ -61,11 +76,12 @@ function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: b
     for (const q of questionsFor(p)) {
       if (q.optional || !workQuestionShown(q, p.work)) continue;
       if (!answered(p.work?.[q.id])) e[q.id] = q.kind === "text" || q.kind === "long" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
+      else if (!choicesComplete([p.work?.[q.id] ?? []].flat())) e[q.id] = `You picked "${OTHER}": write your own answer in the box.`;
     }
   }
   if (step === "portfolio") {
     if (needsBothLinks(p) && (!p.links.some(isInstagram) || !p.links.some((l) => !isInstagram(l)))) {
-      e.samples = "Add both links: your Instagram profile, and a portfolio or showreel link (website, YouTube, Vimeo, Behance or Google Drive).";
+      e.samples = "Add both links: your Instagram profile, and a portfolio or showreel link (YouTube or Google Drive).";
     } else if (backendEnabled && p.links.length === 0) {
       e.samples = "Add at least one portfolio link (Instagram, YouTube, Drive…). Uploaded files aren't sent to AOD yet.";
     } else if (files.samples.length < uploadRules.samples.min && p.links.length === 0) {
@@ -86,7 +102,7 @@ export function ApplyForm() {
   const profile = profileStore.use() ?? emptyProfile;
   const [step, setStep] = useState(0);
   const [tried, setTried] = useState<Partial<Record<StepId, boolean>>>({});
-  const [files, setFiles] = useState<Files>({ samples: [], resume: [], gst: [] });
+  const [files, setFiles] = useState<Files>({ samples: [], resume: [] });
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
@@ -275,7 +291,7 @@ export function ApplyForm() {
           {current.id === "craft" && <CraftStep profile={profile} set={set} errors={shown} />}
           {current.id === "work" && <WorkStep profile={profile} set={set} errors={shown} />}
           {current.id === "portfolio" && <PortfolioStep profile={profile} set={set} errors={shown} files={files} setFiles={setFiles} />}
-          {current.id === "verify" && <VerifyStep profile={profile} set={set} errors={shown} files={files} setFiles={setFiles} />}
+          {current.id === "verify" && <VerifyStep profile={profile} set={set} errors={shown} />}
           {current.id === "review" && <ReviewStep profile={profile} files={files} goTo={goTo} />}
         </div>
 
@@ -621,6 +637,9 @@ function WorkQuestions({
             </Field>
           );
         const list = Array.isArray(v) ? v : v ? [v] : [];
+        // The chips show a written "Other: …" answer as the "Other" chip.
+        const shown = list.map((a) => (isOther(a) ? OTHER : a));
+        const save = (answers: string[]) => setAnswer(q.id, q.kind === "many" ? answers : (answers[0] ?? ""));
         return (
           <div key={q.id}>
             <p className="text-sm font-medium text-ink">{q.label}</p>
@@ -629,9 +648,19 @@ function WorkQuestions({
               label={q.short}
               multiple={q.kind === "many"}
               options={q.options ?? []}
-              value={list}
-              onChange={(next) => setAnswer(q.id, q.kind === "many" ? next : (next[0] ?? ""))}
+              value={shown}
+              onChange={(next) => save(pickChoices(list, next))}
             />
+            {list.some(isOther) && (
+              <input
+                value={otherText(list)}
+                onChange={(e) => save(list.map((a) => (isOther(a) ? withOtherText(e.target.value) : a)))}
+                placeholder="Write your own"
+                aria-label={`${q.short}: write your own`}
+                aria-invalid={!!errors[q.id]}
+                className={`${inputClass} mt-2 sm:max-w-sm`}
+              />
+            )}
             {errors[q.id] && <p className="mt-1.5 text-xs text-red-600">{errors[q.id]}</p>}
           </div>
         );
@@ -666,8 +695,8 @@ function PortfolioStep({
         <p className="text-sm font-medium text-ink">Portfolio links</p>
         <p className="mt-1 text-xs text-muted">
           {needsBothLinks(profile)
-            ? "Both are needed: your Instagram profile, and a portfolio or showreel link (your website, YouTube, Vimeo, Behance or Google Drive). Each link is checked as you add it."
-            : "Instagram, YouTube, Vimeo, Behance, Google Drive or your website. Each link is checked as you add it."}
+            ? "Both are needed: your Instagram profile, and a portfolio or showreel link (YouTube or Google Drive). Each link is checked as you add it."
+            : "Instagram, YouTube or Google Drive links only. Each link is checked as you add it."}
         </p>
         <LinkEditor links={profile.links} onChange={(links) => set({ links })} />
       </div>
@@ -694,13 +723,7 @@ function PortfolioStep({
   );
 }
 
-function VerifyStep({
-  profile,
-  set,
-  errors,
-  files,
-  setFiles,
-}: StepProps & { files: Files; setFiles: (f: (prev: Files) => Files) => void }) {
+function VerifyStep({ profile, set, errors }: StepProps) {
   return (
     <>
       <div>
@@ -708,20 +731,6 @@ function VerifyStep({
           Identity <span className="font-normal text-muted">(now or later, before you go live)</span>
         </p>
         <DigiLockerCard />
-      </div>
-
-      <div>
-        <p className="text-sm font-medium text-ink">
-          GST certificate <span className="font-normal text-muted">(optional)</span>
-        </p>
-        <FileDrop
-          label="GST certificate"
-          variant="single"
-          files={files.gst}
-          onChange={(gst) => setFiles((f) => ({ ...f, gst }))}
-          limits={uploadRules.gst}
-          hint={uploadRules.gst.hint}
-        />
       </div>
 
       <div className="space-y-3 rounded-xl border border-line p-5">

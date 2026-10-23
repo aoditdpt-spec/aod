@@ -3,7 +3,7 @@
 import { after } from "next/server";
 import { categories, cities, type Audience } from "@/content/site";
 import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
-import { bothLinksCategories, workQuestionShown, workQuestionsForAll } from "@/content/artist-portal";
+import { bothLinksCategories, choicesComplete, exclusiveChoices, isOther, OTHER, workQuestionShown, workQuestionsForAll } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
 import type { WorkDetails } from "@/lib/artist-store";
 import { MAX_ARTISTS, needsText, totalNeeded, withCount, type BookingItem } from "@/lib/booking-needs";
@@ -11,6 +11,7 @@ import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { eventMinutes, timeRange } from "@/lib/event-time";
+import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { lineId } from "@/lib/order-id";
 import { insertOrder, insertWithNextId } from "@/server/ids";
 import { ALL_ORDERS_TAB, istNow, notifyEnabled, runJob, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
@@ -306,6 +307,9 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   const given = input.work ?? {};
   const details: WorkDetails = {};
   for (const q of questions) {
+    // A listed choice, or "Other: <their own words>" when "Other" is listed; "None" stays on its own.
+    const choiceOk = (x: string) => !!q.options?.includes(x) || (!!q.options?.includes(OTHER) && isOther(x));
+    const keepNoneAlone = (xs: string[]) => (xs.some((x) => exclusiveChoices.includes(x)) ? xs.filter((x) => exclusiveChoices.includes(x)).slice(0, 1) : xs);
     if (!workQuestionShown(q, details)) continue;
     const v = given[q.id];
     const answer =
@@ -314,14 +318,18 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         : q.kind === "long"
           ? text(v, 600)
           : q.kind === "one"
-            ? (q.options?.find((o) => o === v) ?? "")
-            : strings(v, q.options?.length ?? 0, 60).filter((x) => q.options?.includes(x));
+            ? ([text(v, 80)].find(choiceOk) ?? "")
+            : keepNoneAlone(strings(v, q.options?.length ?? 0, 80).filter(choiceOk));
     if (!answer.length) {
       if (q.optional) continue;
       return { ok: false, error: `Answer "${q.label}" on the Your work details step.` };
     }
+    if (!choicesComplete([answer].flat())) return { ok: false, error: `"${q.label}": write your own answer for "${OTHER}".` };
     details[q.id] = answer;
   }
+  // Only Instagram, YouTube and Google Drive links (src/lib/portfolio-links.ts), as in the form.
+  const badLink = links.find((l) => !checkPortfolioLink(l).ok);
+  if (badLink) return { ok: false, error: `"${badLink}": only Instagram, YouTube and Google Drive links are accepted.` };
   if (slugs.some((s) => bothLinksCategories.includes(s))) {
     const insta = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
     if (!links.some(insta) || !links.some((l) => !insta(l)))

@@ -50,7 +50,7 @@ function Links() {
   const { profile } = useArtistProfile();
   const [error, setError] = useState<string | null>(null);
   return (
-    <Panel title="Portfolio links" text="Instagram, YouTube, Vimeo, Behance, Google Drive or your own website.">
+    <Panel title="Portfolio links" text="Instagram, YouTube or Google Drive links only.">
       <LinkEditor
         links={profile.links}
         onChange={(links) => {

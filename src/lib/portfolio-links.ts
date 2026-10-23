@@ -1,6 +1,7 @@
-// Checks a portfolio link an artist pastes in: is it a real web address, which platform is it,
-// and does it point at something a customer can open (a profile, channel or video, not a
-// chat link or a private file). Runs in the browser as the artist types; no imports, so it can
+// Checks a portfolio link an artist pastes in: is it a real web address, is it on one of the
+// platforms AOD accepts (Instagram, YouTube or Google Drive; any other site is turned away), and
+// does it point at something the team can open (a profile, channel, video, folder or file, not a
+// chat link or the platform's home page). Runs in the browser as the artist types; no imports, so it can
 // be tested on its own. Once the backend exists, the server should also fetch each link to
 // confirm it loads (see the platform plan doc).
 
@@ -57,32 +58,22 @@ export function checkPortfolioLink(input: string): LinkCheck {
     return { ok: false, message: "Add a YouTube channel or video link." };
   }
 
-  if (host === "vimeo.com") {
-    if (parts[0]) return { ok: true, url: clean, platform: "Vimeo", label: /^\d+$/.test(parts[0]) ? "Vimeo video" : `Vimeo ${parts[0]}` };
-    return { ok: false, message: "Add a Vimeo profile or video link." };
+  if (host === "drive.google.com") {
+    // A folder (drive/folders/…, drive/u/0/folders/…), a file (file/d/…) or an open?id= link.
+    const folder = parts[0] === "drive" && parts.includes("folders") && parts[parts.indexOf("folders") + 1];
+    const file = parts[0] === "file" && parts[1] === "d" && parts[2];
+    const open = parts[0] === "open" && url.searchParams.get("id");
+    if (folder || file || open) {
+      return {
+        ok: true,
+        url: clean,
+        platform: "Google Drive",
+        label: file ? "Google Drive file" : "Google Drive folder",
+        warning: "Set sharing to “Anyone with the link” so our team can open it.",
+      };
+    }
+    return { ok: false, message: "Add the link to a Google Drive folder or file (Share → Copy link)." };
   }
 
-  if (host === "behance.net") {
-    if (parts[0]) return { ok: true, url: clean, platform: "Behance", label: parts[0] === "gallery" ? "Behance project" : `Behance ${parts[0]}` };
-    return { ok: false, message: "Add your Behance profile link." };
-  }
-
-  if (host === "drive.google.com" || host === "photos.google.com" || host === "photos.app.goo.gl") {
-    return {
-      ok: true,
-      url: clean,
-      platform: "Google Drive",
-      label: host === "drive.google.com" ? "Google Drive folder" : "Google Photos album",
-      warning: "Set sharing to “Anyone with the link” so our team can open it.",
-    };
-  }
-
-  if (host === "facebook.com" || host === "fb.com") {
-    return { ok: true, url: clean, platform: "Facebook", label: "Facebook page" };
-  }
-
-  if (url.protocol === "http:") {
-    return { ok: true, url: clean, platform: "Website", label: host, warning: "This site isn't secure (http). Use the https:// link if there is one." };
-  }
-  return { ok: true, url: clean, platform: "Website", label: host };
+  return { ok: false, message: "Only Instagram, YouTube and Google Drive links are accepted." };
 }
