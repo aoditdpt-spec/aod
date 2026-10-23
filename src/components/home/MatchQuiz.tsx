@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Mail, MapPin, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Mail, MapPin, RotateCcw, X } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { Spinner } from "@/components/ui/Spinner";
@@ -15,6 +15,7 @@ import { backendEnabled } from "@/lib/backend";
 import { needsText, withCount } from "@/lib/booking-needs";
 import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
+import { takeRebook } from "@/lib/rebook";
 import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
 import { ArtistBrief } from "./ArtistBrief";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -138,6 +139,50 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     if (backendEnabled) signedInEmail().then(setVerifiedEmail, () => {});
   }, []);
 
+  // "Book again" from My bookings (src/lib/rebook.ts): that order's answers, filled in once. With
+  // its occasion and artists known, the questions open on the event details, where only the new
+  // date is left to pick.
+  const [rebooked, setRebooked] = useState(false);
+  useEffect(() => {
+    const draft = takeRebook(audience);
+    if (!draft) return;
+    const known = draft.needs.filter((n) => categories.some((c) => c.slug === n.slug) && n.count >= 1);
+    const knownOccasion = occasionList.some((o) => o.label === draft.occasion);
+    /* eslint-disable react-hooks/set-state-in-effect -- a one-time fill from this tab's storage, which the server can't read */
+    if (knownOccasion) setOccasion(draft.occasion);
+    if (known.length) setNeeds(known);
+    if (draft.city) setCity(draft.city);
+    if (draft.time && draft.endTime) {
+      setStartTime(draft.time);
+      setEndTime(draft.endTime);
+    }
+    if (draft.details) setDetails(draft.details);
+    if (knownOccasion && known.length) setStep(2);
+    setRebooked(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [audience, occasionList]);
+
+  // Once the request has gone (saved, or sent on WhatsApp), the questions make way for a
+  // confirmation; "Book another event" starts them again, keeping the contact details.
+  const sent = saved !== null || opened || saveError !== null;
+  const quizTop = useRef<HTMLDivElement>(null);
+  function startOver() {
+    setSaved(null);
+    setSaveError(null);
+    setOpened(false);
+    setRebooked(false);
+    setOccasion("");
+    setNeeds(initialNeeds.map((slug) => ({ slug, count: 1 })));
+    setDate("");
+    setStartTime("");
+    setEndTime("");
+    setDetails("");
+    setBrief({});
+    setDir(-1);
+    setStep(0);
+    quizTop.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   // When the question changes (not on first load), keyboard focus moves to the new question
   // once it has slid in (it only mounts after the old one has slid out).
   const heading = useRef<HTMLHeadingElement>(null);
@@ -210,7 +255,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   // reference the team can quote back.
   function sendPreview() {
     const ref = newRequestRef();
-    addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs: needLabels, date, city: city ?? "", details });
+    addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs: needLabels, needSlugs: needs, time: startTime, endTime, date, city: city ?? "", details });
     window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
     setOpened(true);
   }
@@ -288,8 +333,55 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     await save(tab);
   }
 
+  const card = "overflow-hidden rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10";
+
+  if (sent) {
+    const ref = saved ?? undefined;
+    const again = whatsappUrl([message, ref ? `Ref: ${ref}` : backendEnabled ? "Ref: not saved on the website" : ""].filter(Boolean).join("\n"));
+    return (
+      <div ref={quizTop} className={`${card} scroll-mt-28 text-center`} role="status">
+        <CheckCircle2 className={`mx-auto h-12 w-12 ${saved || !backendEnabled ? "text-emerald-600" : "text-amber-600"}`} aria-hidden />
+        <h3 className="mt-4 text-2xl font-bold text-ink">{saved ? "Request received" : backendEnabled ? "Sent on WhatsApp" : "Request sent on WhatsApp"}</h3>
+        {saved && <p className="mt-1 text-sm font-medium text-muted">Ref {saved}</p>}
+        <p className="mx-auto mt-3 max-w-md text-body">
+          {saved ? (
+            <>
+              WhatsApp opened with it pre-filled; tap <strong>send</strong> to chat with the AOD team. AOD replies with curated matches. You&apos;re signed in to My bookings as {cleanEmail}.
+            </>
+          ) : backendEnabled ? (
+            <>
+              {saveError} WhatsApp opened with your request; tap <strong>send</strong> so the AOD team gets it and adds it for you.
+            </>
+          ) : (
+            <>
+              WhatsApp opened with your request pre-filled; tap <strong>send</strong> to reach our team. You&apos;ll find it under My bookings.
+            </>
+          )}
+        </p>
+        <div className="mt-7 flex flex-wrap justify-center gap-3">
+          {(saved || !backendEnabled) && (
+            <Link href="/my-bookings" className="inline-flex h-12 items-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
+              View in My bookings
+            </Link>
+          )}
+          <a href={again} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-lg border border-line px-6 font-medium text-ink hover:border-ink">
+            <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Open WhatsApp again
+          </a>
+          <button type="button" onClick={startOver} className="inline-flex h-12 items-center gap-2 rounded-lg border border-line px-6 font-medium text-ink hover:border-ink">
+            <RotateCcw className="h-4 w-4" aria-hidden /> Book another event
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-hidden rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10">
+    <div ref={quizTop} className={`${card} scroll-mt-28`}>
+      {rebooked && (
+        <p className="mb-5 rounded-xl bg-wash px-4 py-3 text-sm text-ink" role="status">
+          Booking again: your last order&apos;s answers are filled in. Pick the new date and check the rest.
+        </p>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-medium text-muted">Three quick questions</p>
         <div className="flex items-center gap-2 text-xs text-ink" aria-label={`Question ${step + 1} of 3`}>
@@ -689,32 +781,6 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                     </p>
                   )}
                 </div>
-              )}
-              {saved && (
-                <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-ink" role="status">
-                  <strong>Request received · Ref {saved}.</strong> WhatsApp opened with it pre-filled; tap <strong>send</strong> to chat with
-                  the AOD team.{" "}
-                  Track it under{" "}
-                  <Link href="/my-bookings" className="font-medium text-brand underline underline-offset-2">
-                    My bookings
-                  </Link>
-                  , where you&apos;re signed in as {cleanEmail}.
-                </p>
-              )}
-              {saveError && (
-                <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-ink" role="alert">
-                  {saveError} WhatsApp opened with your request; tap <strong>send</strong> so the AOD team gets it.
-                </p>
-              )}
-              {opened && !backendEnabled && (
-                <p className="mt-4 rounded-xl bg-wash p-4 text-sm text-ink" role="status">
-                  WhatsApp opened with your request pre-filled — just tap <strong>send</strong> to reach our team. You can find this
-                  request later under{" "}
-                  <Link href="/my-bookings" className="font-medium text-brand underline underline-offset-2">
-                    My bookings
-                  </Link>
-                  .
-                </p>
               )}
             </>
           )}

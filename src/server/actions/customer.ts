@@ -68,6 +68,8 @@ export async function myOrders(): Promise<MyOrders | null> {
       status: b.status,
       occasion: b.event || "Booking",
       services: b.items.map((i) => withCount(i.service || categoryName(i.category), i.count)),
+      audience: b.audience === "Business" ? "business" : "personal",
+      again: b.items.map((i) => ({ slug: i.category, count: i.count })),
       date: b.date,
       time: b.time || undefined,
       endTime: b.endTime,

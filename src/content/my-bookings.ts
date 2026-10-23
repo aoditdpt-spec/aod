@@ -42,6 +42,9 @@ export type CustomerOrder = {
   status: BookingStatus | "sent";
   occasion: string;
   services: string[];
+  // "Book again": who it was for and the artists it needed, to fill in a new request with.
+  audience?: "personal" | "business";
+  again?: { slug: string; count: number }[];
   date: string; // yyyy-mm-dd, or "" if not fixed
   time?: string; // start, HH:MM
   endTime?: string; // end, HH:MM
@@ -80,6 +83,8 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       status: "quoted",
       occasion: "Sangeet",
       services: ["Wedding / sangeet DJ"],
+      audience: "personal",
+      again: [{ slug: "musicians-djs", count: 1 }],
       date: ymd(32),
       time: "19:00",
       city: "Vadodara",
@@ -102,6 +107,8 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       status: "confirmed",
       occasion: "Wedding",
       services: ["Wedding photography × 2"],
+      audience: "personal",
+      again: [{ slug: "photographers", count: 2 }],
       date: ymd(24),
       time: "10:00",
       city: "Ahmedabad",
@@ -131,6 +138,8 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       status: "delivered",
       occasion: "Pre-wedding",
       services: ["Pre-wedding shoot"],
+      audience: "personal",
+      again: [{ slug: "photographers", count: 1 }],
       date: ymd(-21),
       time: "07:00",
       city: "Vadodara",

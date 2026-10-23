@@ -18,6 +18,9 @@ export type SentRequest = {
   audience?: string;
   occasion: string;
   needs: string[];
+  needSlugs?: { slug: string; count: number }[]; // for "Book again"
+  time?: string;
+  endTime?: string;
   date: string;
   city: string;
   details: string;

@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, Scale, Star, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, RotateCcw, Scale, Star, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { canCancel, cancelDeadline, customerCancelHours, customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
 import { brand } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { portalHref } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
+import { startRebook } from "@/lib/rebook";
 import { cancelSentRequest, customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
 import { useHydrated } from "@/lib/motion-safe";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -59,7 +61,11 @@ const fromRequest = (r: SentRequest): CustomerOrder => ({
   status: r.cancelledAt ? "cancelled" : "sent",
   occasion: r.occasion,
   services: r.needs,
+  audience: r.audience === "business" ? "business" : r.audience === "personal" ? "personal" : undefined,
+  again: r.needSlugs,
   date: r.date,
+  time: r.time,
+  endTime: r.endTime,
   city: r.city,
   notes: r.details,
   artists: [],
@@ -425,6 +431,27 @@ function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: Can
   );
 }
 
+// "Book again": the booking questions for the same audience, with this order's occasion, artists
+// and how many of each, city, times and details filled in (src/lib/rebook.ts); only the new date
+// is left to pick. Shown for any order that knows what it needed, cancelled or done ones included.
+function BookAgain({ order: o }: { order: CustomerOrder }) {
+  const router = useRouter();
+  if (!o.again?.length) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const audience = o.audience ?? "personal";
+        startRebook({ audience, occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
+        router.push(`/book/${audience}`);
+      }}
+      className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-brand hover:text-brand"
+    >
+      <RotateCcw className="h-4 w-4" aria-hidden /> Book again
+    </button>
+  );
+}
+
 function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: CustomerOrder; onBack: () => void; onReview?: ReviewFn; onCancel: CancelFn }) {
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
@@ -458,6 +485,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
           </div>
           <span className={`rounded-md px-2.5 py-1 text-sm font-medium ${s.tone}`}>{s.label}</span>
         </div>
+        <BookAgain order={o} />
 
         {o.status === "sent" ? (
           <p className="mt-4 rounded-xl bg-wash p-4 text-sm text-body">

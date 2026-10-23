@@ -48,7 +48,7 @@ WhatsApp). It has four parts:
 | Customer site | `www.aod.co.in` | Customers and businesses | Browse categories, search, send a booking request, follow bookings in **My bookings**, read policies |
 | Artist portal | `artists.aod.co.in` | Artists and applicants | Apply to join, sign in, see onboarding status, edit profile, upload portfolio, set days off, quote or decline booking requests |
 | Admin panel | `admin.aod.co.in` | AOD staff | Review applications, manage artists and bookings, record and verify payments, handle cases, messages, reports, team, settings |
-| Dispute Desk | `resolve.aod.co.in` | Anyone with a booking problem | Raise a formal case, track it, escalate it |
+| Dispute Desk | `resolve.aod.co.in` | Artists and clients with a dispute, about an AOD booking or one made outside AOD | Raise a formal case, track it, escalate it |
 
 WhatsApp stays the main contact channel (click-to-chat links only, no WhatsApp API). Payments are
 taken by UPI or bank transfer outside the site; staff record them in the admin. There is no
@@ -344,7 +344,7 @@ that way on purpose so the check scripts can test them alone.
 | `actions/admin.ts` | `adminSession`, `loadAdminDb`, `saveAdminChanges`: checks the staff role, then saves the changed records |
 | `actions/newsletter.ts` | `subscribe` (double opt-in: saves a pending sign-up, emails a confirmation link), `confirmSubscription`, `unsubscribe`, `sendNewsletter` (staff: a test to yourself, or every confirmed subscriber through Resend's batch API) |
 | `actions/blog.ts` | `startBlogUpload`: a one-time upload link to the `blog` bucket, staff only |
-| `actions/resolution.ts` | Raise, track and escalate a case. Tracking needs the case number plus the email; never returns internal notes. |
+| `actions/resolution.ts` | Raise, track and escalate a case: about an AOD booking (its number) or one made outside AOD (who it's with, `other_party`). Tracking needs the case number plus the email; never returns internal notes. |
 | `notify.ts` | Emails (Resend), sheet rows (Google Sheets), `runOrQueue()` (try now, queue failures in `outbox`), `runJob()` (used by the retry route), team email list, notify settings |
 | `rows.ts` | `fromRow` / `toRow`: database rows (snake_case) ↔ admin types (camelCase) |
 | `staff.ts` | `currentStaff()`: the signed-in, active staff member (the admin's actions, blog uploads and the newsletter check it) |
@@ -370,6 +370,7 @@ from the browser and runs on the server. Treat every argument as untrusted input
 | `20261019000000_blog_and_newsletter.sql` | The blog and newsletter: `posts`, `subscribers`, `newsletters`, the public `blog` bucket |
 | `20261019010000_artist_brief.sql` | The booking's `brief` column ("Brief for the artists") |
 | `20261023000000_order_ids.sql` | A unique index so no two orders share a year and number under different category codes (AOD-PH-102605 and AOD-DJ-102605) |
+| `20261023010000_disputes_outside_aod.sql` | `cases.other_party`: who a dispute is with, for a booking made outside AOD (no booking number). Until it's run, the server writes that into `booking_ref` |
 
 Each file is run **once**, in date order, in Supabase's SQL Editor. Never edit a file that may
 already have been run: add a new dated file instead, and add a case to `scripts/db-check.mts`.
