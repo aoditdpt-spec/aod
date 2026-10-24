@@ -2,12 +2,12 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck } from "lucide-react";
-import { artistJoinMessage, hero, verifiedArtists } from "@/content/site";
+import { hero, verifiedArtists } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { SearchBox } from "@/components/search/SearchBox";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { portalHref } from "@/lib/site-url";
 import { ExploreGrid } from "./ExploreGrid";
 import { HeroDemo } from "./HeroMotion";
 import { HeroVideo } from "./HeroVideo";
@@ -70,9 +70,7 @@ function HeroApp() {
             <p className="mt-5 text-sm text-muted">
               {hero.artistLine}{" "}
               <a
-                href={whatsappUrl(artistJoinMessage)}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={portalHref("/artists/apply")}
                 className="font-semibold text-brand underline underline-offset-4 hover:text-brand-hover"
               >
                 {hero.artistLink}
@@ -134,9 +132,7 @@ function HeroDesktop() {
             <p className="mt-10 text-sm text-white/70">
               {hero.artistLine}{" "}
               <a
-                href={whatsappUrl(artistJoinMessage)}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={portalHref("/artists/apply")}
                 className="font-medium text-apricot underline underline-offset-4 hover:text-white"
               >
                 {hero.artistLink}

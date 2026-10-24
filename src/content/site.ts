@@ -481,7 +481,8 @@ export const verifiedArtists = {
   ],
 };
 
-// Artists join over WhatsApp until the online registration system is built.
+// The pre-filled WhatsApp message for artists who'd rather ask on WhatsApp than apply online
+// ("Join AOD" links go to the artist portal's application, /artists/apply).
 export const artistJoinMessage = "Hi Artists on Demand! I am an artist and I want to join AOD.";
 
 // The booking questions on each category page: that category is already picked, with how many
@@ -760,7 +761,7 @@ export const forArtists = {
   subtitle:
     "Your talent and potential, put in the right place at the right rate. We bring you real bookings — weddings, corporate events, expos — so you can focus on your art.",
   note: "Zero joining fees · Every artist is verified before going live",
-  cta: "Join AOD",
+  cta: "Ask on WhatsApp", // the WhatsApp alternative beside "Apply online"; "Join AOD" always means the portal
   // The artist portal (/artists, later artists.aod.co.in) is reached only from this page.
   applyCta: "Apply online",
   signInText: "Already with AOD?",
