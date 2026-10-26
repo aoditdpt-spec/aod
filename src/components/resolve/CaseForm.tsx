@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Plus, X } from "lucide-react";
-import { resolution, type CaseRole } from "@/content/resolution";
+import { AlertTriangle, Check, CheckCircle2, Plus, X } from "lucide-react";
+import { outcomesFor, resolution, type CaseRole } from "@/content/resolution";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { backendEnabled } from "@/lib/backend";
@@ -24,20 +24,23 @@ const today = () => {
 const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
 const linkOk = (l: string) => /^https?:\/\/[^\s]+\.[^\s]+$/i.test(l.trim());
 
-// The Dispute Desk's "Raise a dispute" form. `?role=` and `?ref=` pre-fill it (links from My
-// bookings and the artist portal; a `ref` answers "booked through AOD?" with yes). The disputes and
-// outcomes offered depend on the side picked. A booking through AOD needs its number; one made
-// outside AOD needs who the dispute is with instead. Every field is required except evidence
-// links. It only says "received" once the case is saved; until the backend is connected it hands
-// the case to WhatsApp instead.
+// The Dispute Desk's "Raise a dispute" form. It starts with the two ways a case runs (booked
+// through AOD, or outside it: `resolution.paths`), then the side, the dispute and the person's
+// details. `?aod=yes|no`, `?role=` and `?ref=` pre-fill it (links from /resolve, My bookings and
+// the artist portal; a `ref` means through AOD). A booking through AOD needs its number; one made
+// outside AOD needs who it's with and how to reach them, says what AOD can and can't do there, and
+// offers outcomes the other side can give (`outcomesFor`). Every field is required except
+// evidence links. It only says "received" once the case is saved; until the backend is connected
+// it hands the case to WhatsApp instead.
 export function CaseForm() {
   const params = useSearchParams();
   const [role, setRole] = useState<CaseRole | null>(isRole(params.get("role")) ? (params.get("role") as CaseRole) : null);
-  const [throughAod, setThroughAod] = useState<boolean | null>(params.get("ref") ? true : null);
+  const [throughAod, setThroughAod] = useState<boolean | null>(params.get("ref") || params.get("aod") === "yes" ? true : params.get("aod") === "no" ? false : null);
   const [f, setF] = useState({
     issue: "",
     bookingRef: (params.get("ref") ?? "").slice(0, 60),
-    otherParty: "",
+    otherName: "",
+    otherContact: "",
     incidentDate: "",
     description: "",
     outcome: "",
@@ -52,14 +55,21 @@ export function CaseForm() {
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
 
   const issues = role ? resolution.issues[role] : [];
-  const outcomes = role ? resolution.outcomes[role] : [];
+  const outcomes = role && throughAod !== null ? outcomesFor(role, throughAod) : [];
+  // Who a dispute outside AOD is with, as one line: "Rahul Shah · +91 98…, @rahulclicks".
+  const otherParty = [f.otherName.trim(), f.otherContact.trim()].filter(Boolean).join(" · ");
+  const pick = (aod: boolean) => {
+    setThroughAod(aod);
+    setF((x) => ({ ...x, outcome: role && outcomesFor(role, aod).includes(x.outcome) ? x.outcome : "" }));
+  };
   const links = evidence.map((l) => l.trim()).filter(Boolean);
   const missing = [
+    throughAod === null && "whether it was booked through AOD",
     !role && "which side you're on",
     !issues.includes(f.issue) && "what the dispute is about",
-    throughAod === null && "whether it was booked through AOD",
     throughAod === true && f.bookingRef.trim().length < 3 && "the booking number",
-    throughAod === false && f.otherParty.trim().length < 3 && "who the dispute is with",
+    throughAod === false && f.otherName.trim().length < 2 && "who the dispute is with",
+    throughAod === false && f.otherContact.trim().length < 3 && "how to reach them",
     (!f.incidentDate || f.incidentDate > today()) && "the date it happened",
     f.description.trim().length < 20 && "what happened (a few sentences)",
     !outcomes.includes(f.outcome) && "what would settle it",
@@ -74,7 +84,7 @@ export function CaseForm() {
   const message = [
     "Hi AOD, I'd like to raise a dispute with the Dispute Desk.",
     `Who: ${f.name.trim()} (${roleLabel})`,
-    throughAod ? `Booking: ${f.bookingRef.trim()}` : `${resolution.throughAod.outsideLabel}. With: ${f.otherParty.trim()}`,
+    throughAod ? `Booking: ${f.bookingRef.trim()}` : `${resolution.throughAod.outsideLabel}. With: ${otherParty}`,
     `Dispute: ${f.issue}`,
     `When: ${f.incidentDate}`,
     `What happened: ${f.description.trim()}`,
@@ -88,7 +98,7 @@ export function CaseForm() {
     if (missing.length || !role || throughAod === null) return;
     if (!backendEnabled) return setState({ kind: "preview" });
     setState({ kind: "saving" });
-    const res = await createCase({ role, ...f, throughAod, evidence: links, agree });
+    const res = await createCase({ role, ...f, otherParty, throughAod, evidence: links, agree });
     setState(res.ok ? { kind: "saved", id: res.id } : { kind: "error", error: res.error });
   }
 
@@ -126,11 +136,58 @@ export function CaseForm() {
       }}
       className="space-y-6"
     >
-      {/* 1. Who */}
+      {/* 1. Through AOD or not: the two ways a case runs. */}
       <fieldset className="rounded-panel border border-line bg-white p-6 sm:p-8">
+        <legend className="sr-only">{resolution.throughAod.question}</legend>
+        <p className="flex items-center gap-3 text-lg font-medium text-ink">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">1</span> {resolution.throughAod.question}
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {([true, false] as const).map((aod) => {
+            const path = aod ? resolution.paths.aod : resolution.paths.outside;
+            return (
+              <label
+                key={String(aod)}
+                className={`cursor-pointer rounded-xl border p-4 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${throughAod === aod ? "border-brand bg-peach/40" : "border-line hover:border-ink"}`}
+              >
+                <input type="radio" name="throughAod" checked={throughAod === aod} onChange={() => pick(aod)} className="sr-only" />
+                <span className="block font-medium text-ink">{aod ? resolution.throughAod.yes : resolution.throughAod.no}</span>
+                <span className="mt-0.5 block text-sm text-muted">{path.text}</span>
+              </label>
+            );
+          })}
+        </div>
+        {throughAod === false && (
+          <div className="mt-5 grid gap-4 rounded-xl bg-wash p-4 text-sm sm:grid-cols-2">
+            <div>
+              <p className="font-medium text-ink">What AOD can do</p>
+              <ul className="mt-2 space-y-1.5 text-body">
+                {resolution.paths.outside.can.map((t) => (
+                  <li key={t} className="flex gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-medium text-ink">What AOD can&apos;t do</p>
+              <ul className="mt-2 space-y-1.5 text-body">
+                {resolution.paths.outside.cant.map((t) => (
+                  <li key={t} className="flex gap-2">
+                    <X className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden /> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </fieldset>
+
+      {/* 2. Who */}
+      <fieldset disabled={throughAod === null} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">Which side you&apos;re on</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">1</span> Which side are you on?
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">2</span> Which side are you on?
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {resolution.roles.map((r) => (
@@ -148,7 +205,7 @@ export function CaseForm() {
                   setF((x) => ({
                     ...x,
                     issue: resolution.issues[r.id].includes(x.issue) ? x.issue : "",
-                    outcome: resolution.outcomes[r.id].includes(x.outcome) ? x.outcome : "",
+                    outcome: throughAod !== null && outcomesFor(r.id, throughAod).includes(x.outcome) ? x.outcome : "",
                   }));
                 }}
                 className="sr-only"
@@ -160,11 +217,11 @@ export function CaseForm() {
         </div>
       </fieldset>
 
-      {/* 2. What happened */}
-      <fieldset disabled={!role} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
+      {/* 3. What happened */}
+      <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">The dispute</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">2</span> The dispute
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">3</span> The dispute
         </p>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <label className="block text-sm font-medium text-ink">
@@ -182,22 +239,6 @@ export function CaseForm() {
             When it happened
             <input type="date" max={today()} value={f.incidentDate} onChange={set("incidentDate")} className={input} required />
           </label>
-          <div className="sm:col-span-2" role="radiogroup" aria-label={resolution.throughAod.question}>
-            <p className="text-sm font-medium text-ink">{resolution.throughAod.question}</p>
-            <div className="mt-1.5 flex flex-wrap gap-2">
-              {([true, false] as const).map((v) => (
-                <label
-                  key={String(v)}
-                  className={`cursor-pointer rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
-                    throughAod === v ? "border-brand bg-peach/40 text-ink" : "border-line text-ink hover:border-ink"
-                  }`}
-                >
-                  <input type="radio" name="throughAod" checked={throughAod === v} onChange={() => setThroughAod(v)} className="sr-only" />
-                  {v ? resolution.throughAod.yes : resolution.throughAod.no}
-                </label>
-              ))}
-            </div>
-          </div>
           {throughAod === true && (
             <label className="block text-sm font-medium text-ink sm:col-span-2">
               {resolution.bookingRefLabel}
@@ -206,20 +247,17 @@ export function CaseForm() {
             </label>
           )}
           {throughAod === false && (
-            <div className="sm:col-span-2">
+            <>
               <label className="block text-sm font-medium text-ink">
                 {resolution.throughAod.otherPartyLabel}
-                <input
-                  value={f.otherParty}
-                  onChange={set("otherParty")}
-                  placeholder="e.g. Rahul Shah (photographer), +91 98…, @rahulclicks"
-                  className={input}
-                  required
-                />
-                <span className="mt-1.5 block text-xs font-normal text-muted">{resolution.throughAod.otherPartyHint}</span>
+                <input value={f.otherName} onChange={set("otherName")} placeholder={role === "artist" ? "The client's name or company" : "The artist's name or studio"} className={input} required />
               </label>
-              <p className="mt-3 rounded-xl bg-wash px-4 py-3 text-sm text-body">{resolution.throughAod.outsideNote}</p>
-            </div>
+              <label className="block text-sm font-medium text-ink">
+                {resolution.throughAod.otherContactLabel}
+                <input value={f.otherContact} onChange={set("otherContact")} placeholder="Phone, email or Instagram" className={input} required />
+              </label>
+              <p className="-mt-2 text-xs text-muted sm:col-span-2">{resolution.throughAod.otherPartyHint}</p>
+            </>
           )}
           <label className="block text-sm font-medium text-ink sm:col-span-2">
             What happened
@@ -278,11 +316,11 @@ export function CaseForm() {
         </div>
       </fieldset>
 
-      {/* 3. Contact */}
-      <fieldset disabled={!role} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
+      {/* 4. Contact */}
+      <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">Your details</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">3</span> Your details
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">4</span> Your details
         </p>
         <div className="mt-5 grid gap-5 sm:grid-cols-3">
           <label className="block text-sm font-medium text-ink">
@@ -304,7 +342,7 @@ export function CaseForm() {
         <label className="mt-5 flex items-start gap-3 text-sm text-body">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
           <span>
-            These details are true. AOD may share them with the other side to settle the dispute (see the{" "}
+            These details are true. AOD may share them with the other side{throughAod === false ? " and contact them on my behalf" : ""} to settle the dispute (see the{" "}
             <a href={siteHref("/privacy")} className="text-brand hover:underline">
               privacy policy
             </a>

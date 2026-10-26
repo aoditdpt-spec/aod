@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { caseStages } from "@/content/admin";
-import { resolution } from "@/content/resolution";
+import { isOutsideCase, resolution } from "@/content/resolution";
 import { currentUser, update, useDb, type CaseStatus, type ResolutionCase } from "@/lib/admin-store";
 import { itemsLabel } from "@/lib/booking-needs";
 import { sameOrder } from "@/lib/order-id";
@@ -37,7 +37,13 @@ const columns: Column<ResolutionCase>[] = [
   { key: "id", label: "Case", render: (c) => <span className="font-medium">{c.id}</span>, value: (c) => c.id },
   { key: "name", label: "Raised by", render: (c) => c.name, value: (c) => c.name },
   { key: "issue", label: "Issue", render: (c) => <span className="line-clamp-1">{c.issue}</span>, value: (c) => c.issue },
-  { key: "booking", label: "Booking", render: (c) => c.bookingRef || resolution.throughAod.outsideLabel, value: (c) => c.bookingRef || c.otherParty || "", hideOnMobile: true },
+  {
+    key: "booking",
+    label: "Booking",
+    render: (c) => (isOutsideCase(c) ? <StatusBadge tone="neutral">{resolution.paths.outside.short}</StatusBadge> : c.bookingRef),
+    value: (c) => (isOutsideCase(c) ? `${resolution.paths.outside.short}: ${c.otherParty ?? ""}` : c.bookingRef),
+    hideOnMobile: true,
+  },
   { key: "created", label: "Raised", render: (c) => ago(c.createdAt), value: (c) => c.createdAt, hideOnMobile: true },
   {
     key: "due",
@@ -89,6 +95,14 @@ export function Resolution() {
         filters={[
           { label: "Status", options: caseStages.map((s) => ({ value: s.id, label: s.label })), test: (c, v) => c.status === v },
           { label: "Raised by", options: resolution.roles.map((r) => ({ value: r.id, label: r.label })), test: (c, v) => c.role === v },
+          {
+            label: "Booked",
+            options: [
+              { value: "aod", label: resolution.paths.aod.label },
+              { value: "outside", label: resolution.paths.outside.label },
+            ],
+            test: (c, v) => isOutsideCase(c) === (v === "outside"),
+          },
         ]}
       />
       {current && <CaseDrawer key={current.id} c={current} onClose={() => setOpen(null)} />}
@@ -178,6 +192,24 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
           </ul>
         )}
       </DrawerSection>
+
+      {isOutsideCase(c) && (
+        <DrawerSection title={`${resolution.paths.outside.label}: mediation only`}>
+          <p className="text-sm text-body">AOD never held the money here, so the outcome is a settlement both sides agree to, or a written summary for them to take further. No refunds or payouts from AOD.</p>
+          <ol className="mt-3 space-y-1.5 text-sm text-ink">
+            {resolution.paths.outside.steps.map((s, i) => (
+              <li key={s.title}>
+                <span className="font-medium">{i + 1}. {s.title}:</span> <span className="text-body">{s.text}</span>
+              </li>
+            ))}
+          </ol>
+          {c.otherParty && (
+            <p className="mt-3 rounded-lg bg-wash p-3 text-sm text-ink">
+              Contact them: <strong className="font-medium">{c.otherParty}</strong>
+            </p>
+          )}
+        </DrawerSection>
+      )}
 
       <DrawerSection title="Status">
         <div className="flex flex-wrap gap-2">

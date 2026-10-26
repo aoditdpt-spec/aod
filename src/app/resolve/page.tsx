@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Briefcase, CalendarCheck, Clock, FilePlus, Gavel, Palette, Scale, Search, User } from "lucide-react";
+import { ArrowRight, Briefcase, CalendarCheck, Check, Clock, FilePlus, Gavel, Palette, Scale, Search, User, X } from "lucide-react";
 import { brand } from "@/content/site";
 import { caseSteps, resolution } from "@/content/resolution";
 import { buttonClasses } from "@/components/ui/Button";
@@ -106,6 +106,66 @@ export default function ResolvePage() {
               );
             })}
           </ol>
+        </div>
+      </section>
+
+      {/* The two ways a case runs: through AOD, or outside it (mediation only). */}
+      <section className="mx-auto w-full max-w-page px-4 pt-14 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-medium text-ink">Booked through AOD, or not?</h2>
+        <p className="mt-2 max-w-2xl text-body">The Dispute Desk takes both. How a case runs depends on where the booking was made.</p>
+        <div className="mt-8 grid gap-4 lg:grid-cols-2">
+          <div className="flex flex-col rounded-card border border-line bg-white p-6 sm:p-8">
+            <h3 className="text-xl font-bold text-ink">{resolution.paths.aod.label}</h3>
+            <p className="mt-2 text-body">{resolution.paths.aod.text}</p>
+            <ol className="mt-5 flex-1 space-y-3">
+              {resolution.steps.map((s, i) => (
+                <li key={s.title} className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-medium text-white">{i + 1}</span>
+                  <span>
+                    <span className="block font-medium text-ink">{s.title}</span>
+                    <span className="block text-sm text-muted">{s.text}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <Link href={sectionLink("/resolve/new?aod=yes")} className={buttonClasses("primary", "md", "mt-6 self-start")}>
+              {resolution.paths.aod.cta} <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+          <div className="flex flex-col rounded-card border border-line bg-white p-6 sm:p-8">
+            <h3 className="text-xl font-bold text-ink">{resolution.paths.outside.label}</h3>
+            <p className="mt-2 text-body">{resolution.paths.outside.text}</p>
+            <ol className="mt-5 space-y-3">
+              {resolution.paths.outside.steps.map((s, i) => (
+                <li key={s.title} className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-brand bg-white text-xs font-medium text-brand">{i + 1}</span>
+                  <span>
+                    <span className="block font-medium text-ink">{s.title}</span>
+                    <span className="block text-sm text-muted">{s.text}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-5 grid flex-1 gap-4 rounded-xl bg-wash p-4 text-sm sm:grid-cols-2">
+              <ul className="space-y-1.5 text-body">
+                {resolution.paths.outside.can.map((t) => (
+                  <li key={t} className="flex gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
+                  </li>
+                ))}
+              </ul>
+              <ul className="space-y-1.5 text-body">
+                {resolution.paths.outside.cant.map((t) => (
+                  <li key={t} className="flex gap-2">
+                    <X className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden /> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Link href={sectionLink("/resolve/new?aod=no")} className={buttonClasses("outline", "md", "mt-6 self-start")}>
+              {resolution.paths.outside.cta} <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -47,7 +47,13 @@ export function ResolutionFlow() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-sm text-muted">
+        <p className="mt-4 text-sm text-ink">
+          <strong className="font-bold">{resolution.paths.outside.label}?</strong> We mediate those too, free.{" "}
+          <Link href={portalHref("/resolve/new?aod=no")} className="font-medium text-brand underline underline-offset-2">
+            {resolution.paths.outside.cta}
+          </Link>
+        </p>
+        <p className="mt-2 text-sm text-muted">
           {resolution.notSupport}{" "}
           <Link href={portalHref("/resolve")} className="font-medium text-brand underline underline-offset-2">
             More about the Dispute Desk

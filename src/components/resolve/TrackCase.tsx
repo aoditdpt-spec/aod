@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Check } from "lucide-react";
-import { caseSteps, resolution } from "@/content/resolution";
+import { caseSteps, caseStepsOutside, isOutsideCase, resolution } from "@/content/resolution";
 import { backendEnabled } from "@/lib/backend";
 import { escalateCase, trackCase, type TrackedCase } from "@/server/actions/resolution";
 import { Spinner } from "@/components/ui/Spinner";
@@ -151,8 +151,11 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  // How far along the four public steps the case has got, and when each was reached.
-  const order = caseSteps.map((s) => s.id as string);
+  // How far along the four public steps the case has got, and when each was reached. A case about
+  // a booking outside AOD shows the mediation steps (same stages, other words).
+  const outside = isOutsideCase(c);
+  const steps = outside ? caseStepsOutside : caseSteps;
+  const order = steps.map((s) => s.id as string);
   const reached = Math.max(...[...c.steps.map((s) => s.status), c.status].map((s) => order.indexOf(s)));
   const when = (status: string) => [...c.steps].reverse().find((s) => s.status === status)?.at;
   const finished = c.status === "resolved" || c.status === "closed";
@@ -169,6 +172,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
             </p>
             <h2 className="mt-1 text-2xl font-bold text-ink">Case {c.id}</h2>
             <p className="mt-1 text-body">{c.issue}</p>
+            {outside && <p className="mt-2 inline-flex rounded-md bg-wash px-2 py-0.5 text-xs font-medium text-ink ring-1 ring-line">{resolution.paths.outside.label}: AOD mediates</p>}
           </div>
           <button type="button" onClick={onBack} className="text-sm font-medium text-brand hover:underline">
             Look up another case
@@ -192,14 +196,14 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
       <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
         <h3 className="text-lg font-bold text-ink">Progress</h3>
         <ol className="mt-5 space-y-5">
-          {caseSteps.map((s, i) => {
+          {steps.map((s, i) => {
             // The step the case is on now (unless it's settled or escalated); earlier steps are ticked.
             const current = i === reached && !finished && c.status !== "escalated";
             const ticked = i <= reached && !current;
             const at = when(s.id);
             return (
               <li key={s.id} className="relative flex gap-4">
-                {i < caseSteps.length - 1 && <span aria-hidden className={`absolute left-[0.8125rem] top-8 h-[calc(100%-0.75rem)] w-px ${i < reached ? "bg-brand" : "bg-line"}`} />}
+                {i < steps.length - 1 && <span aria-hidden className={`absolute left-[0.8125rem] top-8 h-[calc(100%-0.75rem)] w-px ${i < reached ? "bg-brand" : "bg-line"}`} />}
                 <span
                   className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${ticked ? "bg-brand text-white" : current ? "border-2 border-brand bg-white text-brand" : "border border-line bg-white text-muted"}`}
                 >

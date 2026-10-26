@@ -101,6 +101,69 @@ export const resolution = {
       "Something else",
     ],
   } satisfies Record<CaseRole, string[]>,
+  // The two ways a case runs, picked first on the form ("Was it booked through AOD?") and shown side
+  // by side on /resolve. Through AOD: AOD arranged the booking and took the payment, so it can
+  // settle with money and artists (the steps above). Outside AOD: AOD only mediates, free; it never
+  // held the money, so it can't refund, pay out or force anyone to take part.
+  paths: {
+    aod: {
+      label: "Booked through AOD",
+      short: "Through AOD",
+      text: "AOD arranged the booking and took the payment, so a settlement can include a refund or payout under AOD's refund policy, or a replacement artist.",
+      cta: "Raise an AOD dispute",
+    },
+    outside: {
+      label: "Booked outside AOD",
+      short: "Outside AOD",
+      text: "Booked directly, through another platform or by word of mouth? The Dispute Desk mediates those too, free. You don't need an AOD account or booking number.",
+      cta: "Raise a non-AOD dispute",
+      steps: [
+        { title: "Tell us what happened", text: "Who it's with and how to reach them, what was agreed, and what would settle it for you." },
+        { title: "We contact the other side", text: "AOD reaches out by phone, WhatsApp or email to hear their side. Taking part is up to them." },
+        { title: "A written settlement", text: "If both sides agree, AOD writes the settlement down and both of you confirm it." },
+        { title: "If it doesn't settle", text: "AOD sends you a written summary of the case and the next step: the consumer helpline, free legal aid or MSME Samadhaan." },
+      ],
+      can: [
+        "Hear both sides and suggest a fair settlement",
+        "Write the agreement down for both sides to confirm",
+        "Give you a written summary to take further",
+        "Find you a replacement artist through AOD, if you want one",
+      ],
+      cant: ["Refund or pay out money: AOD never held it", "Make the other side take part", "Act as a court or give legal advice"],
+    },
+  },
+  // What would settle a case about a booking outside AOD: AOD can't hand over money itself, so
+  // each outcome is something the other side does, or a written record.
+  outcomesOutside: {
+    artist: [
+      "Get paid what I'm owed",
+      "Keep the advance or a cancellation fee",
+      "Payment for the extra work",
+      "Credit, or my work taken down",
+      "A written settlement both sides sign",
+      "A written summary to take further",
+      "Something else",
+    ],
+    customer: [
+      "A refund from the artist (full or part)",
+      "A re-shoot or a redo",
+      "The photos or videos delivered",
+      "A replacement artist through AOD",
+      "A written settlement both sides sign",
+      "A written summary to take further",
+      "Something else",
+    ],
+    business: [
+      "A refund from the artist (full or part)",
+      "A re-shoot or a redo",
+      "The files delivered",
+      "Usage rights or credit sorted",
+      "A replacement artist through AOD",
+      "A written settlement both sides sign",
+      "A written summary to take further",
+      "Something else",
+    ],
+  } satisfies Record<CaseRole, string[]>,
   grievanceOfficer: { name: "[name to add]", email: brand.email, phone: brand.phoneDisplay, phoneHref: brand.phoneHref },
   whoTitle: "Who can use the Dispute Desk",
   whoText:
@@ -113,9 +176,8 @@ export const resolution = {
     no: "No, directly or elsewhere",
     outsideLabel: "Not booked through AOD",
     otherPartyLabel: "Who is the dispute with?",
-    otherPartyHint: "Their name and how to reach them: phone, email or Instagram. AOD contacts them to hear their side.",
-    outsideNote:
-      "For a booking made outside AOD, we mediate: we hear both sides and help you reach a settlement you both agree to in writing. AOD didn't handle the payment, so it can't refund or pay out money itself.",
+    otherContactLabel: "How can AOD reach them?",
+    otherPartyHint: "AOD contacts them to hear their side, and only for this dispute. Taking part is up to them.",
   },
   escalateTitle: "Not happy with the outcome?",
   escalateText:
@@ -143,3 +205,17 @@ export const caseSteps = [
   { id: "investigating", label: "Hearing both sides", text: "AOD is talking to both sides and checking the chats, invoices and booking." },
   { id: "resolved", label: "Settled", text: "There's an outcome. If you're not satisfied, you can escalate it." },
 ] as const;
+
+// The same stages for a case about a booking outside AOD, where AOD mediates.
+export const caseStepsOutside: { id: (typeof caseSteps)[number]["id"]; label: string; text: string }[] = [
+  { id: "received", label: "Received", text: "The Dispute Desk has your case and will reply within 48 hours." },
+  { id: "acknowledged", label: "Contacting the other side", text: "AOD is reaching out to them to hear their side. Taking part is up to them." },
+  { id: "investigating", label: "Mediating", text: "AOD is talking to both sides and working towards a settlement you both agree to." },
+  { id: "resolved", label: "Settled or summarised", text: "Either a written settlement, or a written summary of the case and your next step." },
+];
+
+// The outcomes a case can ask for: AOD bookings can be settled with money; others are mediated.
+export const outcomesFor = (role: CaseRole, throughAod: boolean) => (throughAod ? resolution.outcomes : resolution.outcomesOutside)[role];
+
+// A case is about a booking outside AOD when it has no AOD booking number.
+export const isOutsideCase = (c: { bookingRef: string; otherParty?: string }) => !!c.otherParty || !c.bookingRef;

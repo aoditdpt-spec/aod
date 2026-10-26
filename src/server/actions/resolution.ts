@@ -1,7 +1,7 @@
 "use server";
 
 import { after } from "next/server";
-import { resolution, type CaseRole } from "@/content/resolution";
+import { outcomesFor, resolution, type CaseRole } from "@/content/resolution";
 import { backendEnabled } from "@/lib/backend";
 import { sectionUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -85,7 +85,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
   if (!throughAod && otherParty.length < 3) return { ok: false, error: "Say who the dispute is with and how to reach them." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(incidentDate) || incidentDate > todayIst()) return { ok: false, error: "Add the date it happened (today or earlier)." };
   if (description.length < 20) return { ok: false, error: "Describe what happened in a little more detail." };
-  if (!resolution.outcomes[role].includes(outcome)) return { ok: false, error: "Choose what would settle it for you." };
+  if (!outcomesFor(role, throughAod).includes(outcome)) return { ok: false, error: "Choose what would settle it for you." };
   if (evidence.some((l) => !linkOk(l))) return { ok: false, error: "Evidence links must be full web addresses (https://…)." };
   if (name.length < 2) return { ok: false, error: "Enter your name." };
   if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
@@ -156,7 +156,9 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
           kind: "email",
           to: [email],
           subject: `The AOD Dispute Desk has your case ${id}`,
-          text: `Hi ${name},\n\nThe AOD Dispute Desk has your case. Someone will reply within 48 hours, and AOD will hear from the other side too.\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
+          text: `Hi ${name},\n\nThe AOD Dispute Desk has your case. Someone will reply within 48 hours, and AOD will hear from the other side too.${
+            throughAod ? "" : `\n\nThis booking wasn't made through AOD, so AOD mediates: we contact them to hear their side and help you both agree a settlement in writing. AOD never held the money, so it can't refund or pay out itself. If it doesn't settle, you get a written summary of the case and your next step.`
+          }\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
         });
       await runOrQueue(jobs);
     });
