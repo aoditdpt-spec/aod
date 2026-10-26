@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarCheck2, CalendarDays, FileCheck2, Images, LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import { BadgeCheck, CalendarCheck2, CalendarDays, FileCheck2, Images, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import { portalSignOut, usePortalMode } from "@/lib/artist-live";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { useBookings } from "./BookingCard";
 import { sectionLink, sectionPath } from "@/lib/site-url";
 
+// Availability straight after Overview, then Approval (every onboarding step), on request.
 export const portalLinks = [
   { href: "/artists/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/artists/availability", label: "Availability", icon: CalendarDays },
+  { href: "/artists/approval", label: "Approval", icon: BadgeCheck },
   { href: "/artists/profile", label: "Profile", icon: UserRound },
   { href: "/artists/portfolio", label: "Portfolio", icon: Images },
   { href: "/artists/bookings", label: "Bookings", icon: CalendarCheck2 },
-  { href: "/artists/availability", label: "Availability", icon: CalendarDays },
   { href: "/artists/documents", label: "Documents", icon: FileCheck2 },
 ];
 

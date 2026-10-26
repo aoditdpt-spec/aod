@@ -7,7 +7,8 @@ import { categories, cities } from "@/content/site";
 import type { ArtistProfile } from "@/lib/artist-store";
 import type { ApplicationStatus, PortfolioFile } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
-import { allCategories, assignedArtists, itemFor, totalNeeded, type BookingItem } from "@/lib/booking-needs";
+import { allCategories, assignedArtists, itemFor } from "@/lib/booking-needs";
+import { artistOrder, stillOpen } from "@/lib/artist-orders";
 import { lineId } from "@/lib/order-id";
 import { sectionUrl } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
@@ -52,6 +53,9 @@ export type ArtistPortal = {
   applicationStatus?: ApplicationStatus;
   meeting?: { at: string; place: string };
   stage: number; // index into onboardingStages
+  identityVerified: boolean; // marked by the AOD team in the admin (no online check)
+  appliedAt?: string; // when the application was sent
+  approvedAt?: string; // when they went live (the artist record's joining date)
   profile: ArtistProfile;
   bookings: PortalBooking[];
   blockedDates: string[];
@@ -95,11 +99,6 @@ const notSignedIn = { ok: false as const, error: "You're signed out. Please sign
 
 // ---- Loading the portal ----
 
-// Whether a shortlisted artist's part of an order still needs someone: their line isn't full (or,
-// with no line in their categories, the order as a whole isn't).
-const stillOpen = (items: BookingItem[], item?: BookingItem) =>
-  item ? item.artistIds.length < item.count : assignedArtists(items).length < totalNeeded(items);
-
 const stageOf = (status: ApplicationStatus) => (status === "trial" ? 2 : status === "approved" ? 3 : status === "submitted" ? 0 : 1);
 
 const showDate = (date: string, start: string, end?: string) => {
@@ -132,6 +131,8 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         applicationStatus: app.status,
         meeting: app.meeting,
         stage: stageOf(app.status),
+        identityVerified: app.kyc === "verified",
+        appliedAt: app.submittedAt,
         profile: { fullName: app.name, phone: app.phone, email: app.email, city: app.city, category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, photo: app.photo ?? "", agreeTerms: true },
         bookings: [],
         blockedDates: [],
@@ -143,6 +144,8 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
 
   const artist = fromRow.artist(account.row);
   topics.push(artistTopic(artist.id));
+  // The application they were approved from, for the Approval page's dates.
+  const { data: application } = await db.from("applications").select("submitted_at").eq("artist_id", artist.id).maybeSingle();
   const [{ data: rows }, { data: replyRows }] = await Promise.all([
     db.from("bookings").select("*").or(`artist_ids.cs.{${artist.id}},artist_id.eq.${artist.id},shortlist.cs.{${artist.id}}`).order("event_date", { ascending: true }),
     db.from("artist_replies").select("*").eq("artist_id", artist.id),
@@ -157,20 +160,11 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
 
   const bookings: PortalBooking[] = [];
   for (const b of (rows ?? []).map(fromRow.booking)) {
-    let status: PortalStatus | null = null;
     const reply = replies.get(b.id);
-    // The artist's part of the order: the line they're assigned to, or else one in their categories.
-    const item = itemFor(b.items, artist.id, artist);
-    if (item?.artistIds.includes(artist.id)) {
-      if (b.status === "confirmed" || (b.status === "rescheduled" && paid.has(b.id))) status = "confirmed";
-      else if (["completed", "delivered", "reviewed"].includes(b.status)) status = "completed";
-      else if (b.status === "cancelled") status = "cancelled";
-      else status = "selected";
-    } else if (stillOpen(b.items, item) && b.status !== "cancelled") {
-      // Shortlisted, and their part of the order still needs more artists than have been picked.
-      status = reply ? reply.status : "new";
-    }
-    if (!status) continue; // went to other artists, or cancelled before they were picked
+    // Which orders they see and how (src/lib/artist-orders.ts, shared with the admin's artist drawer).
+    const order = artistOrder(b, artist, reply?.status, paid.has(b.id));
+    if (!order) continue; // went to other artists, or cancelled before they were picked
+    const { status, item } = order;
     bookings.push({
       id: b.id,
       ref: item ? lineId(b.id, item.category) : undefined,
@@ -197,6 +191,9 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
       kind: "artist",
       id: artist.id,
       stage: onboardingStages.length - 1,
+      identityVerified: artist.kyc === "verified",
+      appliedAt: application?.submitted_at ? String(application.submitted_at) : undefined,
+      approvedAt: artist.joinedAt,
       profile: {
         fullName: artist.name,
         phone: artist.phone,

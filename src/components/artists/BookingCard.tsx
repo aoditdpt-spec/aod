@@ -4,6 +4,7 @@ import { CalendarDays, Clock, IndianRupee, MapPin, Users, UsersRound } from "luc
 import { useState } from "react";
 import { sampleBookings, type BookingStatus, type SampleBooking } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
+import { artistOrderLabels } from "@/lib/artist-orders";
 import { answerRequest, usePortalState } from "@/lib/artist-live";
 import { bookingActionsStore } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -24,15 +25,19 @@ export function useBookings(): Booking[] {
   });
 }
 
-const statusBadge: Record<BookingStatus, { tone: "neutral" | "brand" | "good" | "wait"; label: string }> = {
-  new: { tone: "brand", label: "New request" },
-  quoted: { tone: "wait", label: "Quote sent · waiting for customer" },
-  selected: { tone: "good", label: "You're chosen · waiting for the advance" },
-  confirmed: { tone: "good", label: "Confirmed" },
-  completed: { tone: "neutral", label: "Completed" },
-  declined: { tone: "neutral", label: "Declined" },
-  cancelled: { tone: "neutral", label: "Cancelled" },
+// The labels are shared with the admin's artist drawer (src/lib/artist-orders.ts).
+const tones: Record<BookingStatus, "neutral" | "brand" | "good" | "wait"> = {
+  new: "brand",
+  quoted: "wait",
+  selected: "good",
+  confirmed: "good",
+  completed: "neutral",
+  declined: "neutral",
+  cancelled: "neutral",
 };
+const statusBadge = Object.fromEntries(
+  (Object.keys(tones) as BookingStatus[]).map((s) => [s, { tone: tones[s], label: artistOrderLabels[s] }]),
+) as Record<BookingStatus, { tone: (typeof tones)[BookingStatus]; label: string }>;
 
 // One booking request or booking. New requests can be answered with a quote or declined.
 export function BookingCard({ booking, compact = false }: { booking: Booking; compact?: boolean }) {

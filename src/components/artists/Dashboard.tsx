@@ -132,7 +132,18 @@ export function Dashboard() {
 
       {mode === "applicant" ? (
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <Panel title="Your onboarding" text={`Step ${stage + 1} of ${onboardingStages.length}`} action={sampleTag}>
+          <Panel
+            title="Your onboarding"
+            text={`Step ${stage + 1} of ${onboardingStages.length}`}
+            action={
+              <span className="flex items-center gap-3">
+                {sampleTag}
+                <Link href={sectionLink("/artists/approval")} className="text-sm font-medium text-brand hover:text-brand-hover">
+                  See every step
+                </Link>
+              </span>
+            }
+          >
             <OnboardingTimeline
               current={stage}
               detail={

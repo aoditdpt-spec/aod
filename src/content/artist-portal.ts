@@ -279,6 +279,17 @@ export const onboardingStages = [
   { title: "Live on AOD", text: "You appear in curated matches and start getting booking requests." },
 ];
 
+// The Approval page (/artists/approval): every step from application to going live, in the order
+// the admin moves an application (submitted → review → meeting → trial → approved), and what AOD
+// checks on the way. `id` is the application status that step is about.
+export const approvalSteps = [
+  { id: "submitted", title: "Application sent", text: "Your details, photo, work answers and links reached the AOD team." },
+  { id: "review", title: "Portfolio & background review", text: "Our team looks through your work, links and references." },
+  { id: "meeting", title: "Meeting with the AOD team", text: "A short meeting to get to know you. The team confirms the time with you on WhatsApp." },
+  { id: "trial", title: "Trial booking", text: "One supervised booking to check professionalism and punctuality." },
+  { id: "approved", title: "Approved · live on AOD", text: "You appear in curated matches and start getting booking requests." },
+] as const;
+
 // What an applicant sees on the overview at each step of their application (live mode).
 export const applicantStatusText: Record<string, { title: string; text: string }> = {
   submitted: { title: "Your application is in the queue", text: "AOD's team reviews every application, usually within a few days." },
