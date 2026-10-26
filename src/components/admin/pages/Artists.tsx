@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { CalendarX, Pause, Play, Plus } from "lucide-react";
 import { useState } from "react";
-import { bookingStages } from "@/content/admin";
 import { experienceLevels } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Artist, type Db } from "@/lib/admin-store";
-import { assignedArtists, itemFor, itemsLabel, worksIn } from "@/lib/booking-needs";
+import { assignedArtists, worksIn } from "@/lib/booking-needs";
+import { artistOrder, artistOrderLabels, type ArtistOrderStatus } from "@/lib/artist-orders";
+import { briefCommonRows, briefRows } from "@/content/artist-brief";
+import { timeRange } from "@/lib/event-time";
+import { lineId } from "@/lib/order-id";
 import { artistPhotoSrc } from "@/lib/artist-photo";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { WhatsAppIcon } from "@/components/ui/Icon";
@@ -29,7 +32,6 @@ import {
   PersonCell,
   PhotoBox,
   PortfolioFiles,
-  StageBadge,
   StatusBadge,
   todayKey,
   useCan,
@@ -90,7 +92,8 @@ export function Artists() {
   );
 }
 
-function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose: () => void }) {
+// One artist's drawer. Also opened from the Calendar (an artist's days off), over the calendar.
+export function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose: () => void }) {
   const allowed = useCan();
   const [blockDate, setBlockDate] = useState("");
   const [upi, setUpi] = useState(artist.payoutUpi);
@@ -180,28 +183,8 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
         <PortfolioFiles files={artist.portfolio} />
       </DrawerSection>
 
-      <DrawerSection title="Bookings">
-        {history.length === 0 ? (
-          <p className="text-sm text-muted">No bookings yet.</p>
-        ) : (
-          <ul className="divide-y divide-line rounded-lg border border-line">
-            {history.map((b) => (
-              <li key={b.id}>
-                <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-wash">
-                  <span className="min-w-0">
-                    <span className="block truncate text-ink">
-                      {b.id} · {itemFor(b.items, artist.id)?.service ?? itemsLabel(b.items)}
-                    </span>
-                    <span className="block text-xs text-muted">
-                      {fmtDate(b.date)} · {b.customer.name} · {inr(b.quote)}
-                    </span>
-                  </span>
-                  <StageBadge stages={bookingStages} id={b.status} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+      <DrawerSection title="Orders (as the artist sees them)">
+        <ArtistOrders artist={artist} db={db} />
       </DrawerSection>
 
       <DrawerSection title="Days off">
@@ -263,6 +246,108 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
         <NotesBox notes={artist.notes} permission="artists.edit" onAdd={(text) => edit(`Added a note to ${artist.name}`, (a) => void a.notes.unshift({ at: new Date().toISOString(), by: currentUser(), text }))} />
       </DrawerSection>
     </Drawer>
+  );
+}
+
+// Every order the artist sees in their portal, with the same status wording (src/lib/artist-orders.ts),
+// grouped as the portal does: requests, upcoming, completed, and declined or cancelled. Each shows
+// what the artist sees (their line's ID and service, the event, date and time, city, budget, team
+// size, the customer's note and brief) plus, for the team, their quote and payout, and opens the
+// booking. Orders that went to other artists aren't shown, as in the portal.
+const groups: { title: string; statuses: ArtistOrderStatus[] }[] = [
+  { title: "Requests", statuses: ["new", "quoted"] },
+  { title: "Upcoming", statuses: ["selected", "confirmed"] },
+  { title: "Completed", statuses: ["completed"] },
+  { title: "Declined or cancelled", statuses: ["declined", "cancelled"] },
+];
+const orderTone: Record<ArtistOrderStatus, "brand" | "wait" | "good" | "neutral"> = {
+  new: "brand",
+  quoted: "wait",
+  selected: "good",
+  confirmed: "good",
+  completed: "neutral",
+  declined: "neutral",
+  cancelled: "neutral",
+};
+
+function ArtistOrders({ artist, db }: { artist: Artist; db: Db }) {
+  const paid = new Set(db.payments.filter((x) => x.status === "verified").map((x) => x.bookingId));
+  const orders = db.bookings
+    .map((b) => {
+      const reply = b.replies?.find((r) => r.artistId === artist.id);
+      const order = artistOrder(b, artist, reply?.status, paid.has(b.id));
+      return order && { b, reply, ...order };
+    })
+    .filter((o) => o !== null)
+    .sort((x, y) => y.b.date.localeCompare(x.b.date));
+  if (!orders.length) return <p className="text-sm text-muted">No orders yet: nothing in their portal&apos;s Bookings.</p>;
+
+  return (
+    <div className="space-y-4">
+      <ul className="flex flex-wrap gap-2 text-xs">
+        {groups.map((g) => (
+          <li key={g.title} className="rounded-md bg-wash px-2 py-1 text-ink">
+            {g.title}: <strong className="font-medium">{orders.filter((o) => g.statuses.includes(o.status)).length}</strong>
+          </li>
+        ))}
+      </ul>
+      {groups.map((g) => {
+        const list = orders.filter((o) => g.statuses.includes(o.status));
+        if (!list.length) return null;
+        return (
+          <div key={g.title}>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">
+              {g.title} ({list.length})
+            </p>
+            <ul className="divide-y divide-line rounded-lg border border-line">
+              {list.map(({ b, item, status, reply }) => {
+                const payout = db.payouts.find((x) => x.artistId === artist.id && x.bookingId === b.id);
+                const brief = [...(item ? briefRows(b.brief, item.category) : []), ...briefCommonRows(b.brief)];
+                return (
+                  <li key={b.id} className="px-3 py-2.5 text-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} className="min-w-0 hover:underline">
+                        <span className="block font-medium text-ink">
+                          {item ? lineId(b.id, item.category) : b.id} · {(item ?? b.items[0])?.service}
+                        </span>
+                        <span className="block text-xs text-muted">
+                          {b.event || "Event"} · {fmtDate(b.date)}
+                          {b.time ? ` · ${timeRange(b.time, b.endTime)}` : ""} · {b.city}
+                        </span>
+                      </Link>
+                      <StatusBadge tone={orderTone[status]}>{artistOrderLabels[status]}</StatusBadge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted">
+                      Budget {b.budget || "not given"}
+                      {item && item.count > 1 ? ` · Team of ${item.count}` : ""}
+                      {reply?.status === "quoted" && reply.quote ? ` · Their quote ${inr(reply.quote)}` : ""}
+                      {payout ? ` · Payout ${inr(payout.amount)} (${payout.status === "paid" ? "paid" : "due"})` : ""}
+                    </p>
+                    {reply?.note && <p className="mt-1 text-xs text-ink">&ldquo;{reply.note}&rdquo;</p>}
+                    {(b.notes || brief.length > 0) && (
+                      <details className="mt-1 text-xs">
+                        <summary className="cursor-pointer text-brand">What the artist sees: note and brief</summary>
+                        {b.notes && <p className="mt-1 whitespace-pre-line text-body">{b.notes}</p>}
+                        {brief.length > 0 && (
+                          <dl className="mt-1 grid grid-cols-[8rem_1fr] gap-x-3 gap-y-0.5">
+                            {brief.map((r) => (
+                              <div key={r.label} className="contents">
+                                <dt className="text-muted">{r.label}</dt>
+                                <dd className="text-ink">{r.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+                      </details>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

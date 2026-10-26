@@ -5,10 +5,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { bookingStages } from "@/content/admin";
 import { categories } from "@/content/site";
-import { useDb } from "@/lib/admin-store";
+import { useDb, type Artist } from "@/lib/admin-store";
 import { assignedArtists, itemsLabel, worksIn } from "@/lib/booking-needs";
 import { time12 } from "@/lib/event-time";
-import { artistNames, fieldBase, PageHeader, todayKey } from "../ui";
+import { artistNames, categoryNames, Drawer, fieldBase, fmtDate, PageHeader, PersonCell, todayKey } from "../ui";
+import { useOpen } from "../useOpen";
+import { ArtistDrawer } from "./Artists";
 import { sectionLink } from "@/lib/site-url";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -21,9 +23,14 @@ const chip: Record<string, string> = {
   neutral: "bg-wash text-muted",
 };
 
-// Month view of events (bookings), applicant meetings and artist days off.
+// Month view of events (bookings), applicant meetings and artist days off. Days off show as one
+// "N artists off" chip per day (tidy with 100 artists); it opens the list of those artists
+// (?off=<day>), and an artist opens their drawer over the calendar (?artist=<id>), so closing it,
+// or the browser's Back, returns to the list and the calendar.
 export function Calendar() {
   const db = useDb();
+  const [offDay, setOffDay] = useOpen("off");
+  const [artistOpen, setArtistOpen] = useOpen("artist");
   const [offset, setOffset] = useState(0);
   const [artist, setArtist] = useState("");
   const [category, setCategory] = useState("");
@@ -113,13 +120,18 @@ export function Calendar() {
                       </Link>
                     </li>
                   ))}
-                  {offs.map((a) => (
-                    <li key={a.id}>
-                      <Link href={sectionLink(`/admin/artists?open=${a.id}`)} className="block truncate rounded border border-dashed border-line px-1.5 py-0.5 text-[0.7rem] text-muted">
-                        {a.name.split(" ")[0]} off
-                      </Link>
+                  {offs.length > 0 && (
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => setOffDay(k)}
+                        title={offs.map((a) => a.name).join(", ")}
+                        className="block w-full truncate rounded border border-dashed border-line px-1.5 py-0.5 text-left text-[0.7rem] text-muted hover:border-ink hover:text-ink"
+                      >
+                        {offs.length} artist{offs.length === 1 ? "" : "s"} off
+                      </button>
                     </li>
-                  ))}
+                  )}
                 </ul>
               </div>
             );
@@ -131,8 +143,41 @@ export function Calendar() {
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-100" /> In progress</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-peach" /> New</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-night" /> Applicant meeting</span>
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-dashed border-line" /> Artist day off</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-dashed border-line" /> Artists off that day</span>
       </p>
+
+      {offDay && !artistOpen && <DaysOffList day={offDay} artists={off.filter((a) => a.blockedDates.includes(offDay))} onOpen={setArtistOpen} onClose={() => setOffDay(null)} />}
+      {(() => {
+        const a = artistOpen ? db.artists.find((x) => x.id === artistOpen) : undefined;
+        return a ? <ArtistDrawer key={a.id} artist={a} db={db} onClose={() => setArtistOpen(null)} /> : null;
+      })()}
     </div>
+  );
+}
+
+// The artists off on one day: tap one to open their drawer (over the calendar).
+function DaysOffList({ day, artists, onOpen, onClose }: { day: string; artists: Artist[]; onOpen: (id: string) => void; onClose: () => void }) {
+  return (
+    <Drawer open onClose={onClose} title={`${artists.length} artist${artists.length === 1 ? "" : "s"} off`} subtitle={fmtDate(day)}>
+      {artists.length === 0 ? (
+        <p className="text-sm text-muted">Nobody is off this day.</p>
+      ) : (
+        <ul className="divide-y divide-line rounded-lg border border-line">
+          {[...artists]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((a) => (
+              <li key={a.id}>
+                <button type="button" onClick={() => onOpen(a.id)} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm hover:bg-wash">
+                  <PersonCell name={a.name} id={a.id} photo={a.photo} />
+                  <span className="shrink-0 text-right text-xs text-muted">
+                    {categoryNames(a)}
+                    <span className="block">{a.city}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+        </ul>
+      )}
+    </Drawer>
   );
 }
