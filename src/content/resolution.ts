@@ -18,6 +18,8 @@ export type CaseRole = "customer" | "business" | "artist";
 export const resolution = {
   name: "Dispute Desk",
   title: "AOD Dispute Desk",
+  // The first line of resolve.aod.co.in: the Desk is for everyone, AOD booking or not.
+  headline: "We solve disputes for everyone, whether you're associated with AOD or not.",
   tagline: "A dispute with a client or an artist? We'll help you settle it.",
   intro:
     "Client ghosted your invoice, cancelled at the last minute, or an artist didn't deliver what was agreed? Raise it here, whether or not the booking was made through AOD. You get a case number, AOD hears both sides, and works towards a fair settlement. Free.",

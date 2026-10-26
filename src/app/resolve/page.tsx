@@ -22,7 +22,8 @@ export default function ResolvePage() {
         <div className="mx-auto grid w-full max-w-page items-center gap-10 px-4 py-14 sm:px-6 lg:px-8 lg:grid-cols-[1.25fr_1fr] lg:py-20">
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-brand">{resolution.title}</p>
-            <h1 className="mt-3 text-4xl font-medium leading-tight text-ink sm:text-5xl">{resolution.tagline}</h1>
+            <h1 className="mt-3 text-4xl font-medium leading-tight text-ink sm:text-5xl">{resolution.headline}</h1>
+            <p className="mt-4 text-xl font-medium text-ink">{resolution.tagline}</p>
             <p className="mt-5 max-w-xl text-lg text-body">{resolution.intro}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={sectionLink("/resolve/new")} className={buttonClasses("primary", "lg")}>
