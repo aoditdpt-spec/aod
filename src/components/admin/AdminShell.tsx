@@ -34,6 +34,7 @@ import { itemsLabel } from "@/lib/booking-needs";
 import { caseDue } from "./pages/Resolution";
 import { daysUntil, fieldClass, inr } from "./ui";
 import { sectionLink, sectionPath } from "@/lib/site-url";
+import { MainSiteLink } from "@/components/ui/MainSiteLink";
 
 const nav = [
   { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -308,6 +309,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <LiveBadge />
           )}
           <Alerts db={db} />
+          <MainSiteLink compact />
           <span className="hidden text-right sm:block">
             <span className="block text-sm font-medium leading-tight text-ink">{session.name}</span>
             <span className="block text-xs leading-tight text-muted">{roleLabel}</span>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
-import { mainSiteUrl, portal } from "@/content/artist-portal";
+import { portal } from "@/content/artist-portal";
 import { categories } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { Container } from "@/components/ui/Container";
@@ -20,13 +20,7 @@ export const metadata: Metadata = {
 export default function ArtistsHome() {
   return (
     <>
-      <PortalHeader
-        right={
-          <Link href={mainSiteUrl} className="text-sm text-muted hover:text-brand">
-            Back to the main site
-          </Link>
-        }
-      />
+      <PortalHeader />
       <Container className="flex-1 py-10 sm:py-16">
         <div className="mx-auto grid max-w-6xl items-start gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div>

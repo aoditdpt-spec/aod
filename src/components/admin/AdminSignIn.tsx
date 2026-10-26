@@ -8,6 +8,7 @@ import { roles, type Role } from "@/content/admin";
 import { backendEnabled } from "@/lib/backend";
 import { reloadAdmin, signIn, useAdminError, useBrowserReady, useSession } from "@/lib/admin-store";
 import { requestCode, verifyCode } from "@/server/actions/auth";
+import { MainSiteLink } from "@/components/ui/MainSiteLink";
 import { Spinner } from "@/components/ui/Spinner";
 import { fieldClass } from "./ui";
 import { sectionLink } from "@/lib/site-url";
@@ -36,7 +37,10 @@ function LiveSignIn() {
   }, [ready, session, router]);
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-wash p-4">
+    <div className="relative flex flex-1 items-center justify-center bg-wash p-4 pt-16">
+      <div className="absolute right-4 top-4">
+        <MainSiteLink />
+      </div>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
@@ -137,7 +141,10 @@ function PreviewSignIn() {
   }, [ready, session, router]);
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-wash p-4">
+    <div className="relative flex flex-1 items-center justify-center bg-wash p-4 pt-16">
+      <div className="absolute right-4 top-4">
+        <MainSiteLink />
+      </div>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={99} height={28} priority className="h-7 w-auto" />

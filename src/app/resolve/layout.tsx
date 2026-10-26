@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MainSiteLink } from "@/components/ui/MainSiteLink";
 import { brand } from "@/content/site";
 import { resolution } from "@/content/resolution";
 import { sectionLink, siteHref } from "@/lib/site-url";
@@ -45,9 +46,9 @@ export default function ResolveLayout({ children }: { children: ReactNode }) {
                 {n.label}
               </Link>
             ))}
-            <a href={siteHref("/")} className="rounded-lg px-3 py-2 text-muted hover:bg-wash hover:text-ink">
-              {brand.domain}
-            </a>
+            <span className="ml-1">
+              <MainSiteLink />
+            </span>
           </nav>
         </div>
         {/* Phones: the two actions as tabs under the logo row. */}
