@@ -12,6 +12,7 @@ import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge, Panel } from "./form";
 import { OnboardingTimeline } from "./OnboardingTimeline";
+import { SendToAod } from "./SendToAod";
 import { sectionLink } from "@/lib/site-url";
 
 // Profile checklist: what's left before the profile is complete. In the preview, uploads and
@@ -171,19 +172,8 @@ export function Dashboard() {
             />
           </Panel>
           <div className="space-y-6">
+            <SendToAod />
             <ProfileStrength />
-            <Panel title="While we review">
-              <ul className="space-y-2 text-sm text-body">
-                {[
-                  "Add more of your best photos or clips to your portfolio",
-                  "Mark the days you can't work under Availability",
-                ].map((t) => (
-                  <li key={t} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden /> {t}
-                  </li>
-                ))}
-              </ul>
-            </Panel>
           </div>
         </div>
       ) : (
@@ -224,6 +214,7 @@ export function Dashboard() {
                 {upcoming[0] ? <BookingCard booking={upcoming[0]} compact /> : <p className="text-sm text-muted">No bookings coming up.</p>}
               </Panel>
               <ProfileStrength />
+              <SendToAod />
             </div>
           </div>
         </>

@@ -53,6 +53,7 @@ export type Category = {
   image?: { src: string; width: number; height: number };
   short: string;
   description: string;
+  serviceNote?: string; // a line under every service on the category page ("Shot with iPhone")
   services: Service[];
   keywords: string[]; // other words people search with, e.g. "dj", "mua", "camera"
 };
@@ -237,6 +238,7 @@ export const categories: Category[] = [
     short: "Instagram reels, brand content & UGC",
     description:
       "Verified creators who plan, shoot and edit scroll-stopping reels and social content for brands, launches and events.",
+    serviceNote: "Shot with iPhone",
     services: [
       { name: "Instagram reels", rating: 4.87, bookings: 64, popular: true },
       { name: "Brand content shoot", rating: 4.85, bookings: 41 },

@@ -2,7 +2,8 @@
 
 import { Check, Loader2, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { uploadRules } from "@/content/artist-portal";
+import { bothLinksCategories, uploadRules } from "@/content/artist-portal";
+import { allCategories } from "@/lib/booking-needs";
 import { backendEnabled } from "@/lib/backend";
 import { refreshPortal, saveProfile, useArtistProfile, usePortalState } from "@/lib/artist-live";
 import { shrinkImage } from "@/lib/image-resize";
@@ -10,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { finishPortfolioUpload, removePortfolioFile, startPortfolioUpload } from "@/server/actions/artist";
 import { FileDrop, formatSize, type PickedFile } from "./FileDrop";
 import { Panel } from "./form";
-import { LinkEditor } from "./LinkEditor";
+import { LinkFields } from "./LinkFields";
 
 const tips = [
   "Lead with your strongest frame: it's the cover customers see first.",
@@ -50,12 +51,14 @@ function Links() {
   const { profile } = useArtistProfile();
   const [error, setError] = useState<string | null>(null);
   return (
-    <Panel title="Portfolio links" text="Instagram, YouTube or Google Drive links only.">
-      <LinkEditor
+    <Panel title="Portfolio links" text="Your Instagram profile, and a portfolio or showreel on YouTube or Google Drive. Saved when you leave a box.">
+      <LinkFields
+        key={profile.links.join("|")}
         links={profile.links}
+        both={allCategories(profile).some((c) => bothLinksCategories.includes(c))}
         onChange={(links) => {
           setError(null);
-          void saveProfile({ links }).then((err) => err && setError(err));
+          if (links.join() !== profile.links.join()) void saveProfile({ links }).then((err) => err && setError(err));
         }}
       />
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

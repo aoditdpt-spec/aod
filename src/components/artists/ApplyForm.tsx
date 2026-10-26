@@ -34,7 +34,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { PhotoPicker } from "@/components/ui/PhotoPicker";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
-import { LinkEditor } from "./LinkEditor";
+import { LinkFields } from "./LinkFields";
 
 type Files = { samples: PickedFile[]; resume: PickedFile[] };
 
@@ -763,10 +763,10 @@ function PortfolioStep({
         <p className="text-sm font-medium text-ink">Portfolio links</p>
         <p className="mt-1 text-xs text-muted">
           {needsBothLinks(profile)
-            ? "Both are needed: your Instagram profile, and a portfolio or showreel link (YouTube or Google Drive). Each link is checked as you add it."
-            : "Instagram, YouTube or Google Drive links only. Each link is checked as you add it."}
+            ? "Both are needed: your Instagram profile, and a portfolio or showreel link (YouTube or Google Drive)."
+            : "Your Instagram profile, and a portfolio or showreel link (YouTube or Google Drive): at least one."}
         </p>
-        <LinkEditor links={profile.links} onChange={(links) => set({ links })} />
+        <LinkFields links={profile.links} onChange={(links) => set({ links })} both={needsBothLinks(profile)} />
       </div>
       {errors.samples && (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">

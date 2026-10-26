@@ -10,6 +10,7 @@ import {
   saveArtistProfile,
   saveAvailability,
   saveMyPhoto,
+  sendToAod,
   type ArtistPortal,
   type ProfilePatch,
   type Result,
@@ -155,6 +156,22 @@ export async function changePhoto(dataUrl: string): Promise<string | null> {
     return null;
   }
   return portalAction((d) => d, () => saveMyPhoto(dataUrl));
+}
+
+// The portal's Submit for review / Send update. Returns an error message, or null. Live: sent to
+// the AOD team, then the portal reloads (with the new sent date); preview: nothing is sent.
+export async function sendProfileToAod(): Promise<string | null> {
+  if (!backendEnabled) return "Preview: nothing is sent to AOD from here.";
+  saving++;
+  try {
+    const res = await sendToAod();
+    return res.ok ? null : res.error;
+  } catch {
+    return "Couldn't send it just now. Check your connection and try again.";
+  } finally {
+    saving--;
+    if (!saving) void load(true);
+  }
 }
 
 // Live artist or applicant (live: from their records; preview: the "Preview as" switch).

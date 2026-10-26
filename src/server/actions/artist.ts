@@ -56,6 +56,7 @@ export type ArtistPortal = {
   identityVerified: boolean; // marked by the AOD team in the admin (no online check)
   appliedAt?: string; // when the application was sent
   approvedAt?: string; // when they went live (the artist record's joining date)
+  sentToAodAt?: string; // when they last pressed Submit for review / Send update (sendToAod)
   profile: ArtistProfile;
   bookings: PortalBooking[];
   blockedDates: string[];
@@ -129,6 +130,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         kind: "applicant",
         id: app.id,
         applicationStatus: app.status,
+        sentToAodAt: lastSent(app.notes),
         meeting: app.meeting,
         stage: stageOf(app.status),
         identityVerified: app.kyc === "verified",
@@ -192,6 +194,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
       id: artist.id,
       stage: onboardingStages.length - 1,
       identityVerified: artist.kyc === "verified",
+      sentToAodAt: lastSent(artist.notes),
       appliedAt: application?.submitted_at ? String(application.submitted_at) : undefined,
       approvedAt: artist.joinedAt,
       profile: {
@@ -291,6 +294,52 @@ export async function saveMyPhoto(dataUrl: string): Promise<Result> {
     console.error("[profile photo]", e);
     return { ok: false, error: "Couldn't save your photo just now. Please try again in a minute." };
   }
+}
+
+// ---- Submit for review / Send update ----
+
+// The portal's final button: an applicant sends their application (photo, portfolio, links,
+// profile) to the AOD team for review, and later sends updates; an approved artist sends updates
+// to their profile. It adds a dated note to their record (shown in the admin's drawer, never to
+// the artist) and emails the team (admin Settings → "New artist application"). One send per
+// 5 minutes; a quicker second tap just returns the last one.
+const SENT_BY = "Artist portal";
+const lastSent = (notes: { at: string; by: string }[] | undefined) => notes?.find((n) => n.by === SENT_BY)?.at;
+
+export type SendResult = { ok: true; at: string } | { ok: false; error: string };
+
+export async function sendToAod(): Promise<SendResult> {
+  const account = await currentAccount();
+  if (!account) return notSignedIn;
+  const row = account.row;
+  const notes = (Array.isArray(row.notes) ? row.notes : []) as { at: string; by: string; text: string }[];
+  const last = lastSent(notes);
+  if (last && Date.now() - new Date(last).getTime() < 5 * 60_000) return { ok: true, at: last };
+
+  const first = !last && account.kind === "applicant";
+  const links = Array.isArray(row.links) ? row.links.length : 0;
+  const files = Array.isArray(row.portfolio) ? row.portfolio.length : 0;
+  const summary = `photo ${row.photo ? "added" : "missing"}, ${files} portfolio file${files === 1 ? "" : "s"}, ${links} link${links === 1 ? "" : "s"}`;
+  const at = new Date().toISOString();
+  const text = first ? `Submitted for review from the artist portal (${summary}).` : `Sent an update from the artist portal (${summary}).`;
+  const table = account.kind === "artist" ? "artists" : "applications";
+  const { error } = await createAdminClient().from(table).update({ notes: [{ at, by: SENT_BY, text }, ...notes] }).eq("id", account.id);
+  if (error) return { ok: false, error: "Couldn't send it just now. Please try again in a minute." };
+
+  const name = String(row.name ?? "");
+  after(async () => {
+    if (!(await notifyEnabled("New artist application"))) return;
+    await runOrQueue([
+      {
+        kind: "email",
+        to: await teamEmails(),
+        subject: `${first ? "Ready for review" : account.kind === "artist" ? "Artist profile updated" : "Application updated"}: ${name} (${account.id})`,
+        text: `${name} ${first ? "has submitted their application for review" : "has sent an update"} from the artist portal: ${summary}.\n\nOpen it: ${sectionUrl("admin", `/${account.kind === "artist" ? "artists" : "applications"}?open=${account.id}`)}`,
+        replyTo: account.email,
+      },
+    ]);
+  });
+  return { ok: true, at };
 }
 
 // ---- Availability ----

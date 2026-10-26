@@ -97,7 +97,10 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
             <StaggerItem key={s.name} className="swipe-item">
             <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6`}>
               <div className="flex items-start justify-between gap-3">
-                <h3 className={`text-lg font-bold ${tiltTitle}`}>{s.name}</h3>
+                <div>
+                  <h3 className={`text-lg font-bold ${tiltTitle}`}>{s.name}</h3>
+                  {category.serviceNote && <p className={`mt-0.5 text-sm text-muted ${tiltText}`}>{category.serviceNote}</p>}
+                </div>
                 {s.popular && (
                   <span className={`rounded-full bg-peach px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-ink ${tiltZoom}`}>
                     Popular

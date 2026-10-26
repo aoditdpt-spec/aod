@@ -9,6 +9,7 @@ import { useArtistProfile, usePortalMode, usePortalState } from "@/lib/artist-li
 import { sectionLink } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { Badge, Panel } from "./form";
+import { SendToAod } from "./SendToAod";
 
 const fmt = (iso?: string, withTime = false) =>
   iso
@@ -103,6 +104,8 @@ export function ApprovalSteps() {
         </a>
       </Panel>
 
+      <div className="space-y-6">
+      <SendToAod />
       <Panel title="What AOD checks" text="Verified by the AOD team, not by an app.">
         <ul className="divide-y divide-line">
           {checks.map((c) => (
@@ -116,6 +119,7 @@ export function ApprovalSteps() {
           ))}
         </ul>
       </Panel>
+      </div>
     </div>
   );
 }
