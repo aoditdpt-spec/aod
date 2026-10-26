@@ -11,12 +11,12 @@ import { allCategories, assignedArtists, itemFor, totalNeeded, type BookingItem 
 import { lineId } from "@/lib/order-id";
 import { sectionUrl } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
-import { checkDrivePhoto } from "@/lib/drive-photo";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { applicantTopic, artistTopic } from "@/server/live";
 import { notifyEnabled, runOrQueue, teamEmails } from "@/server/notify";
+import { readDataUrl, savePhoto } from "@/server/artist-photos";
 import { fromRow } from "@/server/rows";
 
 // The artist portal on the real database (artists.aod.co.in). Artists sign in with an emailed
@@ -225,7 +225,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
 
 // ---- Profile ----
 
-export type ProfilePatch = Partial<Pick<ArtistProfile, "phone" | "city" | "services" | "experience" | "languages" | "bio" | "links" | "photo">>;
+export type ProfilePatch = Partial<Pick<ArtistProfile, "phone" | "city" | "services" | "experience" | "languages" | "bio" | "links">>;
 
 const phoneOk = (p: string) => {
   const d = p.replace(/\D/g, "");
@@ -273,18 +273,30 @@ export async function saveArtistProfile(patch: ProfilePatch): Promise<Result> {
     }
     row.links = links;
   }
-  if (patch.photo !== undefined) {
-    // A Google Drive link to the photo (src/lib/drive-photo.ts); the file stays in their Drive.
-    const check = checkDrivePhoto(String(patch.photo).slice(0, 300));
-    if (!check.ok) return { ok: false, error: `Profile photo: ${check.message}` };
-    row.photo = check.url;
-  }
   if (!Object.keys(row).length) return { ok: true };
 
   const table = account.kind === "artist" ? "artists" : "applications";
   const { error } = await createAdminClient().from(table).update(row).eq("id", account.id);
   if (error) return { ok: false, error: "Couldn't save your profile just now. Please try again." };
   return { ok: true };
+}
+
+// ---- Profile photo ----
+
+// A new profile photo from the gallery or camera (shrunk in the browser): straight to AOD's
+// Google Drive (src/server/artist-photos.ts), replacing the old one in place.
+export async function saveMyPhoto(dataUrl: string): Promise<Result> {
+  const account = await currentAccount();
+  if (!account) return notSignedIn;
+  const photo = readDataUrl(dataUrl);
+  if ("error" in photo) return { ok: false, error: photo.error };
+  try {
+    await savePhoto({ kind: "photo", table: account.kind === "artist" ? "artists" : "applications", id: account.id, type: photo.type, data: photo.data });
+    return { ok: true };
+  } catch (e) {
+    console.error("[profile photo]", e);
+    return { ok: false, error: "Couldn't save your photo just now. Please try again in a minute." };
+  }
 }
 
 // ---- Availability ----

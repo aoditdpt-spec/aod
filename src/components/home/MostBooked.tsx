@@ -25,6 +25,9 @@ const items = mostBooked.map(({ service, category, image }) => {
 });
 type Item = (typeof items)[number];
 
+// The category page's booking questions, started with this service (MatchQuiz reads ?service=).
+const quoteHref = (item: Item) => `/categories/${item.slug}?service=${encodeURIComponent(item.service)}#book`;
+
 export function MostBooked() {
   return (
     <section className="bg-wash py-16">
@@ -38,7 +41,7 @@ export function MostBooked() {
               <ul className="mt-5 space-y-3 sm:hidden">
                 {items.map((item) => (
                   <li key={item.service}>
-                    <Link href={`/categories/${item.slug}#book`} className={`flex gap-3.5 rounded-2xl bg-white p-2.5 ${linkCard}`}>
+                    <Link href={quoteHref(item)} className={`flex gap-3.5 rounded-2xl bg-white p-2.5 ${linkCard}`}>
                       <span className="relative block aspect-[4/5] w-[6.5rem] shrink-0 overflow-hidden rounded-xl bg-peach">
                         {item.image ? (
                           <Image src={item.image.src} alt="" fill sizes="7rem" className="object-cover" />
@@ -80,7 +83,7 @@ export function MostBooked() {
                 key={item.service}
                 className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)]"
               >
-                <Link href={`/categories/${item.slug}#book`} className={`flex h-full flex-col rounded-2xl bg-white p-2 ${linkCard}`}>
+                <Link href={quoteHref(item)} className={`flex h-full flex-col rounded-2xl bg-white p-2 ${linkCard}`}>
                   <span className="relative block aspect-[4/3] overflow-hidden rounded-xl bg-peach">
                     {item.image ? (
                       <Image
@@ -158,7 +161,7 @@ function MostBookedList({ items }: { items: Item[] }) {
       >
         {items.map((item) => (
           <StaggerItem key={item.service}>
-            <Link href={`/categories/${item.slug}#book`} className={`flex h-full items-center gap-5 rounded-2xl bg-white p-3 ${linkCard}`}>
+            <Link href={quoteHref(item)} className={`flex h-full items-center gap-5 rounded-2xl bg-white p-3 ${linkCard}`}>
               <span className="relative block aspect-[4/3] w-44 shrink-0 overflow-hidden rounded-xl bg-peach xl:w-52">
                 {item.image ? (
                   <Image src={item.image.src} alt="" fill sizes="13rem" className="object-cover transition-transform duration-500 group-hover:scale-105" />

@@ -25,7 +25,7 @@ export function masterWorkbook(db: Db): Sheet[] {
       name: "Artists",
       rows: [
         ["ID", "Name", "Phone", "Email", "Categories", "Services", "City", "Experience", "Languages", "Status", "Identity", "Payout UPI", "Joined", "Jobs done", "Photo"],
-        ...db.artists.map((a) => [a.id, a.name, a.phone, a.email, categoryNames(a), a.services.join(", "), a.city, a.experience, a.languages.join(", "), a.status, a.kyc, a.payoutUpi, a.joinedAt.slice(0, 10), db.bookings.filter((b) => assignedArtists(b.items).includes(a.id) && ["completed", "delivered", "reviewed"].includes(b.status)).length, a.photo]),
+        ...db.artists.map((a) => [a.id, a.name, a.phone, a.email, categoryNames(a), a.services.join(", "), a.city, a.experience, a.languages.join(", "), a.status, a.kyc, a.payoutUpi, a.joinedAt.slice(0, 10), db.bookings.filter((b) => assignedArtists(b.items).includes(a.id) && ["completed", "delivered", "reviewed"].includes(b.status)).length, a.photo ? "Yes" : "No"]),
       ],
     },
     {
@@ -43,7 +43,7 @@ export function masterWorkbook(db: Db): Sheet[] {
     },
     {
       name: "Applications",
-      rows: [["ID", "Submitted", "Name", "Phone", "Email", "Categories", "City", "Experience", "Status", "Meeting", "Links", "Photo"], ...db.applications.map((a) => [a.id, a.submittedAt.slice(0, 10), a.name, a.phone, a.email, categoryNames(a), a.city, a.experience, stageLabel(applicationStages, a.status), a.meeting?.at.slice(0, 16).replace("T", " "), a.links.join(" "), a.photo])],
+      rows: [["ID", "Submitted", "Name", "Phone", "Email", "Categories", "City", "Experience", "Status", "Meeting", "Links", "Photo"], ...db.applications.map((a) => [a.id, a.submittedAt.slice(0, 10), a.name, a.phone, a.email, categoryNames(a), a.city, a.experience, stageLabel(applicationStages, a.status), a.meeting?.at.slice(0, 16).replace("T", " "), a.links.join(" "), a.photo ? "Yes" : "No"])],
     },
     {
       name: "Disputes",

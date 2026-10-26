@@ -48,17 +48,27 @@ export type WorkQuestion = {
   id: string;
   label: string;
   short: string; // the label in the review step and the admin
-  kind: "one" | "many" | "text" | "long"; // long: a few lines of text
+  kind: "one" | "many" | "text" | "long" | "link"; // long: a few lines of text; link: a Google Drive link to photos
   options?: string[];
   hint?: string;
   optional?: boolean;
-  showIf?: { id: string; is: string };
+  showIf?: { id: string; is?: string }; // without `is`: once that question has an answer other than "None"
 };
 
 const yesNo = ["Yes", "No"];
 const one = (id: string, label: string, short: string, options = yesNo): WorkQuestion => ({ id, label, short, kind: "one", options });
 const many = (id: string, label: string, short: string, options: string[]): WorkQuestion => ({ id, label, short, kind: "many", options, hint: "Pick all that apply." });
 const typed = (id: string, label: string, short: string, hint: string): WorkQuestion => ({ id, label, short, kind: "text", hint });
+// Photos of the equipment just named (the camera, the drones, the sound system…): a Google Drive
+// link, asked once that question is answered (and not "None"), so the team sees the gear is real.
+const gearPhotos = (after: string, label: string, what: string): WorkQuestion => ({
+  id: "equipmentPhotos",
+  label,
+  short: "Equipment photos",
+  kind: "link",
+  hint: `Put photos of ${what} in a Google Drive folder, set its sharing to “Anyone with the link”, and paste the link here.`,
+  showIf: { id: after },
+});
 
 const levels = ["Full-time Professional", "Freelance", "Part-time", "Student / Beginner"];
 const level = (who: string, options = levels) => one("level", `Are you a professional ${who}?`, "Works as", options);
@@ -76,6 +86,7 @@ const camera = (who: string, what: string, specialisations: string[]): WorkQuest
   travel("shoots"),
   many("equipment", "Equipment you use", "Equipment", ["DSLR", "Mirrorless", "Gimbal", "Drone", "Studio lights"]),
   typed("cameraBrand", "Camera brand", "Camera brand", "E.g. Sony, Canon, Nikon, Fujifilm."),
+  gearPhotos("cameraBrand", "Photos of your equipment (Google Drive link)", "your camera, lenses and the other gear you picked"),
   ...brandWork(),
 ];
 const shootTypes = ["Wedding", "Pre-wedding", "Fashion", "Portrait", "Product", "Event", "Corporate", "Lifestyle", "Travel", "Creative / Cinematic", "Other"];
@@ -88,6 +99,7 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     many("specialisations", "What do you fly for?", "Specialisation", ["Wedding", "Event", "Real estate", "Construction / progress", "Corporate", "Tourism / travel", "FPV", "Other"]),
     one("licence", "Do you have a DGCA remote pilot certificate?", "DGCA certificate"),
     typed("drones", "Drones you fly", "Drones", "E.g. DJI Mini 4 Pro, Air 3, Mavic 3."),
+    gearPhotos("drones", "Photos of your drones (Google Drive link)", "your drones and controllers"),
     one("editor", "Do you edit the footage as well, or have an editor with you?", "Edits / has an editor"),
     travel("shoots"),
     ...brandWork(),
@@ -122,6 +134,7 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     many("specialisations", "What you play", "Specialisation", ["Wedding / Sangeet", "Club / Lounge", "Corporate", "Bollywood", "Garba / Dandiya", "Live band", "Sufi / Ghazal", "Instrumental", "Other"]),
     one("lineUp", "Do you perform solo or with a band?", "Line-up", ["Solo", "Duo", "Band (3 or more)"]),
     many("equipment", "Equipment you bring", "Equipment", ["DJ controller / CDJs", "Speakers / PA", "Microphones", "Lights", "Smoke / effects", "Instruments", "None"]),
+    gearPhotos("equipment", "Photos of your equipment (Google Drive link)", "the equipment you bring"),
     travel("events"),
     ...brandWork(),
   ],
@@ -143,6 +156,7 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     many("specialisations", "Genres you sing", "Genres", ["Bollywood", "Ghazal", "Sufi", "Devotional / Bhajan", "Garba / Folk", "Western", "Classical", "Retro", "Other"]),
     one("liveWith", "How do you perform?", "Performs with", ["With a live band", "With karaoke tracks", "Both"]),
     one("sound", "Do you bring your own sound system?", "Own sound system"),
+    { ...gearPhotos("sound", "Photos of your sound system (Google Drive link)", "your sound system"), showIf: { id: "sound", is: "Yes" } },
     travel("events"),
     ...brandWork(),
   ],
@@ -171,6 +185,7 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     one("process", "Do you shoot and edit yourself?", "Shoots / edits", ["Shoot and edit", "Shoot only", "Edit only"]),
     one("onCamera", "Do you appear on camera?", "On camera"),
     many("equipment", "Equipment you use", "Equipment", ["Phone", "Mirrorless / DSLR", "Gimbal", "Microphone", "Lights", "Drone"]),
+    gearPhotos("equipment", "Photos of your equipment (Google Drive link)", "the equipment you picked"),
     one("followers", "Your Instagram followers", "Followers", ["Under 1K", "1K–10K", "10K–50K", "50K–1L", "Over 1L"]),
     ...brandWork(),
   ],
@@ -204,7 +219,7 @@ export function workSections(main: string, others: string[] = []): WorkSection[]
         ...q,
         id,
         short: i === 0 ? q.short : `${singular(category)}: ${q.short}`,
-        showIf: q.showIf && { id: parent!, is: q.showIf.is },
+        showIf: q.showIf && { ...q.showIf, id: parent! },
       });
     }
     return { category, questions };
@@ -214,9 +229,13 @@ export function workSections(main: string, others: string[] = []): WorkSection[]
 // All the questions for a main category and its others, in order (see workSections).
 export const workQuestionsForAll = (main: string, others: string[] = []) => workSections(main, others).flatMap((s) => s.questions);
 
-// Whether a question is on screen for these answers (a `showIf` question only after the given choice).
-export const workQuestionShown = (q: WorkQuestion, answers: Record<string, string | string[]> | undefined) =>
-  !q.showIf || [answers?.[q.showIf.id] ?? []].flat().includes(q.showIf.is);
+// Whether a question is on screen for these answers: a `showIf` question only after the given
+// choice, or (without one) once that question has an answer other than "None".
+export function workQuestionShown(q: WorkQuestion, answers: Record<string, string | string[]> | undefined) {
+  if (!q.showIf) return true;
+  const given = [answers?.[q.showIf.id] ?? []].flat().filter((a) => a.trim() !== "");
+  return q.showIf.is !== undefined ? given.includes(q.showIf.is) : given.some((a) => !exclusiveChoices.includes(a));
+}
 
 // "None" means nothing else applies, so it can't be picked alongside another choice (picking it
 // clears the others, and picking another clears it). "Other" asks the applicant to write their own

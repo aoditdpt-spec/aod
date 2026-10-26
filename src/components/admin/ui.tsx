@@ -6,8 +6,11 @@ import { can, templates, type Permission, type TemplateId, type Tone } from "@/c
 import { categories } from "@/content/site";
 import { useSession, type Db, type PortfolioFile } from "@/lib/admin-store";
 import { allCategories } from "@/lib/booking-needs";
-import { checkDrivePhoto } from "@/lib/drive-photo";
+import { artistPhotoSrc } from "@/lib/artist-photo";
+import { backendEnabled } from "@/lib/backend";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
+import { PhotoPicker } from "@/components/ui/PhotoPicker";
+import { uploadArtistPhoto } from "@/server/actions/admin";
 
 // ---- Formatting ----
 
@@ -334,57 +337,64 @@ export function PortfolioFiles({ files }: { files?: PortfolioFile[] }) {
   );
 }
 
-// An artist's or applicant's name with their profile photo, for tables and lists.
-export function PersonCell({ name, photo }: { name: string; photo?: string }) {
+// An artist's or applicant's name with their profile photo, for tables and lists. `id` and
+// `photo` are the record's (the photo shows through the private /api/artist-photos address).
+export function PersonCell({ name, id, photo }: { name: string; id: string; photo?: string }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-2.5">
-      <ArtistPhoto name={name} photo={photo} className="h-8 w-8 text-xs" width={96} />
+      <ArtistPhoto name={name} src={artistPhotoSrc(id, photo)} className="h-8 w-8 text-xs" />
       <span className="truncate">{name}</span>
     </span>
   );
 }
 
-// The profile photo in a drawer: a large preview, the Drive link, and (with `onSave`) a box to
-// change or remove it. The photo stays in the artist's Google Drive; only the link is saved.
-export function PhotoLink({ name, photo, onSave }: { name: string; photo?: string; onSave?: (link: string) => void }) {
-  const [draft, setDraft] = useState(photo ?? "");
-  const check = draft.trim() ? checkDrivePhoto(draft) : null;
+// The profile photo in a drawer: shown large, and (with `editable`) a new one picked from the
+// computer or phone, saved to AOD's Google Drive (live) or kept in this browser (preview), or removed.
+export function PhotoBox({
+  table,
+  id,
+  name,
+  photo,
+  editable,
+  onPreviewSave,
+  onRemove,
+}: {
+  table: "applications" | "artists";
+  id: string;
+  name: string;
+  photo?: string;
+  editable: boolean;
+  onPreviewSave: (dataUrl: string) => void;
+  onRemove: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const src = artistPhotoSrc(id, photo);
+  if (!editable) return <ArtistPhoto name={name} src={src} className="h-24 w-24 text-2xl" alt={src ? `${name}'s profile photo` : ""} />;
   return (
-    <div className="flex items-start gap-4">
-      <a href={photo || undefined} target="_blank" rel="noopener noreferrer" aria-label={photo ? `Open ${name}'s photo in Google Drive` : undefined} className="shrink-0">
-        <ArtistPhoto name={name} photo={photo} className="h-24 w-24 text-2xl" width={300} alt={photo ? `${name}'s profile photo` : ""} />
-      </a>
-      <div className="min-w-0 flex-1 text-sm">
-        {photo ? (
-          <a href={photo} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
-            Open in Google Drive
-          </a>
-        ) : (
-          <p className="text-muted">No photo yet.</p>
+    <div>
+      <PhotoPicker
+        name={name}
+        src={src}
+        size="h-24 w-24 text-2xl"
+        busy={busy}
+        error={error}
+        onPick={async (dataUrl) => {
+          if (!backendEnabled) return onPreviewSave(dataUrl);
+          setBusy(true);
+          const res = await uploadArtistPhoto(table, id, dataUrl);
+          setBusy(false);
+          setError(res.ok ? null : res.error);
+        }}
+      />
+      <p className="mt-2 text-xs text-muted">
+        Kept on AOD&apos;s Google Drive (Artists, in their main category&apos;s folder).{" "}
+        {photo && (
+          <button type="button" onClick={onRemove} className="font-medium text-muted underline underline-offset-2 hover:text-ink">
+            Remove from the profile
+          </button>
         )}
-        <p className="mt-1 text-xs text-muted">Kept in their own Google Drive. If it doesn&apos;t show, ask them to share it “Anyone with the link”.</p>
-        {onSave && (
-          <div className="mt-3 flex gap-2">
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value.trim())}
-              placeholder="Google Drive link to the photo"
-              aria-label="Google Drive link to the profile photo"
-              aria-invalid={check !== null && !check.ok}
-              className={`${fieldClass} aria-[invalid=true]:border-red-500`}
-            />
-            <button
-              type="button"
-              disabled={draft === (photo ?? "") || (check !== null && !check.ok)}
-              onClick={() => onSave(check?.ok ? check.url : "")}
-              className="shrink-0 rounded-lg border border-line px-3 text-sm font-medium text-ink hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {draft ? "Save" : "Remove"}
-            </button>
-          </div>
-        )}
-        {check && !check.ok && <p className="mt-1 text-xs text-red-600">{check.message}</p>}
-      </div>
+      </p>
     </div>
   );
 }

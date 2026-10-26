@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Mail, MapPin, RotateCcw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eraser, Mail, MapPin, RotateCcw, Undo2, X } from "lucide-react";
 import { categories, cities, occasions, type Audience } from "@/content/site";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { Spinner } from "@/components/ui/Spinner";
@@ -13,7 +13,7 @@ import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
 import { backendEnabled } from "@/lib/backend";
 import { needsText, withCount } from "@/lib/booking-needs";
-import { durationText, endAfter, endsNextDay, eventMinutes, time12, timeRange } from "@/lib/event-time";
+import { durationText, endAfter, eventMinutes, timeRange, timeSpan } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { takeRebook } from "@/lib/rebook";
 import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
@@ -35,8 +35,19 @@ const hourChoices = [...Array.from({ length: 24 }, (_, i) => (i + 1) * 30), ...A
 
 const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
+// The occasion that asks the customer to write their own (a box opens under the choices).
+const OTHER = "Something else";
+
+// A service's "Request a quote" on a category page (QuoteButton) sends this, and MatchQuiz starts
+// again from fresh: that category picked, and "Something else" with the service's name.
+export const QUOTE_EVENT = "aod:quote";
+export type QuoteDetail = { category: string; service: string };
+
 // One category the customer needs, and how many artists of it.
 type Need = { slug: string; count: number };
+
+// The answers Undo can step back through (typed text has the browser's own undo).
+type Snapshot = { step: number; needs: Need[]; occasion: string; otherOccasion: string; date: string; city: string | null; hours: number; startTime: string };
 
 // Earliest bookable date: tomorrow, in the visitor's local time, as YYYY-MM-DD.
 // (Today and earlier can't be picked.)
@@ -76,6 +87,11 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   const [occasion, setOccasion] = useState("");
+  const [otherOccasion, setOtherOccasion] = useState(""); // written in the box under "Something else"
+  const [history, setHistory] = useState<Snapshot[]>([]); // for Undo
+  // What's saved and sent as the occasion: the choice, or what they wrote for "Something else".
+  const occasionText = occasion === OTHER ? otherOccasion.trim() : occasion;
+  const occasionOk = occasion !== "" && (occasion !== OTHER || occasionText.length >= 2);
   const [needs, setNeeds] = useState<Need[]>(() => initialNeeds.map((slug) => ({ slug, count: 1 })));
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -119,7 +135,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const codeSent = !verified && codeFor === cleanEmail;
   const codeOk = /^\d{6}$/.test(code);
   const canSend =
-    Boolean(occasion) && needs.length > 0 && Boolean(city) && dateOk && length !== null && detailsOk && nameOk && phoneOk && emailOk && !busy;
+    occasionOk && needs.length > 0 && Boolean(city) && dateOk && length !== null && detailsOk && nameOk && phoneOk && emailOk && !busy;
   const ready = canSend && (!codeSent || codeOk);
   const missing = !dateOk
     ? date
@@ -154,9 +170,13 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     const draft = takeRebook(audience);
     if (!draft) return;
     const known = draft.needs.filter((n) => categories.some((c) => c.slug === n.slug) && n.count >= 1);
-    const knownOccasion = occasionList.some((o) => o.label === draft.occasion);
+    const knownOccasion = Boolean(draft.occasion);
     /* eslint-disable react-hooks/set-state-in-effect -- a one-time fill from this tab's storage, which the server can't read */
-    if (knownOccasion) setOccasion(draft.occasion);
+    if (occasionList.some((o) => o.label === draft.occasion && o.label !== OTHER)) setOccasion(draft.occasion);
+    else if (draft.occasion) {
+      setOccasion(OTHER);
+      setOtherOccasion(draft.occasion.replace(/^Something else:?\s*/i, ""));
+    }
     if (known.length) setNeeds(known);
     if (draft.city) setCity(draft.city);
     if (draft.time && draft.endTime) {
@@ -173,13 +193,16 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   // confirmation; "Book another event" starts them again, keeping the contact details.
   const sent = saved !== null || opened || saveError !== null;
   const quizTop = useRef<HTMLDivElement>(null);
-  function startOver() {
+  // Every answer back to the start (the contact details stay), optionally with a service's quote
+  // filled in: its category picked, and "Something else" with the service's name.
+  function fresh(quote?: QuoteDetail, scroll = true) {
     setSaved(null);
     setSaveError(null);
     setOpened(false);
     setRebooked(false);
-    setOccasion("");
-    setNeeds(initialNeeds.map((slug) => ({ slug, count: 1 })));
+    setOccasion(quote ? OTHER : "");
+    setOtherOccasion(quote?.service ?? "");
+    setNeeds(quote ? [{ slug: quote.category, count: 1 }] : initialNeeds.map((slug) => ({ slug, count: 1 })));
     setDate("");
     setStartTime("");
     setHours(0);
@@ -187,7 +210,66 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     setBrief({});
     setDir(-1);
     setStep(0);
-    quizTop.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (scroll) quizTop.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  const startOver = () => fresh();
+
+  // A service's "Request a quote" (QuoteButton) starts again with that service. A link from
+  // elsewhere (Most booked) can do the same with ?service= on the category page.
+  useEffect(() => {
+    const own = (detail: QuoteDetail) => categories.find((c) => c.slug === detail.category)?.services.some((s) => s.name === detail.service);
+    const onQuote = (e: Event) => {
+      const detail = (e as CustomEvent<QuoteDetail>).detail;
+      if (detail && own(detail)) {
+        setHistory([]);
+        fresh(detail, false);
+      }
+    };
+    window.addEventListener(QUOTE_EVENT, onQuote);
+    const service = new URLSearchParams(window.location.search).get("service");
+    if (service && initialNeeds[0] && own({ category: initialNeeds[0], service })) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect -- a one-time fill from the address, which the prerendered page can't read */
+      fresh({ category: initialNeeds[0], service }, false);
+    }
+    return () => window.removeEventListener(QUOTE_EVENT, onQuote);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on load
+  }, []);
+
+  // Undo steps back through the selections (artists, counts, occasion, date, city, hours, start
+  // time), taking the questions back to where the change was made; Clear all starts again (and
+  // can be undone too).
+  function remember() {
+    const snap: Snapshot = { step, needs, occasion, otherOccasion, date, city, hours, startTime };
+    setHistory((h) => [...h.slice(-29), snap]);
+  }
+  function undo() {
+    const snap = history[history.length - 1];
+    if (!snap) return;
+    setHistory((h) => h.slice(0, -1));
+    setNeeds(snap.needs);
+    setOccasion(snap.occasion);
+    setOtherOccasion(snap.otherOccasion);
+    setDate(snap.date);
+    if (snap.city) setCity(snap.city);
+    setHours(snap.hours);
+    setStartTime(snap.startTime);
+    if (snap.step !== step) go(snap.step);
+  }
+  // Nothing to clear: still as the questions start (a category page's own category, one of it).
+  const untouchedNeeds = needs.length === initialNeeds.length && needs.every((n) => n.count === 1 && initialNeeds.includes(n.slug));
+  const blank = untouchedNeeds && !occasion && !date && !hours && !startTime && !details && !brief.note;
+  function clearAll() {
+    remember();
+    setRebooked(false);
+    setOccasion("");
+    setOtherOccasion("");
+    setNeeds(initialNeeds.map((slug) => ({ slug, count: 1 })));
+    setDate("");
+    setStartTime("");
+    setHours(0);
+    setDetails("");
+    setBrief({});
+    if (step !== 0) go(0);
   }
 
   // When the question changes (not on first load), keyboard focus moves to the new question
@@ -204,8 +286,8 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const message = [
     "Hi Artists on Demand! I'd like curated matches.",
     audience && `Booking for: ${audienceLabel[audience]}`,
-    `Occasion: ${occasion}`,
     `Looking for: ${needsText(needs.map((n) => ({ name: categoryName(n.slug), count: n.count })))}`,
+    `Occasion: ${occasionText}`,
     `Date: ${date || "Not fixed yet"}`,
     startTime && endTime && `Time: ${timeRange(startTime, endTime)}`,
     `City: ${city ?? "Not selected"}`,
@@ -220,9 +302,11 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     .join("\n");
 
   function toggleNeed(slug: string) {
+    remember();
     setNeeds((list) => (list.some((n) => n.slug === slug) ? list.filter((n) => n.slug !== slug) : [...list, { slug, count: 1 }]));
   }
   function setCount(slug: string, count: number) {
+    remember();
     setNeeds((list) => list.map((n) => (n.slug === slug ? { ...n, count } : n)));
   }
   // "Photographers × 3, Musicians & DJs": for the answer chip and this browser's request list.
@@ -231,7 +315,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   // Answers given so far, shown above the current question.
   const summary = [
     step > 0 && needs.length ? { label: needLabels.join(", "), to: 0 } : null,
-    step > 1 && occasion ? { label: occasion, to: 1 } : null,
+    step > 1 && occasionOk ? { label: occasionText, to: 1 } : null,
   ].filter((x): x is { label: string; to: number } => x !== null);
 
   // Emails the 6-digit code (preview: nothing is sent, any 6 digits pass).
@@ -262,7 +346,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   // reference the team can quote back.
   function sendPreview() {
     const ref = newRequestRef();
-    addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion, needs: needLabels, needSlugs: needs, time: startTime, endTime, date, city: city ?? "", details });
+    addSentRequest({ id: ref, sentAt: new Date().toISOString(), audience, occasion: occasionText, needs: needLabels, needSlugs: needs, time: startTime, endTime, date, city: city ?? "", details });
     window.open(whatsappUrl([message, `Ref: ${ref}`].join("\n")), "_blank", "noopener,noreferrer");
     setOpened(true);
   }
@@ -281,7 +365,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   async function save(tab: Window | null) {
     setBusy("save");
     setSaveError(null);
-    const input = { audience, occasion, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, brief: cleanedBrief, name, phone, email, website };
+    const input = { audience, occasion: occasionText, needs: needs.map((n) => ({ category: n.slug, count: n.count })), date, startTime, endTime, city: city ?? "", details, brief: cleanedBrief, name, phone, email, website };
     // A dropped connection throws instead of answering: try a second time before giving up,
     // so the visitor is never left on "Saving your request…".
     let res: Awaited<ReturnType<typeof createBookingRequest>>;
@@ -398,6 +482,27 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
           ))}
         </div>
       </div>
+
+      {(history.length > 0 || !blank) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={undo}
+            disabled={history.length === 0}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-medium text-ink hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Undo2 className="h-3.5 w-3.5" aria-hidden /> Undo
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            disabled={blank}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-medium text-ink hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Eraser className="h-3.5 w-3.5" aria-hidden /> Clear all
+          </button>
+        </div>
+      )}
 
       {summary.length > 0 && (
         <ul className="mt-5 flex flex-wrap gap-2" aria-label="Your answers so far">
@@ -519,8 +624,9 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                       type="button"
                       aria-pressed={occasion === label}
                       onClick={() => {
+                        if (occasion !== label) remember();
                         setOccasion(label);
-                        go(2);
+                        if (label !== OTHER) go(2);
                       }}
                       className={`flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-ink transition-colors ${
                         occasion === label ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
@@ -532,8 +638,22 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-xs text-muted">Pick one to continue.</p>
-              <StepNav onBack={() => go(0)} />
+              {occasion === OTHER ? (
+                <label className="mt-5 block text-sm font-medium text-ink">
+                  What&apos;s the occasion?
+                  <input
+                    value={otherOccasion}
+                    onChange={(e) => setOtherOccasion(e.target.value)}
+                    maxLength={70}
+                    autoFocus
+                    placeholder="e.g. Aerial event coverage, a college fest, a housewarming…"
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
+              ) : (
+                <p className="mt-4 text-xs text-muted">Pick one to continue.</p>
+              )}
+              <StepNav onBack={() => go(0)} onNext={occasion === OTHER ? () => go(2) : undefined} nextDisabled={!occasionOk} />
             </>
           )}
 
@@ -546,7 +666,10 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                     type="date"
                     value={date}
                     min={minDate}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => {
+                      remember();
+                      setDate(e.target.value);
+                    }}
                     aria-invalid={date !== "" && !dateOk}
                     aria-describedby={date !== "" && !dateOk ? "event-date-error" : undefined}
                     className={`mt-1.5 w-full rounded-xl border px-4 py-3 font-normal outline-none focus:border-brand ${date === "" || dateOk ? "border-line" : "border-red-500"}`}
@@ -576,6 +699,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                     <select
                       value={city ?? ""}
                       onChange={(e) => {
+                        remember();
                         setCity(e.target.value);
                         setChangingCity(false);
                       }}
@@ -591,20 +715,13 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                   </label>
                 )}
                 <label className="text-sm font-medium text-ink">
-                  Start time
-                  <input
-                    type="time"
-                    step={900}
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
-                  />
-                </label>
-                <label className="text-sm font-medium text-ink">
                   How many hours?
                   <select
                     value={hours || ""}
-                    onChange={(e) => setHours(Number(e.target.value))}
+                    onChange={(e) => {
+                      remember();
+                      setHours(Number(e.target.value));
+                    }}
                     className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
                   >
                     <option value="" disabled>
@@ -617,10 +734,22 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                     ))}
                   </select>
                 </label>
+                <label className="text-sm font-medium text-ink">
+                  Start time
+                  <input
+                    type="time"
+                    step={900}
+                    value={startTime}
+                    onChange={(e) => {
+                      remember();
+                      setStartTime(e.target.value);
+                    }}
+                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
+                  />
+                </label>
                 {length !== null && (
                   <p className="-mt-2 text-sm text-ink sm:col-span-2" aria-live="polite">
-                    Ends at <strong className="font-medium">{time12(endTime)}</strong>
-                    {endsNextDay(startTime, endTime) ? " the next day" : ""} · {timeRange(startTime, endTime).replace(/ \(.*\)$/, "")}
+                    <strong className="font-medium">{timeSpan(startTime, endTime)}</strong>
                   </p>
                 )}
                 <label className="text-sm font-medium text-ink sm:col-span-2">

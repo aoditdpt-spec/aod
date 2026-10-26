@@ -77,3 +77,12 @@ export function checkPortfolioLink(input: string): LinkCheck {
 
   return { ok: false, message: "Only Instagram, YouTube and Google Drive links are accepted." };
 }
+
+// A Google Drive link only (a folder or a file): the photos of an applicant's equipment, asked in
+// "Your work details" (kind "link" in src/content/artist-portal.ts).
+export function checkDriveLink(input: string): LinkCheck {
+  const check = checkPortfolioLink(input);
+  if (check.ok && check.platform === "Google Drive") return check;
+  if (!input.trim()) return check;
+  return { ok: false, message: check.ok ? "Use a Google Drive link here (a folder or a photo)." : check.message.replace("Only Instagram, YouTube and Google Drive links are accepted.", "Use a Google Drive link here (a folder or a photo).") };
+}

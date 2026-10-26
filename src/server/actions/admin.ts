@@ -7,6 +7,7 @@ import type { Activity, Db, Member, Session, Settings } from "@/lib/admin-store"
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fromRow, settingsFromRow, toRow } from "@/server/rows";
 import { currentStaff } from "@/server/staff";
+import { readDataUrl, savePhoto } from "@/server/artist-photos";
 import { runOrQueue } from "@/server/notify";
 import { sectionUrl } from "@/lib/site-url";
 
@@ -250,4 +251,21 @@ Sign in at ${sectionUrl("admin", "/")} with this email address (${m.email}). We'
   }
 
   return { ok: true };
+}
+
+// A profile photo picked by staff for an application or artist: to AOD's Google Drive
+// (src/server/artist-photos.ts), replacing the old one in place.
+export async function uploadArtistPhoto(table: "applications" | "artists", id: string, dataUrl: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const me = await currentStaff();
+  if (!me) return { ok: false, error: "You're signed out. Please sign in again." };
+  if ((table !== "applications" && table !== "artists") || !/^(APP|ART)-\d+$/.test(String(id))) return { ok: false, error: "Unknown record." };
+  const photo = readDataUrl(dataUrl);
+  if ("error" in photo) return { ok: false, error: photo.error };
+  try {
+    await savePhoto({ kind: "photo", table, id: String(id), type: photo.type, data: photo.data });
+    return { ok: true };
+  } catch (e) {
+    console.error("[admin photo]", e);
+    return { ok: false, error: "Couldn't save the photo to Google Drive just now. Try again in a minute." };
+  }
 }

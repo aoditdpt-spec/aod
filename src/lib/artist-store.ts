@@ -22,7 +22,7 @@ export type ArtistProfile = {
   languages: string[];
   bio: string;
   links: string[];
-  photo: string; // Google Drive link to their profile photo ("" for none; src/lib/drive-photo.ts)
+  photo: string; // their profile photo: "<Drive file id>~<version>" (live), or a "data:image/…" picture still in the browser; "" for none
   work?: WorkDetails; // the application only; absent elsewhere
   agreeTerms: boolean;
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarClock, CheckCircle2, ExternalLink, ShieldCheck, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { applicationStages } from "@/content/admin";
 import { workQuestionsForAll } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
@@ -9,6 +9,7 @@ import { currentUser, newId, update, useDb, type Application, type ApplicationSt
 import { worksIn } from "@/lib/booking-needs";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
+import { artistPhotoSrc } from "@/lib/artist-photo";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
@@ -26,7 +27,7 @@ import {
   NotesBox,
   PageHeader,
   PersonCell,
-  PhotoLink,
+  PhotoBox,
   PortfolioFiles,
   StageBadge,
   StatusBadge,
@@ -37,7 +38,7 @@ import {
 import { useOpen } from "../useOpen";
 
 const columns: Column<Application>[] = [
-  { key: "name", label: "Applicant", render: (a) => <PersonCell name={a.name} photo={a.photo} />, value: (a) => a.name },
+  { key: "name", label: "Applicant", render: (a) => <PersonCell name={a.name} id={a.id} photo={a.photo} />, value: (a) => a.name },
   { key: "category", label: "Categories", render: (a) => categoryNames(a), value: (a) => categoryNames(a) },
   { key: "city", label: "City", render: (a) => a.city, value: (a) => a.city, hideOnMobile: true },
   { key: "experience", label: "Experience", render: (a) => a.experience, value: (a) => a.experience, hideOnMobile: true },
@@ -144,7 +145,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
       open
       onClose={onClose}
       title={app.name}
-      media={<ArtistPhoto name={app.name} photo={app.photo} className="h-12 w-12 text-base" />}
+      media={<ArtistPhoto name={app.name} src={artistPhotoSrc(app.id, app.photo)} className="h-12 w-12 text-base" />}
       subtitle={
         <span className="flex flex-wrap items-center gap-2">
           {app.id} · {categoryNames(app)} · {app.city} <StageBadge stages={applicationStages} id={app.status} />
@@ -162,11 +163,14 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
       }
     >
       <DrawerSection title="Profile photo">
-        <PhotoLink
-          key={app.photo ?? ""}
+        <PhotoBox
+          table="applications"
+          id={app.id}
           name={app.name}
           photo={app.photo}
-          onSave={editable ? (link) => update("Applications", `${link ? "Changed" : "Removed"} ${app.name}'s profile photo`, (db) => void (db.applications.find((x) => x.id === app.id)!.photo = link), app.id) : undefined}
+          editable={editable}
+          onPreviewSave={(dataUrl) => update("Applications", `Changed ${app.name}'s profile photo`, (db) => void (db.applications.find((x) => x.id === app.id)!.photo = dataUrl), app.id)}
+          onRemove={() => update("Applications", `Removed ${app.name}'s profile photo`, (db) => void (db.applications.find((x) => x.id === app.id)!.photo = ""), app.id)}
         />
       </DrawerSection>
 
@@ -329,14 +333,26 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
 
 // "Your work details" answers, in the order and with the labels of the questions for the
 // applicant's categories; answers to questions no longer asked follow under their id.
-function workRows(app: Application): [string, string][] {
+function workRows(app: Application): [string, ReactNode][] {
   const d = app.details ?? {};
   const show = (v: string | string[]) => (Array.isArray(v) ? v.join(", ") : v) || "—";
   const qs = workQuestionsForAll(app.category, app.otherCategories);
   return [
-    ...qs.filter((q) => q.id in d).map((q): [string, string] => [q.short, show(d[q.id])]),
+    ...qs
+      .filter((q) => q.id in d)
+      .map((q): [string, ReactNode] => [
+        q.short,
+        // A Drive link to equipment photos opens in a new tab.
+        q.kind === "link" && typeof d[q.id] === "string" ? (
+          <a href={String(d[q.id])} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+            Open the photos in Google Drive
+          </a>
+        ) : (
+          show(d[q.id])
+        ),
+      ]),
     ...Object.keys(d)
       .filter((k) => !qs.some((q) => q.id === k))
-      .map((k): [string, string] => [k, show(d[k])]),
+      .map((k): [string, ReactNode] => [k, show(d[k])]),
   ];
 }

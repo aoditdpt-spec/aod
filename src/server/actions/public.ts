@@ -11,10 +11,11 @@ import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { eventMinutes, timeRange } from "@/lib/event-time";
-import { checkDrivePhoto } from "@/lib/drive-photo";
-import { checkPortfolioLink } from "@/lib/portfolio-links";
+import { checkDriveLink, checkPortfolioLink } from "@/lib/portfolio-links";
 import { lineId } from "@/lib/order-id";
 import { insertOrder, insertWithNextId } from "@/server/ids";
+import { categoryCodes } from "@/lib/order-id";
+import { readDataUrl } from "@/server/artist-photos";
 import { ALL_ORDERS_TAB, istNow, notifyEnabled, runJob, runOrQueue, spamNote, spamSubject, teamEmails, type Job } from "@/server/notify";
 
 // The public website's forms, saved on the server. Visitors aren't signed in, so these use the
@@ -188,10 +189,10 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
       const summary = [
         `Ref: ${ref}`,
         `Type: ${audience}`,
-        `Occasion: ${occasion}`,
         `Looking for: ${wanted}`,
         // An order for several categories: each line's own ID.
         needs.length > 1 && `Lines: ${needs.map((c) => `${lineId(id, c.slug)} ${withCount(c.name, c.count)}`).join(", ")}`,
+        `Occasion: ${occasion}`,
         `Date: ${date}`,
         `Time: ${when}`,
         `City: ${city}`,
@@ -236,8 +237,8 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
             "The website couldn't save this booking request, so it isn't in the admin. Add it there (Bookings → New booking).",
             "",
             `Type: ${audience}`,
-            `Occasion: ${occasion}`,
             `Looking for: ${wanted}`,
+            `Occasion: ${occasion}`,
             `Date: ${date}`,
             `Time: ${when}`,
             `City: ${city}`,
@@ -274,7 +275,7 @@ export type ApplicationInput = {
   languages: string[];
   bio: string;
   links: string[];
-  photo?: string; // Google Drive link to their profile photo (src/lib/drive-photo.ts)
+  photo?: string; // their profile photo as a "data:image/…" URL, shrunk in the browser (PhotoPicker)
   agreeTerms: boolean;
   website?: string;
 };
@@ -294,9 +295,10 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
   if (!email || !emailOk(email)) return { ok: false, error: "Enter a valid email address." };
   if (!category) return { ok: false, error: "Pick your category." };
-  // The profile photo stays in the artist's own Google Drive; only its link is saved.
-  const photo = checkDrivePhoto(text(input.photo, 300));
-  if (!photo.ok) return { ok: false, error: `Profile photo: ${photo.message}` };
+  // The profile photo, picked from the gallery or camera; it goes to AOD's Google Drive after the
+  // application is saved (src/server/artist-photos.ts).
+  const photo = readDataUrl(input.photo);
+  if ("error" in photo) return { ok: false, error: input.photo ? `Profile photo: ${photo.error}` : "Add your profile photo." };
   if (!input.agreeTerms) return { ok: false, error: "Please accept the terms." };
   // Known categories other than the main one, each once.
   const others = categories.filter((c) => c.slug !== category.slug && Array.isArray(input.otherCategories) && input.otherCategories.includes(c.slug));
@@ -317,6 +319,17 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
     const keepNoneAlone = (xs: string[]) => (xs.some((x) => exclusiveChoices.includes(x)) ? xs.filter((x) => exclusiveChoices.includes(x)).slice(0, 1) : xs);
     if (!workQuestionShown(q, details)) continue;
     const v = given[q.id];
+    if (q.kind === "link") {
+      const raw = text(v, 300);
+      if (!raw) {
+        if (q.optional) continue;
+        return { ok: false, error: `Add "${q.label}" on the Your work details step.` };
+      }
+      const link = checkDriveLink(raw);
+      if (!link.ok) return { ok: false, error: `"${q.label}": ${link.message}` };
+      details[q.id] = link.url;
+      continue;
+    }
     const answer =
       q.kind === "text"
         ? text(v, 80)
@@ -344,10 +357,7 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   try {
     const db = createAdminClient();
     const now = new Date().toISOString();
-    // `withPhoto` false: the database hasn't had the photo column added yet (the twelfth
-    // migration), so the photo link goes into the notes instead and the application still saves.
-    const save = (withPhoto: boolean) =>
-      insertWithNextId(db, "applications", "APP", 201, (n) => [
+    const [app] = await insertWithNextId(db, "applications", "APP", 201, (n) => [
       {
         id: `APP-${n}`,
         name,
@@ -362,30 +372,19 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         bio: text(input.bio, 2000),
         links,
         details,
-        ...(withPhoto ? { photo: photo.url } : {}),
         status: "submitted",
-        notes: [
-          ...(suspect ? [spamNote(now)] : []),
-          ...(withPhoto ? [] : [{ at: now, by: "Website", text: `Profile photo: ${photo.url}` }]),
-        ],
+        notes: suspect ? [spamNote(now)] : [],
       },
     ]);
-    let app: Record<string, unknown>;
-    try {
-      [app] = await save(true);
-    } catch (e) {
-      if (!/photo/i.test(e instanceof Error ? e.message : "")) throw e;
-      console.error("[application] the applications table has no photo column yet: run the twelfth migration");
-      [app] = await save(false);
-    }
     after(async () => {
-      const jobs: Job[] = [];
+      // The photo first, so the team's email arrives with it already in the admin.
+      const jobs: Job[] = [{ kind: "photo", table: "applications", id: String(app.id), type: photo.type, data: photo.data }];
       if (await notifyEnabled("New artist application"))
         jobs.push({
           kind: "email",
           to: await teamEmails(),
           subject: spamSubject(suspect, `New artist application ${app.id}: ${name} (${kinds})`),
-          text: `${name}, ${kinds}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}\nPhoto: ${photo.url}${
+          text: `${name}, ${kinds}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}\nPhoto: Google Drive, Artists / ${category.name} (${categoryCodes[category.slug] ?? "AR"}_…_${app.id})${
             "\n\n" + questions.filter((q) => q.id in details).map((q) => `${q.short}: ${[details[q.id]].flat().join(", ")}`).join("\n")
           }\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
           replyTo: email,

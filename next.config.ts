@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 import { hsts } from "./src/lib/hsts";
 
 // Other places the browser may load from: Supabase (data, sign-in, live updates, portfolio
-// files), NEXT_PUBLIC_MEDIA_URL when the hero footage lives on a bucket or CDN, and Google Drive
-// for artists' profile photos (src/lib/drive-photo.ts: drive.google.com/thumbnail answers with a
-// redirect to a googleusercontent.com address, and the browser checks both).
+// files) and NEXT_PUBLIC_MEDIA_URL when the hero footage lives on a bucket or CDN. (Artists'
+// profile photos come from the site itself, /api/artist-photos.)
 const origin = (url?: string) => {
   try {
     return url ? new URL(url).origin : "";
@@ -14,7 +13,6 @@ const origin = (url?: string) => {
 };
 const supabase = origin(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const media = origin(process.env.NEXT_PUBLIC_MEDIA_URL);
-const drivePhotos = "https://drive.google.com https://*.googleusercontent.com";
 
 // Content Security Policy: scripts, styles and fonts only from the site itself, data only from
 // the site and Supabase, no plugins, and no other site may frame the pages (clickjacking).
@@ -25,7 +23,7 @@ const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabase} ${media} ${drivePhotos}`,
+  `img-src 'self' data: blob: ${supabase} ${media}`,
   `media-src 'self' blob: ${supabase} ${media}`,
   "font-src 'self'",
   `connect-src 'self' ${supabase} ${supabase.replace(/^https:/, "wss:")}`,

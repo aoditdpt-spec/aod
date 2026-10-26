@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { backendEnabled } from "@/lib/backend";
-import { portalSignOut, useArtistProfile, usePortalMode } from "@/lib/artist-live";
+import { portalSignOut, useArtistProfile, usePortalMode, usePortalPhoto } from "@/lib/artist-live";
 import { modeStore, type PreviewMode } from "@/lib/artist-store";
 import { sectionLink } from "@/lib/site-url";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
@@ -19,6 +19,7 @@ const modes: { value: PreviewMode; label: string; text: string }[] = [
 export function AccountMenu() {
   const router = useRouter();
   const { profile } = useArtistProfile();
+  const photo = usePortalPhoto();
   const mode = usePortalMode();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ export function AccountMenu() {
         aria-haspopup="true"
         className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-wash"
       >
-        <ArtistPhoto name={name} photo={profile.photo} />
+        <ArtistPhoto name={name} src={photo} />
         <span className="hidden text-left sm:block">
           <span className="block text-sm font-medium leading-tight text-ink">{name}</span>
           <span className="block text-xs leading-tight text-muted">

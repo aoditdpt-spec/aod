@@ -326,7 +326,7 @@ that way on purpose so the check scripts can test them alone.
 | `fuzzy.ts` | Search ranking and typo tolerance (no imports, tested by `check:search`) |
 | `search.ts` | Builds the search index from `site.ts` |
 | `portfolio-links.ts` | Checks portfolio links (no imports, tested by `check:links`) |
-| `drive-photo.ts` | Artists' profile photos: `checkDrivePhoto()` accepts only a Google Drive file link and saves it as `drive.google.com/file/d/<id>/view`; `drivePhotoSrc()` gives the address pages show it from (Drive's thumbnail service). The photo stays in the artist's Drive (no imports, tested by `check:links`) |
+| `artist-photo.ts` | Artists' profile photos: `photoFileName()` (`PH_AMANSHAH_APP-231.webp`) and `artistPhotoSrc()` (the private `/api/artist-photos/<id>.img` address). The photos live on AOD's Google Drive, through `src/server/artist-photos.ts` (no imports, tested by `check:links`) |
 | `image-resize.ts` | Shrinks photos in the browser to WebP, max 2560px, before upload |
 | `xlsx.ts` | Writes .xlsx and CSV files for Reports & exports |
 | `swipe.ts`, `motion-safe.ts` | Carousel swipe handling; reduced-motion helpers |
@@ -679,6 +679,7 @@ are baked into the browser code at build time.
 | `RESEND_API_KEY` | Sending site emails | Emails wait in `outbox` |
 | `EMAIL_FROM` | Sender, e.g. `AOD <connect@aod.co.in>` (must be on the domain verified in Resend) | Emails wait in `outbox` |
 | `TEAM_EMAIL` | Where team notifications go (comma-separated); every active Admin in Team & roles gets them too | Falls back to the site email (connect@aod.co.in) |
+| `ARTIST_PHOTOS_FOLDER_ID` | The "Artists" folder in a Shared Drive for artists' profile photos (the service account is its Content manager; the Drive API must be on) | Photos wait in `outbox` and are retried |
 | `ORDERS_SHEET_ID` | The orders sheet (its ID, or its full link) | Sheet rows wait in `outbox` |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | The service account the sheet is shared with | Sheet rows wait in `outbox` |
 | `GOOGLE_PRIVATE_KEY` | That account's private key, on one line with `\n` for line breaks, in double quotes | Sheet rows wait in `outbox` |
@@ -731,7 +732,7 @@ are baked into the browser code at build time.
 | Change the artist application questions | `workQuestions` in `src/content/artist-portal.ts` (kinds: `one`, `many`, `text`, `long`; `optional`; `showIf`) | Old answers stay saved by id and still show in the admin |
 | Change which categories need both Instagram and portfolio links | `bothLinksCategories` in `artist-portal.ts` | — |
 | Change the portfolio-link rules | `src/lib/portfolio-links.ts` | Add a case to `scripts/links-check.mts` |
-| Change the profile photo link rules | `src/lib/drive-photo.ts` | Add a case to the photo list in `scripts/links-check.mts` |
+| Change how profile photos are named or stored | `src/lib/artist-photo.ts`, `src/server/artist-photos.ts` | Add a case to the photo list in `scripts/links-check.mts` |
 | Change colours | Tokens in `src/app/globals.css` | Check light text on orange stays readable |
 | Change fonts | `src/app/layout.tsx` (next/font) and `--font-*` in `globals.css` | — |
 | Replace the hero video | New files in `public/media/` **with new names**, then `HeroVideo.tsx` (`<source>` names and `codecs`) | Keep AV1 ≈ 2–3 MB (laptop), 1 MB (phone) |

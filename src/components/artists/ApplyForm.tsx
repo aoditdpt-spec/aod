@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Info, Pencil } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   applySteps,
   bothLinksCategories,
@@ -24,8 +24,7 @@ import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { allCategories } from "@/lib/booking-needs";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
-import { checkDrivePhoto, drivePhotoSrc } from "@/lib/drive-photo";
-import { checkPortfolioLink } from "@/lib/portfolio-links";
+import { checkDriveLink, checkPortfolioLink } from "@/lib/portfolio-links";
 import { sectionLink, siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { createApplication } from "@/server/actions/public";
@@ -33,7 +32,7 @@ import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { DigiLockerCard } from "./DigiLockerCard";
-import { DrivePhotoField, type PhotoStatus } from "./DrivePhotoField";
+import { PhotoPicker } from "@/components/ui/PhotoPicker";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
 import { LinkEditor } from "./LinkEditor";
@@ -57,15 +56,12 @@ const asA = (slug: string) => {
 const isInstagram = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
 const answered = (v: string | string[] | undefined) => (Array.isArray(v) ? v.length > 0 : !!v?.trim());
 
-// What's missing on each step. An empty list means the step is complete. `photoFailed`: Drive
-// wouldn't show the profile photo (not shared "Anyone with the link", or not an image).
-function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: boolean, photoFailed: boolean): Record<string, string> {
+// What's missing on each step. An empty list means the step is complete.
+function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: boolean): Record<string, string> {
   const e: Record<string, string> = {};
   if (step === "about") {
     if (p.fullName.trim().length < 2) e.fullName = "Enter your full name.";
-    const photo = checkDrivePhoto(p.photo);
-    if (!photo.ok) e.photo = photo.message;
-    else if (photoFailed) e.photo = "Set the photo's sharing to “Anyone with the link”.";
+    if (!p.photo.startsWith("data:image/")) e.photo = "Add your profile photo.";
     if (!validPhone(p.phone)) e.phone = "Enter a 10-digit Indian mobile number.";
     else if (!phoneVerified && !backendEnabled) e.phone = "Verify your number with the code.";
     if (backendEnabled && !validEmail(p.email)) e.email = "Enter your email address; AOD replies by email.";
@@ -82,7 +78,12 @@ function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: b
     if (!p.category) e.category = "Choose what you do on the Your craft step first.";
     for (const q of questionsFor(p)) {
       if (q.optional || !workQuestionShown(q, p.work)) continue;
-      if (!answered(p.work?.[q.id])) e[q.id] = q.kind === "text" || q.kind === "long" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
+      const given = p.work?.[q.id];
+      if (!answered(given)) e[q.id] = q.kind === "link" ? "Add the Google Drive link." : q.kind === "text" || q.kind === "long" ? "Fill this in." : q.kind === "many" ? "Pick at least one." : "Choose one.";
+      else if (q.kind === "link") {
+        const link = checkDriveLink(String(given));
+        if (!link.ok) e[q.id] = link.message;
+      }
       else if (!choicesComplete([p.work?.[q.id] ?? []].flat())) e[q.id] = `You picked "${OTHER}": write your own answer in the box.`;
     }
   }
@@ -111,20 +112,36 @@ export function ApplyForm() {
   const [tried, setTried] = useState<Partial<Record<StepId, boolean>>>({});
   const [files, setFiles] = useState<Files>({ samples: [], resume: [] });
   const [phoneVerified, setPhoneVerified] = useState(false);
-  const [brokenPhoto, setBrokenPhoto] = useState(""); // the photo address Drive wouldn't show
-  const photoFailed = !!profile.photo && brokenPhoto === drivePhotoSrc(profile.photo);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null); // live: the saved application's reference
+  const [sentTo, setSentTo] = useState(""); // the email it was sent from (the draft is cleared once saved)
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // A draft left in this browser from before this visit (someone else may be applying now).
+  const [hasDraft, setHasDraft] = useState(false);
+  useEffect(() => {
+    const d = profileStore.get();
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- read once from this browser's storage, which the server can't see */
+    setHasDraft(Boolean(d && (d.fullName.trim() || d.phone.trim() || d.email.trim() || d.category)));
+  }, []);
+  function startFresh() {
+    profileStore.set(null);
+    setFiles({ samples: [], resume: [] });
+    setPhoneVerified(false);
+    setTried({});
+    setStep(0);
+    setHasDraft(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   // Merge into the latest saved draft, so quick successive edits never undo each other.
   const set = (patch: Partial<ArtistProfile>) => profileStore.set({ ...(profileStore.get() ?? emptyProfile), ...patch });
   const steps = applySteps;
   const current = steps[Math.min(step, steps.length - 1)];
-  const errs = problems(current.id, profile, files, phoneVerified, photoFailed);
+  const errs = problems(current.id, profile, files, phoneVerified);
   const shown = tried[current.id] ? errs : {};
-  const complete = (i: number) => steps[i].id !== "review" && Object.keys(problems(steps[i].id, profile, files, phoneVerified, photoFailed)).length === 0;
+  const complete = (i: number) => steps[i].id !== "review" && Object.keys(problems(steps[i].id, profile, files, phoneVerified)).length === 0;
   const goTo = (id: StepId) => setStep(Math.max(0, steps.findIndex((s) => s.id === id)));
 
   function next() {
@@ -144,7 +161,7 @@ export function ApplyForm() {
         </span>
         <h2 className="mt-6 text-2xl font-bold sm:text-3xl">Application received</h2>
         <p className="mt-3 text-body">
-          Your reference is <strong>{savedId}</strong>. AOD&apos;s team reviews every application and will reply by email at {profile.email}.
+          Your reference is <strong>{savedId}</strong>. AOD&apos;s team reviews every application and will reply by email at {sentTo}.
         </p>
         <p className="mt-3 text-sm text-muted">Sign in to the artist portal with this email to follow your application and add photos to your portfolio.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -167,7 +184,6 @@ export function ApplyForm() {
       `Phone: +91 ${phoneDigits(profile.phone)}`,
       profile.email && `Email: ${profile.email}`,
       `City: ${profile.city}`,
-      profile.photo && `Photo: ${profile.photo}`,
       `Services: ${profile.services.join(", ")}`,
       `Experience: ${profile.experience}`,
       ...questionsFor(profile)
@@ -264,7 +280,7 @@ export function ApplyForm() {
           })}
         </ol>
         <p className="mt-6 hidden rounded-xl bg-white/70 p-4 text-xs text-muted lg:block">
-          Your answers are kept as a draft in this browser. Photos and files aren&apos;t kept if you refresh.
+          Your answers are kept as a draft in this browser until you send them. Photos and files aren&apos;t kept if you refresh.
         </p>
       </nav>
 
@@ -279,7 +295,14 @@ export function ApplyForm() {
           setSaveError(null);
           void createApplication({ ...profile, phone: `+91 ${phoneDigits(profile.phone)}`, work: profile.work ?? {} })
             .then((res) => {
-              if (res.ok) setSavedId(res.id);
+              if (res.ok) {
+                // Saved: clear this browser's draft, so the next person to apply here (a friend on
+                // the same phone) starts with an empty form.
+                setSentTo(profile.email);
+                setSavedId(res.id);
+                profileStore.set(null);
+                setFiles({ samples: [], resume: [] });
+              }
               else setSaveError(res.error);
               setSubmitted(true);
             })
@@ -291,6 +314,16 @@ export function ApplyForm() {
         }}
         className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10"
       >
+        {hasDraft && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-wash px-4 py-3 text-sm">
+            <span className="text-body">
+              Filled in on this browser before{profile.fullName.trim() ? ` (${profile.fullName.trim()})` : ""}.
+            </span>
+            <button type="button" onClick={startFresh} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+              Not you? Start a fresh application
+            </button>
+          </div>
+        )}
         <h2 className="text-2xl font-bold sm:text-[2rem] sm:leading-tight">{current.title}</h2>
         <p className="mt-2 text-sm text-muted">{current.text}</p>
 
@@ -302,7 +335,6 @@ export function ApplyForm() {
               errors={shown}
               phoneVerified={phoneVerified}
               setPhoneVerified={setPhoneVerified}
-              onPhotoStatus={(src, status) => setBrokenPhoto((b) => (status === "failed" ? src : b === src ? "" : b))}
             />
           )}
           {current.id === "craft" && <CraftStep profile={profile} set={set} errors={shown} />}
@@ -362,8 +394,7 @@ function AboutStep({
   errors,
   phoneVerified,
   setPhoneVerified,
-  onPhotoStatus,
-}: StepProps & { phoneVerified: boolean; setPhoneVerified: (v: boolean) => void; onPhotoStatus: (src: string, status: PhotoStatus) => void }) {
+}: StepProps & { phoneVerified: boolean; setPhoneVerified: (v: boolean) => void }) {
   const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -380,13 +411,10 @@ function AboutStep({
         />
       </Field>
 
-      <DrivePhotoField
-        name={profile.fullName}
-        value={profile.photo}
-        onChange={(photo) => set({ photo })}
-        error={errors.photo}
-        onStatus={onPhotoStatus}
-      />
+      <div>
+        <p className="mb-2 text-sm font-medium text-ink">Profile photo</p>
+        <PhotoPicker name={profile.fullName} src={profile.photo} onPick={(photo) => set({ photo })} error={errors.photo} />
+      </div>
 
       <div>
         <Field label="Mobile number (WhatsApp preferred)" error={errors.phone}>
@@ -651,6 +679,21 @@ function WorkQuestions({
               />
             </Field>
           );
+        if (q.kind === "link") {
+          const link = typeof v === "string" && v.trim() ? checkDriveLink(v) : null;
+          return (
+            <Field key={q.id} label={q.label} optional={q.optional} error={errors[q.id] ?? (link && !link.ok ? link.message : undefined)} hint={q.hint}>
+              <input
+                value={typeof v === "string" ? v : ""}
+                onChange={(e) => setAnswer(q.id, e.target.value.trim().slice(0, 300))}
+                inputMode="url"
+                placeholder="https://drive.google.com/drive/folders/…"
+                aria-invalid={!!errors[q.id] || (link !== null && !link.ok)}
+                className={inputClass}
+              />
+            </Field>
+          );
+        }
         if (q.kind === "text")
           return (
             <Field key={q.id} label={q.label} optional={q.optional} error={errors[q.id]} hint={q.hint} className="sm:max-w-sm">
@@ -785,7 +828,7 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       title: "About you",
       items: [
         ["Name", profile.fullName],
-        ["Photo", <ArtistPhoto key="photo" name={profile.fullName} photo={profile.photo} className="h-12 w-12 text-sm" alt="Your profile photo" />],
+        ["Photo", <ArtistPhoto key="photo" name={profile.fullName} src={profile.photo} className="h-12 w-12 text-sm" alt="Your profile photo" />],
         ["Mobile", `+91 ${phoneDigits(profile.phone)}`],
         ["Email", profile.email || "—"],
         ["City", profile.city],

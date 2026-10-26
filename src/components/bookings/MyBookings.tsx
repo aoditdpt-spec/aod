@@ -326,7 +326,7 @@ function BookingsView({
                         <span className={`rounded-md px-2 py-0.5 font-medium ${s.tone}`}>{s.label}</span>
                       </span>
                       <span className="mt-2 block font-medium text-ink">
-                        {o.occasion} · {o.services.join(", ")}
+                        {o.services.join(", ")} · {o.occasion}
                       </span>
                       <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
                         <span className="inline-flex items-center gap-1">
@@ -480,7 +480,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
               {o.sample && <span className="ml-2 rounded bg-wash px-1.5 py-0.5">Sample</span>}
             </p>
             <h2 className="mt-1 text-xl font-bold sm:text-2xl">
-              {o.occasion} · {o.services.join(", ")}
+              {o.services.join(", ")} · {o.occasion}
             </h2>
           </div>
           <span className={`rounded-md px-2.5 py-1 text-sm font-medium ${s.tone}`}>{s.label}</span>

@@ -45,7 +45,7 @@ export type Application = {
   notes: Note[];
   artistId?: string; // set when approved
   portfolio?: PortfolioFile[]; // uploaded from the artist portal while applying (live mode)
-  photo?: string; // Google Drive link to their profile photo (src/lib/drive-photo.ts)
+  photo?: string; // "<Drive file id>~<version>": their profile photo on AOD's Google Drive (src/server/artist-photos.ts)
   details?: WorkDetails; // "Your work details" answers, by question id
 };
 
@@ -73,7 +73,7 @@ export type Artist = {
   bio?: string;
   links?: string[];
   portfolio?: PortfolioFile[];
-  photo?: string; // Google Drive link to their profile photo, from the application or the portal
+  photo?: string; // "<Drive file id>~<version>", from the application, the portal or the admin
 };
 
 // An artist's answer to a booking request they were shortlisted for (sent from the artist portal).

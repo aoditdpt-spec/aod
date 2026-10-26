@@ -17,6 +17,7 @@ import { linkCard, linkText, linkTitle, tiltText, tiltTitle, tiltZoom } from "@/
 import { TiltCard } from "@/components/motion/TiltCard";
 import { StickyBookBar } from "@/components/categories/StickyBookBar";
 import { CategoryTiles } from "@/components/categories/CategoryTiles";
+import { QuoteButton } from "@/components/categories/QuoteButton";
 
 // One static page per category, built at deploy time.
 export function generateStaticParams() {
@@ -106,10 +107,11 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               <div className={`mt-2 ${tiltText}`}>
                 <Rating rating={s.rating} count={s.bookings} unit="bookings" />
               </div>
-              {/* To the booking questions on this page, so the request is saved before WhatsApp opens. */}
-              <a href="#book" className={buttonClasses("outline", "md", "mt-6")}>
+              {/* To the booking questions on this page, started again with this service, so the
+                  request is saved before WhatsApp opens. */}
+              <QuoteButton category={category.slug} service={s.name} className={buttonClasses("outline", "md", "mt-6")}>
                 Request a quote
-              </a>
+              </QuoteButton>
             </TiltCard>
             </StaggerItem>
           ))}

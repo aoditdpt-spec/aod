@@ -12,6 +12,7 @@ import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-
 import { lineId } from "@/lib/order-id";
 import { parseOrderMessage, pickService } from "@/lib/whatsapp-order";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
+import { artistPhotoSrc } from "@/lib/artist-photo";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
@@ -754,7 +755,7 @@ function OrderLine({
           {assigned.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg bg-peach/40 p-3 text-sm">
               <span className="flex items-center gap-2.5">
-                <ArtistPhoto name={a.name} photo={a.photo} className="h-8 w-8 text-xs" width={96} />
+                <ArtistPhoto name={a.name} src={artistPhotoSrc(a.id, a.photo)} className="h-8 w-8 text-xs" />
                 <span>
                   Assigned: <strong className="font-medium">{a.name}</strong> · {a.city}
                 </span>
@@ -783,7 +784,7 @@ function OrderLine({
           const reply = b.replies?.find((r) => r.artistId === a.id);
           return (
             <li key={a.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-              <ArtistPhoto name={a.name} photo={a.photo} className="h-8 w-8 text-xs" width={96} />
+              <ArtistPhoto name={a.name} src={artistPhotoSrc(a.id, a.photo)} className="h-8 w-8 text-xs" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium text-ink">{a.name}</span>
                 <span className={`block text-xs ${free || isAssigned ? "text-emerald-700" : "text-red-700"}`}>{why}</span>

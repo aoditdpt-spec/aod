@@ -10,7 +10,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type SheetJob = { kind: "sheet"; tab: string; rows: string[][] };
 // `html` is optional (plain text is always sent too); `headers` carries List-Unsubscribe for the newsletter.
 export type EmailJob = { kind: "email"; to: string[]; subject: string; text: string; html?: string; replyTo?: string; headers?: Record<string, string> };
-export type Job = SheetJob | EmailJob;
+// An artist's profile photo for AOD's Google Drive (src/server/artist-photos.ts): the shrunk image
+// as base64, and the application or artist it belongs to.
+export type PhotoJob = { kind: "photo"; table: "applications" | "artists"; id: string; type: string; data: string };
+export type Job = SheetJob | EmailJob | PhotoJob;
 
 // Column headings for the orders sheet: "All orders" and one tab per category use the same columns.
 // New columns go at the end, so rows already in the sheet still line up; a tab whose heading row
@@ -71,6 +74,7 @@ export const spamSubject = (suspect: boolean, subject: string) => (suspect ? `[C
 
 export async function runJob(job: Job) {
   if (job.kind === "sheet") return appendToSheet(job.tab, job.rows);
+  if (job.kind === "photo") return (await import("./artist-photos")).savePhoto(job);
   return sendEmail(job);
 }
 
@@ -117,22 +121,25 @@ async function sendEmail(job: EmailJob) {
   if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
 
-// ---- Google Sheets (service account) ----
+// ---- Google (service account): the orders Sheet, and artists' photos on Drive ----
 
 const b64url = (s: string) => Buffer.from(s).toString("base64url");
 
-let cachedToken: { token: string; expires: number } | null = null;
+export const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+export const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
+const cachedTokens = new Map<string, { token: string; expires: number }>();
 
-async function googleToken() {
+export async function googleToken(scope = SHEETS_SCOPE) {
+  const cachedToken = cachedTokens.get(scope);
   if (cachedToken && cachedToken.expires > Date.now() + 60_000) return cachedToken.token;
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  if (!email || !key) throw new Error("The orders sheet isn't set up yet (GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY).");
+  if (!email || !key) throw new Error("Google isn't set up yet (GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY).");
   const now = Math.floor(Date.now() / 1000);
   const unsigned = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(
     JSON.stringify({
       iss: email,
-      scope: "https://www.googleapis.com/auth/spreadsheets",
+      scope,
       aud: "https://oauth2.googleapis.com/token",
       iat: now,
       exp: now + 3600,
@@ -146,8 +153,8 @@ async function googleToken() {
   });
   if (!res.ok) throw new Error(`Google sign-in ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const body = (await res.json()) as { access_token: string; expires_in: number };
-  cachedToken = { token: body.access_token, expires: Date.now() + body.expires_in * 1000 };
-  return cachedToken.token;
+  cachedTokens.set(scope, { token: body.access_token, expires: Date.now() + body.expires_in * 1000 });
+  return body.access_token;
 }
 
 // Add rows at the bottom of a tab; writes the heading row first if the tab is empty, and adds any

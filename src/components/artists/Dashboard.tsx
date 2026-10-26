@@ -5,7 +5,7 @@ import { ArrowRight, Check, Search } from "lucide-react";
 import type { ReactNode } from "react";
 import { applicantStatusText, onboardingStages, sampleStage } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
-import { useArtistProfile, useBlockedDates, usePortalMode, usePortalState } from "@/lib/artist-live";
+import { useArtistProfile, useBlockedDates, usePortalMode, usePortalPhoto, usePortalState } from "@/lib/artist-live";
 import { modeStore, type PreviewMode } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
@@ -106,6 +106,7 @@ const sampleTag = backendEnabled ? undefined : <Badge>Sample data</Badge>;
 export function Dashboard() {
   const mode = usePortalMode();
   const { profile } = useArtistProfile();
+  const photo = usePortalPhoto();
   const live = usePortalState().data;
   const bookings = useBookings();
   const name = profile.fullName.split(/\s+/)[0] || "there";
@@ -119,7 +120,7 @@ export function Dashboard() {
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <ArtistPhoto name={profile.fullName || profile.email} photo={profile.photo} className="h-14 w-14 text-lg sm:h-16 sm:w-16 sm:text-xl" width={200} />
+          <ArtistPhoto name={profile.fullName || profile.email} src={photo} className="h-14 w-14 text-lg sm:h-16 sm:w-16 sm:text-xl" />
           <div>
             <h1 className="text-3xl font-medium sm:text-4xl">Hi, {name}</h1>
             <p className="mt-2 text-body">

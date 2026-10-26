@@ -4,19 +4,42 @@ import { useState } from "react";
 import { experienceLevels, languages } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
-import { saveProfile, useArtistProfile } from "@/lib/artist-live";
+import { changePhoto, saveProfile, useArtistProfile, usePortalPhoto } from "@/lib/artist-live";
 import type { ArtistProfile } from "@/lib/artist-store";
 import { allCategories } from "@/lib/booking-needs";
-import { checkDrivePhoto, drivePhotoSrc } from "@/lib/drive-photo";
 import type { ProfilePatch } from "@/server/actions/artist";
 import { Spinner } from "@/components/ui/Spinner";
-import { DrivePhotoField } from "./DrivePhotoField";
+import { PhotoPicker } from "@/components/ui/PhotoPicker";
 import { ChipGroup, Field, Panel, inputClass } from "./form";
 
 // Work profile editor. Live: edits are kept as a draft until "Save changes"; the name and
 // categories stay as AOD approved them. Preview: kept in this browser as you type.
 export function ProfileEditor() {
   return backendEnabled ? <LiveProfileEditor /> : <PreviewProfileEditor />;
+}
+
+// The profile photo: picked from the gallery or camera and saved straight away (to AOD's Google
+// Drive when live), apart from "Save changes".
+function ProfilePhoto({ name }: { name: string }) {
+  const src = usePortalPhoto();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="mb-6">
+      <p className="mb-2 text-sm font-medium text-ink">Profile photo</p>
+      <PhotoPicker
+        name={name}
+        src={src}
+        busy={busy}
+        error={error}
+        onPick={async (dataUrl) => {
+          setBusy(true);
+          setError(await changePhoto(dataUrl));
+          setBusy(false);
+        }}
+      />
+    </div>
+  );
 }
 
 // The services of each of the artist's categories, under the category's name when there are several.
@@ -49,16 +72,6 @@ function LiveProfileEditor() {
     setMessage(null);
   };
   const dirty = Object.keys(draft).length > 0;
-  // A new photo link saves only once it's a Drive file that Drive actually shows.
-  const [brokenPhoto, setBrokenPhoto] = useState("");
-  const photoProblem =
-    draft.photo === undefined
-      ? null
-      : !checkDrivePhoto(draft.photo).ok
-        ? "Fix the profile photo link to save."
-        : brokenPhoto === drivePhotoSrc(draft.photo)
-          ? "Set the photo's sharing to “Anyone with the link” to save."
-          : null;
   const kinds = allCategories(view).map((slug) => categories.find((c) => c.slug === slug)?.name ?? slug);
 
   async function save() {
@@ -75,14 +88,7 @@ function LiveProfileEditor() {
   return (
     <div className="mt-8 max-w-3xl space-y-6">
       <Panel title="Basics">
-        <div className="mb-6">
-          <DrivePhotoField
-            name={view.fullName}
-            value={view.photo}
-            onChange={(photo) => set({ photo })}
-            onStatus={(src, status) => setBrokenPhoto((b) => (status === "failed" ? src : b === src ? "" : b))}
-          />
-        </div>
+        <ProfilePhoto name={view.fullName} />
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Full name" hint="To change your name, message AOD.">
             <input value={view.fullName} disabled className={`${inputClass} disabled:bg-wash disabled:text-muted`} />
@@ -133,7 +139,7 @@ function LiveProfileEditor() {
         <button
           type="button"
           onClick={() => void save()}
-          disabled={!dirty || saving || !!photoProblem}
+          disabled={!dirty || saving}
           className={`inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand-hover ${
             saving ? "cursor-wait" : "disabled:cursor-not-allowed disabled:opacity-40"
           }`}
@@ -151,7 +157,6 @@ function LiveProfileEditor() {
             Discard
           </button>
         )}
-        {photoProblem && !message && <p className="text-sm text-red-600">{photoProblem}</p>}
         {message && <p className={`text-sm ${message.ok ? "text-emerald-700" : "text-red-600"}`}>{message.text}</p>}
         {!message && !dirty && <p className="text-sm text-muted">Your profile is up to date.</p>}
       </div>
@@ -177,9 +182,7 @@ function PreviewProfileEditor() {
       )}
 
       <Panel title="Basics">
-        <div className="mb-6">
-          <DrivePhotoField name={profile.fullName} value={profile.photo} onChange={(photo) => set({ photo })} />
-        </div>
+        <ProfilePhoto name={profile.fullName} />
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Full name">
             <input value={profile.fullName} onChange={(e) => set({ fullName: e.target.value })} className={inputClass} />

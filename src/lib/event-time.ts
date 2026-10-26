@@ -42,6 +42,12 @@ export function durationText(minutes: number): string {
   return [hours, mins].filter(Boolean).join(" ");
 }
 
+// "4:30 PM – 7:30 PM", and "(ends next day)" when it runs past midnight: the booking questions' line.
+export function timeSpan(start: string, end: string): string {
+  if (!isTime(start) || !isTime(end)) return time12(start);
+  return `${time12(start)} – ${time12(end)}${endsNextDay(start, end) ? " (ends next day)" : ""}`;
+}
+
 // "9:00 AM – 12:00 PM (3 hours)". With only a start time, just that time.
 export function timeRange(start: string, end?: string): string {
   if (!end || !isTime(end)) return time12(start);

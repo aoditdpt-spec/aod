@@ -498,14 +498,14 @@ export const categoryBooking = {
 export const getMatched = {
   eyebrow: "Free curated matching",
   title: "Not sure who to book?",
-  text: "Tell us your need — event type, date, details — takes 2 minutes. We'll send curated matches.",
+  text: "Tell us who you need, the occasion, the date and details — takes 2 minutes. We'll send curated matches.",
   nextTitle: "What happens next",
   talkTitle: "Prefer to talk?",
 };
 
 export const howItWorks = {
   clients: [
-    { title: "Tell us your need", text: "Event type, date, details — takes 2 minutes." },
+    { title: "Tell us your need", text: "Who you need, the occasion, date and details — takes 2 minutes." },
     {
       title: "Get curated matches",
       text: "Verified artists with clear quotes. No scrolling through 500 profiles.",

@@ -1,8 +1,8 @@
 // Checks the artist portal's portfolio-link rules (src/lib/portfolio-links.ts) and the profile
-// photo's Google Drive link rules (src/lib/drive-photo.ts).
+// photo's file name and address (src/lib/artist-photo.ts).
 // Run with: npm run check:links
-import { checkDrivePhoto, drivePhotoSrc } from "../src/lib/drive-photo.ts";
-import { checkPortfolioLink } from "../src/lib/portfolio-links.ts";
+import { artistPhotoSrc, photoFileName } from "../src/lib/artist-photo.ts";
+import { checkDriveLink, checkPortfolioLink } from "../src/lib/portfolio-links.ts";
 
 // link → the label expected when accepted, or null when it must be turned away
 const cases: Record<string, string | null> = {
@@ -43,47 +43,37 @@ for (const [input, expected] of Object.entries(cases)) {
   console.log(`${ok ? "✓" : "✗"} ${JSON.stringify(input).padEnd(46)} → ${result.ok ? result.label : `rejected: ${result.message}`}${ok ? "" : `   (expected ${expected ?? "rejection"})`}`);
 }
 
-// Profile photos (src/lib/drive-photo.ts): a Google Drive file link → the file id it should find,
-// or null when it must be turned away (a folder, another site, no id).
+// Profile photos (src/lib/artist-photo.ts): the file name on AOD's Drive, and the address pages
+// show the photo from (the private route, or a picture still in the browser).
 const ID = "1AbCdEfGhIjKlMnOpQrStUvWxYz012345";
-const photos: Record<string, string | null> = {
-  [`https://drive.google.com/file/d/${ID}/view?usp=sharing`]: ID,
-  [`https://drive.google.com/file/d/${ID}/view?usp=drive_link`]: ID,
-  [`drive.google.com/file/d/${ID}`]: ID,
-  [`https://drive.google.com/file/u/0/d/${ID}/view`]: ID,
-  [`https://drive.google.com/open?id=${ID}`]: ID,
-  [`https://drive.google.com/uc?export=view&id=${ID}`]: ID,
-  [`https://drive.google.com/thumbnail?id=${ID}&sz=w400`]: ID,
-  [`https://docs.google.com/uc?id=${ID}`]: ID,
-  [`https://lh3.googleusercontent.com/d/${ID}=w400`]: ID,
-  "https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOpQrStUv": null,
-  "https://drive.google.com/drive/u/0/folders/1AbCdEfGhIjKlMnOpQrStUv": null,
-  "https://drive.google.com/file/d/": null,
-  "https://drive.google.com/open?id=abc": null,
-  "drive.google.com": null,
-  "https://photos.google.com/share/abc": null,
-  "https://www.instagram.com/kavya.frames/": null,
-  "https://example.com/me.jpg": null,
-  [`https://drive.google.com/file/d/${ID} /view`]: null,
-  "": null,
-};
-for (const [input, expected] of Object.entries(photos)) {
-  const result = checkDrivePhoto(input);
-  const got = result.ok ? result.id : null;
-  // Every accepted link is saved the same way.
-  const ok = got === expected && (!result.ok || result.url === `https://drive.google.com/file/d/${ID}/view`);
-  if (!ok) failed++;
-  console.log(`${ok ? "✓" : "✗"} photo ${JSON.stringify(input).padEnd(72)} → ${result.ok ? result.url : `rejected: ${result.message}`}${ok ? "" : `   (expected ${expected ?? "rejection"})`}`);
-}
-// The address pages load the photo from; nothing for a link that isn't a Drive file.
 for (const [got, want] of [
-  [drivePhotoSrc(`https://drive.google.com/file/d/${ID}/view`, 200), `https://drive.google.com/thumbnail?id=${ID}&sz=w200`],
-  [drivePhotoSrc("https://example.com/me.jpg"), ""],
-  [drivePhotoSrc(undefined), ""],
-]) {
+  [photoFileName("PH", "Aman Shah", "APP-231", "image/webp"), "PH_AMANSHAH_APP-231.webp"],
+  [photoFileName("DR", "  aman  ", "APP-7", "image/jpeg"), "DR_AMAN_APP-7.jpg"],
+  [photoFileName("AH", "ઝાલા", "APP-9", "image/png"), "AH_ARTIST_APP-9.png"],
+  [artistPhotoSrc("APP-231", `${ID}~lq3x`), "/api/artist-photos/APP-231.img?v=lq3x"],
+  [artistPhotoSrc("ART-101", ID), "/api/artist-photos/ART-101.img"],
+  [artistPhotoSrc("APP-231", "data:image/webp;base64,AAAA"), "data:image/webp;base64,AAAA"],
+  [artistPhotoSrc("APP-231", "https://drive.google.com/file/d/x/view"), ""],
+  [artistPhotoSrc("APP-231", ""), ""],
+  [artistPhotoSrc(undefined, ID), ""],
+] as const) {
   const ok = got === want;
   if (!ok) failed++;
-  console.log(`${ok ? "✓" : "✗"} photo address ${JSON.stringify(got)}${ok ? "" : `   (expected ${JSON.stringify(want)})`}`);
+  console.log(`${ok ? "✓" : "✗"} photo ${JSON.stringify(got)}${ok ? "" : `   (expected ${JSON.stringify(want)})`}`);
+}
+// Equipment photos in "Your work details" (checkDriveLink): Google Drive only, a folder or a file.
+for (const [input, accepted] of [
+  ["https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOpQrStUv?usp=sharing", true],
+  ["https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUv/view", true],
+  ["https://www.instagram.com/kavya.frames/", false],
+  ["https://youtu.be/dQw4w9WgXcQ", false],
+  ["https://photos.google.com/share/abc", false],
+  ["drive.google.com", false],
+] as const) {
+  const result = checkDriveLink(input);
+  const ok = result.ok === accepted;
+  if (!ok) failed++;
+  console.log(`${ok ? "✓" : "✗"} equipment ${JSON.stringify(input).padEnd(72)} → ${result.ok ? "accepted" : `rejected: ${result.message}`}`);
 }
 console.log(failed ? `\n${failed} failed` : "\nAll passed");
 process.exit(failed ? 1 : 0);

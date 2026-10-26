@@ -9,11 +9,13 @@ import {
   replyToBooking,
   saveArtistProfile,
   saveAvailability,
+  saveMyPhoto,
   type ArtistPortal,
   type ProfilePatch,
   type Result,
 } from "@/server/actions/artist";
 import { signOutAction } from "@/server/actions/auth";
+import { artistPhotoSrc } from "./artist-photo";
 import { blockedDatesStore, bookingActionsStore, emptyProfile, modeStore, profileStore, type ArtistProfile, type PreviewMode } from "./artist-store";
 
 // The artist portal's data. Two modes, like the admin (src/lib/admin-store.ts):
@@ -93,6 +95,7 @@ export const refreshPortal = () => load(true);
 
 export async function portalSignOut() {
   stopListening();
+  if (backendEnabled) profileStore.set(null);
   set({ status: "signed-out", data: null });
   await signOutAction();
 }
@@ -134,6 +137,24 @@ export async function saveProfile(patch: Partial<ArtistProfile>): Promise<string
   }
   const allowed: ProfilePatch = patch;
   return portalAction((d) => ({ ...d, profile: { ...d.profile, ...allowed } }), () => saveArtistProfile(allowed));
+}
+
+// Where the signed-in artist's profile photo shows from ("" for none): live, the private
+// /api/artist-photos address for their record; preview, the picture kept in this browser.
+export function usePortalPhoto(): string {
+  const live = usePortalState();
+  const { profile } = useArtistProfile();
+  return artistPhotoSrc(live.data?.id, profile.photo);
+}
+
+// A new profile photo (a data URL from PhotoPicker). Live: saved to AOD's Google Drive, then the
+// portal reloads; preview: kept in this browser.
+export async function changePhoto(dataUrl: string): Promise<string | null> {
+  if (!backendEnabled) {
+    profileStore.set({ ...(profileStore.get() ?? sampleProfile), photo: dataUrl });
+    return null;
+  }
+  return portalAction((d) => d, () => saveMyPhoto(dataUrl));
 }
 
 // Live artist or applicant (live: from their records; preview: the "Preview as" switch).
