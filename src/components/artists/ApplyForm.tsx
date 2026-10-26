@@ -24,13 +24,16 @@ import { categories, cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { allCategories } from "@/lib/booking-needs";
 import { emptyProfile, modeStore, profileStore, type ArtistProfile } from "@/lib/artist-store";
+import { checkDrivePhoto, drivePhotoSrc } from "@/lib/drive-photo";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { sectionLink, siteHref } from "@/lib/site-url";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { createApplication } from "@/server/actions/public";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { DigiLockerCard } from "./DigiLockerCard";
+import { DrivePhotoField, type PhotoStatus } from "./DrivePhotoField";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
 import { LinkEditor } from "./LinkEditor";
@@ -54,11 +57,15 @@ const asA = (slug: string) => {
 const isInstagram = (l: string) => /(^|\.)instagram\.com\//i.test(l.replace(/^https?:\/\//, ""));
 const answered = (v: string | string[] | undefined) => (Array.isArray(v) ? v.length > 0 : !!v?.trim());
 
-// What's missing on each step. An empty list means the step is complete.
-function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: boolean): Record<string, string> {
+// What's missing on each step. An empty list means the step is complete. `photoFailed`: Drive
+// wouldn't show the profile photo (not shared "Anyone with the link", or not an image).
+function problems(step: StepId, p: ArtistProfile, files: Files, phoneVerified: boolean, photoFailed: boolean): Record<string, string> {
   const e: Record<string, string> = {};
   if (step === "about") {
     if (p.fullName.trim().length < 2) e.fullName = "Enter your full name.";
+    const photo = checkDrivePhoto(p.photo);
+    if (!photo.ok) e.photo = photo.message;
+    else if (photoFailed) e.photo = "Set the photo's sharing to “Anyone with the link”.";
     if (!validPhone(p.phone)) e.phone = "Enter a 10-digit Indian mobile number.";
     else if (!phoneVerified && !backendEnabled) e.phone = "Verify your number with the code.";
     if (backendEnabled && !validEmail(p.email)) e.email = "Enter your email address; AOD replies by email.";
@@ -104,6 +111,8 @@ export function ApplyForm() {
   const [tried, setTried] = useState<Partial<Record<StepId, boolean>>>({});
   const [files, setFiles] = useState<Files>({ samples: [], resume: [] });
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [brokenPhoto, setBrokenPhoto] = useState(""); // the photo address Drive wouldn't show
+  const photoFailed = !!profile.photo && brokenPhoto === drivePhotoSrc(profile.photo);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null); // live: the saved application's reference
@@ -113,9 +122,9 @@ export function ApplyForm() {
   const set = (patch: Partial<ArtistProfile>) => profileStore.set({ ...(profileStore.get() ?? emptyProfile), ...patch });
   const steps = applySteps;
   const current = steps[Math.min(step, steps.length - 1)];
-  const errs = problems(current.id, profile, files, phoneVerified);
+  const errs = problems(current.id, profile, files, phoneVerified, photoFailed);
   const shown = tried[current.id] ? errs : {};
-  const complete = (i: number) => steps[i].id !== "review" && Object.keys(problems(steps[i].id, profile, files, phoneVerified)).length === 0;
+  const complete = (i: number) => steps[i].id !== "review" && Object.keys(problems(steps[i].id, profile, files, phoneVerified, photoFailed)).length === 0;
   const goTo = (id: StepId) => setStep(Math.max(0, steps.findIndex((s) => s.id === id)));
 
   function next() {
@@ -158,6 +167,7 @@ export function ApplyForm() {
       `Phone: +91 ${phoneDigits(profile.phone)}`,
       profile.email && `Email: ${profile.email}`,
       `City: ${profile.city}`,
+      profile.photo && `Photo: ${profile.photo}`,
       `Services: ${profile.services.join(", ")}`,
       `Experience: ${profile.experience}`,
       ...questionsFor(profile)
@@ -286,7 +296,14 @@ export function ApplyForm() {
 
         <div className="mt-8 space-y-6">
           {current.id === "about" && (
-            <AboutStep profile={profile} set={set} errors={shown} phoneVerified={phoneVerified} setPhoneVerified={setPhoneVerified} />
+            <AboutStep
+              profile={profile}
+              set={set}
+              errors={shown}
+              phoneVerified={phoneVerified}
+              setPhoneVerified={setPhoneVerified}
+              onPhotoStatus={(src, status) => setBrokenPhoto((b) => (status === "failed" ? src : b === src ? "" : b))}
+            />
           )}
           {current.id === "craft" && <CraftStep profile={profile} set={set} errors={shown} />}
           {current.id === "work" && <WorkStep profile={profile} set={set} errors={shown} />}
@@ -345,7 +362,8 @@ function AboutStep({
   errors,
   phoneVerified,
   setPhoneVerified,
-}: StepProps & { phoneVerified: boolean; setPhoneVerified: (v: boolean) => void }) {
+  onPhotoStatus,
+}: StepProps & { phoneVerified: boolean; setPhoneVerified: (v: boolean) => void; onPhotoStatus: (src: string, status: PhotoStatus) => void }) {
   const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -361,6 +379,14 @@ function AboutStep({
           className={inputClass}
         />
       </Field>
+
+      <DrivePhotoField
+        name={profile.fullName}
+        value={profile.photo}
+        onChange={(photo) => set({ photo })}
+        error={errors.photo}
+        onStatus={onPhotoStatus}
+      />
 
       <div>
         <Field label="Mobile number (WhatsApp preferred)" error={errors.phone}>
@@ -759,6 +785,7 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       title: "About you",
       items: [
         ["Name", profile.fullName],
+        ["Photo", <ArtistPhoto key="photo" name={profile.fullName} photo={profile.photo} className="h-12 w-12 text-sm" alt="Your profile photo" />],
         ["Mobile", `+91 ${phoneDigits(profile.phone)}`],
         ["Email", profile.email || "—"],
         ["City", profile.city],

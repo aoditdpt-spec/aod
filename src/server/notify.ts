@@ -38,12 +38,21 @@ export const ALL_ORDERS_TAB = "All orders";
 
 export const istNow = () => new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
 
-// The team's inbox for notifications (comma-separated in TEAM_EMAIL), defaulting to the site's email.
-export const teamEmails = () =>
-  (process.env.TEAM_EMAIL || brand.email)
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+// Who gets the team's emails (new bookings, applications, cases, replies, cancellations): the
+// inboxes in TEAM_EMAIL (comma-separated; the site's email when it's empty) and every active
+// Admin in the admin's Team & roles, so a new admin gets them without touching the settings.
+// Developers don't. Each address once, in lower case.
+export async function teamEmails() {
+  const inboxes = (process.env.TEAM_EMAIL || brand.email).split(",");
+  let admins: string[] = [];
+  try {
+    const { data } = await createAdminClient().from("staff").select("email").eq("role", "owner").eq("active", true);
+    admins = (data ?? []).map((r) => String(r.email ?? ""));
+  } catch {
+    // No database (or no key): the inboxes alone.
+  }
+  return [...new Set([...inboxes, ...admins].map((s) => s.trim().toLowerCase()).filter(Boolean))];
+}
 
 // ---- The forms' spam trap ----
 

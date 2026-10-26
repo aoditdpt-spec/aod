@@ -146,7 +146,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
       if (await notifyEnabled("New resolution case"))
         jobs.push({
           kind: "email",
-          to: teamEmails(),
+          to: await teamEmails(),
           subject: spamSubject(suspect, `New dispute ${id}: ${issue} (${throughAod ? bookingRef : resolution.throughAod.outsideLabel.toLowerCase()})`),
           text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,
@@ -230,7 +230,7 @@ export async function escalateCase(idInput: string, emailInput: string, reasonIn
       await runOrQueue([
         {
           kind: "email",
-          to: teamEmails(),
+          to: await teamEmails(),
           subject: `Dispute escalated to the grievance officer: ${id}`,
           text: `${r.name} has escalated case ${id} (${r.issue}, ${r.other_party ? `with ${r.other_party}, not booked through AOD` : `booking ${r.booking_ref}`}).\n\nWhy: ${reason}\n\nOpen it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
           replyTo: email,

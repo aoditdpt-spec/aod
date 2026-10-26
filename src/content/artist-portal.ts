@@ -244,7 +244,7 @@ export const bothLinksCategories = ["photographers", "cinematographers", "editor
 
 // The steps of the application form, in order.
 export const applySteps = [
-  { id: "about", title: "About you", text: "Name, contact and city" },
+  { id: "about", title: "About you", text: "Name, photo, contact and city" },
   { id: "craft", title: "Your craft", text: "What you do and where" },
   { id: "work", title: "Your work details", text: "Questions about how you work" },
   { id: "portfolio", title: "Portfolio", text: "Your best work and links" },
@@ -306,6 +306,7 @@ export const sampleArtist = {
   languages: ["Gujarati", "Hindi", "English"],
   bio: "Candid wedding and pre-wedding photographer. I like quiet, unposed moments and warm colour. I shoot with a second shooter for weddings over 300 guests.",
   links: ["https://www.instagram.com/kavya.frames/", "https://www.youtube.com/@kavyadesaifilms"],
+  photo: "", // no sample photo: the initials show instead
 };
 
 // Where the sample applicant is in onboarding (index into onboardingStages).

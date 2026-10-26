@@ -8,6 +8,7 @@ import { backendEnabled } from "@/lib/backend";
 import { useArtistProfile, useBlockedDates, usePortalMode, usePortalState } from "@/lib/artist-live";
 import { modeStore, type PreviewMode } from "@/lib/artist-store";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { BookingCard, useBookings } from "./BookingCard";
 import { Badge, Panel } from "./form";
 import { OnboardingTimeline } from "./OnboardingTimeline";
@@ -20,6 +21,7 @@ export function useProfileChecks(): { label: string; done: boolean; href: string
   const blocked = useBlockedDates();
   const live = usePortalState().data;
   return [
+    { label: "Profile photo", done: !!profile.photo, href: sectionLink("/artists/profile") },
     { label: "Services and experience", done: profile.services.length > 0 && !!profile.experience, href: sectionLink("/artists/profile") },
     { label: "About your work", done: profile.bio.trim().length >= 40, href: sectionLink("/artists/profile") },
     { label: "Portfolio links", done: profile.links.length > 0, href: sectionLink("/artists/portfolio") },
@@ -116,11 +118,14 @@ export function Dashboard() {
   return (
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-medium sm:text-4xl">Hi, {name}</h1>
-          <p className="mt-2 text-body">
-            {mode === "live" ? "Here's what's happening with your bookings." : "Here's where your application stands."}
-          </p>
+        <div className="flex items-center gap-4">
+          <ArtistPhoto name={profile.fullName || profile.email} photo={profile.photo} className="h-14 w-14 text-lg sm:h-16 sm:w-16 sm:text-xl" width={200} />
+          <div>
+            <h1 className="text-3xl font-medium sm:text-4xl">Hi, {name}</h1>
+            <p className="mt-2 text-body">
+              {mode === "live" ? "Here's what's happening with your bookings." : "Here's where your application stands."}
+            </p>
+          </div>
         </div>
         <ModeSwitch />
       </div>

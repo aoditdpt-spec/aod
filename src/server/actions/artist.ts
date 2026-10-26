@@ -11,6 +11,7 @@ import { allCategories, assignedArtists, itemFor, totalNeeded, type BookingItem 
 import { lineId } from "@/lib/order-id";
 import { sectionUrl } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
+import { checkDrivePhoto } from "@/lib/drive-photo";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -133,7 +134,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         meeting: app.meeting,
         stage: stageOf(app.status),
         kycVerified: app.kyc === "verified",
-        profile: { fullName: app.name, phone: app.phone, email: app.email, city: app.city, category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, agreeTerms: true },
+        profile: { fullName: app.name, phone: app.phone, email: app.email, city: app.city, category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, photo: app.photo ?? "", agreeTerms: true },
         bookings: [],
         blockedDates: [],
         portfolio: withUrls(app.portfolio ?? []),
@@ -211,6 +212,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         languages: artist.languages,
         bio: artist.bio ?? "",
         links: artist.links ?? [],
+        photo: artist.photo ?? "",
         agreeTerms: true,
       },
       bookings,
@@ -223,7 +225,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
 
 // ---- Profile ----
 
-export type ProfilePatch = Partial<Pick<ArtistProfile, "phone" | "city" | "services" | "experience" | "languages" | "bio" | "links">>;
+export type ProfilePatch = Partial<Pick<ArtistProfile, "phone" | "city" | "services" | "experience" | "languages" | "bio" | "links" | "photo">>;
 
 const phoneOk = (p: string) => {
   const d = p.replace(/\D/g, "");
@@ -270,6 +272,12 @@ export async function saveArtistProfile(patch: ProfilePatch): Promise<Result> {
       if (!links.includes(check.url)) links.push(check.url);
     }
     row.links = links;
+  }
+  if (patch.photo !== undefined) {
+    // A Google Drive link to the photo (src/lib/drive-photo.ts); the file stays in their Drive.
+    const check = checkDrivePhoto(String(patch.photo).slice(0, 300));
+    if (!check.ok) return { ok: false, error: `Profile photo: ${check.message}` };
+    row.photo = check.url;
   }
   if (!Object.keys(row).length) return { ok: true };
 
@@ -325,7 +333,7 @@ export async function replyToBooking(bookingId: string, status: "quoted" | "decl
     await runOrQueue([
       {
         kind: "email",
-        to: teamEmails(),
+        to: await teamEmails(),
         subject: status === "quoted" ? `${name} quoted ₹${amount!.toLocaleString("en-IN")} for ${b.id}` : `${name} declined ${b.id}`,
         text: `${name} ${status === "quoted" ? `quoted ₹${amount!.toLocaleString("en-IN")}` : "declined"} for ${b.id} (${(item ?? b.items[0])?.service ?? ""}, ${b.event}, ${b.date}, ${b.city}).${text ? `\n\nNote: ${text}` : ""}\n\nOpen the booking: ${sectionUrl("admin", `/bookings?open=${b.id}`)}`,
       },

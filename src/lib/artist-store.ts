@@ -22,6 +22,7 @@ export type ArtistProfile = {
   languages: string[];
   bio: string;
   links: string[];
+  photo: string; // Google Drive link to their profile photo ("" for none; src/lib/drive-photo.ts)
   work?: WorkDetails; // the application only; absent elsewhere
   agreeTerms: boolean;
 };
@@ -38,6 +39,7 @@ export const emptyProfile: ArtistProfile = {
   languages: [],
   bio: "",
   links: [],
+  photo: "",
   work: {},
   agreeTerms: false,
 };

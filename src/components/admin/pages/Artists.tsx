@@ -8,6 +8,8 @@ import { experienceLevels } from "@/content/artist-portal";
 import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Artist, type Db } from "@/lib/admin-store";
 import { assignedArtists, itemFor, itemsLabel, worksIn } from "@/lib/booking-needs";
+import { checkDrivePhoto } from "@/lib/drive-photo";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
@@ -24,6 +26,8 @@ import {
   Labelled,
   NotesBox,
   PageHeader,
+  PersonCell,
+  PhotoLink,
   PortfolioFiles,
   StageBadge,
   StatusBadge,
@@ -46,7 +50,7 @@ export function Artists() {
   const open = db.artists.find((a) => a.id === openId) ?? null;
 
   const columns: Column<Artist>[] = [
-    { key: "name", label: "Artist", render: (a) => a.name, value: (a) => a.name },
+    { key: "name", label: "Artist", render: (a) => <PersonCell name={a.name} photo={a.photo} />, value: (a) => a.name },
     { key: "category", label: "Categories", render: (a) => categoryNames(a), value: (a) => categoryNames(a) },
     { key: "city", label: "City", render: (a) => a.city, value: (a) => a.city },
     { key: "experience", label: "Experience", render: (a) => a.experience, value: (a) => a.experience, hideOnMobile: true },
@@ -101,6 +105,7 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
       onClose={onClose}
       title={artist.name}
       subtitle={`${artist.id} · ${categoryNames(artist)} · ${artist.city}`}
+      media={<ArtistPhoto name={artist.name} photo={artist.photo} className="h-12 w-12 text-base" />}
       footer={
         <>
           <a href={whatsappTo(artist.phone, `Hi ${artist.name.split(" ")[0]}, `)} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-whatsapp px-3.5 text-sm font-medium text-white hover:bg-whatsapp-hover">
@@ -117,6 +122,15 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
         </>
       }
     >
+      <DrawerSection title="Profile photo">
+        <PhotoLink
+          key={artist.photo ?? ""}
+          name={artist.name}
+          photo={artist.photo}
+          onSave={allowed("artists.edit") ? (link) => edit(`${link ? "Changed" : "Removed"} ${artist.name}'s profile photo`, (a) => void (a.photo = link)) : undefined}
+        />
+      </DrawerSection>
+
       <DrawerSection title="Profile">
         <Details
           rows={[
@@ -276,10 +290,11 @@ function OtherCategories({ main, value, disabled, onChange }: { main: string; va
 }
 
 function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: string) => void }) {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", city: cities[0], category: categories[0].slug, experience: "1–3 years" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", city: cities[0], category: categories[0].slug, experience: "1–3 years", photo: "" });
+  const photo = form.photo.trim() ? checkDrivePhoto(form.photo) : null;
   const [others, setOthers] = useState<string[]>([]);
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  const ok = form.name.trim().length > 1 && form.phone.replace(/\D/g, "").length >= 10;
+  const ok = form.name.trim().length > 1 && form.phone.replace(/\D/g, "").length >= 10 && (photo === null || photo.ok);
   return (
     <Drawer
       open
@@ -296,6 +311,7 @@ function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: st
               void db.artists.unshift({
                 id,
                 ...form,
+                photo: photo?.ok ? photo.url : undefined,
                 otherCategories: others.filter((c) => c !== form.category),
                 services: [],
                 languages: [],
@@ -347,6 +363,10 @@ function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: st
               <option key={x}>{x}</option>
             ))}
           </select>
+        </Labelled>
+        <Labelled label="Profile photo (Google Drive link, optional)" className="sm:col-span-2">
+          <input value={form.photo} onChange={set("photo")} inputMode="url" placeholder="https://drive.google.com/file/d/…/view" className={fieldClass} />
+          {photo && !photo.ok && <span className="mt-1 block text-xs font-normal text-red-600">{photo.message}</span>}
         </Labelled>
         <div className="sm:col-span-2">
           <p className="text-sm font-medium text-ink">

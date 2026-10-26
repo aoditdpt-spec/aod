@@ -295,6 +295,14 @@ check(
   (await db.query<{ other_party: string; booking_ref: string }>("select other_party, booking_ref from cases where id = 'RC-2'")).rows[0]?.booking_ref === "",
 );
 
+// Profile photos: a Google Drive link on applications and artists, empty until one is given.
+await db.exec("insert into applications (id, name, phone, email, category, photo) values ('APP-9', 'Kavya', '9800000000', 'kavya.photo@x.test', 'photographers', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view')");
+check(
+  "an application keeps its profile photo link, and an artist starts with none",
+  (await db.query<{ photo: string }>("select photo from applications where id = 'APP-9'")).rows[0]?.photo.startsWith("https://drive.google.com/") &&
+    (await db.query<{ photo: string }>("select photo from artists limit 1")).rows.every((r) => r.photo === ""),
+);
+
 await db.exec("delete from realtime.messages");
 await db.exec("update posts set title = 'Live!' where id = 'P-1'");
 check("a post change reaches the staff channel (the admin reloads)", (await sentTo("staff")) === 1);

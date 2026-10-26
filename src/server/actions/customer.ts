@@ -176,7 +176,7 @@ Changed your mind? Just send a new request.
     if (await notifyEnabled("Customer cancelled a booking")) {
       jobs.push({
         kind: "email",
-        to: teamEmails(),
+        to: await teamEmails(),
         subject: `${b.customer.name} cancelled ${ref} (${what})`,
         text: `${b.customer.name} cancelled ${b.id} (${what}, ${b.event}, ${b.date}, ${b.city}) in My bookings, ${minutes} min after booking.
 

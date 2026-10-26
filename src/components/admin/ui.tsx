@@ -1,11 +1,13 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { can, templates, type Permission, type TemplateId, type Tone } from "@/content/admin";
 import { categories } from "@/content/site";
 import { useSession, type Db, type PortfolioFile } from "@/lib/admin-store";
 import { allCategories } from "@/lib/booking-needs";
+import { checkDrivePhoto } from "@/lib/drive-photo";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 
 // ---- Formatting ----
 
@@ -206,12 +208,13 @@ export function Labelled({ label, children, className = "" }: { label: string; c
 }
 
 // Right-hand panel for a record's details. Closes on Escape or the backdrop. `wide` for editors
-// (a blog post, a newsletter).
+// (a blog post, a newsletter); `media` sits left of the title (an artist's photo).
 export function Drawer({
   open,
   onClose,
   title,
   subtitle,
+  media,
   children,
   footer,
   wide = false,
@@ -220,6 +223,7 @@ export function Drawer({
   onClose: () => void;
   title: ReactNode;
   subtitle?: ReactNode;
+  media?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
@@ -238,9 +242,12 @@ export function Drawer({
       <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-night/40" />
       <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className={`relative flex h-full w-full flex-col bg-white shadow-2xl outline-none ${wide ? "max-w-3xl" : "max-w-xl"}`}>
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
-          <div className="min-w-0">
-            <h2 className="truncate text-lg font-bold text-ink">{title}</h2>
-            {subtitle && <div className="mt-1 text-sm text-muted">{subtitle}</div>}
+          <div className="flex min-w-0 items-center gap-3">
+            {media}
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-bold text-ink">{title}</h2>
+              {subtitle && <div className="mt-1 text-sm text-muted">{subtitle}</div>}
+            </div>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-wash hover:text-ink">
             <X className="h-5 w-5" aria-hidden />
@@ -324,6 +331,61 @@ export function PortfolioFiles({ files }: { files?: PortfolioFile[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// An artist's or applicant's name with their profile photo, for tables and lists.
+export function PersonCell({ name, photo }: { name: string; photo?: string }) {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-2.5">
+      <ArtistPhoto name={name} photo={photo} className="h-8 w-8 text-xs" width={96} />
+      <span className="truncate">{name}</span>
+    </span>
+  );
+}
+
+// The profile photo in a drawer: a large preview, the Drive link, and (with `onSave`) a box to
+// change or remove it. The photo stays in the artist's Google Drive; only the link is saved.
+export function PhotoLink({ name, photo, onSave }: { name: string; photo?: string; onSave?: (link: string) => void }) {
+  const [draft, setDraft] = useState(photo ?? "");
+  const check = draft.trim() ? checkDrivePhoto(draft) : null;
+  return (
+    <div className="flex items-start gap-4">
+      <a href={photo || undefined} target="_blank" rel="noopener noreferrer" aria-label={photo ? `Open ${name}'s photo in Google Drive` : undefined} className="shrink-0">
+        <ArtistPhoto name={name} photo={photo} className="h-24 w-24 text-2xl" width={300} alt={photo ? `${name}'s profile photo` : ""} />
+      </a>
+      <div className="min-w-0 flex-1 text-sm">
+        {photo ? (
+          <a href={photo} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+            Open in Google Drive
+          </a>
+        ) : (
+          <p className="text-muted">No photo yet.</p>
+        )}
+        <p className="mt-1 text-xs text-muted">Kept in their own Google Drive. If it doesn&apos;t show, ask them to share it “Anyone with the link”.</p>
+        {onSave && (
+          <div className="mt-3 flex gap-2">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.trim())}
+              placeholder="Google Drive link to the photo"
+              aria-label="Google Drive link to the profile photo"
+              aria-invalid={check !== null && !check.ok}
+              className={`${fieldClass} aria-[invalid=true]:border-red-500`}
+            />
+            <button
+              type="button"
+              disabled={draft === (photo ?? "") || (check !== null && !check.ok)}
+              onClick={() => onSave(check?.ok ? check.url : "")}
+              className="shrink-0 rounded-lg border border-line px-3 text-sm font-medium text-ink hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {draft ? "Save" : "Remove"}
+            </button>
+          </div>
+        )}
+        {check && !check.ok && <p className="mt-1 text-xs text-red-600">{check.message}</p>}
+      </div>
+    </div>
   );
 }
 

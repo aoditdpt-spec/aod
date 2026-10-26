@@ -11,6 +11,7 @@ import { sectionUrl, siteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { eventMinutes, timeRange } from "@/lib/event-time";
+import { checkDrivePhoto } from "@/lib/drive-photo";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
 import { lineId } from "@/lib/order-id";
 import { insertOrder, insertWithNextId } from "@/server/ids";
@@ -202,7 +203,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
       if (await notifyEnabled("New booking request")) {
         jobs.push({
           kind: "email",
-          to: teamEmails(),
+          to: await teamEmails(),
           subject: spamSubject(suspect, `New booking request ${ref}: ${needs.map((c) => withCount(c.name, c.count)).join(", ")} in ${city}`),
           text: `${summary}\n\nCustomer: ${name}\nPhone: ${phone}\nEmail: ${email || "—"}\n\nOpen the admin: ${sectionUrl("admin", "/bookings")}`,
           replyTo: email || undefined,
@@ -229,7 +230,7 @@ export async function createBookingRequest(input: BookingRequestInput): Promise<
       try {
         await runJob({
           kind: "email",
-          to: teamEmails(),
+          to: await teamEmails(),
           subject: `Couldn't save a booking request: add it in the admin (${name}, ${needs.map((c) => withCount(c.name, c.count)).join(", ")})`,
           text: [
             "The website couldn't save this booking request, so it isn't in the admin. Add it there (Bookings → New booking).",
@@ -273,6 +274,7 @@ export type ApplicationInput = {
   languages: string[];
   bio: string;
   links: string[];
+  photo?: string; // Google Drive link to their profile photo (src/lib/drive-photo.ts)
   agreeTerms: boolean;
   website?: string;
 };
@@ -292,6 +294,9 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
   if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
   if (!email || !emailOk(email)) return { ok: false, error: "Enter a valid email address." };
   if (!category) return { ok: false, error: "Pick your category." };
+  // The profile photo stays in the artist's own Google Drive; only its link is saved.
+  const photo = checkDrivePhoto(text(input.photo, 300));
+  if (!photo.ok) return { ok: false, error: `Profile photo: ${photo.message}` };
   if (!input.agreeTerms) return { ok: false, error: "Please accept the terms." };
   // Known categories other than the main one, each once.
   const others = categories.filter((c) => c.slug !== category.slug && Array.isArray(input.otherCategories) && input.otherCategories.includes(c.slug));
@@ -338,7 +343,11 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
 
   try {
     const db = createAdminClient();
-    const [app] = await insertWithNextId(db, "applications", "APP", 201, (n) => [
+    const now = new Date().toISOString();
+    // `withPhoto` false: the database hasn't had the photo column added yet (the twelfth
+    // migration), so the photo link goes into the notes instead and the application still saves.
+    const save = (withPhoto: boolean) =>
+      insertWithNextId(db, "applications", "APP", 201, (n) => [
       {
         id: `APP-${n}`,
         name,
@@ -353,18 +362,30 @@ export async function createApplication(input: ApplicationInput): Promise<SaveRe
         bio: text(input.bio, 2000),
         links,
         details,
+        ...(withPhoto ? { photo: photo.url } : {}),
         status: "submitted",
-        notes: suspect ? [spamNote(new Date().toISOString())] : [],
+        notes: [
+          ...(suspect ? [spamNote(now)] : []),
+          ...(withPhoto ? [] : [{ at: now, by: "Website", text: `Profile photo: ${photo.url}` }]),
+        ],
       },
     ]);
+    let app: Record<string, unknown>;
+    try {
+      [app] = await save(true);
+    } catch (e) {
+      if (!/photo/i.test(e instanceof Error ? e.message : "")) throw e;
+      console.error("[application] the applications table has no photo column yet: run the twelfth migration");
+      [app] = await save(false);
+    }
     after(async () => {
       const jobs: Job[] = [];
       if (await notifyEnabled("New artist application"))
         jobs.push({
           kind: "email",
-          to: teamEmails(),
+          to: await teamEmails(),
           subject: spamSubject(suspect, `New artist application ${app.id}: ${name} (${kinds})`),
-          text: `${name}, ${kinds}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}${
+          text: `${name}, ${kinds}, ${text(input.city, 40)}\nPhone: ${phone}\nEmail: ${email}\nPhoto: ${photo.url}${
             "\n\n" + questions.filter((q) => q.id in details).map((q) => `${q.short}: ${[details[q.id]].flat().join(", ")}`).join("\n")
           }\n\nReview it: ${sectionUrl("admin", `/applications?open=${app.id}`)}`,
           replyTo: email,

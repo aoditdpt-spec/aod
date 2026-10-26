@@ -7,21 +7,14 @@ import { backendEnabled } from "@/lib/backend";
 import { portalSignOut, useArtistProfile, usePortalMode } from "@/lib/artist-live";
 import { modeStore, type PreviewMode } from "@/lib/artist-store";
 import { sectionLink } from "@/lib/site-url";
-
-export const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("") || "A";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 
 const modes: { value: PreviewMode; label: string; text: string }[] = [
   { value: "live", label: "Live artist", text: "Bookings, requests and availability" },
   { value: "applicant", label: "New applicant", text: "Onboarding steps before going live" },
 ];
 
-// Avatar button in the portal header, with sign-out. In the preview it also holds the switch
+// Avatar button (their profile photo, or initials) in the portal header, with sign-out. In the preview it also holds the switch
 // between a live artist and a new applicant, so the team can see both sides of the portal.
 export function AccountMenu() {
   const router = useRouter();
@@ -53,7 +46,7 @@ export function AccountMenu() {
         aria-haspopup="true"
         className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-wash"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-sm font-medium text-white">{initials(name)}</span>
+        <ArtistPhoto name={name} photo={profile.photo} />
         <span className="hidden text-left sm:block">
           <span className="block text-sm font-medium leading-tight text-ink">{name}</span>
           <span className="block text-xs leading-tight text-muted">

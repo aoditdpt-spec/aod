@@ -326,6 +326,7 @@ that way on purpose so the check scripts can test them alone.
 | `fuzzy.ts` | Search ranking and typo tolerance (no imports, tested by `check:search`) |
 | `search.ts` | Builds the search index from `site.ts` |
 | `portfolio-links.ts` | Checks portfolio links (no imports, tested by `check:links`) |
+| `drive-photo.ts` | Artists' profile photos: `checkDrivePhoto()` accepts only a Google Drive file link and saves it as `drive.google.com/file/d/<id>/view`; `drivePhotoSrc()` gives the address pages show it from (Drive's thumbnail service). The photo stays in the artist's Drive (no imports, tested by `check:links`) |
 | `image-resize.ts` | Shrinks photos in the browser to WebP, max 2560px, before upload |
 | `xlsx.ts` | Writes .xlsx and CSV files for Reports & exports |
 | `swipe.ts`, `motion-safe.ts` | Carousel swipe handling; reduced-motion helpers |
@@ -371,6 +372,7 @@ from the browser and runs on the server. Treat every argument as untrusted input
 | `20261019010000_artist_brief.sql` | The booking's `brief` column ("Brief for the artists") |
 | `20261023000000_order_ids.sql` | A unique index so no two orders share a year and number under different category codes (AOD-PH-102605 and AOD-DJ-102605) |
 | `20261023010000_disputes_outside_aod.sql` | `cases.other_party`: who a dispute is with, for a booking made outside AOD (no booking number). Until it's run, the server writes that into `booking_ref` |
+| `20261026000000_artist_photo.sql` | `photo` on applications and artists: the Google Drive link to the profile photo. Until it's run, a new application's photo link goes into its notes |
 
 Each file is run **once**, in date order, in Supabase's SQL Editor. Never edit a file that may
 already have been run: add a new dated file instead, and add a case to `scripts/db-check.mts`.
@@ -676,7 +678,7 @@ are baked into the browser code at build time.
 | `SUPABASE_SECRET_KEY` | Server-only key that skips RLS (public forms, My bookings, portal) | Saving and portal features say "isn't set up yet". **Never give it a `NEXT_PUBLIC_` name.** |
 | `RESEND_API_KEY` | Sending site emails | Emails wait in `outbox` |
 | `EMAIL_FROM` | Sender, e.g. `AOD <connect@aod.co.in>` (must be on the domain verified in Resend) | Emails wait in `outbox` |
-| `TEAM_EMAIL` | Where team notifications go (comma-separated) | Falls back to the site email |
+| `TEAM_EMAIL` | Where team notifications go (comma-separated); every active Admin in Team & roles gets them too | Falls back to the site email (connect@aod.co.in) |
 | `ORDERS_SHEET_ID` | The orders sheet (its ID, or its full link) | Sheet rows wait in `outbox` |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | The service account the sheet is shared with | Sheet rows wait in `outbox` |
 | `GOOGLE_PRIVATE_KEY` | That account's private key, on one line with `\n` for line breaks, in double quotes | Sheet rows wait in `outbox` |
@@ -729,6 +731,7 @@ are baked into the browser code at build time.
 | Change the artist application questions | `workQuestions` in `src/content/artist-portal.ts` (kinds: `one`, `many`, `text`, `long`; `optional`; `showIf`) | Old answers stay saved by id and still show in the admin |
 | Change which categories need both Instagram and portfolio links | `bothLinksCategories` in `artist-portal.ts` | — |
 | Change the portfolio-link rules | `src/lib/portfolio-links.ts` | Add a case to `scripts/links-check.mts` |
+| Change the profile photo link rules | `src/lib/drive-photo.ts` | Add a case to the photo list in `scripts/links-check.mts` |
 | Change colours | Tokens in `src/app/globals.css` | Check light text on orange stays readable |
 | Change fonts | `src/app/layout.tsx` (next/font) and `--font-*` in `globals.css` | — |
 | Replace the hero video | New files in `public/media/` **with new names**, then `HeroVideo.tsx` (`<source>` names and `codecs`) | Keep AV1 ≈ 2–3 MB (laptop), 1 MB (phone) |
@@ -765,7 +768,7 @@ are baked into the browser code at build time.
 | `npm start` | Runs the production build locally (use it to test the security policy) |
 | `npm run lint` | ESLint |
 | `npm run check:search` | Search results for common queries and misspellings |
-| `npm run check:links` | Portfolio-link rules |
+| `npm run check:links` | Portfolio-link and profile photo link rules |
 | `npm run check:db` | Runs every migration on PGlite and checks each kind of user's access |
 | `npm run check:orders` | Reads sample WhatsApp messages from the booking form back into their fields (the admin's paste box), and checks the order IDs (codes, MIX, line IDs, the yearly count) |
 | `npm run check:xlsx` | Encrypts a workbook, then an independent decryptor (officecrypto-tool, dev only) opens it with the password, refuses a wrong one and gets the same bytes back. Pass a folder (`npm run check:xlsx -- <folder>`) to save the file and open it in Excel by hand |

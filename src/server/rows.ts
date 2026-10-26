@@ -47,6 +47,7 @@ export const fromRow = {
     notes: json(r.notes, []),
     artistId: opt(r.artist_id),
     portfolio: json<PortfolioFile[]>(r.portfolio, []),
+    photo: opt(r.photo),
     details: json<Application["details"]>(r.details, {}),
   }),
   artist: (r: Row): Artist => ({
@@ -69,6 +70,7 @@ export const fromRow = {
     bio: str(r.bio),
     links: list(r.links),
     portfolio: json<PortfolioFile[]>(r.portfolio, []),
+    photo: opt(r.photo),
   }),
   reply: (r: Row): ArtistReply & { bookingId: string } => ({
     bookingId: str(r.booking_id),
@@ -231,6 +233,8 @@ export const toRow = {
     notes: a.notes,
     artist_id: nul(a.artistId),
     portfolio: a.portfolio ?? [],
+    // Only when set ("" once the team removes one), so a record still saves before the twelfth migration adds the column.
+    ...(a.photo !== undefined ? { photo: a.photo } : {}),
     details: a.details ?? {},
   }),
   artist: (a: Artist): Row => ({
@@ -253,6 +257,7 @@ export const toRow = {
     bio: a.bio ?? "",
     links: a.links ?? [],
     portfolio: a.portfolio ?? [],
+    ...(a.photo !== undefined ? { photo: a.photo } : {}),
   }),
   booking: (b: Booking): Row => ({
     id: b.id,

@@ -12,10 +12,10 @@ export const brand = {
   tagline: "Artists at your fingertips — book a verified artist as easily as you book a cab.",
   phoneDisplay: "+91 92747 39763",
   phoneHref: "tel:+919274739763",
-  email: "communication.aod@gmail.com",
+  email: "connect@aod.co.in",
   // Opens Gmail's compose window in the browser, addressed to AOD.
   gmailComposeUrl: (subject: string) =>
-    `https://mail.google.com/mail/?view=cm&fs=1&to=communication.aod@gmail.com&su=${encodeURIComponent(subject)}`,
+    `https://mail.google.com/mail/?view=cm&fs=1&to=connect@aod.co.in&su=${encodeURIComponent(subject)}`,
   instagramHandle: "@artistsondemand.in",
   instagramUrl: "https://www.instagram.com/artistsondemand.in/",
   // AOD's LinkedIn company page (the footer icon hides if this is empty).
@@ -345,6 +345,7 @@ export const clientBrands = [
   { name: "KYB Conmat", logo: "/brands/kyb-conmat.png", width: 667, height: 161 },
   { name: "Organilicious", logo: "/brands/organilicious.png", width: 1081, height: 160 },
   { name: "Mandalam", logo: "/brands/mandalam.png", width: 164, height: 220 },
+  { name: "Swarnim Touch Communications", logo: "/brands/swarnim-touch.png", width: 407, height: 200 },
 ];
 
 export const guarantees = [

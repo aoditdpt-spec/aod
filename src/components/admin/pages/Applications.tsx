@@ -8,6 +8,7 @@ import { categories, cities } from "@/content/site";
 import { currentUser, newId, update, useDb, type Application, type ApplicationStatus } from "@/lib/admin-store";
 import { worksIn } from "@/lib/booking-needs";
 import { checkPortfolioLink } from "@/lib/portfolio-links";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { DataTable, type Column } from "../DataTable";
 import {
@@ -24,6 +25,8 @@ import {
   Labelled,
   NotesBox,
   PageHeader,
+  PersonCell,
+  PhotoLink,
   PortfolioFiles,
   StageBadge,
   StatusBadge,
@@ -34,7 +37,7 @@ import {
 import { useOpen } from "../useOpen";
 
 const columns: Column<Application>[] = [
-  { key: "name", label: "Applicant", render: (a) => a.name, value: (a) => a.name },
+  { key: "name", label: "Applicant", render: (a) => <PersonCell name={a.name} photo={a.photo} />, value: (a) => a.name },
   { key: "category", label: "Categories", render: (a) => categoryNames(a), value: (a) => categoryNames(a) },
   { key: "city", label: "City", render: (a) => a.city, value: (a) => a.city, hideOnMobile: true },
   { key: "experience", label: "Experience", render: (a) => a.experience, value: (a) => a.experience, hideOnMobile: true },
@@ -127,6 +130,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
           bio: a.bio,
           links: a.links,
           portfolio: a.portfolio ?? [],
+          photo: a.photo,
         });
       },
       app.id,
@@ -140,6 +144,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
       open
       onClose={onClose}
       title={app.name}
+      media={<ArtistPhoto name={app.name} photo={app.photo} className="h-12 w-12 text-base" />}
       subtitle={
         <span className="flex flex-wrap items-center gap-2">
           {app.id} · {categoryNames(app)} · {app.city} <StageBadge stages={applicationStages} id={app.status} />
@@ -156,6 +161,15 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
         </>
       }
     >
+      <DrawerSection title="Profile photo">
+        <PhotoLink
+          key={app.photo ?? ""}
+          name={app.name}
+          photo={app.photo}
+          onSave={editable ? (link) => update("Applications", `${link ? "Changed" : "Removed"} ${app.name}'s profile photo`, (db) => void (db.applications.find((x) => x.id === app.id)!.photo = link), app.id) : undefined}
+        />
+      </DrawerSection>
+
       <DrawerSection title="Applicant">
         <Details
           rows={[
