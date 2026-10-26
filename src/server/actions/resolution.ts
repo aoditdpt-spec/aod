@@ -98,9 +98,9 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
     // `withOtherParty` false: the database hasn't had the other_party column added yet (the eleventh
     // migration), so who the dispute is with goes into booking_ref instead and the case still saves.
     const save = (withOtherParty: boolean) =>
-      insertWithNextId(db, "cases", "RC", 1001, (n) => [
+      insertWithNextId(db, "cases", "DC", 1001, (n) => [
       {
-        id: `RC-${n}`,
+        id: `DC-${n}`,
         created_at: now,
         role,
         name,
@@ -183,7 +183,8 @@ export async function trackCase(idInput: string, emailInput: string): Promise<Ca
   if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return notSetUp;
   const id = caseId(idInput);
   const email = text(emailInput, 120).toLowerCase();
-  if (!/^RC-\d+$/.test(id) || !emailOk(email)) return notFound;
+  // DC-1001 (Dispute Desk case); RC- numbers from before the rename still work.
+  if (!/^(DC|RC)-\d+$/.test(id) || !emailOk(email)) return notFound;
   try {
     const r = await findCase(id, email);
     if (!r) return notFound;

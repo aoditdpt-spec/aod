@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { nextOrderNumber, orderId } from "@/lib/order-id";
 
-// Readable references the team already uses: APP-205, PAY-3102, RC-1001 … (orders: insertOrder below)
+// Readable references the team already uses: APP-205, PAY-3102, DC-1001 … (orders: insertOrder below)
 // The next one is one more than the highest so far (or `start` for the first). Two saves at the
 // same moment can pick the same number; the insert then fails on the primary key and the
 // caller tries again with a fresh number (see `insertWithNextId`).

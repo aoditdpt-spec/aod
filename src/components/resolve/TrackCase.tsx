@@ -17,7 +17,7 @@ const fmt = (iso: string) => new Date(iso.length === 10 ? `${iso}T00:00:00` : is
 
 // Shown in the preview (no backend) so the page can be seen working. Labelled "Sample".
 const sampleCase: TrackedCase = {
-  id: "RC-1001",
+  id: "DC-1001",
   createdAt: new Date(Date.now() - 4 * 86400_000).toISOString(),
   role: "customer",
   issue: "Photos or videos not delivered",
@@ -41,13 +41,14 @@ export function TrackCase() {
   const [error, setError] = useState("");
   const [found, setFound] = useState<{ c: TrackedCase; sample: boolean } | null>(null);
 
-  const ready = /^RC-?\d+$/i.test(id.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  // DC-1001, or an older RC- number; the dash is optional when typed.
+  const ready = /^(DC|RC)-?\d+$/i.test(id.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
   async function look() {
     setError("");
     if (!backendEnabled) return setError("preview");
     setBusy(true);
-    const res = await trackCase(id.trim().replace(/^RC-?/i, "RC-"), email);
+    const res = await trackCase(id.trim().replace(/^(DC|RC)-?/i, (_, prefix: string) => `${prefix.toUpperCase()}-`), email);
     setBusy(false);
     if (res.ok) setFound({ c: res.case, sample: false });
     else setError(res.error);
@@ -99,7 +100,7 @@ export function TrackCase() {
       >
         <label className="block text-sm font-medium text-ink">
           Case number
-          <input value={id} onChange={(e) => setId(e.target.value.toUpperCase())} placeholder="RC-1001" className={input} />
+          <input value={id} onChange={(e) => setId(e.target.value.toUpperCase())} placeholder="DC-1001" className={input} />
         </label>
         <label className="block text-sm font-medium text-ink">
           Email you raised it with

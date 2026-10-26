@@ -160,7 +160,7 @@ export type Lead = {
 // A Resolution Centre case: a problem with a booking, raised by a customer, business or artist.
 export type CaseStatus = "received" | "acknowledged" | "investigating" | "resolved" | "escalated" | "closed";
 export type ResolutionCase = {
-  id: string; // RC-1001
+  id: string; // DC-1001 (Dispute Desk case)
   createdAt: string;
   role: "customer" | "business" | "artist";
   name: string;

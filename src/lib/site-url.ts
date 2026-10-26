@@ -21,7 +21,7 @@ export type Section = "artists" | "admin" | "resolve";
 export const onOwnDomains = /^https:\/\/(www\.)?aod\.co\.in$/.test(siteUrl);
 const sectionOf = (href: string) => href.match(/^\/(artists|admin|resolve)(?=[/?#]|$)(.*)$/);
 
-// A full link into a separate site, e.g. sectionUrl("resolve", "/track?id=RC-1001"): for emails and
+// A full link into a separate site, e.g. sectionUrl("resolve", "/track?id=DC-1001"): for emails and
 // for links from one separate site to another.
 export const sectionUrl = (section: Section, path = "") =>
   onOwnDomains ? `https://${section}.aod.co.in${path.startsWith("/") ? path : `/${path}`}` : `${siteUrl}/${section}${path}`;

@@ -196,7 +196,7 @@ export const resolution = {
   previewNotice:
     "The Dispute Desk isn't connected yet, so this case can't be saved here. Send it to AOD on WhatsApp instead; nothing has been sent until you do.",
   trackTitle: "Track a dispute",
-  trackText: "Enter your case number (like RC-1001) and the email you raised it with.",
+  trackText: "Enter your case number (like DC-1001) and the email you raised it with.",
 };
 
 // What the person raising a case sees at each stage (the admin uses the same ids, see caseStages

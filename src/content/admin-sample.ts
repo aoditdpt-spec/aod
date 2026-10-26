@@ -251,7 +251,7 @@ export function createSampleDb(now: Date): Db {
 
   const cases: ResolutionCase[] = [
     {
-      id: "RC-1003",
+      id: "DC-1003",
       createdAt: iso(0, 8),
       role: "customer",
       name: "Kavita Shah",
@@ -268,7 +268,7 @@ export function createSampleDb(now: Date): Db {
       notes: [],
     },
     {
-      id: "RC-1002",
+      id: "DC-1002",
       createdAt: iso(-2, 15),
       role: "artist",
       name: "Rohan Bhatt",
@@ -289,7 +289,7 @@ export function createSampleDb(now: Date): Db {
       notes: [{ at: iso(-1, 16), by: "Priya (Developer)", text: "Checking the overtime the customer approved on the day." }],
     },
     {
-      id: "RC-1001",
+      id: "DC-1001",
       createdAt: iso(-11, 11),
       role: "customer",
       name: "Imran Qureshi",

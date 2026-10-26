@@ -80,14 +80,15 @@ function PasswordDialog({ pending, onClose }: { pending: Pending; onClose: () =>
           </button>
         </div>
         <h2 id="excel-lock-title" className="mt-3 text-lg font-bold">
-          Protect this file with a password
+          Choose a password for this file
         </h2>
         <p className="mt-1 text-sm text-muted">
-          <span className="font-medium text-ink">{pending.filename}</span> will only open with this password, in Excel, Google Sheets or WPS.
+          You&apos;re making a new password now: there isn&apos;t an existing one to know. Type any password you like;{" "}
+          <span className="font-medium text-ink">{pending.filename}</span> will then only open with it, in Excel, Google Sheets or WPS.
         </p>
 
         <label className="mt-5 block text-xs font-medium text-muted">
-          Password
+          New password (at least {MIN} characters)
           <span className="relative mt-1 block">
             <input
               ref={first}
@@ -108,12 +109,12 @@ function PasswordDialog({ pending, onClose }: { pending: Pending; onClose: () =>
           </span>
         </label>
         <label className="mt-3 block text-xs font-medium text-muted">
-          Type it again
+          Type the same password again
           <input type={show ? "text" : "password"} value={again} onChange={(e) => setAgain(e.target.value)} autoComplete="new-password" className={`${fieldClass} mt-1`} />
         </label>
 
         <p className="mt-3 rounded-lg bg-wash px-3 py-2 text-xs text-body">
-          Keep the password safe and share it separately from the file (not in the same email or chat). It can&apos;t be recovered: if it&apos;s lost, export the list again.
+          You&apos;ll need this password every time you open the file, so keep it safe, and share it separately from the file (not in the same email or chat). It can&apos;t be recovered: if it&apos;s lost, download the list again with a new password.
         </p>
         {error && (
           <p role="alert" className="mt-3 text-sm text-red-700">

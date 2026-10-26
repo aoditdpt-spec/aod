@@ -615,7 +615,7 @@ emails a day), the admin says how many got it.
 Storage buckets: `portfolio` (public; artists' photos and videos) and `blog` (public; the blog's photos).
 
 **IDs** are readable references: `APP-201` (application), `ART-101` (artist), `PAY-3101`
-(payment), `L-401` (lead), `RC-1001` (case), `U-1` (staff member); the next number is the highest
+(payment), `L-401` (lead), `DC-1001` (case), `U-1` (staff member); the next number is the highest
 existing one plus one.
 
 **Order IDs** (`src/lib/order-id.ts`, no imports, tested by `check:orders`): a booking is

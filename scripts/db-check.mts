@@ -52,7 +52,7 @@ await db.exec(`
   insert into artists (id, name, email) values ('ART-1', 'Kavya', 'kavya@x.test'), ('ART-2', 'Rohan', 'rohan@x.test');
   update bookings set shortlist = '{ART-1}' where id = 'B-2';
   insert into artist_replies (booking_id, artist_id, status, quote) values ('B-2', 'ART-1', 'quoted', 25000);
-  insert into cases (id, role, name, email, issue, description) values ('RC-1', 'customer', 'Asha', 'asha@x.test', 'Quality of the work', 'x');
+  insert into cases (id, role, name, email, issue, description) values ('DC-1', 'customer', 'Asha', 'asha@x.test', 'Quality of the work', 'x');
 `);
 
 let failures = 0;
@@ -110,7 +110,7 @@ await as("dev@aod.test", async () => {
   check("developer can update a booking's status", (await tries("update bookings set status='matched' where id='B-1'")).rows === 1);
   check("developer can record a payment", (await tries("insert into payments (id,booking_id,amount,utr) values ('PAY-9','B-1',100,'999988887777')")).ok);
   check("developer sees leads", (await count("select count(*) n from leads")) === 1);
-  check("developer can update a resolution case", (await tries("update cases set status='acknowledged' where id='RC-1'")).rows === 1);
+  check("developer can update a resolution case", (await tries("update cases set status='acknowledged' where id='DC-1'")).rows === 1);
   check("developer can write the activity log", (await tries("insert into activity (id,\"by\",area,text) values ('A-1','Dev','Bookings','x')")).ok);
 });
 
@@ -289,10 +289,10 @@ await as("dev@aod.test", async () => {
 });
 
 // Dispute Desk cases for a booking made outside AOD: no booking number, who it's with instead.
-await db.exec("insert into cases (id, role, name, email, issue, description, other_party) values ('RC-2', 'artist', 'Kavya', 'kavya@x.test', 'Unpaid or delayed payment', 'x', 'Rahul Shah, +91 98000 00000')");
+await db.exec("insert into cases (id, role, name, email, issue, description, other_party) values ('DC-2', 'artist', 'Kavya', 'kavya@x.test', 'Unpaid or delayed payment', 'x', 'Rahul Shah, +91 98000 00000')");
 check(
   "a case can be about a booking outside AOD (other_party, no booking number)",
-  (await db.query<{ other_party: string; booking_ref: string }>("select other_party, booking_ref from cases where id = 'RC-2'")).rows[0]?.booking_ref === "",
+  (await db.query<{ other_party: string; booking_ref: string }>("select other_party, booking_ref from cases where id = 'DC-2'")).rows[0]?.booking_ref === "",
 );
 
 // Profile photos: a Google Drive link on applications and artists, empty until one is given.
