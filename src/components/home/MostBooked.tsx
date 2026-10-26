@@ -11,7 +11,7 @@ import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 
 // The most-booked services, shown three ways:
 // - Tablets: a sideways row of cards modelled on Headout's experience cards: the category photo
-//   with a badge, "★ rating (bookings) · category", the service, two promises with icons, and
+//   with a badge, "★ rating · category" (no booking count: the numbers were samples), the service, two promises with icons, and
 //   where Headout shows a price, "Get a quote" (AOD quotes per request). Two cards fit; the rest
 //   scroll in with the arrows or a swipe.
 // - Phones: a list, as Headout's "Top trending": the photo on the left, the details on the right.
@@ -21,7 +21,7 @@ import { linkCard, linkText, linkTitle } from "@/components/ui/cards";
 const items = mostBooked.map(({ service, category, image }) => {
   const cat = getCategory(category)!;
   const s = cat.services.find((x) => x.name === service)!;
-  return { service, category: cat.name, slug: cat.slug, icon: cat.icon, image: image ?? cat.image, rating: s.rating, bookings: s.bookings };
+  return { service, category: cat.name, slug: cat.slug, icon: cat.icon, image: image ?? cat.image, rating: s.rating };
 });
 type Item = (typeof items)[number];
 
@@ -52,7 +52,6 @@ export function MostBooked() {
                         <span className={`flex items-center gap-1 text-xs text-muted ${linkText}`}>
                           <Star aria-hidden className="h-3.5 w-3.5 fill-brand text-brand" />
                           <span className="font-semibold text-brand">{item.rating.toFixed(2).replace(/0$/, "")}</span>
-                          <span>({item.bookings})</span>
                         </span>
                         <span className={`mt-1 text-[1.0625rem] font-bold leading-snug text-ink ${linkTitle}`}>
                           {item.service}
@@ -105,7 +104,6 @@ export function MostBooked() {
                     <span className={`flex items-center gap-1 text-xs text-muted ${linkText}`}>
                       <Star aria-hidden className="h-3.5 w-3.5 fill-brand text-brand" />
                       <span className="font-semibold text-brand">{item.rating.toFixed(2).replace(/0$/, "")}</span>
-                      <span>({item.bookings} bookings)</span>
                       <span aria-hidden>·</span>
                       <span className="truncate">{item.category}</span>
                     </span>
@@ -174,7 +172,7 @@ function MostBookedList({ items }: { items: Item[] }) {
                 <span className={`block truncate text-xl font-bold text-ink ${linkTitle}`}>{item.service}</span>
                 <span className={`mt-1 block text-sm text-muted ${linkText}`}>{item.category}</span>
                 <span className="mt-3 block">
-                  <Rating rating={item.rating} count={item.bookings} unit="bookings" />
+                  <Rating rating={item.rating} />
                 </span>
               </span>
               <span className="inline-flex shrink-0 items-center gap-1 pr-3 text-sm font-semibold text-brand">

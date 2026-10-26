@@ -1,7 +1,6 @@
 // Privacy policy, terms of service and cancellation & refund policy.
 //
 // DRAFTS written for the founder's review, not legal advice. Before relying on them:
-// - add the legal entity name, registered address and GSTIN (marked [to add] below),
 // - name a grievance officer,
 // - confirm the commercial terms flagged in the refund policy (cut-off days, percentages),
 // - have them checked by a lawyer familiar with the DPDP Act 2023 and consumer law.
@@ -28,7 +27,6 @@ export const privacy: LegalDoc = {
       heading: "Who we are",
       body: [
         `${brand.fullName} is a marketplace based in ${brand.city}, ${brand.region}, that connects customers with vetted photographers, cinematographers, DJs, anchors, makeup artists and other event talent. For the personal data described here, AOD is the "data fiduciary" under the DPDP Act.`,
-        "Legal entity name and registered address: [to add].",
       ],
     },
     {
@@ -143,7 +141,7 @@ export const terms: LegalDoc = {
       id: "payment",
       heading: "Prices and payment",
       body: [
-        { list: ["Prices are in Indian rupees. Each quote states whether GST is included. AOD's GSTIN: [to add].", "Pay only to AOD's official UPI ID or bank account, as shared in AOD's messages. Don't pay artists directly for a booking made through AOD; we can't protect payments made outside AOD.", "The balance (if any) is due by the date shown on your quote, before the event unless agreed otherwise.", "Card, netbanking and wallet payments will be added through a payment gateway; until then we accept UPI and bank transfer."] },
+        { list: ["Prices are in Indian rupees.", "Pay only to AOD's official UPI ID or bank account, as shared in AOD's messages. Don't pay artists directly for a booking made through AOD; we can't protect payments made outside AOD.", "The balance (if any) is due by the date shown on your quote, before the event unless agreed otherwise.", "Card, netbanking and wallet payments will be added through a payment gateway; until then we accept UPI and bank transfer."] },
       ],
     },
     {

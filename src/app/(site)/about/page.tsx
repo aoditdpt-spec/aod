@@ -32,6 +32,8 @@ const contacts = [
   { icon: <WhatsAppIcon />, label: "WhatsApp", value: "Chat with the team", href: whatsappUrl() },
   { icon: <InstagramIcon />, label: "Instagram", value: brand.instagramHandle, href: brand.instagramUrl },
   ...(brand.linkedinUrl ? [{ icon: <LinkedInIcon />, label: "LinkedIn", value: brand.fullName, href: brand.linkedinUrl }] : []),
+  // Where AOD is: the city only (there's no street address to show).
+  { icon: <MapPin className="h-5 w-5" aria-hidden />, label: "Based in", value: `${brand.city}, ${brand.region}`, href: "" },
 ];
 
 export default function AboutPage() {
@@ -125,6 +127,18 @@ export default function AboutPage() {
           <StaggerList className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {contacts.map((c) => {
               const external = c.href.startsWith("http");
+              if (!c.href)
+                return (
+                  <StaggerItem key={c.label}>
+                    <div className="flex h-full items-center gap-4 rounded-card bg-white/[0.04] p-5">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tangerine/15 text-tangerine">{c.icon}</span>
+                      <span className="min-w-0">
+                        <span className="block text-sm text-white/60">{c.label}</span>
+                        <span className="block truncate font-medium text-white">{c.value}</span>
+                      </span>
+                    </div>
+                  </StaggerItem>
+                );
               return (
                 <StaggerItem key={c.label}>
                   <a

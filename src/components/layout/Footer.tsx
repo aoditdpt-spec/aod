@@ -1,4 +1,4 @@
-import { ChevronDown, Mail, Phone } from "lucide-react";
+import { ChevronDown, Mail, MapPin, Phone } from "lucide-react";
 import { legalDocs } from "@/content/legal";
 import { brand, categories } from "@/content/site";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
@@ -69,6 +69,9 @@ export function Footer() {
                   <InstagramIcon className="h-4 w-4" /> {brand.instagramHandle}
                 </a>
               </li>
+              <li className="inline-flex items-center gap-2">
+                <MapPin className="h-4 w-4" aria-hidden /> {brand.city}, {brand.region}
+              </li>
             </ul>
           </div>
 
@@ -130,7 +133,7 @@ export function Footer() {
             © {new Date().getFullYear()} {brand.fullName} · {brand.domain}
           </p>
           <p>
-            Made in {brand.city} ·{" "}
+            {brand.city}, {brand.region} ·{" "}
             {/* The admin panel's sign-in (admin.aod.co.in), for the AOD team. */}
             <SectionLink href={portalHref("/admin")} className="hover:text-apricot">
               AOD team sign-in

@@ -13,9 +13,6 @@ export const brand = {
   phoneDisplay: "+91 92747 39763",
   phoneHref: "tel:+919274739763",
   email: "connect@aod.co.in",
-  // Opens Gmail's compose window in the browser, addressed to AOD.
-  gmailComposeUrl: (subject: string) =>
-    `https://mail.google.com/mail/?view=cm&fs=1&to=connect@aod.co.in&su=${encodeURIComponent(subject)}`,
   instagramHandle: "@artistsondemand.in",
   instagramUrl: "https://www.instagram.com/artistsondemand.in/",
   // AOD's LinkedIn company page (the footer icon hides if this is empty).

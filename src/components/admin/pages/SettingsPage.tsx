@@ -21,7 +21,7 @@ const numbers: { key: keyof Omit<Settings, "notify">; label: string; suffix: str
 // Launch checklist from the platform plan: what must exist before real customers pay.
 const launch = [
   { label: "Privacy, terms and refund pages drafted (/privacy, /terms, /refund-policy)", done: true },
-  { label: "Policies confirmed by the founder and checked by a lawyer; entity name, GSTIN and grievance officer added", done: false },
+  { label: "Policies confirmed by the founder and checked by a lawyer; grievance officer named", done: false },
   { label: "Staff accounts with 2-step verification (backend)", done: false },
   { label: "WhatsApp Business Platform provider connected", done: false },
   { label: "Razorpay for cards, netbanking and automatic confirmation", done: false },
