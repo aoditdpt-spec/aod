@@ -26,7 +26,6 @@ export function useProfileChecks(): { label: string; done: boolean; href: string
     { label: "About your work", done: profile.bio.trim().length >= 40, href: sectionLink("/artists/profile") },
     { label: "Portfolio links", done: profile.links.length > 0, href: sectionLink("/artists/portfolio") },
     { label: "Portfolio photos and videos", done: (live?.portfolio.length ?? 0) > 0, href: sectionLink("/artists/portfolio") },
-    { label: "Identity (DigiLocker)", done: live?.kycVerified ?? false, href: sectionLink("/artists/documents") },
     { label: "Days you're unavailable", done: blocked.length > 0, href: sectionLink("/artists/availability") },
   ];
 }
@@ -166,7 +165,6 @@ export function Dashboard() {
               <ul className="space-y-2 text-sm text-body">
                 {[
                   "Add more of your best photos or clips to your portfolio",
-                  "Verify your identity with DigiLocker on the Documents page",
                   "Mark the days you can't work under Availability",
                 ].map((t) => (
                   <li key={t} className="flex gap-2">

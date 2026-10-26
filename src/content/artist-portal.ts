@@ -1,7 +1,7 @@
 // Copy and sample data for the artist portal: served at /artists for now, and on
 // artists.aod.co.in once that domain points here (see src/proxy.ts).
 //
-// PREVIEW: there is no backend yet. Sign-in, uploads, verification and submitting do not
+// PREVIEW: there is no backend yet. Sign-in, uploads and submitting do not
 // save or send anything. The sample artist, booking requests and statuses below are made up
 // to show how the portal will work, and every portal page says so. Replace them with
 // Supabase data when the backend is built.
@@ -267,7 +267,7 @@ export const applySteps = [
   { id: "craft", title: "Your craft", text: "What you do and where" },
   { id: "work", title: "Your work details", text: "Questions about how you work" },
   { id: "portfolio", title: "Portfolio", text: "Your best work and links" },
-  { id: "verify", title: "Verification", text: "Identity and agreements" },
+  { id: "verify", title: "Declaration", text: "Confirm and agree" },
   { id: "review", title: "Review", text: "Check and send" },
 ] as const;
 
@@ -300,13 +300,6 @@ export const uploadRules = {
     hint: "JPG, PNG, WebP or HEIC photos up to 15 MB; MP4 or MOV videos up to 200 MB. At least 6, up to 30.",
   },
   resume: { accept: "application/pdf", maxMb: 5, hint: "PDF up to 5 MB. Optional, but it helps for corporate and expo work." },
-};
-
-// Identity: done through DigiLocker by a KYC provider, never by uploading an Aadhaar card.
-export const identity = {
-  title: "Verify your identity with DigiLocker",
-  text: "You sign in to DigiLocker (the Government of India app) and approve sharing. AOD receives only your verified name, date of birth and photo, plus a masked Aadhaar number showing the last 4 digits.",
-  never: "We never ask for your full Aadhaar number or a photo of your Aadhaar card, and we don't store them.",
 };
 
 // ---------------------------------------------------------------------------

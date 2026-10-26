@@ -144,7 +144,7 @@ function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose
             ["Experience", artist.experience],
             ["Languages", artist.languages.join(", ")],
             ["With AOD since", fmtDate(artist.joinedAt)],
-            ["Identity", artist.kyc === "verified" ? "Verified (DigiLocker)" : "Pending"],
+            ["Identity", artist.kyc === "verified" ? "Verified" : "Pending"],
             ["Jobs done", jobs(db, artist.id)],
             ["Reviews", reviews.length ? `${reviews.length}, average ${(reviews.reduce((n, b) => n + b.review!.rating, 0) / reviews.length).toFixed(1)} / 5` : "None yet"],
           ]}

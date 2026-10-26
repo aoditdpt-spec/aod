@@ -279,7 +279,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 | `location/` | `CityPicker`, `CitySheetButton` (phones) and `CityChips`: the visitor's city |
 | `categories/` | `CategoryTiles` (a photo tile per category, used on `/categories` and in a category page's "You can also book"), `StickyBookBar` (a category page's Book bar on phones) |
 | `bookings/` | `MyBookings`: sign-in, list of the customer's bookings, progress, reviews |
-| `artists/` | The artist portal: `ApplyForm`, `SignIn`, `PortalGate`, `PortalChrome`, `PortalNav`, `AccountMenu`, `Dashboard`, `OnboardingTimeline`, `ProfileEditor`, `PortfolioManager`, `FileDrop`, `LinkEditor`, `AvailabilityCalendar`, `BookingsBoard`, `BookingCard`, `DocumentsPanel`, `DigiLockerCard`, `form.tsx` (Field, ChipGroup, CheckRow, input styles) |
+| `artists/` | The artist portal: `ApplyForm`, `SignIn`, `PortalGate`, `PortalChrome`, `PortalNav`, `AccountMenu`, `Dashboard`, `OnboardingTimeline`, `ProfileEditor`, `PortfolioManager`, `FileDrop`, `LinkEditor`, `AvailabilityCalendar`, `BookingsBoard`, `BookingCard`, `DocumentsPanel`, `form.tsx` (Field, ChipGroup, CheckRow, input styles) |
 | `admin/` | `AdminShell` (sidebar, header, Live dot), `AdminSignIn`, `DataTable` (sortable/filterable table), `ui.tsx` (drawer, badges, sections), `useOpen.ts` (`?open=<id>` drawers), `pages/` (one component per admin page) |
 | `resolve/` | `CaseForm`, `TrackCase` |
 | `legal/` | `LegalPage`: renders a policy from `src/content/legal.ts` |
@@ -897,7 +897,7 @@ Supabase → Table editor → `outbox`.
 - No hardcoded ratings, review counts, artist counts or booking numbers on the live site; show real
   data or leave the element out. (The sample numbers in `site.ts` are flagged.)
 - Don't claim escrow, payments or verification that isn't built.
-- Never collect Aadhaar numbers; identity checks go through a KYC provider (DigiLocker).
+- Never collect Aadhaar numbers or card copies. There's no online identity check now (DigiLocker was removed); the team marks identity verified in the admin. A future one must go through a KYC provider.
 - Every page needs a title, description, Open Graph tags and a share image (links are shared on
   WhatsApp). Key numbers and content render on the server.
 

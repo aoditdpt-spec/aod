@@ -186,7 +186,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
             [
               "Identity",
               app.kyc === "verified" ? (
-                <StatusBadge tone="good">Verified (DigiLocker)</StatusBadge>
+                <StatusBadge tone="good">Verified</StatusBadge>
               ) : (
                 <span className="flex flex-wrap items-center gap-2">
                   <StatusBadge tone="wait">Not verified</StatusBadge>

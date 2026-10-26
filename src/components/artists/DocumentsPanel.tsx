@@ -3,22 +3,17 @@
 import { FileSignature, Landmark } from "lucide-react";
 import { useState } from "react";
 import { uploadRules } from "@/content/artist-portal";
-import { DigiLockerCard } from "./DigiLockerCard";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { Badge, Panel } from "./form";
 
-// Identity, resume, agreement and payouts. Only what AOD needs, asked for when it's needed:
-// payout details come after the trial booking, and identity goes through DigiLocker.
+// Resume, agreement and payouts. Only what AOD needs, asked for when it's needed: payout details
+// come after the trial booking.
 export function DocumentsPanel() {
   const [resume, setResume] = useState<PickedFile[]>([]);
 
   return (
     <div className="mt-8 grid items-start gap-6 xl:grid-cols-[1.6fr_1fr]">
       <div className="space-y-6">
-        <Panel title="Identity" text="Needed before you go live.">
-          <DigiLockerCard />
-        </Panel>
-
         <Panel title="Resume or work profile" text="Optional. Helps for corporate and expo work.">
           <FileDrop label="Resume" variant="single" files={resume} onChange={setResume} limits={uploadRules.resume} hint={uploadRules.resume.hint} />
         </Panel>

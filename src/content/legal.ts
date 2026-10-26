@@ -36,7 +36,7 @@ export const privacy: LegalDoc = {
         "If you book or enquire as a customer:",
         { list: ["Your name, phone number, email address and city.", "Event details: type, date, time, venue, budget, the services you want and any notes.", "Messages you send us on WhatsApp, email or phone.", "Payment details you share with us: the amount, and the UPI transaction ID (UTR) or bank reference. We never receive your UPI PIN, card number or bank login.", "Reviews and ratings you give."] },
         "If you apply or work with us as an artist:",
-        { list: ["Your name, phone number, email address, city, craft, services, experience and languages.", "Your portfolio: photos, videos, links and resume you share.", "Identity verification through DigiLocker, via a KYC provider, when it is switched on: your verified name, date of birth and photo, and a masked Aadhaar number (last 4 digits). We never ask for your full Aadhaar number or a photo of your Aadhaar card.", "After your trial booking: bank account or UPI ID and PAN, for payouts and tax.", "Your availability, bookings, quotes, payouts and notes from our team."] },
+        { list: ["Your name, phone number, email address, city, craft, services, experience and languages.", "Your portfolio: photos, videos, links and resume you share.", "After your trial booking: bank account or UPI ID and PAN, for payouts and tax.", "Your availability, bookings, quotes, payouts and notes from our team."] },
         "If you subscribe to the newsletter:",
         { list: ["Your email address, the page you signed up on, and when you signed up, confirmed and unsubscribed. You're only subscribed after you confirm through the link we email you."] },
         "When you use the website:",
@@ -56,7 +56,7 @@ export const privacy: LegalDoc = {
       heading: "Who we share it with",
       body: [
         "We do not sell your personal data. We share only what is needed:",
-        { list: ["With the artist matched to your booking: your name, event details, venue and, close to the event, your phone number.", "With customers: an artist's name, work profile, portfolio and reviews.", "With service providers who work for us under contract: website hosting (Vercel), our database and file storage (Supabase), WhatsApp (Meta) and our WhatsApp messaging provider, email delivery, Google Workspace or Drive for delivering files, the KYC provider for DigiLocker checks, and a payment gateway once card payments are added.", "With authorities, when the law requires it, or to protect someone's safety or our legal rights."] },
+        { list: ["With the artist matched to your booking: your name, event details, venue and, close to the event, your phone number.", "With customers: an artist's name, work profile, portfolio and reviews.", "With service providers who work for us under contract: website hosting (Vercel), our database and file storage (Supabase), WhatsApp (Meta) and our WhatsApp messaging provider, email delivery, Google Workspace or Drive for delivering files and keeping artists' profile photos, and a payment gateway once card payments are added.", "With authorities, when the law requires it, or to protect someone's safety or our legal rights."] },
         "Some providers store data outside India. We use providers that protect data to standards comparable to the DPDP Act, and we follow any restrictions the Government of India places on transfers.",
       ],
     },

@@ -31,7 +31,6 @@ import { createApplication } from "@/server/actions/public";
 import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
-import { DigiLockerCard } from "./DigiLockerCard";
 import { PhotoPicker } from "@/components/ui/PhotoPicker";
 import { FileDrop, type PickedFile } from "./FileDrop";
 import { CheckRow, ChipGroup, Field, inputBase, inputClass } from "./form";
@@ -795,13 +794,6 @@ function PortfolioStep({
 function VerifyStep({ profile, set, errors }: StepProps) {
   return (
     <>
-      <div>
-        <p className="mb-2 text-sm font-medium text-ink">
-          Identity <span className="font-normal text-muted">(now or later, before you go live)</span>
-        </p>
-        <DigiLockerCard />
-      </div>
-
       <div className="space-y-3 rounded-xl border border-line p-5">
         <CheckRow checked={profile.agreeTerms} onChange={(agreeTerms) => set({ agreeTerms })}>
           I agree to the AOD{" "}
@@ -878,7 +870,6 @@ function ReviewStep({ profile, files, goTo }: { profile: ArtistProfile; files: F
       step: "verify",
       title: "Verification",
       items: [
-        ["Identity", "Not verified yet (DigiLocker)"],
         ["Agreements", profile.agreeTerms ? "Accepted" : "Not accepted"],
       ],
     },

@@ -52,7 +52,6 @@ export type ArtistPortal = {
   applicationStatus?: ApplicationStatus;
   meeting?: { at: string; place: string };
   stage: number; // index into onboardingStages
-  kycVerified: boolean;
   profile: ArtistProfile;
   bookings: PortalBooking[];
   blockedDates: string[];
@@ -133,7 +132,6 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         applicationStatus: app.status,
         meeting: app.meeting,
         stage: stageOf(app.status),
-        kycVerified: app.kyc === "verified",
         profile: { fullName: app.name, phone: app.phone, email: app.email, city: app.city, category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, photo: app.photo ?? "", agreeTerms: true },
         bookings: [],
         blockedDates: [],
@@ -199,7 +197,6 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
       kind: "artist",
       id: artist.id,
       stage: onboardingStages.length - 1,
-      kycVerified: artist.kyc === "verified",
       profile: {
         fullName: artist.name,
         phone: artist.phone,
