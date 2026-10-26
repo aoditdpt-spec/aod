@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Montserrat } from "next/font/google";
 import { brand } from "@/content/site";
+import { canonicalUrl } from "@/lib/site-url";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { LoadingBar } from "@/components/ui/LoadingBar";
 import "./globals.css";
@@ -22,7 +23,7 @@ const description =
   "Book verified photographers, cinematographers, DJs, anchors, makeup artists and more — as easily as booking a cab. Curated matches, transparent quotes, replacement guarantee.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(`https://${brand.domain}`),
+  metadataBase: new URL(canonicalUrl),
   title: {
     default: `${brand.fullName} — book verified artists instantly`,
     template: `%s — ${brand.fullName}`,

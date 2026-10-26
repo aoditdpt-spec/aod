@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { BookingOptions } from "@/components/home/BookingOptions";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
@@ -16,6 +17,9 @@ import { Reveal } from "@/components/motion/Reveal";
 // marketplaces (Urban Company, Upwork) lay out their homepages:
 // promise → proof → "do they have what I need?" → why trust them → how easy it is
 // → what if something goes wrong → book → stay (business contracts) → last nudge.
+// The homepage's own canonical (https://www.aod.co.in), like every other page.
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
 export default function Home() {
   return (
     <>

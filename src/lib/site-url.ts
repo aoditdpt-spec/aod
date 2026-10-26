@@ -1,9 +1,15 @@
+// The customer site's one public address: canonicals, the sitemap, Open Graph and every link to it
+// use www (aod.co.in only redirects there, src/proxy.ts), so search engines never meet a redirect.
+export const canonicalUrl = "https://www.aod.co.in";
+
 // The customer site's address, for links that leave the artists, admin and resolve domains (where
 // "/" points into that section) and for links in emails. NEXT_PUBLIC_SITE_URL overrides it
 // (http://localhost:3000 in development). A *.vercel.app value is ignored: those addresses only
-// redirect to www.aod.co.in (next.config.ts).
+// redirect to www.aod.co.in (next.config.ts); a bare aod.co.in becomes www.aod.co.in.
 const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
-export const siteUrl = (fromEnv && !/\.vercel\.app/.test(fromEnv) ? fromEnv : "https://www.aod.co.in").replace(/\/$/, "");
+export const siteUrl = (fromEnv && !/\.vercel\.app/.test(fromEnv) ? fromEnv : canonicalUrl)
+  .replace(/\/$/, "")
+  .replace(/^https?:\/\/aod\.co\.in$/, canonicalUrl);
 
 // A link to a page on the customer site.
 export const siteHref = (path: string) => `${siteUrl}${path}`;

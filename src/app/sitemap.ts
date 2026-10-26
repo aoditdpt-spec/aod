@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { brand, categories } from "@/content/site";
+import { categories } from "@/content/site";
+import { canonicalUrl } from "@/lib/site-url";
 import { publishedPosts } from "@/server/blog";
 
 // Rebuilt at most once an hour, and when the team changes a post (for the blog's addresses).
@@ -7,7 +8,7 @@ export const revalidate = 3600;
 
 // The customer site only: the Dispute Desk, artist portal and admin are on their own domains.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = `https://${brand.domain}`;
+  const base = canonicalUrl;
   const posts = (await publishedPosts()).filter((p) => !p.sample);
   return [
     { url: base, priority: 1 },
