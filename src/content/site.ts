@@ -81,7 +81,7 @@ export const categories: Category[] = [
     slug: "cinematographers",
     image: { src: "/categories/cinematographers.jpg", width: 900, height: 619 },
     name: "Cinematographers",
-    shortName: "Videographers",
+    shortName: "Cinematographers",
     singular: "Cinematographer",
     icon: "video",
     keywords: ["video", "videography", "videographer", "cinematography", "film", "filmmaker", "movie", "shoot", "reels", "camera"],
@@ -365,7 +365,7 @@ export const hero = {
   desktop: {
     title: "Artists On Demand",
     // Each entry is shown on its own line.
-    subtitle: ["Get yours now or browse categories", "and find your perfect match."],
+    subtitle: ["Every artist you need, all in one place.", "Book talent without the chase."],
     primaryCta: "Get yours now",
     secondaryCta: "Browse categories",
     // Animated walk-through of a booking shown beside the headline. Illustrative steps, not real customers.
@@ -742,12 +742,6 @@ export const about = {
     { title: "One clear price", text: "One clear quote per curated match. The price you agree is the price you pay." },
     { title: "Never stranded", text: "If an artist cancels, AOD sends a verified substitute." },
     { title: "Fair to artists", text: "Zero joining fees, and bookings that suit each artist's craft and rate." },
-  ],
-  // Names and titles from the founders' public eChai listings — confirm before launch, and add photos.
-  teamTitle: "The people behind AOD",
-  team: [
-    { name: "Vaibhav Patel", role: "Co-founder & CEO" },
-    { name: "Dhruvi Thakkar", role: "Co-founder" },
   ],
   contactTitle: "Talk to AOD",
   contactText: "Questions, partnerships or press — reach the AOD team directly.",

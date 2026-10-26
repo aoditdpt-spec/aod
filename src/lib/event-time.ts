@@ -23,7 +23,15 @@ export function eventMinutes(start: string, end: string): number | null {
   return d;
 }
 
-export const endsNextDay = (start: string, end: string) => isTime(start) && isTime(end) && minutesOf(end) < minutesOf(start);
+// The end time `minutes` after `start`, past midnight if need be: ("20:00", 300) → "01:00".
+// "" when the start isn't a time or the length isn't positive.
+export function endAfter(start: string, minutes: number): string {
+  if (!isTime(start) || !(minutes > 0)) return "";
+  const t = (minutesOf(start) + Math.round(minutes)) % (24 * 60);
+  return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+}
+
+export const endsNextDay =(start: string, end: string) => isTime(start) && isTime(end) && minutesOf(end) < minutesOf(start);
 
 // 180 → "3 hours", 150 → "2 hours 30 min", 45 → "45 min".
 export function durationText(minutes: number): string {

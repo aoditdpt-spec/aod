@@ -1,10 +1,10 @@
-// "Brief for the artists": the optional section after the event details in the booking questions
-// (src/components/home/ArtistBrief.tsx). For each kind of artist the customer picked it asks a few
-// quick questions (the style they want, what's delivered, the music, the looks…), then three
-// things for every artist: preferences about the artist, reference links, and anything else.
-// The answers are saved with the booking (`brief`) and travel with it: the WhatsApp message, the
-// team's and customer's emails, the sheet, the admin's booking drawer, and the artist portal, where
-// each artist sees the part for their own category plus the shared answers.
+// "Brief for the artists": the optional box after the event details in the booking questions
+// (src/components/home/ArtistBrief.tsx), written in the customer's own words and saved as `note`.
+// It used to be quick questions for each kind of artist plus preferences and reference links;
+// those questions stay here only so older bookings' briefs (`byCategory`, `preferences`,
+// `references`) still read correctly everywhere.
+// The brief is saved with the booking (`brief`) and travels with it: the WhatsApp message, the
+// team's and customer's emails, the sheet, the admin's booking drawer, and the artist portal.
 // No imports, so it can be checked on its own and used on the server and in the browser alike.
 
 export type BriefQuestion = {
@@ -96,11 +96,11 @@ export const briefQuestions: Record<string, BriefQuestion[]> = {
 export const briefCommon = {
   title: "Brief for the artists",
   optional: "Optional",
-  intro: "A few quick answers help the artists quote accurately and come prepared. Skip anything you're not sure about.",
+  intro: "Anything that helps the artists quote and come prepared, in your own words.",
   preferences: { label: "Anything about the artist you'd prefer?", placeholder: "A female makeup artist, a Gujarati-speaking anchor, someone who has worked at this venue…" },
   references: { label: "Reference links", placeholder: "Instagram, Pinterest or YouTube links to looks, edits or playlists you like" },
-  note: { label: "Anything else the artists should know?", placeholder: "Dress code, venue rules, the schedule, parking…" },
-  labels: { preferences: "Artist preferences", references: "References", note: "Anything else" },
+  note: { label: "Brief for the artists", placeholder: "The style you like, must-have shots, songs, looks, links to references, dress code, the schedule…" },
+  labels: { preferences: "Artist preferences", references: "References", note: "Brief" },
 };
 
 const MAX_TEXT = 300;

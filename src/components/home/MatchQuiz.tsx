@@ -13,7 +13,7 @@ import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
 import { backendEnabled } from "@/lib/backend";
 import { needsText, withCount } from "@/lib/booking-needs";
-import { durationText, endsNextDay, eventMinutes, timeRange } from "@/lib/event-time";
+import { durationText, endAfter, endsNextDay, eventMinutes, time12, timeRange } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { takeRebook } from "@/lib/rebook";
 import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
@@ -27,7 +27,11 @@ const audienceLabel: Record<Audience, string> = {
   business: "Business",
 };
 
-const titles = ["What's the occasion?", "Who do you need?", "When and where?"];
+// Artists first (what's being booked), then the occasion, then when and where.
+const titles = ["Who do you need?", "What's the occasion?", "When and where?"];
+
+// "How many hours?": half hours up to 12, then whole hours up to 24 (as minutes).
+const hourChoices = [...Array.from({ length: 24 }, (_, i) => (i + 1) * 30), ...Array.from({ length: 12 }, (_, i) => (13 + i) * 60)];
 
 const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
@@ -51,8 +55,10 @@ const slide: Variants = {
   exit: (dir: number) => ({ opacity: 0, x: dir * -40, transition: { duration: 0.2, ease: EASE } }),
 };
 
-// Three quick questions, one at a time, then a pre-filled WhatsApp message to the AOD team.
-// Picking the occasion moves straight on; the answers so far show as chips that jump back to edit.
+// Three quick questions, one at a time, then a pre-filled WhatsApp message to the AOD team: who
+// they need (and how many), the occasion, then when and where. Picking the occasion moves straight
+// on; the answers so far show as chips that jump back to edit. The time is a start time and how
+// many hours; the end time is worked out from them (`endAfter`, src/lib/event-time.ts).
 // `audience` picks the occasion list (personal or business); without it a mixed list is shown.
 // The city comes from the navbar picker (src/lib/city.ts); if it's already chosen, it isn't asked again.
 // "Who do you need?" takes any number of categories and how many artists of each (1 to 4, or "More"
@@ -73,7 +79,8 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   const [needs, setNeeds] = useState<Need[]>(() => initialNeeds.map((slug) => ({ slug, count: 1 })));
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [hours, setHours] = useState(0); // the event's length in minutes; 0 until picked
+  const endTime = endAfter(startTime, hours);
   const city = useCity();
   const minDate = tomorrowISO();
   // YYYY-MM-DD strings compare correctly as text. Every detail is required.
@@ -120,10 +127,10 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
       : "Choose the event date."
     : !city
       ? "Choose your city."
-      : !startTime || !endTime
-        ? "Add the start and end time."
+      : !startTime || !hours
+        ? "Add the start time and how many hours."
         : length === null
-          ? "Start and end can't be the same time."
+          ? "Add the start time and how many hours."
           : !detailsOk
             ? "Add a few event details."
             : !nameOk
@@ -154,7 +161,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     if (draft.city) setCity(draft.city);
     if (draft.time && draft.endTime) {
       setStartTime(draft.time);
-      setEndTime(draft.endTime);
+      setHours(eventMinutes(draft.time, draft.endTime) ?? 0);
     }
     if (draft.details) setDetails(draft.details);
     if (knownOccasion && known.length) setStep(2);
@@ -175,7 +182,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
     setNeeds(initialNeeds.map((slug) => ({ slug, count: 1 })));
     setDate("");
     setStartTime("");
-    setEndTime("");
+    setHours(0);
     setDetails("");
     setBrief({});
     setDir(-1);
@@ -223,8 +230,8 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
 
   // Answers given so far, shown above the current question.
   const summary = [
-    step > 0 && occasion ? { label: occasion, to: 0 } : null,
-    step > 1 && needs.length ? { label: needLabels.join(", "), to: 1 } : null,
+    step > 0 && needs.length ? { label: needLabels.join(", "), to: 0 } : null,
+    step > 1 && occasion ? { label: occasion, to: 1 } : null,
   ].filter((x): x is { label: string; to: number } => x !== null);
 
   // Emails the 6-digit code (preview: nothing is sent, any 6 digits pass).
@@ -426,33 +433,8 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
             {titles[step]}
           </h3>
 
-          {step === 0 && (
-            <>
-              <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {occasionList.map(({ label, icon }) => (
-                  <li key={label}>
-                    <button
-                      type="button"
-                      aria-pressed={occasion === label}
-                      onClick={() => {
-                        setOccasion(label);
-                        go(1);
-                      }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-ink transition-colors ${
-                        occasion === label ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
-                      }`}
-                    >
-                      <Icon name={icon} className="h-4 w-4 shrink-0 text-brand" />
-                      {label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 text-xs text-muted">Pick one to continue.</p>
-            </>
-          )}
 
-          {step === 1 && (
+          {step === 0 && (
             <>
               {initialNeeds.length > 0 && (
                 <p className="mt-3 text-sm text-body">
@@ -525,7 +507,33 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                   </ul>
                 </div>
               )}
-              <StepNav onBack={() => go(0)} onNext={() => go(2)} nextDisabled={needs.length === 0} />
+              <StepNav onNext={() => go(1)} nextDisabled={needs.length === 0} />
+            </>
+          )}
+          {step === 1 && (
+            <>
+              <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {occasionList.map(({ label, icon }) => (
+                  <li key={label}>
+                    <button
+                      type="button"
+                      aria-pressed={occasion === label}
+                      onClick={() => {
+                        setOccasion(label);
+                        go(2);
+                      }}
+                      className={`flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-ink transition-colors ${
+                        occasion === label ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
+                      }`}
+                    >
+                      <Icon name={icon} className="h-4 w-4 shrink-0 text-brand" />
+                      {label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs text-muted">Pick one to continue.</p>
+              <StepNav onBack={() => go(0)} />
             </>
           )}
 
@@ -593,22 +601,26 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                   />
                 </label>
                 <label className="text-sm font-medium text-ink">
-                  End time
-                  <input
-                    type="time"
-                    step={900}
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 font-normal outline-none focus:border-brand"
-                  />
+                  How many hours?
+                  <select
+                    value={hours || ""}
+                    onChange={(e) => setHours(Number(e.target.value))}
+                    className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
+                  >
+                    <option value="" disabled>
+                      Choose
+                    </option>
+                    {hourChoices.map((m) => (
+                      <option key={m} value={m}>
+                        {durationText(m)}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 {length !== null && (
                   <p className="-mt-2 text-sm text-ink sm:col-span-2" aria-live="polite">
-                    {timeRange(startTime, endTime).replace(/ \(.*\)$/, "")} ·{" "}
-                    <strong className="font-medium">
-                      {durationText(length)}
-                      {endsNextDay(startTime, endTime) ? ", ends next day" : ""}
-                    </strong>
+                    Ends at <strong className="font-medium">{time12(endTime)}</strong>
+                    {endsNextDay(startTime, endTime) ? " the next day" : ""} · {timeRange(startTime, endTime).replace(/ \(.*\)$/, "")}
                   </p>
                 )}
                 <label className="text-sm font-medium text-ink sm:col-span-2">
@@ -623,7 +635,7 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
                 </label>
               </div>
 
-              <ArtistBrief slugs={needs.map((n) => n.slug)} brief={brief} onChange={setBrief} />
+              <ArtistBrief brief={brief} onChange={setBrief} />
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm font-medium text-ink">
@@ -790,20 +802,26 @@ export function MatchQuiz({ audience, initialNeeds = [] }: { audience?: Audience
   );
 }
 
-function StepNav({ onBack, onNext, nextDisabled }: { onBack: () => void; onNext: () => void; nextDisabled: boolean }) {
+function StepNav({ onBack, onNext, nextDisabled = false }: { onBack?: () => void; onNext?: () => void; nextDisabled?: boolean }) {
   return (
     <div className="mt-8 flex items-center justify-between border-t border-line pt-6">
-      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> Back
-      </button>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={nextDisabled}
-        className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Next <ArrowRight className="h-4 w-4" aria-hidden />
-      </button>
+      {onBack ? (
+        <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> Back
+        </button>
+      ) : (
+        <span />
+      )}
+      {onNext && (
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={nextDisabled}
+          className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Next <ArrowRight className="h-4 w-4" aria-hidden />
+        </button>
+      )}
     </div>
   );
 }

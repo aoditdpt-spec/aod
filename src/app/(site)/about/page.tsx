@@ -3,7 +3,6 @@ import { BadgeCheck, Building2, Handshake, LayoutGrid, Mail, MapPin, Phone, Shie
 import { about, brand, categoryCountLabel, cities } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { BrandStrip } from "@/components/home/BrandStrip";
 import { FinalCta } from "@/components/home/FinalCta";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
@@ -97,26 +96,6 @@ export default function AboutPage() {
       {/* Brands */}
       <Container>
         <BrandStrip />
-      </Container>
-
-      {/* Team */}
-      <Container className="py-16">
-        <Reveal>
-          <h2 className="text-3xl font-normal sm:text-[2.5rem]">{about.teamTitle}</h2>
-        </Reveal>
-        <StaggerList className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
-          {about.team.map((m) => (
-            <StaggerItem key={m.name}>
-              <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-3`}>
-                <PhotoPlaceholder icon="user" label={m.name} className="aspect-square [&_svg]:transition-transform [&_svg]:duration-300 group-hover/tilt:[&_svg]:scale-125" />
-                <div className="px-3 pb-2 pt-4">
-                  <h3 className={`text-lg font-bold ${tiltTitle}`}>{m.name}</h3>
-                  <p className={`text-sm text-muted ${tiltText}`}>{m.role}</p>
-                </div>
-              </TiltCard>
-            </StaggerItem>
-          ))}
-        </StaggerList>
       </Container>
 
       {/* Contact */}
