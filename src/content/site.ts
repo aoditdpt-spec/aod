@@ -492,7 +492,7 @@ export const portfolio = {
     label: "AOD's coverage of GATE 2026",
     logo: "/brands/gate-2026-expo.png",
     logoAlt: "GATE 2026",
-    title: "GATE 2026 – GCCI Annual Trade Expo",
+    title: "GCCI GATE Expo 2026",
     text: "Event coverage by AOD: the venue from above, the inaugural session and the show floor.",
   },
   shotTitle: "What we shot there",
