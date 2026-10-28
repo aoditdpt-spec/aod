@@ -56,8 +56,10 @@ function HeroApp() {
               <BadgeCheck className="h-4 w-4 text-apricot" aria-hidden />
               {verifiedArtists.short}
             </p>
-            <h1 className="mt-3 text-[2.35rem] font-bold leading-[1.05] !text-white sm:text-5xl">{hero.title}</h1>
-            <p className="mt-3 max-w-xl text-[0.9375rem] text-white/85 sm:text-lg">{hero.subtitle}</p>
+            {/* The brand name is the heading, as on laptops; the promise and the subtitle follow. */}
+            <h1 className="mt-3 text-[2.35rem] font-bold leading-[1.05] !text-white sm:text-5xl">{hero.desktop.title}</h1>
+            <p className="mt-2 text-lg font-semibold leading-snug text-white sm:text-2xl">{hero.title}</p>
+            <p className="mt-2 max-w-xl text-sm text-white/85 sm:text-lg">{hero.subtitle}</p>
           </div>
 
           {/* The search box, overlapping the banner's lower edge. */}

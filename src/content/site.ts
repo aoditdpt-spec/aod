@@ -363,7 +363,8 @@ export const hero = {
   artistLink: "Join AOD",
   searchPlaceholder: "Search for 'wedding photographer'",
   // Laptops keep the full-screen video hero (HeroDesktop): the brand name as the heading, two
-  // buttons and the booking walk-through. The fields above are the phone and tablet hero's.
+  // buttons and the booking walk-through. The fields above are the phone and tablet hero's, whose
+  // heading is the same brand name (desktop.title), with `title` and `subtitle` under it.
   desktop: {
     title: "Artists On Demand",
     // Each entry is shown on its own line.
