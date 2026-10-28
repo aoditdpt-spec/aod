@@ -486,7 +486,7 @@ export const verifiedArtists = {
 // files are public/media/gate-2026-1080*.mp4 with gate-2026.webp as the poster.
 export const portfolio = {
   eyebrow: "AOD portfolio",
-  title: "We've covered expos before",
+  title: "We have been official partner with GATE GCCI expo",
   text: "A look at AOD's own expo work.",
   film: {
     label: "AOD's coverage of GATE 2026",
