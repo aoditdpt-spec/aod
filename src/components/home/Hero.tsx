@@ -17,7 +17,7 @@ import { HeroVideo } from "./HeroVideo";
 // either, the hero keeps its plain dotted background.
 const mediaUrl = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, "");
 const mediaBase = mediaUrl || "/media";
-const hasVideo = Boolean(mediaUrl) || existsSync(join(process.cwd(), "public", "media", "hero-1080.mp4"));
+const hasVideo = Boolean(mediaUrl) || existsSync(join(process.cwd(), "public", "media", "artists-1080.mp4"));
 const dots = "radial-gradient(color-mix(in srgb, var(--color-tangerine) 30%, transparent) 1px, transparent 1.4px)";
 
 // Two heroes, one shown at a time (CSS), each playing the footage only while it is the one shown:

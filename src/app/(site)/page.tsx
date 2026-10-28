@@ -6,6 +6,7 @@ import { FinalCta } from "@/components/home/FinalCta";
 import { GetMatched } from "@/components/home/GetMatched";
 import { Features } from "@/components/home/Features";
 import { VerifiedSection } from "@/components/home/VerifiedSection";
+import { PortfolioSection } from "@/components/home/PortfolioSection";
 import { Hero } from "@/components/home/Hero";
 import { MostBooked } from "@/components/home/MostBooked";
 import { Portals } from "@/components/home/Portals";
@@ -35,6 +36,9 @@ export default function Home() {
       <MostBooked />
       {/* 5. The trust differentiator: every artist verified */}
       <VerifiedSection />
+      {/* 5b. Proof of the work itself: AOD's own expo coverage (GATE 2026), straight after the
+          promise, the same section as on expos.aod.co.in */}
+      <PortfolioSection />
       {/* 6. Where everyone goes: artists join or sign in, customers find My bookings, payments,
           the Dispute Desk and AOD for Business. Straight after trust, so an artist who
           landed here (or someone with a dispute) finds their way before the booking pitch. */}

@@ -481,6 +481,32 @@ export const verifiedArtists = {
   ],
 };
 
+// "AOD portfolio" on the homepage, after the verified-artists promise: AOD's own expo coverage,
+// copied from the portfolio section on expos.aod.co.in. Only real AOD work goes here. The film's
+// files are public/media/gate-2026-1080*.mp4 with gate-2026.webp as the poster.
+export const portfolio = {
+  eyebrow: "AOD portfolio",
+  title: "We've covered expos before",
+  text: "A look at AOD's own expo work.",
+  film: {
+    label: "AOD's coverage of GATE 2026",
+    logo: "/brands/gate-2026-expo.png",
+    logoAlt: "GATE 2026",
+    title: "GATE 2026 – GCCI Annual Trade Expo",
+    text: "Event coverage by AOD: the venue from above, the inaugural session and the show floor.",
+  },
+  shotTitle: "What we shot there",
+  shot: [
+    "Drone shots of the whole expo ground",
+    "The inaugural session, on stage and in the crowd",
+    "Stalls, visitors and the buzz on the floor",
+    "A finished film, edited and ready to share",
+  ],
+  trustLogo: "/brands/gcci.png",
+  trust: "Trusted by the Gujarat Chamber of Commerce & Industry and the brands above.",
+  cta: "See more on Instagram",
+};
+
 // The pre-filled WhatsApp message for artists who'd rather ask on WhatsApp than apply online
 // ("Join AOD" links go to the artist portal's application, /artists/apply).
 export const artistJoinMessage = "Hi Artists on Demand! I am an artist and I want to join AOD.";
