@@ -17,10 +17,12 @@ export function ResolutionFlow() {
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-brand">{resolution.title}</p>
-            <h2 id="resolution-centre-title" className="mt-3 text-3xl font-normal sm:text-[2.5rem] sm:leading-tight">
-              {resolution.tagline}
+            {/* The same opening as resolve.aod.co.in: the headline, the tagline and the intro. */}
+            <h2 id="resolution-centre-title" className="mt-3 text-3xl font-medium leading-tight sm:text-[2.5rem]">
+              {resolution.headline}
             </h2>
-            <p className="mt-4 text-body">{resolution.intro}</p>
+            <p className="mt-4 text-xl font-medium text-ink">{resolution.tagline}</p>
+            <p className="mt-4 text-lg text-body">{resolution.intro}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href={portalHref("/resolve/new")} className={buttonClasses("primary", "md")}>
