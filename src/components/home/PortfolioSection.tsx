@@ -1,9 +1,7 @@
 import Image from "next/image";
 import { Check } from "lucide-react";
-import { brand, portfolio } from "@/content/site";
+import { portfolio } from "@/content/site";
 import { Container } from "@/components/ui/Container";
-import { buttonClasses } from "@/components/ui/Button";
-import { InstagramIcon } from "@/components/ui/Icon";
 import { Reveal } from "@/components/motion/Reveal";
 import { PortfolioVideo } from "./PortfolioVideo";
 
@@ -56,15 +54,6 @@ export function PortfolioSection() {
                 <Image src={portfolio.trustLogo} alt="" width={44} height={44} className="h-11 w-11 shrink-0" />
                 {portfolio.trust}
               </p>
-              <a
-                href={brand.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonClasses("outline", "md", "mt-6")}
-              >
-                <InstagramIcon className="h-5 w-5" />
-                {portfolio.cta}
-              </a>
             </div>
           </Reveal>
         </div>

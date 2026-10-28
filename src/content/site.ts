@@ -504,7 +504,6 @@ export const portfolio = {
   ],
   trustLogo: "/brands/gcci.png",
   trust: "Trusted by the Gujarat Chamber of Commerce & Industry and the brands above.",
-  cta: "See more on Instagram",
 };
 
 // The pre-filled WhatsApp message for artists who'd rather ask on WhatsApp than apply online
