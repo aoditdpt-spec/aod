@@ -54,6 +54,7 @@ export type Category = {
   short: string;
   description: string;
   serviceNote?: string; // a line under every service on the category page ("Shot with iPhone")
+  startingPrice?: string; // the owner's starting price, shown under the category page's verified line
   services: Service[];
   keywords: string[]; // other words people search with, e.g. "dj", "mua", "camera"
 };
@@ -69,6 +70,7 @@ export const categories: Category[] = [
     short: "Weddings, events, portraits & product shoots",
     description:
       "Verified photographers with reviewed portfolios — from candid wedding coverage to crisp product catalogues. Portfolio-reviewed, no negotiation.",
+    startingPrice: "Booking starts from ₹1,499/- per hour",
     services: [
       { name: "Wedding photography", rating: 4.9, bookings: 214, popular: true },
       { name: "Candid photography", rating: 4.88, bookings: 178, popular: true },
@@ -89,6 +91,7 @@ export const categories: Category[] = [
     short: "Wedding films, corporate videos & reels",
     description:
       "Cinematic wedding films, corporate AVs and social-first reels — shot and delivered on time by verified professionals.",
+    startingPrice: "Booking starts from ₹1,999/- per hour",
     services: [
       { name: "Wedding film", rating: 4.9, bookings: 156, popular: true },
       { name: "Corporate film", rating: 4.85, bookings: 88 },
@@ -138,6 +141,7 @@ export const categories: Category[] = [
     short: "Photo, film & reel post-production",
     description:
       "Fast, reliable post-production — wedding albums, highlight films, reels and colour grading with express delivery add-ons.",
+    startingPrice: "Booking starts from ₹999/- per hour",
     services: [
       { name: "Wedding highlight edit", rating: 4.86, bookings: 73, popular: true },
       { name: "Reel editing (pack of 5)", rating: 4.88, bookings: 96, popular: true },

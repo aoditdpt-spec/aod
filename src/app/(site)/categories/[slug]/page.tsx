@@ -77,6 +77,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
                 <div className="mt-5">
                   <VerifiedArtists variant="inline" dark />
                 </div>
+                {category.startingPrice && <p className="mt-3 text-base font-semibold text-white sm:text-lg">{category.startingPrice}</p>}
               </div>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-4">

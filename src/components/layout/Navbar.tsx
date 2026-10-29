@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronDown, ChevronLeft, Ticket } from "lucide-react";
 import { brand, categories } from "@/content/site";
 import { buttonClasses } from "@/components/ui/Button";
@@ -23,9 +23,20 @@ const links = [
 // The AOD. wordmark in the brand orange, on a transparent background: public/aod-wordmark-sm.png,
 // 84px tall (sharp at the footer's size on 2x screens), served as it is. Every logo uses this file
 // with `unoptimized`: Next.js's small AVIF copies of the full-size file turned the orange brown.
+// On the homepage Next.js ignores a click on a link to "/", so there it scrolls back up to the hero.
 export function Logo({ size = "nav" }: { size?: "nav" | "footer" }) {
+  const pathname = usePathname();
+
+  function toTop(e: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/" || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+    if (location.hash) history.replaceState(history.state, "", "/");
+  }
+
   return (
-    <Link href="/" aria-label={`${brand.name} home`} className="inline-block shrink-0">
+    <Link href="/" onClick={toTop} aria-label={`${brand.name} home`} className="inline-block shrink-0">
       <Image
         src="/aod-wordmark-sm.png"
         alt={brand.name}
