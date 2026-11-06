@@ -1,0 +1,746 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, RotateCcw, Scale, Star } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { canCancel, cancelDeadline, customerCancelHours, customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
+import { brand } from "@/content/site";
+import { backendEnabled } from "@/lib/backend";
+import { portalHref } from "@/lib/site-url";
+import { timeRange } from "@/lib/event-time";
+import { startRebook } from "@/lib/rebook";
+import { cancelSentRequest, customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
+import { useHydrated } from "@/lib/motion-safe";
+import { whatsappUrl } from "@/lib/whatsapp";
+import { WhatsAppIcon } from "@/components/ui/Icon";
+import { ArtistProfiles } from "./ArtistProfiles";
+import { PageLoader, Spinner } from "@/components/ui/Spinner";
+import { requestCode, signOutAction, verifyCode } from "@/server/actions/auth";
+import { cancelMyBooking, myOrders, submitReview, type MyOrders } from "@/server/actions/customer";
+import { useLiveRefresh } from "@/lib/live";
+import { createClient } from "@/lib/supabase/client";
+
+const inr = (n?: number) => (n === undefined ? "—" : `₹${n.toLocaleString("en-IN")}`);
+const fmt = (s: string, time = false) => {
+  if (!s) return "Not fixed yet";
+  const d = new Date(s.length === 10 ? `${s}T00:00:00` : s);
+  return d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", ...(time ? { hour: "numeric", minute: "2-digit" } : {}) });
+};
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+// Timeline wording for the steps that aren't on the progress bar.
+const otherSteps: Record<string, string> = { rescheduled: "Date changed", cancelled: "Cancelled" };
+
+const statusInfo = (o: CustomerOrder) => {
+  if (o.status === "sent") return { label: "Sent on WhatsApp", tone: "bg-wash text-muted" };
+  if (o.status === "cancelled") return { label: "Cancelled", tone: "bg-red-50 text-red-700" };
+  if (o.status === "rescheduled") return { label: "Rescheduled", tone: "bg-amber-50 text-amber-800" };
+  const step = customerSteps.find((s) => s.id === o.status);
+  const good = ["confirmed", "completed", "delivered", "reviewed"].includes(o.status);
+  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-50 text-emerald-700" : "bg-peach text-brand-hover" };
+};
+
+// What the customer should do next, if anything.
+function nextAction(o: CustomerOrder): { text: string; href?: string; cta?: string } | null {
+  const forText = `${o.services[0]}, ${fmt(o.date)}`;
+  // Payment details come from AOD on WhatsApp; the message says what's being paid.
+  const pay = (amount: number, what: string) => whatsappUrl(`Hi AOD, I'd like to pay the ${what} of ${inr(amount)} for booking ${o.id} (${forText}). Please share the payment details.`);
+  if (o.status === "quoted" && o.advance) return { text: `Pay the ${inr(o.advance)} advance to lock your date. AOD sends the payment details on WhatsApp.`, href: pay(o.advance, "advance"), cta: "Get payment details" };
+  if (o.status === "confirmed" && o.balance) return { text: `Balance of ${inr(o.balance.amount)} due by ${fmt(o.balance.dueBy)}. AOD sends the payment details on WhatsApp.`, href: pay(o.balance.amount, "balance"), cta: "Get payment details" };
+  if (o.status === "payment_pending") return { text: "We're checking your payment. You'll get an email once it's confirmed." };
+  if (o.status === "delivered" && o.delivery) return { text: `Your files are ready. Download them before ${fmt(o.delivery.expires)}.`, href: o.delivery.link, cta: "Open your files" };
+  return null;
+}
+
+export const fromRequest = (r: SentRequest): CustomerOrder => ({
+  id: r.id,
+  sample: false,
+  createdAt: r.sentAt,
+  status: r.cancelledAt ? "cancelled" : "sent",
+  occasion: r.occasion,
+  services: r.needs,
+  audience: r.audience === "business" ? "business" : r.audience === "personal" ? "personal" : undefined,
+  again: r.needSlugs,
+  date: r.date,
+  time: r.time,
+  endTime: r.endTime,
+  city: r.city,
+  notes: r.details,
+  artists: [],
+  payments: [],
+  history: [],
+});
+
+// Customer bookings: sign in by email code, then every booking with its status, payments,
+// artist and delivery.
+// Live (backend set up): a real emailed code, and the bookings made with that email (the
+// database only returns the customer's own). Preview: any code works, and the bookings are
+// samples plus the requests sent from this browser.
+export function MyBookings() {
+  return backendEnabled ? <LiveMyBookings /> : <PreviewMyBookings />;
+}
+
+function PreviewMyBookings() {
+  const hydrated = useHydrated();
+  const session = customerSessionStore.use();
+  const sentRequests = sentRequestsStore.use();
+  const [samples] = useState(() => sampleOrders(new Date()));
+  if (!hydrated) return <PageLoader className="min-h-96" label="Loading your bookings…" />;
+  return session ? (
+    <BookingsView
+      email={session.email}
+      orders={[...sentRequests.map(fromRequest), ...samples]}
+      onSignOut={() => customerSessionStore.clear()}
+      onCancel={async (id) => {
+        cancelSentRequest(id);
+        return null;
+      }}
+    />
+  ) : (
+    <CustomerSignIn />
+  );
+}
+
+// The last bookings loaded in this tab. Coming back to My bookings (the tab bar's Bookings tab)
+// shows them at once, while they refresh in the background, instead of the loader every time;
+// only while the same email is still signed in (read from the browser's own session, no network).
+let lastOrders: MyOrders | undefined;
+
+function LiveMyBookings() {
+  const [data, setData] = useState<MyOrders | null | undefined>(undefined); // undefined = loading
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => {
+    myOrders()
+      .then((d) => {
+        lastOrders = d ?? undefined;
+        setData(d);
+        setError(null);
+      })
+      .catch(() => setError("Couldn't load your bookings just now. Please try again."));
+  }, []);
+  useEffect(() => {
+    const cached = lastOrders;
+    if (cached) {
+      void createClient()
+        .auth.getSession()
+        .then(({ data: s }) => {
+          if (s.session?.user.email?.toLowerCase() === cached.email) setData((d) => d ?? cached);
+        })
+        .catch(() => {});
+    }
+    load();
+  }, [load]);
+  // Status changes, quotes, payments and delivery links appear without refreshing the page.
+  useLiveRefresh(data?.topic ? [data.topic] : null, load);
+
+  if (error && !data) {
+    return (
+      <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 text-center text-sm text-body">
+        {error}{" "}
+        <button type="button" onClick={load} className="font-medium text-brand underline underline-offset-2">
+          Try again
+        </button>
+      </div>
+    );
+  }
+  if (data === undefined) return <PageLoader className="min-h-96" label="Loading your bookings…" />;
+  if (data === null) return <CustomerSignIn onSignedIn={load} />;
+  return (
+    <BookingsView
+      email={data.email}
+      orders={data.orders}
+      onSignOut={() =>
+        void signOutAction().then(() => {
+          lastOrders = undefined;
+          setData(null);
+        })
+      }
+      onReview={async (id, rating, text) => {
+        const res = await submitReview(id, rating, text);
+        if (res.ok) load();
+        return res.ok ? null : res.error;
+      }}
+      onCancel={async (id) => {
+        const res = await cancelMyBooking(id);
+        if (res.ok) load();
+        return res.ok ? null : res.error;
+      }}
+    />
+  );
+}
+
+function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const field = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none focus:border-brand";
+
+  return (
+    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
+      <h2 className="text-2xl font-bold">{myBookingsCopy.signInTitle}</h2>
+      <p className="mt-2 text-sm text-body">{myBookingsCopy.signInText}</p>
+      <form
+        noValidate
+        className="mt-6 space-y-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (busy) return;
+          if (!sent) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError("Enter a valid email address.");
+            setError(null);
+            if (backendEnabled) {
+              setBusy(true);
+              const res = await requestCode(email, "customer");
+              setBusy(false);
+              if (!res.ok) return setError(res.error);
+            }
+            setSent(true);
+            return;
+          }
+          if (!/^\d{6}$/.test(code)) return setError("Enter the 6-digit code.");
+          if (!backendEnabled) return customerSessionStore.set({ email: email.trim() });
+          setBusy(true);
+          const res = await verifyCode(email, code);
+          if (!res.ok) {
+            setBusy(false);
+            return setError(res.error);
+          }
+          // Stays busy while the bookings load; this form then goes away.
+          onSignedIn?.();
+        }}
+      >
+        <label className="block text-sm font-medium text-ink">
+          Email
+          <input value={email} onChange={(e) => setEmail(e.target.value)} disabled={sent} type="email" autoComplete="email" placeholder="you@example.com" className={`${field} disabled:bg-wash`} />
+        </label>
+        {sent && (
+          <label className="block text-sm font-medium text-ink">
+            6-digit code
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+              placeholder="••••••"
+              className={`${field} text-center text-xl tracking-[0.5em]`}
+            />
+            <span className="mt-1.5 block text-xs font-normal text-muted">
+              Sent to {email}.{" "}
+              <button type="button" onClick={() => setSent(false)} className="font-medium text-brand underline underline-offset-2">
+                Change
+              </button>
+            </span>
+          </label>
+        )}
+        {error && (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover disabled:opacity-60"
+        >
+          {busy ? (
+            <>
+              <Spinner /> {sent ? "Loading your bookings…" : "Sending the code…"}
+            </>
+          ) : sent ? (
+            "Show my bookings"
+          ) : (
+            <>
+              <Mail className="h-4 w-4" aria-hidden /> Send code by email
+            </>
+          )}
+        </button>
+        {sent && !backendEnabled && <p className="rounded-lg bg-wash p-3 text-xs text-muted">Preview: no email is sent yet. Enter any 6 digits.</p>}
+      </form>
+    </div>
+  );
+}
+
+type ReviewFn = (id: string, rating: number, text: string) => Promise<string | null>; // null = saved, else the error
+type CancelFn = (id: string) => Promise<string | null>; // null = cancelled, else the error
+
+function BookingsView({
+  email,
+  orders,
+  onSignOut,
+  onReview,
+  onCancel,
+}: {
+  email: string;
+  orders: CustomerOrder[];
+  onSignOut: () => void;
+  onReview?: ReviewFn;
+  onCancel: CancelFn;
+}) {
+  const [tab, setTab] = useState<"active" | "past">("active");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const isPast = (o: CustomerOrder) => ["delivered", "reviewed", "cancelled"].includes(o.status) || (o.date !== "" && o.date < todayKey());
+  const list = orders.filter((o) => (tab === "past" ? isPast(o) : !isPast(o)));
+  const open = orders.find((o) => o.id === openId) ?? null;
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-medium sm:text-4xl">{myBookingsCopy.title}</h1>
+          <p className="mt-1 text-sm text-muted">
+            Signed in as {email} ·{" "}
+            <button type="button" onClick={onSignOut} className="font-medium text-brand underline underline-offset-2">
+              Sign out
+            </button>
+          </p>
+        </div>
+        <Link href="/book" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-white hover:bg-brand-hover">
+          New booking <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </div>
+
+      <div className="mt-8 grid items-start gap-6 lg:grid-cols-[22rem_1fr]">
+        <div className={open ? "hidden lg:block" : ""}>
+          <div role="tablist" aria-label="Bookings" className="flex gap-1 rounded-xl bg-wash p-1">
+            {(
+              [
+                ["active", "Upcoming & active"],
+                ["past", "Past"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => setTab(id)}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${tab === id ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {list.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-dashed border-line p-8 text-center text-sm text-muted">{myBookingsCopy.empty}</p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {list.map((o) => {
+                const s = statusInfo(o);
+                const action = nextAction(o);
+                return (
+                  <li key={o.id}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(o.id)}
+                      aria-current={openId === o.id ? "true" : undefined}
+                      className={`w-full rounded-2xl border bg-white p-4 text-left transition hover:border-brand/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
+                    >
+                      <span className="flex items-center justify-between gap-2 text-xs text-muted">
+                        <span>
+                          {o.ref && o.ref !== o.id ? `${o.ref} · ${o.id}` : o.id}
+                          {o.sample && <span className="ml-2 rounded bg-wash px-1.5 py-0.5">Sample</span>}
+                        </span>
+                        <span className={`rounded-md px-2 py-0.5 font-medium ${s.tone}`}>{s.label}</span>
+                      </span>
+                      <span className="mt-2 block font-medium text-ink">
+                        {o.services.join(", ")} · {o.occasion}
+                      </span>
+                      <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarDays className="h-3.5 w-3.5" aria-hidden /> {fmt(o.date)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" aria-hidden /> {o.city || "—"}
+                        </span>
+                      </span>
+                      {action && <span className="mt-3 block rounded-lg bg-peach/50 px-3 py-2 text-xs font-medium text-ink">{action.text}</span>}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {open ? (
+          <OrderDetail key={open.id} order={open} onBack={() => setOpenId(null)} onReview={onReview} onCancel={onCancel} />
+        ) : (
+          <div className="hidden min-h-[20rem] items-center justify-center rounded-2xl border border-dashed border-line text-sm text-muted lg:flex">
+            Choose a booking to see everything about it.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// "Changed your mind?": the customer cancels the booking themselves, for customerCancelHours after
+// making it (the server checks the time again). The time left is worked out again every 30
+// seconds, so the button goes away when the time is up.
+function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: CancelFn }) {
+  const [now, setNow] = useState(() => new Date());
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(t);
+  }, []);
+  if (!canCancel(o, now)) return null;
+  const deadline = cancelDeadline(o.createdAt);
+  const left = Math.max(1, Math.round((deadline.getTime() - now.getTime()) / 60_000));
+  const until = deadline.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+
+  return (
+    <div className="mt-4 rounded-xl border border-line p-4">
+      <p className="text-sm text-body">
+        <strong className="font-medium text-ink">Changed your mind?</strong> You can cancel this booking here until {until} (
+        {left < 60 ? `${left} min` : `${Math.floor(left / 60)} h ${left % 60} min`} left, {customerCancelHours} hours after booking). After that, message AOD;
+        the{" "}
+        <Link href="/refund-policy" className="font-medium text-brand underline underline-offset-2">
+          refund policy
+        </Link>{" "}
+        applies.
+      </p>
+      {confirming ? (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <p className="text-sm font-medium text-ink">Cancel {o.ref ?? o.id}? This can&apos;t be undone.</p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError(null);
+              const err = await onCancel(o.id).catch(() => "Couldn't cancel just now. Please try again, or message AOD on WhatsApp.");
+              setBusy(false);
+              if (err) setError(err);
+              else setConfirming(false);
+            }}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-wait"
+          >
+            {busy ? (
+              <>
+                <Spinner /> Cancelling…
+              </>
+            ) : (
+              "Yes, cancel it"
+            )}
+          </button>
+          <button type="button" disabled={busy} onClick={() => setConfirming(false)} className="text-sm font-medium text-muted hover:text-ink">
+            Keep it
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="mt-3 inline-flex h-10 items-center rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50"
+        >
+          Cancel booking
+        </button>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// "Book again": the booking questions for the same audience, with this order's occasion, artists
+// and how many of each, city, times and details filled in (src/lib/rebook.ts); only the new date
+// is left to pick. Shown for any order that knows what it needed, cancelled or done ones included.
+function BookAgain({ order: o }: { order: CustomerOrder }) {
+  const router = useRouter();
+  if (!o.again?.length) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const audience = o.audience ?? "personal";
+        startRebook({ audience, occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
+        router.push(`/book/${audience}`);
+      }}
+      className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-brand hover:text-brand"
+    >
+      <RotateCcw className="h-4 w-4" aria-hidden /> Book again
+    </button>
+  );
+}
+
+function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: CustomerOrder; onBack: () => void; onReview?: ReviewFn; onCancel: CancelFn }) {
+  const [rating, setRating] = useState(5);
+  const [review, setReview] = useState("");
+  const [reviewed, setReviewed] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [sendingReview, setSendingReview] = useState(false);
+  const s = statusInfo(o);
+  const action = nextAction(o);
+  const current = customerSteps.findIndex((x) => x.id === o.status);
+  const paid = o.payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
+  const ask = whatsappUrl(`Hi AOD, about my booking ${o.id} (${o.occasion}, ${fmt(o.date)}): `);
+  const changeMail = `mailto:${brand.email}?subject=${encodeURIComponent(`Change or cancel booking ${o.id}`)}&body=${encodeURIComponent(`Booking ${o.id}\nWhat I'd like to change:\n`)}`;
+  const box = "rounded-2xl border border-line bg-white p-5";
+
+  return (
+    <div className="space-y-5">
+      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink lg:hidden">
+        <ArrowLeft className="h-4 w-4" aria-hidden /> All bookings
+      </button>
+
+      <div className={box}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-muted">
+              {o.id} · requested {fmt(o.createdAt)}
+              {o.sample && <span className="ml-2 rounded bg-wash px-1.5 py-0.5">Sample</span>}
+            </p>
+            <h2 className="mt-1 text-xl font-bold sm:text-2xl">
+              {o.services.join(", ")} · {o.occasion}
+            </h2>
+          </div>
+          <span className={`rounded-md px-2.5 py-1 text-sm font-medium ${s.tone}`}>{s.label}</span>
+        </div>
+        <BookAgain order={o} />
+
+        {o.status === "sent" ? (
+          <p className="mt-4 rounded-xl bg-wash p-4 text-sm text-body">
+            You shared this request with AOD on WhatsApp. Once AOD&apos;s booking system is live, its status, quote and payments will
+            update here and by email.
+          </p>
+        ) : (
+          <ol className="mt-5 grid gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {customerSteps.slice(0, 7).map((step, i) => {
+              const done = i < current || (i === current && ["confirmed", "completed", "delivered", "reviewed"].includes(step.id));
+              const now = i === current;
+              return (
+                <li key={step.id} className="flex items-center gap-2 sm:flex-col sm:items-start">
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+                      done ? "bg-brand text-white" : now ? "bg-peach text-brand-hover ring-2 ring-brand" : "bg-wash text-muted"
+                    }`}
+                  >
+                    {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
+                  </span>
+                  <span className={`text-xs ${now ? "font-medium text-ink" : done ? "text-ink" : "text-muted"}`}>
+                    {step.label}
+                    {now && <span className="sr-only"> (current)</span>}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+        {current >= 0 && <p className="mt-4 text-sm text-body">{customerSteps[current].text}</p>}
+
+        <CancelBox order={o} onCancel={onCancel} />
+
+        {action && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-peach/50 p-4">
+            <p className="text-sm font-medium text-ink">{action.text}</p>
+            {action.href && (
+              <a
+                href={action.href}
+                target={action.href.startsWith("http") ? "_blank" : undefined}
+                rel={action.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
+              >
+                {o.status === "delivered" ? <Download className="h-4 w-4" aria-hidden /> : <IndianRupee className="h-4 w-4" aria-hidden />}
+                {action.cta}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <div className={box}>
+          <h3 className="text-ink font-bold">Event</h3>
+          <dl className="mt-3 space-y-2 text-sm">
+            {[
+              ["Date", `${fmt(o.date)}${o.time ? `, ${timeRange(o.time, o.endTime)}` : ""}`],
+              ["Place", [o.venue, o.city].filter(Boolean).join(", ") || "—"],
+              ["Services", o.services.join(", ")],
+              ["Notes", o.notes || "—"],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-4">
+                <dt className="text-muted">{k}</dt>
+                <dd className="text-right text-ink">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <div className={box}>
+          <h3 className="text-ink font-bold">{(o.needed ?? 1) > 1 || o.artists.length > 1 ? "Your artists" : "Your artist"}</h3>
+          {o.artists.length > 0 ? (
+            <>
+              <div className="mt-3">
+                <ArtistProfiles artists={o.artists} />
+              </div>
+              {o.needed && o.artists.length < o.needed && (
+                <p className="mt-3 text-sm text-muted">
+                  {o.artists.length} of {o.needed} matched so far. We&apos;ll share the rest as soon as they&apos;re confirmed.
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-muted">
+              {o.shortlisted?.length
+                ? "We've shortlisted artists for you below. We'll confirm the one for your date."
+                : o.needed
+                  ? `We'll share your ${o.needed} artists once we've matched your request.`
+                  : "We'll share the artist once we've matched your request."}
+            </p>
+          )}
+        </div>
+
+        {o.shortlisted && o.shortlisted.length > 0 && (
+          <div className={box}>
+            <h3 className="text-ink font-bold">Shortlisted for you</h3>
+            <p className="mt-1 text-sm text-muted">Artists who are free on your date. Open a profile to see their work.</p>
+            <div className="mt-3">
+              <ArtistProfiles artists={o.shortlisted} label="Shortlisted artists" />
+            </div>
+          </div>
+        )}
+
+        <div className={box}>
+          <h3 className="text-ink font-bold">Payments</h3>
+          <dl className="mt-3 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted">Quote</dt>
+              <dd className="text-ink">{inr(o.quote)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">Paid and confirmed</dt>
+              <dd className="font-medium text-ink">{inr(paid)}</dd>
+            </div>
+            {o.quote !== undefined && (
+              <div className="flex justify-between border-t border-line pt-2">
+                <dt className="text-muted">Remaining</dt>
+                <dd className="font-medium text-ink">{inr(Math.max(0, o.quote - paid))}</dd>
+              </div>
+            )}
+          </dl>
+          {o.payments.length > 0 && (
+            <ul className="mt-3 space-y-1.5 border-t border-line pt-3 text-xs">
+              {o.payments.map((p) => (
+                <li key={p.utr} className="flex justify-between gap-3">
+                  <span className="text-muted">
+                    {fmt(p.at)} · UTR {p.utr}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium text-ink">{inr(p.amount)}</span>
+                    <span className={p.status === "verified" ? "text-emerald-700" : "text-amber-700"}>{p.status === "verified" ? "Confirmed" : "Being checked"}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className={box}>
+          <h3 className="text-ink font-bold">Need something?</h3>
+          <div className="mt-3 flex flex-col gap-2 text-sm">
+            <a href={ask} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
+              <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Ask about this booking
+            </a>
+            <a href={changeMail} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
+              <Mail className="h-4 w-4 text-brand" aria-hidden /> Change or cancel by email
+            </a>
+            <Link href={portalHref(`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`)} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
+              <Scale className="h-4 w-4 text-brand" aria-hidden /> A dispute with the artist? Raise it
+            </Link>
+            <Link href="/refund-policy" className="text-xs text-muted underline underline-offset-2 hover:text-ink">
+              Cancellation & refund policy
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {o.history.length > 0 && (
+        <div className={box}>
+          <h3 className="text-ink font-bold">Timeline</h3>
+          <ol className="mt-3 space-y-2 border-l-2 border-line pl-4 text-sm">
+            {[...o.history].reverse().map((h, i) => (
+              <li key={`${h.status}-${h.at}-${i}`}>
+                <span className="text-ink">{customerSteps.find((x) => x.id === h.status)?.label ?? otherSteps[h.status] ?? h.status}</span>
+                <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted">
+                  <Clock className="h-3 w-3" aria-hidden /> {fmt(h.at, true)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {o.status === "delivered" && (
+        <div className={box}>
+          <h3 className="text-ink font-bold">How was it?</h3>
+          {reviewed ? (
+            <p className="mt-3 text-sm text-body">
+              Thanks for your review!{onReview ? "" : " (Preview: reviews are saved once the backend is live.)"}
+            </p>
+          ) : (
+            <form
+              className="mt-3"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!review.trim() || sendingReview) return;
+                if (!onReview) return setReviewed(true);
+                setSendingReview(true);
+                setReviewError(null);
+                const err = await onReview(o.id, rating, review).catch(() => "Couldn't send your review just now. Please try again.");
+                setSendingReview(false);
+                if (err) setReviewError(err);
+                else setReviewed(true);
+              }}
+            >
+              <div className="flex gap-1" role="radiogroup" aria-label="Rating">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} stars`} onClick={() => setRating(n)}>
+                    <Star className={`h-6 w-6 ${n <= rating ? "fill-brand-bright text-brand-bright" : "text-line"}`} aria-hidden />
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
+                rows={3}
+                placeholder={o.artists.length === 1 ? `How was ${o.artists[0].name}?` : o.artists.length > 1 ? "How was the team?" : "How was your artist?"}
+                className="mt-3 w-full resize-none rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-brand"
+              />
+              <button
+                type="submit"
+                disabled={!review.trim() || sendingReview}
+                className="mt-2 inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-40"
+              >
+                {sendingReview ? (
+                  <>
+                    <Spinner /> Sending…
+                  </>
+                ) : (
+                  "Send review"
+                )}
+              </button>
+              {reviewError && (
+                <p className="mt-2 text-sm text-red-600" role="alert">
+                  {reviewError}
+                </p>
+              )}
+            </form>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

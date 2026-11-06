@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/* `standalone:` applies only inside the installed app (opened from the home screen), e.g.
+   `standalone:hidden`. Pure CSS, so nothing flickers. (The bottom tab bar shows on every phone.) */
+@custom-variant standalone (@media (display-mode: standalone));
+
+/*
+ * AOD design tokens — three colours only: AOD orange (#ff6201), white and black. Every other
+ * shade is a mix of those (orange with white for tints, orange with black for the deep shade,
+ * black with white for greys). Laid out in the style of the Upwork homepage saved in context/.
+ * Use these via Tailwind classes such as bg-brand, text-ink, border-line — never raw hex values
+ * in components (for a tint, use color-mix with a token). The token names (peach, apricot,
+ * tangerine…) date from the first orange theme.
+ */
+@theme {
+  --color-ink: #000000; /* black: headings */
+  --color-body: #1a1a1a; /* body text: black, a touch softer */
+  --color-muted: #5c5c5c; /* secondary text: grey (6.7:1 on white) */
+  --color-line: #e6e6e6; /* borders, dividers: light grey */
+  --color-surface: #ffffff; /* page background: white */
+  --color-wash: #fff4ed; /* soft section background: 7% orange in white */
+
+  --color-night: #000000; /* dark hero / footer cards: black */
+  --color-night-soft: #1a1a1a; /* panels on dark cards */
+  --color-night-line: #333333;
+
+  --color-brand: #ff6201; /* AOD orange: primary buttons, links, highlights */
+  --color-brand-hover: #e05601; /* orange with 12% black */
+  --color-brand-bright: #ff6201; /* icons, highlights, badges */
+  --color-apricot: #ff6201; /* accents on dark backgrounds (7:1 on black) */
+  --color-peach: #ffe7d9; /* call-out highlight, icon tiles: 15% orange in white */
+  --color-tangerine: #ff6201; /* icons on dark backgrounds */
+
+  /* The announcement bar's orange band (bg-sheen below), with optional film grain. */
+  --color-sheen-light: #ff8134; /* orange with 20% white */
+  --color-sheen: #ff6201;
+  --color-sheen-deep: #d95301; /* orange with 15% black */
+
+  --color-whatsapp: #25d366; /* WhatsApp's own brand green */
+  --color-whatsapp-hover: #1ebe5d;
+
+
+  /* Brand fonts (loaded in layout.tsx): Montserrat for text, Bricolage Grotesque for headings
+     (h1–h3 below, or the font-display class on anything else). */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  /* Widest the page content gets (about 1600px); wider screens and zoomed-out views centre it. */
+  --container-page: 124rem;
+
+  --radius-card: 1rem;
+  --radius-panel: 2rem;
+
+  /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
+  /* 63s for 26 logos at their current size; lengthen it in proportion when adding logos (or
+     making them bigger) so the speed stays the same. */
+  /* The brand strips (BrandStrip.tsx sets each row's duration so both move at the same speed). */
+  --animate-marquee: marquee 63s linear infinite;
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  --animate-marquee-reverse: marquee-reverse 63s linear infinite;
+  @keyframes marquee-reverse {
+    from {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* The loading bar at the top of the page (LoadingBar.tsx): a short orange stripe sweeping across. */
+  --animate-loading-bar: loading-bar 1.1s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  @keyframes loading-bar {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(350%);
+    }
+  }
+
+  --animate-caret: caret-blink 1s steps(1) infinite;
+  @keyframes caret-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+/* In the base layer so utility classes (e.g. text-white on a heading) can override these. */
+@layer base {
+  /* Everything is sized in rem, so 81% here scales the whole site to what
+     81% browser zoom looks like (90% of the earlier 90% setting). Change this one value to resize everything. */
+  html {
+    font-size: 81%;
+  }
+
+  body {
+    background: var(--color-surface);
+    color: var(--color-body);
+  }
+
+  /* On touch screens taps don't flash a grey box and respond at once (no double-tap zoom wait);
+     buttons and cards press in instead (`press`, `buttonClasses`, `linkCard`). Inside the installed
+     app links also don't open the long-press preview, as in a native app. */
+  @media (hover: none) {
+    html {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation; /* no double-tap zoom */
+    }
+    a,
+    button,
+    summary {
+      touch-action: manipulation;
+    }
+  }
+  @media (display-mode: standalone) {
+    a,
+    button {
+      -webkit-touch-callout: none;
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Orange band with soft diagonal light, from light orange to orange (use ink text on it): the
+   announcement bar. Add `grain` for a fine film-grain texture. The closing call-to-action bands
+   are flat `bg-brand` with grain. */
+@utility bg-sheen {
+  background-color: var(--color-sheen);
+  background-image: linear-gradient(
+    115deg,
+    var(--color-sheen-light) 0%,
+    var(--color-sheen) 30%,
+    var(--color-sheen-light) 55%,
+    var(--color-sheen) 78%,
+    var(--color-sheen-deep) 100%
+  );
+}
+
+/* Film grain drawn in CSS (SVG noise), so it stays crisp at any size. It sits between the
+   element's background and its content. */
+
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+}
+
+/* A tap presses the element in a little, as in a native app (touch screens only). */
+@utility press {
+  transition-property: transform, background-color, border-color, color;
+  transition-duration: 150ms;
+  @media (hover: none) {
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+}
+
+/* Phones (below 640px): a grid of cards becomes a row you swipe sideways, each card snapping into
+   place and the next one peeking in, as app home screens do. Put `swipe-row` on the grid and
+   `swipe-item` on each card; from 640px the grid's own classes take over. The row runs to the
+   screen's edges (the negative margin undoes the page gutter of 1rem). */
+@utility swipe-row {
+  @media (width < 40rem) {
+    /* !important: these beat the grid classes on the same element (grid, gap-5…). */
+    display: flex !important;
+    gap: 0.875rem !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    margin-inline: -1rem;
+    padding: 0.25rem 1rem 0.75rem;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+@utility swipe-item {
+  @media (width < 40rem) {
+    flex-shrink: 0;
+    width: 82%;
+    scroll-snap-align: start;
+  }
+}
+
+/* iPhones zoom the page in when a field under 16px gets focus (the chat box, the search boxes and
+   every form); at 16px they don't. Outside any layer, so it wins over the text-sm utilities. The
+   html font size is 81%, so 16px here is a little bigger than the rest of the text on purpose. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,224 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowRight, Check, Search } from "lucide-react";
+import type { ReactNode } from "react";
+import { applicantStatusText, onboardingStages, sampleStage } from "@/content/artist-portal";
+import { backendEnabled } from "@/lib/backend";
+import { useArtistProfile, useBlockedDates, usePortalMode, usePortalPhoto, usePortalState } from "@/lib/artist-live";
+import { modeStore, type PreviewMode } from "@/lib/artist-store";
+import { whatsappUrl } from "@/lib/whatsapp";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
+import { BookingCard, useBookings } from "./BookingCard";
+import { Badge, Panel } from "./form";
+import { OnboardingTimeline } from "./OnboardingTimeline";
+import { SendToAod } from "./SendToAod";
+import { sectionLink } from "@/lib/site-url";
+
+// Profile checklist: what's left before the profile is complete. In the preview, uploads and
+// identity can't be checked (nothing is uploaded), so they show as to-do.
+export function useProfileChecks(): { label: string; done: boolean; href: string }[] {
+  const { profile } = useArtistProfile();
+  const blocked = useBlockedDates();
+  const live = usePortalState().data;
+  return [
+    { label: "Profile photo", done: !!profile.photo, href: sectionLink("/artists/profile") },
+    { label: "Services and experience", done: profile.services.length > 0 && !!profile.experience, href: sectionLink("/artists/profile") },
+    { label: "About your work", done: profile.bio.trim().length >= 40, href: sectionLink("/artists/profile") },
+    { label: "Portfolio links", done: profile.links.length > 0, href: sectionLink("/artists/portfolio") },
+    { label: "Portfolio photos and videos", done: (live?.portfolio.length ?? 0) > 0, href: sectionLink("/artists/portfolio") },
+    { label: "Days you're unavailable", done: blocked.length > 0, href: sectionLink("/artists/availability") },
+  ];
+}
+
+function ProfileStrength() {
+  const checks = useProfileChecks();
+  const done = checks.filter((c) => c.done).length;
+  const pct = Math.round((done / checks.length) * 100);
+  return (
+    <Panel title="Profile strength" text="A complete profile gets matched more often.">
+      <div className="flex items-center gap-3">
+        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-wash" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Profile strength">
+          <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-sm font-medium text-ink">{pct}%</span>
+      </div>
+      <ul className="mt-5 space-y-1">
+        {checks.map((c) => (
+          <li key={c.label}>
+            <Link href={c.href} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-wash">
+              <span
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${c.done ? "bg-brand text-white" : "ring-1 ring-line"}`}
+              >
+                {c.done && <Check className="h-3 w-3" aria-hidden />}
+              </span>
+              <span className={`flex-1 ${c.done ? "text-muted line-through" : "text-ink"}`}>{c.label}</span>
+              {!c.done && <ArrowRight className="h-4 w-4 text-muted" aria-hidden />}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+// Preview only: switch between the two sides of the portal.
+export function ModeSwitch() {
+  const mode = modeStore.use();
+  if (backendEnabled) return null;
+  const options: [PreviewMode, string][] = [
+    ["live", "Live artist"],
+    ["applicant", "New applicant"],
+  ];
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-muted">Preview as</span>
+      <div role="radiogroup" aria-label="Preview as" className="flex rounded-lg bg-white p-1 ring-1 ring-line">
+        {options.map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={mode === value}
+            onClick={() => modeStore.set(value)}
+            className={`rounded-md px-3 py-1.5 font-medium transition-colors ${mode === value ? "bg-brand text-white" : "text-body hover:text-ink"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
+  return (
+    <div className="rounded-[1.25rem] border border-line bg-white p-5">
+      <p className="text-sm text-muted">{label}</p>
+      <p className="mt-2 text-3xl font-medium text-ink">{value}</p>
+      {note && <p className="mt-1 text-xs text-muted">{note}</p>}
+    </div>
+  );
+}
+
+const sampleTag = backendEnabled ? undefined : <Badge>Sample data</Badge>;
+
+export function Dashboard() {
+  const mode = usePortalMode();
+  const { profile } = useArtistProfile();
+  const photo = usePortalPhoto();
+  const live = usePortalState().data;
+  const bookings = useBookings();
+  const name = profile.fullName.split(/\s+/)[0] || "there";
+  const stage = live ? live.stage : sampleStage;
+  const status = live?.applicationStatus ? applicantStatusText[live.applicationStatus] : undefined;
+  const requests = bookings.filter((b) => b.status === "new");
+  const answered = bookings.filter((b) => b.status === "accepted" || b.status === "shortlisted" || b.status === "quoted");
+  const upcoming = bookings.filter((b) => b.status === "confirmed" || b.status === "selected");
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <ArtistPhoto name={profile.fullName || profile.email} src={photo} className="h-14 w-14 text-lg sm:h-16 sm:w-16 sm:text-xl" />
+          <div>
+            <h1 className="text-3xl font-medium sm:text-4xl">Hi, {name}</h1>
+            <p className="mt-2 text-body">
+              {mode === "live" ? "Here's what's happening with your bookings." : "Here's where your application stands."}
+            </p>
+          </div>
+        </div>
+        <ModeSwitch />
+      </div>
+
+      {mode === "applicant" ? (
+        <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <Panel
+            title="Your onboarding"
+            text={`Step ${stage + 1} of ${onboardingStages.length}`}
+            action={
+              <span className="flex items-center gap-3">
+                {sampleTag}
+                <Link href={sectionLink("/artists/approval")} className="text-sm font-medium text-brand hover:text-brand-hover">
+                  See every step
+                </Link>
+              </span>
+            }
+          >
+            <OnboardingTimeline
+              current={stage}
+              detail={
+                <div className="rounded-xl bg-peach/40 p-4">
+                  <p className="flex items-center gap-2 text-sm font-medium text-ink">
+                    <Search className="h-4 w-4 text-brand" aria-hidden /> {status?.title ?? "Our team is reviewing your portfolio"}
+                  </p>
+                  <p className="mt-1 text-sm text-body">{status?.text ?? "We'll message you on WhatsApp if we need anything else."}</p>
+                  {live?.meeting && live.applicationStatus === "meeting" && (
+                    <p className="mt-2 text-sm font-medium text-ink">
+                      {new Date(live.meeting.at).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                      {live.meeting.place && ` · ${live.meeting.place}`}
+                    </p>
+                  )}
+                  <a
+                    href={whatsappUrl("Hi AOD, I have a question about my artist application.")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-hover"
+                  >
+                    Have a question? Message us
+                  </a>
+                </div>
+              }
+            />
+          </Panel>
+          <div className="space-y-6">
+            <SendToAod />
+            <ProfileStrength />
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Stat label="New requests" value={requests.length} note="Waiting for your reply" />
+            <Stat label="Accepted" value={answered.length} note="Accepted or shortlisted" />
+            <Stat label="Upcoming bookings" value={upcoming.length} note="Confirmed" />
+            {backendEnabled ? (
+              <Stat label="Completed" value={bookings.filter((b) => b.status === "completed").length} note="Events done with AOD" />
+            ) : (
+              <Stat label="Reply time" value="2 hrs" note="Sample: your average" />
+            )}
+          </div>
+
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <Panel
+              title="New booking requests"
+              text="Tap Accept if you are free on the day. AOD shortlists from the artists who accept, and the customer sees the shortlist."
+              action={
+                <Link href={sectionLink("/artists/bookings")} className="text-sm font-medium text-brand hover:text-brand-hover">
+                  All bookings
+                </Link>
+              }
+            >
+              {requests.length === 0 ? (
+                <p className="rounded-xl bg-wash p-6 text-center text-sm text-muted">You&apos;re all caught up. New requests appear here.</p>
+              ) : (
+                <div className="space-y-4">
+                  {requests.map((b) => (
+                    <BookingCard key={b.id} booking={b} compact />
+                  ))}
+                </div>
+              )}
+            </Panel>
+            <div className="space-y-6">
+              <Panel title="Next booking" action={sampleTag}>
+                {upcoming[0] ? <BookingCard booking={upcoming[0]} compact /> : <p className="text-sm text-muted">No bookings coming up.</p>}
+              </Panel>
+              <ProfileStrength />
+              <SendToAod />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

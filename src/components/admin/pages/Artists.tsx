@@ -1,0 +1,475 @@
+"use client";
+
+import Link from "next/link";
+import { CalendarX, Pause, Play, Plus } from "lucide-react";
+import { useState } from "react";
+import { experienceLevels } from "@/content/artist-portal";
+import { categories, cities } from "@/content/site";
+import { currentUser, newId, update, useDb, type Artist, type Db } from "@/lib/admin-store";
+import { assignedArtists, worksIn } from "@/lib/booking-needs";
+import { artistOrder, artistOrderLabels, type ArtistOrderStatus } from "@/lib/artist-orders";
+import { briefCommonRows, briefRows } from "@/content/artist-brief";
+import { timeRange } from "@/lib/event-time";
+import { lineId } from "@/lib/order-id";
+import { artistPhotoSrc } from "@/lib/artist-photo";
+import { ArtistPhoto } from "@/components/ui/ArtistPhoto";
+import { WhatsAppIcon } from "@/components/ui/Icon";
+import { DataTable, type Column } from "../DataTable";
+import {
+  ActionButton,
+  categoryName,
+  categoryNames,
+  Details,
+  Drawer,
+  DrawerSection,
+  fieldBase,
+  fieldClass,
+  fmtDate,
+  inr,
+  Labelled,
+  NotesBox,
+  PageHeader,
+  PersonCell,
+  PhotoBox,
+  PortfolioFiles,
+  StatusBadge,
+  todayKey,
+  useCan,
+  whatsappTo,
+} from "../ui";
+import { useOpen } from "../useOpen";
+import { ArtistProfileEdit } from "./ArtistProfileEdit";
+import { sectionLink } from "@/lib/site-url";
+
+const done = ["completed", "delivered", "reviewed"];
+const jobs = (db: Db, id: string) => db.bookings.filter((b) => assignedArtists(b.items).includes(id) && done.includes(b.status)).length;
+const upcoming = (db: Db, id: string) => db.bookings.filter((b) => assignedArtists(b.items).includes(id) && ["confirmed", "payment_pending", "quoted"].includes(b.status) && b.date >= todayKey()).length;
+
+export function Artists() {
+  const db = useDb();
+  const [openId, setOpen] = useOpen();
+  const [adding, setAdding] = useState(false);
+  if (!db) return null;
+  const open = db.artists.find((a) => a.id === openId) ?? null;
+
+  const columns: Column<Artist>[] = [
+    { key: "name", label: "Artist", render: (a) => <PersonCell name={a.name} id={a.id} photo={a.photo} />, value: (a) => a.name },
+    { key: "category", label: "Categories", render: (a) => categoryNames(a), value: (a) => categoryNames(a) },
+    { key: "city", label: "City", render: (a) => a.city, value: (a) => a.city },
+    { key: "experience", label: "Experience", render: (a) => a.experience, value: (a) => a.experience, hideOnMobile: true },
+    { key: "jobs", label: "Jobs done", render: (a) => jobs(db, a.id), value: (a) => jobs(db, a.id), hideOnMobile: true },
+    { key: "upcoming", label: "Upcoming", render: (a) => upcoming(db, a.id), value: (a) => upcoming(db, a.id), hideOnMobile: true },
+    { key: "kyc", label: "Identity", render: (a) => <StatusBadge tone={a.kyc === "verified" ? "good" : "wait"}>{a.kyc === "verified" ? "Verified" : "Pending"}</StatusBadge>, value: (a) => a.kyc, hideOnMobile: true },
+    { key: "status", label: "Status", render: (a) => <StatusBadge tone={a.status === "active" ? "good" : "neutral"}>{a.status === "active" ? "Active" : "Paused"}</StatusBadge>, value: (a) => a.status },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Artists"
+        text={`${db.artists.filter((a) => a.status === "active").length} active of ${db.artists.length}. Approved applications land here; paused artists don't get new requests.`}
+        actions={
+          <ActionButton permission="artists.edit" onClick={() => setAdding(true)}>
+            <Plus className="h-4 w-4" aria-hidden /> Add artist
+          </ActionButton>
+        }
+      />
+      <DataTable
+        rows={db.artists}
+        columns={columns}
+        getId={(a) => a.id}
+        onOpen={(a) => setOpen(a.id)}
+        exportName="artists"
+        initialSort={{ key: "name", dir: "asc" }}
+        filters={[
+          { label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })), test: (a, v) => worksIn(a, v) },
+          { label: "City", options: cities.map((c) => ({ value: c, label: c })), test: (a, v) => a.city === v },
+          { label: "Status", options: [{ value: "active", label: "Active" }, { value: "paused", label: "Paused" }], test: (a, v) => a.status === v },
+        ]}
+      />
+      {open && <ArtistDrawer key={open.id} artist={open} db={db} onClose={() => setOpen(null)} />}
+      {adding && <AddArtist onClose={() => setAdding(false)} onAdded={(id) => setOpen(id)} />}
+    </div>
+  );
+}
+
+// One artist's drawer. Also opened from the Calendar (an artist's days off), over the calendar.
+export function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; onClose: () => void }) {
+  const allowed = useCan();
+  const [blockDate, setBlockDate] = useState("");
+  const [upi, setUpi] = useState(artist.payoutUpi);
+  const history = db.bookings.filter((b) => assignedArtists(b.items).includes(artist.id)).sort((a, b) => b.date.localeCompare(a.date));
+  const payouts = db.payouts.filter((p) => p.artistId === artist.id);
+  const reviews = history.filter((b) => b.review);
+  const edit = (text: string, fn: (a: Artist) => void) => update("Artists", text, (d) => fn(d.artists.find((x) => x.id === artist.id)!), artist.id);
+
+  return (
+    <Drawer
+      open
+      onClose={onClose}
+      title={artist.name}
+      subtitle={`${artist.id} · ${categoryNames(artist)} · ${artist.city}`}
+      media={<ArtistPhoto name={artist.name} src={artistPhotoSrc(artist.id, artist.photo)} className="h-12 w-12 text-base" />}
+      footer={
+        <>
+          <a href={whatsappTo(artist.phone, `Hi ${artist.name.split(" ")[0]}, `)} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-whatsapp px-3.5 text-sm font-medium text-white hover:bg-whatsapp-hover">
+            <WhatsAppIcon className="h-4 w-4" /> WhatsApp
+          </a>
+          <ActionButton
+            permission="artists.edit"
+            variant="secondary"
+            onClick={() => edit(`${artist.status === "active" ? "Paused" : "Re-activated"} ${artist.name}`, (a) => void (a.status = a.status === "active" ? "paused" : "active"))}
+          >
+            {artist.status === "active" ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
+            {artist.status === "active" ? "Pause" : "Activate"}
+          </ActionButton>
+        </>
+      }
+    >
+      <DrawerSection title="Profile photo">
+        <PhotoBox
+          table="artists"
+          id={artist.id}
+          name={artist.name}
+          photo={artist.photo}
+          editable={allowed("artists.edit")}
+          onPreviewSave={(dataUrl) => edit(`Changed ${artist.name}'s profile photo`, (a) => void (a.photo = dataUrl))}
+          onRemove={() => edit(`Removed ${artist.name}'s profile photo`, (a) => void (a.photo = ""))}
+        />
+      </DrawerSection>
+
+      <DrawerSection title="Profile">
+        <Details
+          rows={[
+            ["Status", <StatusBadge key="s" tone={artist.status === "active" ? "good" : "neutral"}>{artist.status === "active" ? "Active" : "Paused"}</StatusBadge>],
+            ["Phone", artist.phone],
+            ["Email", artist.email],
+            ["Date of birth", String(artist.details?.dob ?? "") || "—"],
+            ["Area", [artist.city, String(artist.details?.locality ?? "")].filter(Boolean).join(", ")],
+            ["Services", artist.services.join(", ")],
+            ["Experience", artist.experience],
+            ["Languages", artist.languages.join(", ")],
+            ["With AOD since", fmtDate(artist.joinedAt)],
+            ["Identity", artist.kyc === "verified" ? "Verified" : "Pending"],
+            ["Jobs done", jobs(db, artist.id)],
+            ["Reviews", reviews.length ? `${reviews.length}, average ${(reviews.reduce((n, b) => n + b.review!.rating, 0) / reviews.length).toFixed(1)} / 5` : "None yet"],
+          ]}
+        />
+      </DrawerSection>
+
+      <DrawerSection title="Edit profile">
+        {allowed("artists.edit") ? (
+          <ArtistProfileEdit artist={artist} onSave={(change) => edit(`Updated ${artist.name}'s profile`, change)} />
+        ) : (
+          <p className="text-sm text-muted">Only the Admin and Developer roles can edit an artist&apos;s profile.</p>
+        )}
+      </DrawerSection>
+
+      <DrawerSection title="Categories">
+        <p className="text-sm text-ink">
+          Main: <strong className="font-medium">{categoryName(artist.category)}</strong>
+        </p>
+        <p className="mt-1 text-xs text-muted">They&apos;re offered for bookings in their main category and every other one ticked here.</p>
+        <OtherCategories
+          main={artist.category}
+          value={artist.otherCategories}
+          disabled={!allowed("artists.edit")}
+          onChange={(next, slug, on) => edit(`${on ? "Added" : "Removed"} ${categoryName(slug)} ${on ? "to" : "from"} ${artist.name}'s categories`, (a) => void (a.otherCategories = next))}
+        />
+      </DrawerSection>
+
+      <DrawerSection title="Their work">
+        {artist.bio && <p className="mb-3 whitespace-pre-line text-sm text-ink">{artist.bio}</p>}
+        {(artist.links ?? []).length > 0 && (
+          <ul className="mb-3 space-y-1 text-sm">
+            {artist.links!.map((l) => (
+              <li key={l}>
+                <a href={l} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+                  {l}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <PortfolioFiles files={artist.portfolio} />
+      </DrawerSection>
+
+      <DrawerSection title="Orders (as the artist sees them)">
+        <ArtistOrders artist={artist} db={db} />
+      </DrawerSection>
+
+      <DrawerSection title="Days off">
+        <div className="flex flex-wrap gap-2">
+          {artist.blockedDates.length === 0 && <p className="text-sm text-muted">No days blocked.</p>}
+          {[...artist.blockedDates].sort().map((d) => (
+            <span key={d} className="inline-flex items-center gap-1.5 rounded-lg bg-night px-2.5 py-1 text-xs text-white">
+              <CalendarX className="h-3.5 w-3.5" aria-hidden /> {fmtDate(d)}
+              {allowed("artists.edit") && (
+                <button type="button" aria-label={`Free up ${d}`} onClick={() => edit(`Freed ${d} for ${artist.name}`, (a) => void (a.blockedDates = a.blockedDates.filter((x) => x !== d)))} className="ml-1 text-white/70 hover:text-white">
+                  ×
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+        {allowed("artists.edit") && (
+          <div className="mt-3 flex gap-2">
+            <input type="date" value={blockDate} min={todayKey()} onChange={(e) => setBlockDate(e.target.value)} className={`${fieldBase} w-auto`} aria-label="Day off" />
+            <ActionButton
+              permission="artists.edit"
+              variant="secondary"
+              disabled={!blockDate}
+              onClick={() => {
+                edit(`Blocked ${blockDate} for ${artist.name}`, (a) => void (a.blockedDates = [...new Set([...a.blockedDates, blockDate])]));
+                setBlockDate("");
+              }}
+            >
+              Block day
+            </ActionButton>
+          </div>
+        )}
+      </DrawerSection>
+
+      <DrawerSection title="Payouts">
+        <div className="flex gap-2">
+          <Labelled label="Payout UPI ID" className="flex-1">
+            <input value={upi} onChange={(e) => setUpi(e.target.value)} placeholder="name@bank" className={fieldClass} disabled={!allowed("payouts.pay")} />
+          </Labelled>
+          <ActionButton permission="payouts.pay" variant="secondary" className="self-end" disabled={upi === artist.payoutUpi} onClick={() => edit(`Updated ${artist.name}'s payout UPI ID`, (a) => void (a.payoutUpi = upi.trim()))}>
+            Save
+          </ActionButton>
+        </div>
+        {payouts.length > 0 && (
+          <ul className="mt-3 space-y-1 text-sm">
+            {payouts.map((p) => (
+              <li key={p.id} className="flex justify-between">
+                <span className="text-muted">
+                  {p.bookingId} · {p.status === "paid" ? `paid ${fmtDate(p.paidAt)}` : "due"}
+                </span>
+                <span className="font-medium text-ink">{inr(p.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </DrawerSection>
+
+      <DrawerSection title="Team notes">
+        <NotesBox notes={artist.notes} permission="artists.edit" onAdd={(text) => edit(`Added a note to ${artist.name}`, (a) => void a.notes.unshift({ at: new Date().toISOString(), by: currentUser(), text }))} />
+      </DrawerSection>
+    </Drawer>
+  );
+}
+
+// Every order the artist sees in their portal, with the same status wording (src/lib/artist-orders.ts),
+// grouped as the portal does: requests, upcoming, completed, and declined or cancelled. Each shows
+// what the artist sees (their line's ID and service, the event, date and time, city, budget, team
+// size, the customer's note and brief) plus, for the team, their quote and payout, and opens the
+// booking. Orders that went to other artists aren't shown, as in the portal.
+const groups: { title: string; statuses: ArtistOrderStatus[] }[] = [
+  { title: "Requests", statuses: ["new", "accepted", "shortlisted", "quoted"] },
+  { title: "Upcoming", statuses: ["selected", "confirmed"] },
+  { title: "Completed", statuses: ["completed"] },
+  { title: "Declined or cancelled", statuses: ["declined", "cancelled"] },
+];
+const orderTone: Record<ArtistOrderStatus, "brand" | "wait" | "good" | "neutral"> = {
+  new: "brand",
+  accepted: "wait",
+  shortlisted: "good",
+  quoted: "wait",
+  selected: "good",
+  confirmed: "good",
+  completed: "neutral",
+  declined: "neutral",
+  cancelled: "neutral",
+};
+
+function ArtistOrders({ artist, db }: { artist: Artist; db: Db }) {
+  const paid = new Set(db.payments.filter((x) => x.status === "verified").map((x) => x.bookingId));
+  const orders = db.bookings
+    .map((b) => {
+      const reply = b.replies?.find((r) => r.artistId === artist.id);
+      const order = artistOrder(b, artist, reply?.status, paid.has(b.id));
+      return order && { b, reply, ...order };
+    })
+    .filter((o) => o !== null)
+    .sort((x, y) => y.b.date.localeCompare(x.b.date));
+  if (!orders.length) return <p className="text-sm text-muted">No orders yet: nothing in their portal&apos;s Bookings.</p>;
+
+  return (
+    <div className="space-y-4">
+      <ul className="flex flex-wrap gap-2 text-xs">
+        {groups.map((g) => (
+          <li key={g.title} className="rounded-md bg-wash px-2 py-1 text-ink">
+            {g.title}: <strong className="font-medium">{orders.filter((o) => g.statuses.includes(o.status)).length}</strong>
+          </li>
+        ))}
+      </ul>
+      {groups.map((g) => {
+        const list = orders.filter((o) => g.statuses.includes(o.status));
+        if (!list.length) return null;
+        return (
+          <div key={g.title}>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">
+              {g.title} ({list.length})
+            </p>
+            <ul className="divide-y divide-line rounded-lg border border-line">
+              {list.map(({ b, item, status, reply }) => {
+                const payout = db.payouts.find((x) => x.artistId === artist.id && x.bookingId === b.id);
+                const brief = [...(item ? briefRows(b.brief, item.category) : []), ...briefCommonRows(b.brief)];
+                return (
+                  <li key={b.id} className="px-3 py-2.5 text-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <Link href={sectionLink(`/admin/bookings?open=${b.id}`)} className="min-w-0 hover:underline">
+                        <span className="block font-medium text-ink">
+                          {item ? lineId(b.id, item.category) : b.id} · {(item ?? b.items[0])?.service}
+                        </span>
+                        <span className="block text-xs text-muted">
+                          {b.event || "Event"} · {fmtDate(b.date)}
+                          {b.time ? ` · ${timeRange(b.time, b.endTime)}` : ""} · {b.city}
+                        </span>
+                      </Link>
+                      <StatusBadge tone={orderTone[status]}>{artistOrderLabels[status]}</StatusBadge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted">
+                      Budget {b.budget || "not given"}
+                      {item && item.count > 1 ? ` · Team of ${item.count}` : ""}
+                      {reply?.status === "quoted" && reply.quote ? ` · Their quote ${inr(reply.quote)}` : ""}
+                      {payout ? ` · Payout ${inr(payout.amount)} (${payout.status === "paid" ? "paid" : "due"})` : ""}
+                    </p>
+                    {reply?.note && <p className="mt-1 text-xs text-ink">&ldquo;{reply.note}&rdquo;</p>}
+                    {(b.notes || brief.length > 0) && (
+                      <details className="mt-1 text-xs">
+                        <summary className="cursor-pointer text-brand">What the artist sees: note and brief</summary>
+                        {b.notes && <p className="mt-1 whitespace-pre-line text-body">{b.notes}</p>}
+                        {brief.length > 0 && (
+                          <dl className="mt-1 grid grid-cols-[8rem_1fr] gap-x-3 gap-y-0.5">
+                            {brief.map((r) => (
+                              <div key={r.label} className="contents">
+                                <dt className="text-muted">{r.label}</dt>
+                                <dd className="text-ink">{r.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+                      </details>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Tick boxes for the categories an artist also works in, besides their main one.
+function OtherCategories({ main, value, disabled, onChange }: { main: string; value: string[]; disabled?: boolean; onChange: (next: string[], slug: string, on: boolean) => void }) {
+  return (
+    <div role="group" aria-label="Also works as" className="mt-2 flex flex-wrap gap-1.5">
+      {categories
+        .filter((c) => c.slug !== main)
+        .map((c) => {
+          const on = value.includes(c.slug);
+          return (
+            <button
+              key={c.slug}
+              type="button"
+              aria-pressed={on}
+              disabled={disabled}
+              onClick={() => onChange(on ? value.filter((x) => x !== c.slug) : [...value, c.slug], c.slug, !on)}
+              className={`rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed ${on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"}`}
+            >
+              {on ? "✓ " : ""}
+              {c.name}
+            </button>
+          );
+        })}
+    </div>
+  );
+}
+
+function AddArtist({ onClose, onAdded }: { onClose: () => void; onAdded: (id: string) => void }) {
+  const [form, setForm] = useState({ name: "", phone: "", email: "", city: cities[0], category: categories[0].slug, experience: "1–3 years" });
+  const [others, setOthers] = useState<string[]>([]);
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const ok = form.name.trim().length > 1 && form.phone.replace(/\D/g, "").length >= 10;
+  return (
+    <Drawer
+      open
+      onClose={onClose}
+      title="Add an artist"
+      subtitle="For artists you've already met. New artists should apply through the artist portal."
+      footer={
+        <ActionButton
+          permission="artists.edit"
+          disabled={!ok}
+          onClick={() => {
+            const id = newId("ART");
+            update("Artists", `Added ${form.name} to the directory`, (db) =>
+              void db.artists.unshift({
+                id,
+                ...form,
+                otherCategories: others.filter((c) => c !== form.category),
+                services: [],
+                languages: [],
+                joinedAt: new Date().toISOString(),
+                status: "active",
+                kyc: "pending",
+                payoutUpi: "",
+                blockedDates: [],
+                notes: [],
+              }),
+            id);
+            onClose();
+            onAdded(id);
+          }}
+        >
+          Add artist
+        </ActionButton>
+      }
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Labelled label="Full name">
+          <input value={form.name} onChange={set("name")} className={fieldClass} />
+        </Labelled>
+        <Labelled label="Phone">
+          <input value={form.phone} onChange={set("phone")} inputMode="tel" className={fieldClass} />
+        </Labelled>
+        <Labelled label="Email">
+          <input value={form.email} onChange={set("email")} type="email" className={fieldClass} />
+        </Labelled>
+        <Labelled label="City">
+          <select value={form.city} onChange={set("city")} className={fieldClass}>
+            {cities.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </Labelled>
+        <Labelled label="Category">
+          <select value={form.category} onChange={set("category")} className={fieldClass}>
+            {categories.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Labelled>
+        <Labelled label="Experience">
+          <select value={form.experience} onChange={set("experience")} className={fieldClass}>
+            {experienceLevels.map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+        </Labelled>
+        <div className="sm:col-span-2">
+          <p className="text-sm font-medium text-ink">
+            Also works as <span className="font-normal text-muted">(optional)</span>
+          </p>
+          <OtherCategories main={form.category} value={others} onChange={(next) => setOthers(next)} />
+        </div>
+      </div>
+    </Drawer>
+  );
+}
