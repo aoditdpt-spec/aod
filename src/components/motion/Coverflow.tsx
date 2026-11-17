@@ -247,7 +247,7 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
           type="button"
           aria-label="Previous"
           onClick={() => go(-1)}
-          className="flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-surface text-ink transition-colors hover:border-brand hover:text-brand"
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-surface text-ink transition-colors hover:border-ink hover:text-brand"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -259,7 +259,7 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
               aria-label={`Show ${getLabel(item)}`}
               aria-current={i === active}
               onClick={() => goTo(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${i === active ? "w-8 bg-brand" : "w-2 bg-line hover:bg-apricot"}`}
+              className={`h-2 rounded-full transition-all duration-300 ${i === active ? "w-8 bg-ink" : "w-2 bg-line hover:bg-muted"}`}
             />
           ))}
         </div>
@@ -267,7 +267,7 @@ export function Coverflow<T>({ items, label, getKey, getLabel, getHref, renderCa
           type="button"
           aria-label="Next"
           onClick={() => go(1)}
-          className="flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-surface text-ink transition-colors hover:border-brand hover:text-brand"
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-surface text-ink transition-colors hover:border-ink hover:text-brand"
         >
           <ArrowRight className="h-5 w-5" />
         </button>
@@ -331,8 +331,8 @@ function CoverflowCard({
             onBringForward();
           }
         }}
-        className={`group block rounded-[1.25rem] border bg-surface p-3 outline-none transition-[box-shadow,border-color,background-color] focus-visible:ring-2 focus-visible:ring-brand hover:border-brand hover:bg-peach/40 hover:ring-1 hover:ring-brand ${
-          isActive ? "border-brand/40 shadow-[0_30px_60px_-25px_color-mix(in_srgb,var(--color-brand)_45%,transparent)]" : "border-line shadow-md"
+        className={`group block rounded-[1.25rem] border bg-surface p-3 outline-none transition-[box-shadow,border-color,background-color] focus-visible:ring-2 focus-visible:ring-brand hover:border-ink hover:bg-peach/40 hover:ring-1 hover:ring-brand ${
+          isActive ? "border-ink/30 shadow-[0_30px_60px_-25px_color-mix(in_srgb,var(--color-night)_80%,transparent)]" : "border-line shadow-md"
         }`}
       >
         {children}

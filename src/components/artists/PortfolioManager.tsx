@@ -36,7 +36,7 @@ export function PortfolioManager() {
         <ul className="space-y-3 text-sm text-body">
           {tips.map((t) => (
             <li key={t} className="flex gap-2">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden /> {t}
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden /> {t}
             </li>
           ))}
         </ul>
@@ -147,7 +147,7 @@ function LiveFiles() {
               </div>
               <div className="flex items-center justify-between gap-2 px-2.5 py-2 text-xs">
                 <span className="min-w-0 truncate text-muted">
-                  {i === 0 && <span className="mr-1 font-medium text-brand">Cover ·</span>}
+                  {i === 0 && <span className="mr-1 font-medium text-ink">Cover ·</span>}
                   {formatSize(f.size)}
                 </span>
                 <button

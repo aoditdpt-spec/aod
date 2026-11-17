@@ -197,7 +197,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
                     <button
                       type="button"
                       onClick={() => update("Applications", `Marked ${app.name}'s identity as verified`, (db) => void (db.applications.find((x) => x.id === app.id)!.kyc = "verified"), app.id)}
-                      className="text-xs font-medium text-brand underline underline-offset-2"
+                      className="text-xs font-medium text-ink underline underline-offset-2"
                     >
                       Mark verified
                     </button>
@@ -222,7 +222,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
             const c = checkPortfolioLink(l);
             return (
               <li key={l}>
-                <a href={l} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-lg border border-line p-3 text-sm hover:border-brand">
+                <a href={l} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-lg border border-line p-3 text-sm hover:border-ink">
                   <span className="min-w-0">
                     <span className="block font-medium text-ink">{c.ok ? c.label : "Link"}</span>
                     <span className="block truncate text-xs text-muted">{l}</span>
@@ -249,7 +249,7 @@ function ApplicationDrawer({ app, onClose }: { app: Application; onClose: () => 
             {(app.status === "submitted" || app.status === "review" || app.status === "meeting") && (
               <div className="rounded-xl border border-line p-4">
                 <p className="flex items-center gap-2 text-sm font-medium text-ink">
-                  <CalendarClock className="h-4 w-4 text-brand" aria-hidden /> {app.meeting ? "Reschedule the meeting" : "Schedule the in-person meeting"}
+                  <CalendarClock className="h-4 w-4 text-ink" aria-hidden /> {app.meeting ? "Reschedule the meeting" : "Schedule the in-person meeting"}
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Labelled label="Date and time">
@@ -347,7 +347,7 @@ function workRows(app: Application): [string, ReactNode][] {
         q.short,
         // A Drive link to equipment photos opens in a new tab.
         q.kind === "link" && typeof d[q.id] === "string" ? (
-          <a href={String(d[q.id])} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+          <a href={String(d[q.id])} target="_blank" rel="noopener noreferrer" className="break-all text-ink hover:underline">
             Open the photos in Google Drive
           </a>
         ) : (

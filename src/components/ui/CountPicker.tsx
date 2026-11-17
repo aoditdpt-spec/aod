@@ -25,7 +25,7 @@ export function CountPicker({
   const boxOpen = custom || value > quickCounts.length;
   const cell = size === "sm" ? "h-8 min-w-8 text-xs" : "h-10 min-w-10 text-sm";
   const tone = (on: boolean) =>
-    on ? "bg-brand text-white ring-1 ring-brand" : "bg-surface text-ink ring-1 ring-line hover:ring-brand";
+    on ? "bg-surface font-semibold text-ink ring-2 ring-brand" : "bg-surface text-ink ring-1 ring-line hover:ring-ink";
 
   return (
     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`How many ${label}`}>

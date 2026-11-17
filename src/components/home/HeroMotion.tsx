@@ -40,13 +40,13 @@ export function HeroDemo() {
               }`}
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                <Icon name={step.icon as AnyIconName} className="h-5 w-5 text-tangerine" />
+                <Icon name={step.icon as AnyIconName} className="h-5 w-5 text-ink" />
               </span>
               <span>
                 <span className="block text-sm font-medium text-white">{step.title}</span>
                 <span className="block text-xs text-white/75">{step.text}</span>
               </span>
-              {i === steps.length - 1 && <span className="ml-auto rounded-md bg-brand-bright px-2 py-0.5 text-[0.7rem] font-semibold text-white">Done</span>}
+              {i === steps.length - 1 && <span className="ml-auto rounded-md bg-ink px-2 py-0.5 text-[0.7rem] font-semibold text-surface">Done</span>}
             </m.li>
           );
         })}

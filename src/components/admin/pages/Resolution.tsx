@@ -72,7 +72,7 @@ export function Resolution() {
         text={
           <>
             Disputes between the two sides of a booking, raised on the{" "}
-            <Link href={sectionUrl("resolve")} target="_blank" className="text-brand hover:underline">
+            <Link href={sectionUrl("resolve")} target="_blank" className="text-ink hover:underline">
               Dispute Desk
             </Link>{" "}
             by artists, customers and businesses. Hear both sides. Reply within 48 hours and decide within 30 days; the person sees the status and the decision when they track the case, never the notes.
@@ -170,7 +170,7 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
       <DrawerSection title="The case">
         <Details
           rows={[
-            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand hover:underline">{c.bookingRef} ({itemsLabel(booking.items)}, {booking.customer.name})</Link> : c.bookingRef || resolution.throughAod.outsideLabel],
+            ["Booking", booking ? <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-ink hover:underline">{c.bookingRef} ({itemsLabel(booking.items)}, {booking.customer.name})</Link> : c.bookingRef || resolution.throughAod.outsideLabel],
             ...(c.otherParty ? [["With", c.otherParty] as [string, string]] : []),
             ["Happened on", fmtDate(c.incidentDate)],
             ["Wants", c.outcome],
@@ -184,7 +184,7 @@ function CaseDrawer({ c, onClose }: { c: ResolutionCase; onClose: () => void }) 
           <ul className="mt-3 space-y-1 text-sm">
             {c.evidence.map((l) => (
               <li key={l}>
-                <a href={l} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+                <a href={l} target="_blank" rel="noopener noreferrer" className="break-all text-ink hover:underline">
                   {l}
                 </a>
               </li>

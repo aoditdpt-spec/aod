@@ -28,11 +28,11 @@ export function CityPicker() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        className={`flex shrink-0 items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:border-brand ${
-          city ? "border-line text-body" : "border-brand/50 text-brand"
+        className={`flex shrink-0 items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:border-ink ${
+          city ? "border-line text-body" : "border-line text-ink"
         }`}
       >
-        <MapPin className="h-4 w-4 text-brand" aria-hidden />
+        <MapPin className="h-4 w-4 text-ink" aria-hidden />
         {city ?? "Select city"}
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
@@ -54,7 +54,7 @@ export function CityPicker() {
                   setOpen(false);
                 }}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-wash ${
-                  c === city ? "font-medium text-brand" : "text-ink"
+                  c === city ? "font-medium text-ink" : "text-ink"
                 }`}
               >
                 {c}
@@ -74,7 +74,7 @@ export function CityChips() {
   return (
     <div>
       <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted">
-        <MapPin className="h-3.5 w-3.5 text-brand" aria-hidden /> Your city
+        <MapPin className="h-3.5 w-3.5 text-ink" aria-hidden /> Your city
       </p>
       <ul className="mt-2 flex flex-wrap gap-2">
         {cities.map((c) => (
@@ -84,7 +84,7 @@ export function CityChips() {
               aria-pressed={c === city}
               onClick={() => setCity(c)}
               className={`rounded-lg border px-3 py-1.5 text-sm ${
-                c === city ? "border-brand bg-peach/60 font-medium text-ink" : "border-line text-body hover:border-brand"
+                c === city ? "border-brand bg-peach/60 font-medium text-ink" : "border-line text-body hover:border-ink"
               }`}
             >
               {c}
@@ -110,7 +110,7 @@ export function CitySheetButton() {
         aria-haspopup="dialog"
         className="press flex min-w-0 items-center gap-1 rounded-full bg-wash py-1.5 pl-2 pr-2.5 text-left text-sm font-semibold text-ink"
       >
-        <MapPin className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+        <MapPin className="h-4 w-4 shrink-0 text-ink" aria-hidden />
         <span className="truncate">{city ?? "Select city"}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden />
       </button>
@@ -126,9 +126,9 @@ export function CitySheetButton() {
                   setCity(c);
                   setOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-wash ${c === city ? "font-semibold text-brand" : "text-ink"}`}
+                className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-wash ${c === city ? "font-semibold text-ink" : "text-ink"}`}
               >
-                <MapPin className={`h-5 w-5 shrink-0 ${c === city ? "text-brand" : "text-muted"}`} aria-hidden />
+                <MapPin className={`h-5 w-5 shrink-0 ${c === city ? "text-ink" : "text-muted"}`} aria-hidden />
                 <span className="flex-1">{c}</span>
                 {c === city && <Check className="h-5 w-5" aria-hidden />}
               </button>

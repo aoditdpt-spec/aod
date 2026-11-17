@@ -140,7 +140,7 @@ export function CaseForm() {
       <fieldset className="rounded-panel border border-line bg-surface p-6 sm:p-8">
         <legend className="sr-only">{resolution.throughAod.question}</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">1</span> {resolution.throughAod.question}
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-sm text-surface">1</span> {resolution.throughAod.question}
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {([true, false] as const).map((aod) => {
@@ -187,7 +187,7 @@ export function CaseForm() {
       <fieldset disabled={throughAod === null} className="rounded-panel border border-line bg-surface p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">Which side you&apos;re on</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">2</span> Which side are you on?
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-sm text-surface">2</span> Which side are you on?
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {resolution.roles.map((r) => (
@@ -221,7 +221,7 @@ export function CaseForm() {
       <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-surface p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">The dispute</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">3</span> The dispute
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-sm text-surface">3</span> The dispute
         </p>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <label className="block text-sm font-medium text-ink">
@@ -308,7 +308,7 @@ export function CaseForm() {
               ))}
             </div>
             {evidence.length < 5 && (
-              <button type="button" onClick={() => setEvidence((list) => [...list, ""])} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
+              <button type="button" onClick={() => setEvidence((list) => [...list, ""])} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-ink hover:underline">
                 <Plus className="h-4 w-4" aria-hidden /> Add another link
               </button>
             )}
@@ -320,7 +320,7 @@ export function CaseForm() {
       <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-surface p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">Your details</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">4</span> Your details
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-sm text-surface">4</span> Your details
         </p>
         <div className="mt-5 grid gap-5 sm:grid-cols-3">
           <label className="block text-sm font-medium text-ink">
@@ -343,7 +343,7 @@ export function CaseForm() {
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
           <span>
             These details are true. AOD may share them with the other side{throughAod === false ? " and contact them on my behalf" : ""} to settle the dispute (see the{" "}
-            <a href={siteHref("/privacy")} className="text-brand hover:underline">
+            <a href={siteHref("/privacy")} className="text-ink hover:underline">
               privacy policy
             </a>
             ).

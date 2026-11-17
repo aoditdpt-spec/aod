@@ -54,7 +54,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
                 setView({ y: now.getFullYear(), m: now.getMonth() });
                 setDay(todayKey);
               }}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-brand hover:bg-wash"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-ink hover:bg-wash"
             >
               Today
             </button>
@@ -88,7 +88,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
                 aria-pressed={picked}
                 aria-label={`${d} ${first.toLocaleDateString("en-IN", { month: "long" })}${list.length ? `, ${list.length} booking${list.length === 1 ? "" : "s"}` : ""}`}
                 className={`flex min-h-14 flex-col items-start rounded-lg border p-1.5 text-left transition-colors sm:min-h-20 sm:p-2 ${
-                  picked ? "border-brand bg-peach/50" : "border-transparent bg-wash/60 hover:border-brand/40"
+                  picked ? "border-brand bg-peach/50" : "border-transparent bg-wash/60 hover:border-ink/40"
                 }`}
               >
                 <span className={`text-xs font-medium sm:text-sm ${k === todayKey ? "flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white" : "text-ink"}`}>{d}</span>
@@ -118,7 +118,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-ink">{day ? fmtDate(day) : "Coming up"}</h2>
           {day && (
-            <button type="button" onClick={() => setDay(null)} className="text-sm font-medium text-brand hover:underline">
+            <button type="button" onClick={() => setDay(null)} className="text-sm font-medium text-ink hover:underline">
               Show all
             </button>
           )}
@@ -127,7 +127,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
         {shown.length === 0 ? (
           <p className="mt-4 text-sm text-muted">
             {day ? "No bookings on this day." : "Nothing coming up yet."}{" "}
-            <button type="button" onClick={onBook} className="font-medium text-brand underline underline-offset-2">
+            <button type="button" onClick={onBook} className="font-medium text-ink underline underline-offset-2">
               Book artists
             </button>
           </p>
@@ -140,7 +140,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
                   onClick={() => setOpenId(openId === o.id ? null : o.id)}
                   aria-expanded={openId === o.id}
                   className={`flex w-full items-start justify-between gap-3 rounded-xl border p-3 text-left transition-colors ${
-                    openId === o.id ? "border-brand bg-peach/40" : "border-line hover:border-brand/50"
+                    openId === o.id ? "border-brand bg-peach/40" : "border-line hover:border-ink/50"
                   }`}
                 >
                   <span className="min-w-0">

@@ -24,14 +24,14 @@ export function BookingsBoard() {
   if (mode === "applicant") {
     return (
       <div className="mt-8 rounded-[1.25rem] border border-line bg-surface p-10 text-center">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-ink">
           <CalendarCheck2 className="h-7 w-7" aria-hidden />
         </span>
         <h2 className="mt-5 text-xl font-bold">Bookings start once you&apos;re live</h2>
         <p className="mx-auto mt-2 max-w-md text-body">
           After your review and trial booking, requests that match your craft and city show up here.
         </p>
-        <Link href={sectionLink("/artists/dashboard")} className="mt-6 inline-flex text-sm font-medium text-brand underline underline-offset-4">
+        <Link href={sectionLink("/artists/dashboard")} className="mt-6 inline-flex text-sm font-medium text-ink underline underline-offset-4">
           See your onboarding steps
         </Link>
       </div>
@@ -54,7 +54,7 @@ export function BookingsBoard() {
                 role="tab"
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === t.id ? "bg-brand text-white" : "text-body hover:text-ink"}`}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === t.id ? "bg-ink text-surface" : "text-body hover:text-ink"}`}
               >
                 {t.label} <span className={tab === t.id ? "text-white/80" : "text-muted"}>{count}</span>
               </button>

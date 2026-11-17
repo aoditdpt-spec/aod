@@ -75,7 +75,7 @@ export function ChatPanel({
               {showDay && <p className="my-3 text-center text-xs font-medium text-muted">{dayLabel(m.at)}</p>}
               <div className={`flex flex-col ${mine ? "items-end" : "items-start"} ${showName ? "mt-2" : ""}`}>
                 {showName && nameOf(m) && <span className="mb-0.5 px-1 text-xs font-medium text-muted">{nameOf(m)}</span>}
-                <div className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm sm:max-w-[75%] ${mine ? "rounded-br-md bg-brand text-white" : "rounded-bl-md border border-line bg-surface text-ink"}`}>
+                <div className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm sm:max-w-[75%] ${mine ? "rounded-br-md bg-ink text-surface" : "rounded-bl-md border border-line bg-surface text-ink"}`}>
                   {m.body}
                 </div>
                 <span className="mt-0.5 px-1 text-[0.6875rem] text-muted">

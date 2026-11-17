@@ -55,7 +55,7 @@ export function PortalNav() {
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm ${active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"}`}
               >
-                <I className={`h-4 w-4 ${active ? "text-brand" : "text-muted"}`} aria-hidden />
+                <I className={`h-4 w-4 ${active ? "text-ink" : "text-muted"}`} aria-hidden />
                 {label}
                 {count && <span className="rounded-full bg-brand px-1.5 text-[0.7rem] font-medium text-white">{count}</span>}
               </Link>
@@ -76,7 +76,7 @@ export function PortalNav() {
                   active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"
                 }`}
               >
-                <I className={`h-[1.125rem] w-[1.125rem] ${active ? "text-brand" : "text-muted"}`} aria-hidden />
+                <I className={`h-[1.125rem] w-[1.125rem] ${active ? "text-ink" : "text-muted"}`} aria-hidden />
                 <span className="flex-1">{label}</span>
                 {count && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-white">{count}</span>}
               </Link>

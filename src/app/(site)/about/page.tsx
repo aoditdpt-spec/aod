@@ -43,13 +43,13 @@ export default function AboutPage() {
           className="rounded-[1.5rem] bg-wash px-6 py-12 sm:px-16 sm:py-20"
           style={{ backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-brand) 12%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
         >
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">{about.eyebrow}</p>
-          <h1 className="mt-4 text-5xl font-semibold leading-[0.95] tracking-tight !text-brand sm:text-7xl">{about.title}</h1>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink">{about.eyebrow}</p>
+          <h1 className="mt-4 text-5xl font-semibold leading-[0.95] tracking-tight !text-ink sm:text-7xl">{about.title}</h1>
           <p className="mt-6 max-w-3xl text-lg text-body sm:text-xl sm:leading-snug">{about.intro}</p>
           <ul className="mt-8 flex flex-wrap gap-3">
             {facts.map(({ icon: I, label }) => (
               <li key={label} className="inline-flex items-center gap-2 rounded-lg bg-surface px-3 py-2 text-sm font-medium text-ink shadow-sm">
-                <I className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+                <I className="h-4 w-4 shrink-0 text-ink" aria-hidden />
                 {label}
               </li>
             ))}
@@ -81,7 +81,7 @@ export default function AboutPage() {
               <StaggerItem key={v.title}>
                 <TiltCard className={`rounded-[1.25rem] border border-line bg-surface p-7`}>
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl bg-peach/60 ${tiltZoom}`}>
-                    <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />
+                    <I className="h-5 w-5 text-ink" strokeWidth={1.75} aria-hidden />
                   </span>
                   <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{v.title}</h3>
                   <p className={`mt-2 text-body ${tiltText}`}>{v.text}</p>
@@ -104,7 +104,7 @@ export default function AboutPage() {
                 return (
                   <StaggerItem key={c.label}>
                     <div className="flex h-full items-center gap-4 rounded-card bg-white/[0.04] p-5">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tangerine/15 text-tangerine">{c.icon}</span>
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach text-ink">{c.icon}</span>
                       <span className="min-w-0">
                         <span className="block text-sm text-white/60">{c.label}</span>
                         <span className="block truncate font-medium text-white">{c.value}</span>
@@ -119,7 +119,7 @@ export default function AboutPage() {
                     {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     className={`flex h-full items-center gap-4 rounded-card bg-white/[0.04] p-5 outline-none focus-visible:ring-2 focus-visible:ring-apricot ${linkCardDark}`}
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tangerine/15 text-tangerine">{c.icon}</span>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach text-ink">{c.icon}</span>
                     <span className="min-w-0">
                       <span className={`block text-sm text-white/60 ${linkText}`}>{c.label}</span>
                       <span className={`block truncate font-medium text-white ${linkTitle} group-hover:text-tangerine`}>{c.value}</span>

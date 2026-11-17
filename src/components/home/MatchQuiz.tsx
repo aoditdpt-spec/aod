@@ -5,11 +5,11 @@ import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eraser, Mail, MapPin, RotateCcw, Undo2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eraser, Hourglass, Mail, MapPin, RotateCcw, Undo2, X } from "lucide-react";
 import { categories, cities, type Audience } from "@/content/site";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { Spinner } from "@/components/ui/Spinner";
-import { TimeField } from "@/components/ui/TimePicker";
+import { TimeField, WheelField } from "@/components/ui/TimePicker";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
 import { backendEnabled } from "@/lib/backend";
@@ -33,6 +33,7 @@ const titles = ["Who do you need?", "What's the occasion?", "When and where?"];
 
 // "How many hours?": half hours up to 12, then whole hours up to 24 (as minutes).
 const hourChoices = [...Array.from({ length: 24 }, (_, i) => (i + 1) * 30), ...Array.from({ length: 12 }, (_, i) => (13 + i) * 60)];
+const hourOptions = hourChoices.map((m) => ({ value: m, label: durationText(m) }));
 
 const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
@@ -314,7 +315,7 @@ export function MatchQuiz({
           occasion === label ? "bg-peach ring-2 ring-brand" : "bg-wash hover:bg-peach/60"
         }`}
       >
-        <Icon name={icon} className="h-4 w-4 shrink-0 text-brand" />
+        <Icon name={icon} className="h-4 w-4 shrink-0 text-ink" />
         {label}
       </button>
     );
@@ -608,13 +609,13 @@ export function MatchQuiz({
                             <Image src={c.image.src} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover lg:hidden" />
                           ) : (
                             <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface lg:hidden">
-                              <Icon name={c.icon} className="h-5 w-5 text-brand" />
+                              <Icon name={c.icon} className="h-5 w-5 text-ink" />
                             </span>
                           )}
                           <span className="leading-tight">{c.name}</span>
                         </span>
                         {need && (
-                          <span className="flex shrink-0 items-center gap-1 text-xs text-brand-hover">
+                          <span className="flex shrink-0 items-center gap-1 text-xs text-ink">
                             {need.count > 1 && `× ${need.count}`}
                             <Check className="h-4 w-4" aria-hidden />
                           </span>
@@ -636,7 +637,7 @@ export function MatchQuiz({
                         // Phones: the name and remove button on one line, the numbers below; wider: one line.
                         <li key={n.slug} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
                           <span className="flex flex-1 items-center gap-2 text-sm font-medium text-ink">
-                            {c && <Icon name={c.icon} className="h-4 w-4 shrink-0 text-brand" />}
+                            {c && <Icon name={c.icon} className="h-4 w-4 shrink-0 text-ink" />}
                             {name}
                           </span>
                           <button
@@ -681,7 +682,7 @@ export function MatchQuiz({
                             type="button"
                             onClick={toggle}
                             aria-expanded={open}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-brand px-4 py-3.5 text-sm font-semibold text-brand transition-colors hover:bg-peach/60"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ink/40 px-4 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-peach/60"
                           >
                             {open ? "Show less" : `Show ${g.labels.length - OCCASIONS_SHOWN} more`}
                           </button>
@@ -739,12 +740,12 @@ export function MatchQuiz({
                 {city && !changingCity ? (
                   <div className="text-sm font-medium text-ink">
                     City
-                    <div className="mt-1.5 flex items-center justify-between gap-3 rounded-xl border border-brand/40 bg-peach/40 px-4 py-3">
+                    <div className="mt-1.5 flex items-center justify-between gap-3 rounded-xl border border-line bg-wash px-4 py-3">
                       <span className="flex items-center gap-2 font-normal">
-                        <MapPin className="h-4 w-4 text-brand" aria-hidden />
+                        <MapPin className="h-4 w-4 text-ink" aria-hidden />
                         City selected: <strong className="font-medium">{city}</strong>
                       </span>
-                      <button type="button" onClick={() => setChangingCity(true)} className="text-sm font-medium text-brand underline-offset-4 hover:underline">
+                      <button type="button" onClick={() => setChangingCity(true)} className="text-sm font-medium text-ink underline-offset-4 hover:underline">
                         Change
                       </button>
                     </div>
@@ -770,26 +771,20 @@ export function MatchQuiz({
                     </select>
                   </label>
                 )}
-                <label className="text-sm font-medium text-ink">
-                  How many hours?
-                  <select
-                    value={hours || ""}
-                    onChange={(e) => {
-                      remember();
-                      setHours(Number(e.target.value));
-                    }}
-                    className="mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal outline-none focus:border-brand"
-                  >
-                    <option value="" disabled>
-                      Choose
-                    </option>
-                    {hourChoices.map((m) => (
-                      <option key={m} value={m}>
-                        {durationText(m)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {/* The same scroll wheel as the start time, with Cancel / OK, not the browser's
+                    own list. */}
+                <WheelField
+                  label="How many hours?"
+                  value={hours || null}
+                  options={hourOptions}
+                  defaultValue={180}
+                  icon={Hourglass}
+                  onChange={(m) => {
+                    if ((m ?? 0) === hours) return;
+                    remember();
+                    setHours(m ?? 0);
+                  }}
+                />
                 {/* Scroll wheels (hour, minutes, AM / PM) with Cancel / OK, not the browser's own
                     time picker, which looks different on every phone. */}
                 <TimeField
@@ -867,7 +862,7 @@ export function MatchQuiz({
               </div>
 
               {codeSent && (
-                <div className="mt-6 rounded-xl border border-brand/40 bg-peach/40 p-4 sm:p-5">
+                <div className="mt-6 rounded-xl border border-line bg-wash p-4 sm:p-5">
                   <p className="text-sm font-bold text-ink">Confirm your email</p>
                   <p className="mt-1 text-sm text-body">
                     We&apos;ve sent a 6-digit code to <strong className="font-medium text-ink">{cleanEmail}</strong>. Enter it, then press{" "}
@@ -891,7 +886,7 @@ export function MatchQuiz({
                   </label>
                   <p className="mt-2 text-xs text-muted">
                     Not in your inbox? Check spam, or{" "}
-                    <button type="button" onClick={sendCode} disabled={Boolean(busy)} className="font-medium text-brand underline underline-offset-2">
+                    <button type="button" onClick={sendCode} disabled={Boolean(busy)} className="font-medium text-ink underline underline-offset-2">
                       send a new code
                     </button>
                     . Wrong email? Change it above.
@@ -969,7 +964,7 @@ export function MatchQuiz({
                   {codeFailed && (
                     <p className="mt-2">
                       You can also{" "}
-                      <button type="button" onClick={sendUnsaved} className="font-medium text-brand underline underline-offset-2">
+                      <button type="button" onClick={sendUnsaved} className="font-medium text-ink underline underline-offset-2">
                         send your request on WhatsApp
                       </button>{" "}
                       instead; the AOD team will add it for you.

@@ -24,7 +24,7 @@ export default async function BlogPage() {
   return (
     <Container className="py-12 sm:py-16">
       <header className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-brand">{blog.eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-ink">{blog.eyebrow}</p>
         <h1 className="mt-3 text-4xl font-medium leading-tight sm:text-5xl">{blog.heading}</h1>
         <p className="mt-4 text-lg text-body">{blog.intro}</p>
       </header>

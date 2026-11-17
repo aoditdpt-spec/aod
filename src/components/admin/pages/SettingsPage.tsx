@@ -112,7 +112,7 @@ export function SettingsPage() {
           <ul className="space-y-2 text-sm">
             {legalDocs.map((d) => (
               <li key={d.slug} className="flex items-center justify-between gap-3">
-                <a href={siteHref(`/${d.slug}`)} target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:text-brand-hover">
+                <a href={siteHref(`/${d.slug}`)} target="_blank" rel="noopener noreferrer" className="font-medium text-ink hover:text-brand-hover">
                   {d.title}
                 </a>
                 <span className="text-xs text-muted">Draft · updated {d.updated}</span>

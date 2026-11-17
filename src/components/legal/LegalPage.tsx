@@ -43,7 +43,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
             {doc.sections.map((s, i) => (
               <section key={s.id} id={s.id} className="scroll-mt-24">
                 <h2 className="text-xl font-bold sm:text-2xl">
-                  <span className="mr-2 text-brand">{i + 1}.</span>
+                  <span className="mr-2 text-ink">{i + 1}.</span>
                   {s.heading}
                 </h2>
                 <div className="mt-3 space-y-3 text-body">
@@ -51,7 +51,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
                     typeof b === "string" ? (
                       <p key={j}>{b}</p>
                     ) : (
-                      <ul key={j} className="list-disc space-y-1.5 pl-5 marker:text-brand">
+                      <ul key={j} className="list-disc space-y-1.5 pl-5 marker:text-muted">
                         {b.list.map((item) => (
                           <li key={item}>{item}</li>
                         ))}

@@ -21,8 +21,8 @@ export function PageLoader({ label = "Loading…", className = "min-h-[60vh]" }:
   return (
     <div role="status" aria-live="polite" className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12 ${className}`}>
       <span className="relative flex h-16 w-16 items-center justify-center">
-        <Spinner className="absolute inset-0 h-16 w-16 text-brand" />
-        <span aria-hidden className="font-display text-xl font-bold leading-none text-brand">
+        <Spinner className="absolute inset-0 h-16 w-16 text-ink" />
+        <span aria-hidden className="font-display text-xl font-bold leading-none text-ink">
           A.
         </span>
       </span>

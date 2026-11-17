@@ -23,7 +23,7 @@ export function NewsletterLinkAction({ mode, token }: { mode: "confirm" | "unsub
           <CheckCircle2 className="h-6 w-6 text-emerald-400" aria-hidden /> {confirm ? newsletter.confirmedTitle : newsletter.unsubscribedTitle}
         </p>
         <p className="mt-2 text-body">{confirm ? newsletter.confirmedText : newsletter.unsubscribedText}</p>
-        <Link href="/blog" className="mt-5 inline-block font-medium text-brand hover:underline">
+        <Link href="/blog" className="mt-5 inline-block font-medium text-ink hover:underline">
           Read the AOD blog
         </Link>
       </div>

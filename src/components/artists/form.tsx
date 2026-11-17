@@ -124,10 +124,10 @@ export function ChipGroup({
           aria-pressed={allOn}
           onClick={() => onChange(allOn ? value.filter((v) => !all.includes(v)) : [...value, ...all.filter((o) => !value.includes(o))])}
           className={`inline-flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-sm font-medium transition-colors ${
-            allOn ? "border-brand bg-peach/50 text-ink" : "border-brand/60 bg-surface text-brand hover:bg-wash"
+            allOn ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-ink hover:bg-wash"
           }`}
         >
-          {allOn && <Check className="h-3.5 w-3.5 text-brand" aria-hidden />}
+          {allOn && <Check className="h-3.5 w-3.5 text-ink" aria-hidden />}
           Select all
         </button>
       )}
@@ -140,10 +140,10 @@ export function ChipGroup({
             aria-pressed={on}
             onClick={() => onChange(multiple ? (on ? value.filter((v) => v !== o) : [...value, o]) : [o])}
             className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-normal transition-colors ${
-              on ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-body hover:border-brand/50"
+              on ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-body hover:border-ink/50"
             }`}
           >
-            {on && <Check className="h-3.5 w-3.5 text-brand" aria-hidden />}
+            {on && <Check className="h-3.5 w-3.5 text-ink" aria-hidden />}
             {o}
           </button>
         );
@@ -179,7 +179,7 @@ export function CheckRow({
 export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "brand" | "good" | "wait"; children: ReactNode }) {
   const tones = {
     neutral: "bg-wash text-muted",
-    brand: "bg-peach text-brand-hover",
+    brand: "bg-peach text-ink",
     good: "bg-emerald-950/50 text-emerald-300",
     wait: "bg-amber-950/50 text-amber-300",
   };

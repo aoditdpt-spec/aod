@@ -195,7 +195,7 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
                       draggable={editable}
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", b.id)}
                       onClick={() => onOpen(b.id)}
-                      className="w-full rounded-xl border border-line bg-surface p-3 text-left text-sm shadow-sm transition hover:border-brand/50 hover:shadow-md"
+                      className="w-full rounded-xl border border-line bg-surface p-3 text-left text-sm shadow-sm transition hover:border-ink/50 hover:shadow-md"
                     >
                       <span className="flex items-center justify-between text-xs text-muted">
                         {b.id}
@@ -517,14 +517,14 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
             <div className="mt-4 rounded-lg border border-line p-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-ink">Customer review</p>
-                <a href={send("review", "customer")} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand underline underline-offset-2">
+                <a href={send("review", "customer")} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-ink underline underline-offset-2">
                   Ask for a review
                 </a>
               </div>
               <div className="mt-2 flex items-center gap-1" role="radiogroup" aria-label="Rating">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} stars`} disabled={!editable} onClick={() => setRating(n)}>
-                    <Star className={`h-5 w-5 ${n <= rating ? "fill-brand-bright text-brand-bright" : "text-line"}`} aria-hidden />
+                    <Star className={`h-5 w-5 ${n <= rating ? "fill-ink text-ink" : "text-line"}`} aria-hidden />
                   </button>
                 ))}
               </div>
@@ -846,7 +846,7 @@ function OrderLine({
                   disabled={!editable}
                   onClick={() => unassign(a)}
                   title="Remove from this booking"
-                  className="rounded-md border border-brand px-2 py-1 text-xs font-medium text-brand disabled:opacity-40"
+                  className="rounded-md border border-ink px-2 py-1 text-xs font-medium text-ink disabled:opacity-40"
                 >
                   Assigned ✓
                 </button>
@@ -856,7 +856,7 @@ function OrderLine({
                   disabled={!editable || !listed || (full && item.count > 1)}
                   title={!listed ? "Shortlist them first" : full && item.count > 1 ? `All ${item.count} are assigned. Remove one, or raise the number needed.` : undefined}
                   onClick={() => assign(a)}
-                  className="rounded-md bg-brand px-2 py-1 text-xs font-medium text-white disabled:opacity-40"
+                  className="rounded-md bg-ink px-2 py-1 text-xs font-medium text-surface disabled:opacity-40"
                 >
                   Assign
                 </button>
@@ -1111,7 +1111,7 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
           <button
             type="button"
             onClick={() => setLines((ls) => [...ls, firstLine(categories.find((c) => !ls.some((l) => l.category === c.slug))?.slug)])}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-hover"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-brand-hover"
           >
             <Plus className="h-4 w-4" aria-hidden /> Add another category
           </button>

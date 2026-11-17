@@ -166,7 +166,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
                       type="button"
                       aria-pressed={form.type === t}
                       onClick={() => set({ type: t })}
-                      className={`rounded-lg border px-3 py-2 text-sm transition-colors ${form.type === t ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"}`}
+                      className={`rounded-lg border px-3 py-2 text-sm transition-colors ${form.type === t ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-ink/50"}`}
                     >
                       {t}
                     </button>

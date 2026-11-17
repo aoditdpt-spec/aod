@@ -41,7 +41,7 @@ const statusInfo = (o: CustomerOrder) => {
   if (o.status === "rescheduled") return { label: "Rescheduled", tone: "bg-amber-950/50 text-amber-200" };
   const step = customerSteps.find((s) => s.id === o.status);
   const good = ["confirmed", "completed", "delivered", "reviewed"].includes(o.status);
-  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-950/50 text-emerald-300" : "bg-peach text-brand-hover" };
+  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-950/50 text-emerald-300" : "bg-peach text-ink" };
 };
 
 // What the customer should do next, if anything.
@@ -141,7 +141,7 @@ function LiveMyBookings() {
     return (
       <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-surface p-6 text-center text-sm text-body">
         {error}{" "}
-        <button type="button" onClick={load} className="font-medium text-brand underline underline-offset-2">
+        <button type="button" onClick={load} className="font-medium text-ink underline underline-offset-2">
           Try again
         </button>
       </div>
@@ -233,7 +233,7 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
             />
             <span className="mt-1.5 block text-xs font-normal text-muted">
               Sent to {email}.{" "}
-              <button type="button" onClick={() => setSent(false)} className="font-medium text-brand underline underline-offset-2">
+              <button type="button" onClick={() => setSent(false)} className="font-medium text-ink underline underline-offset-2">
                 Change
               </button>
             </span>
@@ -294,7 +294,7 @@ function BookingsView({
       {/* The account sits at the top right, as on most shops' sites. */}
       <div className="mb-4 flex justify-end">
         <div className="flex min-w-0 items-center gap-2.5 text-sm">
-          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach font-bold uppercase text-brand">
+          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach font-bold uppercase text-ink">
             {email.charAt(0)}
           </span>
           <span className="min-w-0 truncate text-muted">
@@ -304,7 +304,7 @@ function BookingsView({
           <button
             type="button"
             onClick={onSignOut}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 font-medium text-ink hover:border-brand hover:text-brand"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 font-medium text-ink hover:border-ink hover:text-brand"
           >
             <LogOut className="h-4 w-4" aria-hidden /> Sign out
           </button>
@@ -351,7 +351,7 @@ function BookingsView({
                       type="button"
                       onClick={() => setOpenId(o.id)}
                       aria-current={openId === o.id ? "true" : undefined}
-                      className={`w-full rounded-2xl border bg-surface p-4 text-left transition hover:border-brand/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
+                      className={`w-full rounded-2xl border bg-surface p-4 text-left transition hover:border-ink/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
                     >
                       <span className="flex items-center justify-between gap-2 text-xs text-muted">
                         <span>
@@ -415,7 +415,7 @@ function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: Can
         <strong className="font-medium text-ink">Changed your mind?</strong> You can cancel this booking here until {until} (
         {left < 60 ? `${left} min` : `${Math.floor(left / 60)} h ${left % 60} min`} left, {customerCancelHours} hours after booking). After that, message AOD;
         the{" "}
-        <Link href="/refund-policy" className="font-medium text-brand underline underline-offset-2">
+        <Link href="/refund-policy" className="font-medium text-ink underline underline-offset-2">
           refund policy
         </Link>{" "}
         applies.
@@ -480,7 +480,7 @@ function BookAgain({ order: o }: { order: CustomerOrder }) {
         startRebook({ audience, occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
         router.push(rebookHref(audience));
       }}
-      className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-brand hover:text-brand"
+      className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-ink hover:text-brand"
     >
       <RotateCcw className="h-4 w-4" aria-hidden /> Book again
     </button>
@@ -536,7 +536,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
                 <li key={step.id} className="flex items-center gap-2 sm:flex-col sm:items-start">
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
-                      done ? "bg-brand text-white" : now ? "bg-peach text-brand-hover ring-2 ring-brand" : "bg-wash text-muted"
+                      done ? "bg-ink text-surface" : now ? "bg-peach text-ink ring-2 ring-brand" : "bg-wash text-muted"
                     }`}
                   >
                     {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
@@ -666,10 +666,10 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
               <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Ask about this booking
             </a>
             <a href={changeMail} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
-              <Mail className="h-4 w-4 text-brand" aria-hidden /> Change or cancel by email
+              <Mail className="h-4 w-4 text-ink" aria-hidden /> Change or cancel by email
             </a>
             <Link href={portalHref(`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`)} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
-              <Scale className="h-4 w-4 text-brand" aria-hidden /> A dispute with the artist? Raise it
+              <Scale className="h-4 w-4 text-ink" aria-hidden /> A dispute with the artist? Raise it
             </Link>
             <Link href="/refund-policy" className="text-xs text-muted underline underline-offset-2 hover:text-ink">
               Cancellation & refund policy
@@ -719,7 +719,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
               <div className="flex gap-1" role="radiogroup" aria-label="Rating">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} stars`} onClick={() => setRating(n)}>
-                    <Star className={`h-6 w-6 ${n <= rating ? "fill-brand-bright text-brand-bright" : "text-line"}`} aria-hidden />
+                    <Star className={`h-6 w-6 ${n <= rating ? "fill-ink text-ink" : "text-line"}`} aria-hidden />
                   </button>
                 ))}
               </div>

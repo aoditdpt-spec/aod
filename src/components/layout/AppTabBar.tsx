@@ -95,7 +95,7 @@ export function AppTabBar() {
                   aria-current={on ? "page" : undefined}
                   className={`${tab} ${on ? "font-bold text-ink" : "font-medium text-muted"}`}
                 >
-                  <Icon className={`h-6 w-6 ${on ? "text-brand" : ""}`} strokeWidth={on ? 2.3 : 1.8} aria-hidden />
+                  <Icon className={`h-6 w-6 ${on ? "text-ink" : ""}`} strokeWidth={on ? 2.3 : 1.8} aria-hidden />
                   {t.label}
                 </Link>
               </li>
@@ -109,7 +109,7 @@ export function AppTabBar() {
               aria-haspopup="dialog"
               className={`${tab} ${open ? "font-bold text-ink" : "font-medium text-muted"}`}
             >
-              <Menu className={`h-6 w-6 ${open ? "text-brand" : ""}`} strokeWidth={open ? 2.3 : 1.8} aria-hidden />
+              <Menu className={`h-6 w-6 ${open ? "text-ink" : ""}`} strokeWidth={open ? 2.3 : 1.8} aria-hidden />
               {appMenu.more}
             </button>
           </li>
@@ -130,7 +130,7 @@ export function AppTabBar() {
                 return (
                   <li key={l.href}>
                     <Link href={portalHref(l.href)} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-3 active:bg-wash">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-peach text-brand">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-peach text-ink">
                         <Icon className="h-5 w-5" aria-hidden />
                       </span>
                       <span className="min-w-0 flex-1">
@@ -148,7 +148,7 @@ export function AppTabBar() {
 
         <div className="mt-5 grid grid-cols-3 gap-2 text-sm font-medium text-ink">
           <button type="button" onClick={share} className="press flex flex-col items-center gap-1.5 rounded-2xl border border-line px-2 py-3 active:bg-wash">
-            <Share2 className="h-5 w-5 text-brand" aria-hidden />
+            <Share2 className="h-5 w-5 text-ink" aria-hidden />
             {copied ? appMenu.shared : appMenu.share}
           </button>
           <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="press flex flex-col items-center gap-1.5 rounded-2xl border border-line px-2 py-3 text-center active:bg-wash">
@@ -156,7 +156,7 @@ export function AppTabBar() {
             {appMenu.whatsapp}
           </a>
           <a href={brand.phoneHref} className="press flex flex-col items-center gap-1.5 rounded-2xl border border-line px-2 py-3 active:bg-wash">
-            <Phone className="h-5 w-5 text-brand" aria-hidden />
+            <Phone className="h-5 w-5 text-ink" aria-hidden />
             {appMenu.call}
           </a>
         </div>

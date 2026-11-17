@@ -126,7 +126,7 @@ export function TrackCase() {
       {error === "preview" ? (
         <div className="mt-6 rounded-xl border border-amber-900 bg-amber-950/50 p-5 text-sm text-amber-100">
           <p>Case tracking starts once the Dispute Desk is connected. Until then, ask AOD for an update on WhatsApp.</p>
-          <button type="button" onClick={() => setFound({ c: sampleCase, sample: true })} className="mt-3 font-medium text-brand hover:underline">
+          <button type="button" onClick={() => setFound({ c: sampleCase, sample: true })} className="mt-3 font-medium text-ink hover:underline">
             See what a tracked case looks like
           </button>
         </div>
@@ -137,7 +137,7 @@ export function TrackCase() {
       ) : null}
       <p className="mt-6 text-sm text-muted">
         No dispute raised yet?{" "}
-        <Link href={sectionLink("/resolve/new")} className="font-medium text-brand hover:underline">
+        <Link href={sectionLink("/resolve/new")} className="font-medium text-ink hover:underline">
           Raise a dispute
         </Link>
         .
@@ -175,7 +175,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
             <p className="mt-1 text-body">{c.issue}</p>
             {outside && <p className="mt-2 inline-flex rounded-md bg-wash px-2 py-0.5 text-xs font-medium text-ink ring-1 ring-line">{resolution.paths.outside.label}: AOD mediates</p>}
           </div>
-          <button type="button" onClick={onBack} className="text-sm font-medium text-brand hover:underline">
+          <button type="button" onClick={onBack} className="text-sm font-medium text-ink hover:underline">
             Look up another case
           </button>
         </div>
@@ -204,9 +204,9 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
             const at = when(s.id);
             return (
               <li key={s.id} className="relative flex gap-4">
-                {i < steps.length - 1 && <span aria-hidden className={`absolute left-[0.8125rem] top-8 h-[calc(100%-0.75rem)] w-px ${i < reached ? "bg-brand" : "bg-line"}`} />}
+                {i < steps.length - 1 && <span aria-hidden className={`absolute left-[0.8125rem] top-8 h-[calc(100%-0.75rem)] w-px ${i < reached ? "bg-ink" : "bg-line"}`} />}
                 <span
-                  className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${ticked ? "bg-brand text-white" : current ? "border-2 border-brand bg-surface text-brand" : "border border-line bg-surface text-muted"}`}
+                  className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${ticked ? "bg-ink text-surface" : current ? "border-2 border-brand bg-surface text-ink" : "border border-line bg-surface text-muted"}`}
                 >
                   {ticked ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
                 </span>

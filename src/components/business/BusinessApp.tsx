@@ -51,7 +51,7 @@ export function BusinessApp({
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-[1.25rem] bg-night px-5 py-5 text-white sm:px-8">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.15em] text-apricot">AOD for Business{company.type ? ` · ${company.type === "Other" && company.typeOther ? company.typeOther : company.type}` : ""}</p>
+          <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink">AOD for Business{company.type ? ` · ${company.type === "Other" && company.typeOther ? company.typeOther : company.type}` : ""}</p>
           <h1 className="mt-1 truncate text-2xl font-medium !text-white sm:text-3xl">{company.name}</h1>
           <p className="mt-1 text-sm text-white/80">
             {company.email} · {open} open order{open === 1 ? "" : "s"}
@@ -71,7 +71,7 @@ export function BusinessApp({
             aria-current={tab === t.id ? "page" : undefined}
             onClick={() => setTab(t.id)}
             className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-              tab === t.id ? "bg-brand text-white" : "bg-wash text-body hover:bg-peach/60"
+              tab === t.id ? "bg-ink text-surface" : "bg-wash text-body hover:bg-peach/60"
             }`}
           >
             <t.icon className="h-4 w-4" aria-hidden /> {t.label}
@@ -146,7 +146,7 @@ function CompanyDetails({ company, onChange }: { company: Company; onChange: (c:
                 type="button"
                 aria-pressed={form.type === t}
                 onClick={() => set({ type: t })}
-                className={`rounded-lg border px-3 py-2 text-sm transition-colors ${form.type === t ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"}`}
+                className={`rounded-lg border px-3 py-2 text-sm transition-colors ${form.type === t ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-ink/50"}`}
               >
                 {t}
               </button>

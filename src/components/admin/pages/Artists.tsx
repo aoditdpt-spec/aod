@@ -184,7 +184,7 @@ export function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; 
           <ul className="mb-3 space-y-1 text-sm">
             {artist.links!.map((l) => (
               <li key={l}>
-                <a href={l} target="_blank" rel="noopener noreferrer" className="break-all text-brand hover:underline">
+                <a href={l} target="_blank" rel="noopener noreferrer" className="break-all text-ink hover:underline">
                   {l}
                 </a>
               </li>
@@ -339,7 +339,7 @@ function ArtistOrders({ artist, db }: { artist: Artist; db: Db }) {
                     {reply?.note && <p className="mt-1 text-xs text-ink">&ldquo;{reply.note}&rdquo;</p>}
                     {(b.notes || brief.length > 0) && (
                       <details className="mt-1 text-xs">
-                        <summary className="cursor-pointer text-brand">What the artist sees: note and brief</summary>
+                        <summary className="cursor-pointer text-ink">What the artist sees: note and brief</summary>
                         {b.notes && <p className="mt-1 whitespace-pre-line text-body">{b.notes}</p>}
                         {brief.length > 0 && (
                           <dl className="mt-1 grid grid-cols-[8rem_1fr] gap-x-3 gap-y-0.5">
@@ -379,7 +379,7 @@ function OtherCategories({ main, value, disabled, onChange }: { main: string; va
               aria-pressed={on}
               disabled={disabled}
               onClick={() => onChange(on ? value.filter((x) => x !== c.slug) : [...value, c.slug], c.slug, !on)}
-              className={`rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed ${on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"}`}
+              className={`rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed ${on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-ink/50"}`}
             >
               {on ? "✓ " : ""}
               {c.name}

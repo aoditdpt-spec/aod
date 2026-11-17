@@ -59,7 +59,7 @@ export const businessCopy = {
 export type Stage = "inquired" | "assigned" | "done" | "cancelled";
 export const stages: { id: Stage; label: string; dot: string; chip: string }[] = [
   { id: "inquired", label: "Inquired", dot: "bg-amber-500", chip: "bg-amber-950/50 text-amber-200" },
-  { id: "assigned", label: "Artist assigned", dot: "bg-brand", chip: "bg-peach text-brand-hover" },
+  { id: "assigned", label: "Artist assigned", dot: "bg-brand", chip: "bg-peach text-ink" },
   { id: "done", label: "Done", dot: "bg-emerald-600", chip: "bg-emerald-950/50 text-emerald-300" },
   { id: "cancelled", label: "Cancelled", dot: "bg-muted", chip: "bg-wash text-muted" },
 ];

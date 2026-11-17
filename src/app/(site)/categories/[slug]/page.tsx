@@ -68,8 +68,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               <span className="text-white">{category.name}</span>
             </nav>
             <div className="mt-6 flex items-start gap-5">
-              <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-tangerine/15 sm:flex">
-                <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
+              <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:flex">
+                <Icon name={category.icon} className="h-8 w-8 text-ink" strokeWidth={1.5} />
               </span>
               <div>
                 <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
@@ -128,7 +128,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 rounded-card bg-wash px-6 py-4 text-sm text-ink">
           {guarantees.map((g) => (
             <li key={g.label} className="flex items-center gap-2">
-              <Icon name={g.icon} className="h-4 w-4 text-brand" /> {g.label}
+              <Icon name={g.icon} className="h-4 w-4 text-ink" /> {g.label}
             </li>
           ))}
         </ul>
@@ -142,7 +142,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <Container>
           <div className="grid items-start gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{categoryBooking.eyebrow(category.name)}</p>
+              <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink">{categoryBooking.eyebrow(category.name)}</p>
               <h2 id="book-title" className="mt-3 text-3xl font-normal leading-[1.1] sm:text-4xl">
                 {categoryBooking.title}
               </h2>
@@ -167,7 +167,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
                 href={`/categories/${c.slug}`}
                 className={`flex h-full flex-col gap-4 rounded-card bg-surface p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
               >
-                <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
+                <Icon name={c.icon} className="h-7 w-7 text-ink" strokeWidth={1.25} />
                 <span className={`font-bold text-ink ${linkTitle}`}>{c.name}</span>
                 <span className={`text-sm text-muted ${linkText}`}>{c.short}</span>
               </Link>

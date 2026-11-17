@@ -23,11 +23,11 @@ function inlines(nodes: Inline[]): ReactNode[] {
         return <em key={i}>{inlines(n.c)}</em>;
       case "link":
         return n.href.startsWith("/") || n.href.startsWith("#") ? (
-          <Link key={i} href={n.href} className="font-medium text-brand underline underline-offset-2 hover:text-brand-hover">
+          <Link key={i} href={n.href} className="font-medium text-ink underline underline-offset-2 hover:text-brand-hover">
             {inlines(n.c)}
           </Link>
         ) : (
-          <a key={i} href={n.href} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-2 hover:text-brand-hover">
+          <a key={i} href={n.href} target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline underline-offset-2 hover:text-brand-hover">
             {inlines(n.c)}
           </a>
         );
@@ -57,13 +57,13 @@ function block(b: Block, i: number): ReactNode {
       );
     case "quote":
       return (
-        <blockquote key={i} className="mt-6 rounded-r-xl border-l-4 border-brand bg-wash px-5 py-4 text-ink">
+        <blockquote key={i} className="mt-6 rounded-r-xl border-l-4 border-ink bg-wash px-5 py-4 text-ink">
           {inlines(b.c)}
         </blockquote>
       );
     case "ul":
       return (
-        <ul key={i} className="mt-5 list-disc space-y-2 pl-6 marker:text-brand">
+        <ul key={i} className="mt-5 list-disc space-y-2 pl-6 marker:text-muted">
           {b.items.map((item, j) => (
             <li key={j}>{inlines(item)}</li>
           ))}
@@ -71,7 +71,7 @@ function block(b: Block, i: number): ReactNode {
       );
     case "ol":
       return (
-        <ol key={i} className="mt-5 list-decimal space-y-2 pl-6 marker:font-semibold marker:text-brand">
+        <ol key={i} className="mt-5 list-decimal space-y-2 pl-6 marker:font-semibold marker:text-muted">
           {b.items.map((item, j) => (
             <li key={j}>{inlines(item)}</li>
           ))}

@@ -56,7 +56,7 @@ export function Blog() {
         text={
           <>
             Posts on{" "}
-            <a href={siteHref("/blog")} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
+            <a href={siteHref("/blog")} target="_blank" rel="noopener noreferrer" className="text-ink hover:underline">
               aod.co.in/blog
             </a>
             . Write in simple formatting, preview it, then publish: it shows on the site straight away, and in search results and link previews.

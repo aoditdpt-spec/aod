@@ -22,7 +22,7 @@ const styles = {
     box: "h-14 rounded-2xl border border-line bg-surface pl-4 pr-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-within:border-brand sm:h-16 sm:pl-5 sm:pr-2",
     lead: "mr-3 h-5 w-5 text-muted",
     input: "text-base text-ink",
-    button: "h-11 justify-center rounded-xl bg-brand px-3 text-white hover:bg-brand-hover sm:h-12 sm:px-6",
+    button: "h-11 justify-center rounded-xl bg-peach px-3 text-ink hover:bg-ink hover:text-surface sm:h-12 sm:px-6",
     icon: "h-5 w-5 sm:hidden",
     label: "hidden sm:inline",
   },
@@ -30,7 +30,7 @@ const styles = {
     box: "h-10 rounded-lg border border-line bg-surface pl-3 pr-1 focus-within:border-brand max-lg:rounded-xl max-lg:border-transparent max-lg:bg-wash max-lg:focus-within:bg-surface",
     lead: "mr-2 h-4 w-4 text-muted",
     input: "text-sm text-body",
-    button: "h-8 rounded-md bg-brand px-3 text-sm text-white hover:bg-brand-hover",
+    button: "h-8 rounded-md bg-peach px-3 text-sm text-ink hover:bg-ink hover:text-surface",
     icon: "h-4 w-4 2xl:hidden",
     label: "hidden 2xl:inline",
   },
@@ -278,7 +278,7 @@ export function SearchBox({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => go("/book")}
-            className="mt-2 inline-flex items-center gap-1 font-medium text-brand hover:text-brand-hover"
+            className="mt-2 inline-flex items-center gap-1 font-medium text-ink hover:text-brand-hover"
           >
             Tell us what you need — we&apos;ll find the artist <ArrowRight className="h-4 w-4" aria-hidden />
           </button>

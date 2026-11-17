@@ -33,7 +33,7 @@ export function ExploreTiles({ className = "" }: { className?: string }) {
                 <Image src={c.image.src} alt="" fill sizes="22vw" className="object-cover transition-transform duration-300 group-hover:scale-110" />
               ) : (
                 <span className="flex h-full items-center justify-center">
-                  <Icon name={c.icon} className="h-7 w-7 text-brand" strokeWidth={1.5} />
+                  <Icon name={c.icon} className="h-7 w-7 text-ink" strokeWidth={1.5} />
                 </span>
               )}
             </span>
@@ -43,7 +43,7 @@ export function ExploreTiles({ className = "" }: { className?: string }) {
       ))}
       <li>
         <Link href="/book" className={tile}>
-          <span className="flex aspect-square w-full items-center justify-center rounded-2xl bg-brand">
+          <span className="flex aspect-square w-full items-center justify-center rounded-2xl bg-peach">
             <Sparkles className="h-7 w-7 text-white transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} aria-hidden />
           </span>
           <span className={label}>

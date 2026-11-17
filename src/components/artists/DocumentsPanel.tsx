@@ -11,7 +11,7 @@ export function DocumentsPanel() {
       <div className="space-y-6">
         <Panel>
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wash text-brand">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wash text-ink">
               <FileSignature className="h-5 w-5" aria-hidden />
             </span>
             <div>
@@ -27,7 +27,7 @@ export function DocumentsPanel() {
         </Panel>
         <Panel>
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wash text-brand">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wash text-ink">
               <Landmark className="h-5 w-5" aria-hidden />
             </span>
             <div>

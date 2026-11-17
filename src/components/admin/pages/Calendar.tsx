@@ -18,7 +18,7 @@ const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 const chip: Record<string, string> = {
   good: "bg-emerald-950/50 text-emerald-200",
   wait: "bg-amber-950/50 text-amber-100",
-  brand: "bg-peach text-brand-hover",
+  brand: "bg-peach text-ink",
   bad: "bg-red-950/50 text-red-300 line-through",
   neutral: "bg-wash text-muted",
 };
@@ -100,7 +100,7 @@ export function Calendar() {
             const offs = off.filter((a) => a.blockedDates.includes(k));
             return (
               <div key={k} className={`min-h-28 border-b border-r border-line p-1.5 ${k === today ? "bg-peach/30" : ""}`}>
-                <p className={`mb-1 text-xs ${k === today ? "font-semibold text-brand" : "text-muted"}`}>{d.getDate()}</p>
+                <p className={`mb-1 text-xs ${k === today ? "font-semibold text-ink" : "text-muted"}`}>{d.getDate()}</p>
                 <ul className="space-y-1">
                   {items.map((b) => {
                     const tone = bookingStages.find((s) => s.id === b.status)?.tone ?? "neutral";

@@ -27,7 +27,7 @@ const columns: Column<Activity>[] = [
     render: (a) => {
       const href = hrefFor(a.target);
       return href ? (
-        <Link href={href} className="font-medium text-brand" onClick={(e) => e.stopPropagation()}>
+        <Link href={href} className="font-medium text-ink" onClick={(e) => e.stopPropagation()}>
           {a.target}
         </Link>
       ) : (

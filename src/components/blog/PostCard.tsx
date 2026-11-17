@@ -24,7 +24,7 @@ export function PostCover({ post, sizes, priority = false, className = "" }: { p
         // eslint-disable-next-line @next/next/no-img-element
         <img src={post.cover} alt={post.coverAlt} className="absolute inset-0 h-full w-full object-cover" />
       ) : (
-        <div aria-hidden className="flex h-full w-full items-center justify-center bg-peach font-display text-5xl font-bold text-brand">
+        <div aria-hidden className="flex h-full w-full items-center justify-center bg-peach font-display text-5xl font-bold text-ink">
           A.
         </div>
       )}
@@ -47,7 +47,7 @@ export function PostCard({ post, featured = false }: { post: PublicPost; feature
         className={featured ? "aspect-[16/9] lg:aspect-auto lg:min-h-[22rem]" : "aspect-[16/9]"}
       />
       <div className={`flex flex-1 flex-col ${featured ? "p-6 sm:p-8 lg:justify-center" : "p-5"}`}>
-        {post.tags.length > 0 && <p className="text-xs font-semibold uppercase tracking-wider text-brand">{post.tags.join(" · ")}</p>}
+        {post.tags.length > 0 && <p className="text-xs font-semibold uppercase tracking-wider text-ink">{post.tags.join(" · ")}</p>}
         <h2 className={`mt-2 font-bold text-ink ${featured ? "text-2xl sm:text-3xl" : "text-xl"} ${linkTitle}`}>{post.title}</h2>
         {post.excerpt && <p className={`mt-2 text-body ${featured ? "text-lg" : "text-sm"} ${linkText}`}>{post.excerpt}</p>}
         <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-4 text-sm text-muted">
@@ -55,7 +55,7 @@ export function PostCard({ post, featured = false }: { post: PublicPost; feature
           <span aria-hidden>·</span>
           <span>{readingMinutes(post.body)} min read</span>
           {featured && (
-            <span className="ml-auto inline-flex items-center gap-1 font-medium text-brand">
+            <span className="ml-auto inline-flex items-center gap-1 font-medium text-ink">
               {blog.readMore} <ArrowRight className="h-4 w-4" aria-hidden />
             </span>
           )}

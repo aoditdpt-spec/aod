@@ -72,7 +72,7 @@ function PasswordDialog({ pending, onClose }: { pending: Pending; onClose: () =>
         className="relative w-full max-w-md rounded-card bg-surface p-6 shadow-2xl"
       >
         <div className="flex items-start justify-between gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach text-brand">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach text-ink">
             <Lock className="h-5 w-5" aria-hidden />
           </span>
           <button type="button" onClick={onClose} disabled={busy} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-wash hover:text-ink">

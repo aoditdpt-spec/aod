@@ -33,7 +33,7 @@ export function BusinessOrders({ orders, onBook }: { orders: CustomerOrder[]; on
             aria-pressed={filter === s.id}
             onClick={() => setFilter(s.id)}
             className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
-              filter === s.id ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"
+              filter === s.id ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-ink/50"
             }`}
           >
             {s.label} <span className="text-muted">{count(s.id)}</span>

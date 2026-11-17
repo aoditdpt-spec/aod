@@ -92,7 +92,7 @@ function LiveSignIn() {
             hint={
               <>
                 Sent to {email}. Check spam if it isn&apos;t there in a minute.{" "}
-                <button type="button" onClick={() => (setSent(false), setCode(""))} className="font-medium text-brand underline underline-offset-2">
+                <button type="button" onClick={() => (setSent(false), setCode(""))} className="font-medium text-ink underline underline-offset-2">
                   Change
                 </button>
               </>
@@ -132,7 +132,7 @@ function LiveSignIn() {
       </form>
       <p className="mt-6 border-t border-line pt-5 text-sm text-body">
         New to AOD?{" "}
-        <Link href={sectionLink("/artists/apply")} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+        <Link href={sectionLink("/artists/apply")} className="font-medium text-ink underline underline-offset-4 hover:text-brand-hover">
           Apply to join
         </Link>
       </p>
@@ -245,7 +245,7 @@ function PreviewSignIn() {
               <>
                 {method === "phone" ? "Sent on WhatsApp to +91 " : "Sent to "}
                 {contact}.{" "}
-                <button type="button" onClick={() => setSent(false)} className="font-medium text-brand underline underline-offset-2">
+                <button type="button" onClick={() => setSent(false)} className="font-medium text-ink underline underline-offset-2">
                   Change
                 </button>
               </>
@@ -292,7 +292,7 @@ function PreviewSignIn() {
 
       <p className="mt-6 border-t border-line pt-5 text-sm text-body">
         New to AOD?{" "}
-        <Link href={sectionLink("/artists/apply")} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+        <Link href={sectionLink("/artists/apply")} className="font-medium text-ink underline underline-offset-4 hover:text-brand-hover">
           Apply to join
         </Link>
       </p>

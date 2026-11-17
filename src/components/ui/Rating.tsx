@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 export function Rating({ rating, count, unit }: { rating: number; count?: number; unit?: string }) {
   return (
     <p className="flex items-center gap-1 text-sm text-muted">
-      <Star aria-hidden className="h-4 w-4 fill-brand-bright text-brand-bright" />
+      <Star aria-hidden className="h-4 w-4 fill-ink text-ink" />
       <span className="font-medium text-ink">{rating.toFixed(2).replace(/0$/, "")}</span>
       {count !== undefined && (
         <span>
@@ -23,7 +23,7 @@ export function Stars({ value, className = "h-5 w-5" }: { value: number; classNa
     <span role="img" aria-label={`${value} out of 5 stars`} className="relative inline-flex gap-0.5">
       <span className="inline-flex gap-0.5">{row("fill-line text-line")}</span>
       <span className="absolute inset-y-0 left-0 inline-flex gap-0.5 overflow-hidden" style={{ width: `${(value / 5) * 100}%` }}>
-        {row("fill-brand-bright text-brand-bright")}
+        {row("fill-ink text-ink")}
       </span>
     </span>
   );

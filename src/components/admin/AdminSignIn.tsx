@@ -77,13 +77,13 @@ function LiveSignIn() {
             </>
           ) : (
             <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-brand">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-ink">
                 <KeyRound className="h-5 w-5" aria-hidden />
               </span>
               <h1 className="mt-4 text-2xl font-bold">Check your email</h1>
               <p className="mt-1 text-sm text-muted">
                 Enter the 6-digit code sent to {email}.{" "}
-                <button type="button" onClick={() => { setSent(false); setCode(""); }} className="font-medium text-brand underline underline-offset-2">
+                <button type="button" onClick={() => { setSent(false); setCode(""); }} className="font-medium text-ink underline underline-offset-2">
                   Change
                 </button>
               </p>
@@ -189,7 +189,7 @@ function PreviewSignIn() {
                 <legend className="text-sm font-medium text-ink">Preview as</legend>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {roles.map((r) => (
-                    <label key={r.id} className={`cursor-pointer rounded-lg border p-2.5 text-xs ${role === r.id ? "border-brand bg-peach/40" : "border-line hover:border-brand/50"}`}>
+                    <label key={r.id} className={`cursor-pointer rounded-lg border p-2.5 text-xs ${role === r.id ? "border-brand bg-peach/40" : "border-line hover:border-ink/50"}`}>
                       <input type="radio" name="role" value={r.id} checked={role === r.id} onChange={() => setRole(r.id)} className="sr-only" />
                       <span className="block text-sm font-medium text-ink">{r.label}</span>
                       <span className="mt-0.5 block text-muted">{r.text}</span>
@@ -200,7 +200,7 @@ function PreviewSignIn() {
             </>
           ) : (
             <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-brand">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-ink">
                 <KeyRound className="h-5 w-5" aria-hidden />
               </span>
               <h1 className="mt-4 text-2xl font-bold">2-step verification</h1>

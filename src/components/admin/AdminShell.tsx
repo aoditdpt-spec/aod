@@ -66,7 +66,7 @@ function LiveBadge() {
   const on = connection === "live";
   if (saving) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-peach/60 px-2 py-1 text-xs font-medium text-brand-hover" role="status">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-peach/60 px-2 py-1 text-xs font-medium text-ink" role="status">
         <Spinner className="h-3 w-3" /> Saving…
       </span>
     );
@@ -258,7 +258,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"}`}
               >
-                <I className={`h-4 w-4 ${active ? "text-brand" : "text-muted"}`} aria-hidden />
+                <I className={`h-4 w-4 ${active ? "text-ink" : "text-muted"}`} aria-hidden />
                 <span className="flex-1">{label}</span>
                 {n > 0 && <span className="rounded-full bg-brand px-1.5 text-[0.7rem] font-medium text-white">{n}</span>}
               </Link>

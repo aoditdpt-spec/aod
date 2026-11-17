@@ -165,7 +165,7 @@ export function ApplyForm() {
           <Link href={sectionLink("/artists")} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-6 font-medium text-white hover:bg-brand-hover">
             Sign in to follow it
           </Link>
-          <Link href={siteHref("/for-artists")} className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash">
+          <Link href={siteHref("/for-artists")} className="inline-flex h-12 items-center justify-center rounded-lg border border-ink px-6 font-medium text-ink hover:bg-ink hover:text-surface">
             Back to For Artists
           </Link>
         </div>
@@ -193,7 +193,7 @@ export function ApplyForm() {
       .join("\n");
     return (
       <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-surface p-6 text-center sm:p-10">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-ink">
           <Info className="h-7 w-7" aria-hidden />
         </span>
         <h2 className="mt-6 text-2xl font-bold sm:text-3xl">Your application is ready, but not sent</h2>
@@ -221,7 +221,7 @@ export function ApplyForm() {
               modeStore.set("applicant");
               router.push(sectionLink("/artists/dashboard"));
             }}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border-2 border-brand px-6 font-medium text-brand hover:bg-wash"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-ink px-6 font-medium text-ink hover:bg-ink hover:text-surface"
           >
             See the applicant dashboard
           </button>
@@ -263,7 +263,7 @@ export function ApplyForm() {
                 >
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
-                      done ? "bg-brand text-white" : now ? "bg-peach text-brand-hover" : "bg-surface text-muted ring-1 ring-line"
+                      done ? "bg-ink text-surface" : now ? "bg-peach text-ink" : "bg-surface text-muted ring-1 ring-line"
                     }`}
                   >
                     {done ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
@@ -316,7 +316,7 @@ export function ApplyForm() {
             <span className="text-body">
               Filled in on this browser before{profile.fullName.trim() ? ` (${profile.fullName.trim()})` : ""}.
             </span>
-            <button type="button" onClick={startFresh} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
+            <button type="button" onClick={startFresh} className="font-medium text-ink underline underline-offset-4 hover:text-brand-hover">
               Not you? Start a fresh application
             </button>
           </div>
@@ -445,7 +445,7 @@ function AboutStep({
                   setCode("");
                   setCodeError(null);
                 }}
-                className="shrink-0 rounded-xl border border-brand px-4 text-sm font-medium text-brand hover:bg-wash disabled:cursor-not-allowed disabled:border-line disabled:text-muted"
+                className="shrink-0 rounded-xl border border-ink px-4 text-sm font-medium text-ink hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:border-line disabled:text-muted"
               >
                 {codeSent ? "Resend code" : "Send code"}
               </button>
@@ -550,10 +550,10 @@ function CraftStep({ profile, set, errors }: StepProps) {
                   aria-pressed={on}
                   onClick={() => set({ category: c.slug, otherCategories: others, services: keepServices([c.slug, ...others]) })}
                   className={`flex w-full items-center gap-2 rounded-xl border px-3 py-3 text-left text-sm transition-colors ${
-                    on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"
+                    on ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-ink/50"
                   }`}
                 >
-                  <Icon name={c.icon} className="h-4 w-4 shrink-0 text-brand" /> {c.name}
+                  <Icon name={c.icon} className="h-4 w-4 shrink-0 text-ink" /> {c.name}
                 </button>
               </li>
             );
@@ -581,10 +581,10 @@ function CraftStep({ profile, set, errors }: StepProps) {
                     aria-pressed={on}
                     onClick={() => set({ otherCategories: others, services: keepServices([profile.category, ...others]) })}
                     className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                      on ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-body hover:border-brand/50"
+                      on ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-body hover:border-ink/50"
                     }`}
                   >
-                    {on ? <Check className="h-3.5 w-3.5 text-brand" aria-hidden /> : <Icon name={c.icon} className="h-3.5 w-3.5 text-brand" />}
+                    {on ? <Check className="h-3.5 w-3.5 text-ink" aria-hidden /> : <Icon name={c.icon} className="h-3.5 w-3.5 text-ink" />}
                     {c.name}
                   </button>
                 );
@@ -692,11 +692,11 @@ function VerifyStep({ profile, set, errors }: StepProps) {
       <div className="space-y-3 rounded-xl border border-line p-5">
         <CheckRow checked={profile.agreeTerms} onChange={(agreeTerms) => set({ agreeTerms })}>
           I agree to the AOD{" "}
-          <a href={siteHref("/terms")} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-2">
+          <a href={siteHref("/terms")} target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline underline-offset-2">
             terms
           </a>{" "}
           and{" "}
-          <a href={siteHref("/privacy")} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-2">
+          <a href={siteHref("/privacy")} target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline underline-offset-2">
             privacy policy
           </a>
           . I confirm that all the information above is true and the work I&apos;ve shared is my own, and I agree to
@@ -776,7 +776,7 @@ function ReviewStep({ profile, goTo }: { profile: ArtistProfile; goTo: (step: St
         <div key={r.title} className="rounded-xl border border-line p-5">
           <div className="flex items-center justify-between">
             <h3 className="text-ink font-bold">{r.title}</h3>
-            <button type="button" onClick={() => goTo(r.step)} className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-hover">
+            <button type="button" onClick={() => goTo(r.step)} className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-brand-hover">
               <Pencil className="h-3.5 w-3.5" aria-hidden /> Edit
             </button>
           </div>

@@ -35,7 +35,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
   if (state.kind === "done") {
     return (
       <p role="status" className={`flex items-start gap-2 text-sm ${dark ? "text-white" : "text-ink"}`}>
-        <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${dark ? "text-apricot" : "text-emerald-400"}`} aria-hidden /> {newsletter.done}
+        <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${dark ? "text-ink" : "text-emerald-400"}`} aria-hidden /> {newsletter.done}
       </p>
     );
   }
@@ -45,7 +45,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
       {heading && (
         <>
           <p className={`flex items-center gap-2 font-display text-lg font-bold ${dark ? "text-white" : "text-ink"}`}>
-            <Mail className={`h-5 w-5 ${dark ? "text-apricot" : "text-brand"}`} aria-hidden /> {newsletter.title}
+            <Mail className={`h-5 w-5 ${dark ? "text-ink" : "text-ink"}`} aria-hidden /> {newsletter.title}
           </p>
           <p className={`mt-1 text-sm ${dark ? "text-white/70" : "text-body"}`}>{newsletter.text}</p>
         </>

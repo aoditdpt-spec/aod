@@ -61,7 +61,7 @@ export function AvailabilityCalendar() {
               onClick={() => setOffset((o) => Math.max(0, o - 1))}
               disabled={offset === 0}
               aria-label="Previous month"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-brand disabled:opacity-40"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-ink disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" aria-hidden />
             </button>
@@ -69,7 +69,7 @@ export function AvailabilityCalendar() {
               type="button"
               onClick={() => setOffset((o) => Math.min(11, o + 1))}
               aria-label="Next month"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-brand"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-ink"
             >
               <ChevronRight className="h-4 w-4" aria-hidden />
             </button>
@@ -132,7 +132,7 @@ export function AvailabilityCalendar() {
                 <span className="text-ink">
                   {new Date(`${d}T00:00:00`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
                 </span>
-                <button type="button" onClick={() => toggle(d)} className="text-sm font-medium text-brand hover:text-brand-hover">
+                <button type="button" onClick={() => toggle(d)} className="text-sm font-medium text-ink hover:text-brand-hover">
                   Free up
                 </button>
               </li>
@@ -143,7 +143,7 @@ export function AvailabilityCalendar() {
         <p className="mt-5 flex items-center gap-2 text-xs text-muted" aria-live="polite">
           {saving > 0 ? (
             <>
-              <Spinner className="h-3.5 w-3.5 text-brand" /> Saving…
+              <Spinner className="h-3.5 w-3.5 text-ink" /> Saving…
             </>
           ) : backendEnabled ? (
             "Saved to your AOD profile as you tap."

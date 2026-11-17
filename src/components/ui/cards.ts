@@ -13,9 +13,9 @@
 //   outline in their own colour rather than a heavier font, so longer lines don't re-wrap and
 //   make the card jump (it passes down to everything inside, so keep it off buttons).
 export const linkCard =
-  "press group border border-line duration-200 hover:border-brand hover:bg-peach/40 hover:ring-1 hover:ring-brand";
+  "press group border border-line duration-200 hover:border-ink hover:bg-wash";
 export const linkCardDark =
-  "press group border border-night-line duration-200 hover:border-tangerine hover:bg-white/10 hover:ring-1 hover:ring-tangerine";
+  "press group border border-night-line duration-200 hover:border-white/60 hover:bg-white/10";
 export const linkTitle = "transition-colors group-hover:font-extrabold group-hover:text-brand";
 export const linkText = "group-hover:font-semibold";
 export const tiltZoom = "transition-transform duration-300 group-hover/tilt:scale-110";

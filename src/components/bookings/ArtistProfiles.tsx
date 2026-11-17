@@ -24,7 +24,7 @@ export function ArtistProfiles({ artists, label }: { artists: MatchedArtist[]; l
               </p>
             </div>
             {a.profile && (
-              <button type="button" onClick={() => setOpen(a)} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-brand hover:border-brand">
+              <button type="button" onClick={() => setOpen(a)} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink hover:border-ink">
                 View profile
               </button>
             )}

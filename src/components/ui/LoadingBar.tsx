@@ -83,7 +83,7 @@ export function LoadingBar() {
         className={`pointer-events-none fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 transition duration-200 ${slow ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
       >
         <span className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-lg">
-          <Spinner className="h-4 w-4 text-brand" /> Loading…
+          <Spinner className="h-4 w-4 text-ink" /> Loading…
         </span>
       </div>
     </div>

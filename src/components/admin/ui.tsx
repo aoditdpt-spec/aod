@@ -128,7 +128,7 @@ export function ActionButton({
 // ---- Display ----
 
 const toneClass: Record<Tone, string> = {
-  brand: "bg-peach text-brand-hover",
+  brand: "bg-peach text-ink",
   wait: "bg-amber-950/50 text-amber-200",
   good: "bg-emerald-950/50 text-emerald-300",
   bad: "bg-red-950/50 text-red-300",
@@ -323,7 +323,7 @@ export function PortfolioFiles({ files }: { files?: PortfolioFile[] }) {
     <ul className="grid grid-cols-3 gap-2">
       {files.map((f) => (
         <li key={f.path}>
-          <a href={portfolioUrl(f.path)} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg border border-line bg-wash hover:border-brand" title={f.name}>
+          <a href={portfolioUrl(f.path)} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg border border-line bg-wash hover:border-ink" title={f.name}>
             {f.type.startsWith("image/") && f.type !== "image/heic" ? (
               // eslint-disable-next-line @next/next/no-img-element -- files from the storage bucket
               <img src={portfolioUrl(f.path)} alt={f.name} loading="lazy" className="h-full w-full object-cover" />

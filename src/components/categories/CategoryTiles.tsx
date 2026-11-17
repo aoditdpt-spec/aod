@@ -31,13 +31,13 @@ export function CategoryTiles({ items = categories, className = "" }: { items?: 
                 />
               ) : (
                 <span className="flex h-full items-center justify-center">
-                  <Icon name={c.icon} className="h-8 w-8 text-brand" strokeWidth={1.5} />
+                  <Icon name={c.icon} className="h-8 w-8 text-ink" strokeWidth={1.5} />
                 </span>
               )}
             </span>
             <span className="flex flex-1 flex-col px-0.5 pb-1 pt-2.5 sm:px-1.5">
               <span className={`text-[0.8125rem] font-bold leading-tight tracking-[-0.01em] text-ink hyphens-auto [overflow-wrap:anywhere] sm:text-base sm:tracking-normal ${linkTitle}`}>{c.name}</span>
-              <span className={`mt-auto inline-flex items-center gap-1 pt-1.5 text-xs font-medium text-brand sm:text-sm ${linkText}`}>
+              <span className={`mt-auto inline-flex items-center gap-1 pt-1.5 text-xs font-medium text-ink sm:text-sm ${linkText}`}>
                 {bookByCategory.tileAction}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </span>
@@ -47,12 +47,12 @@ export function CategoryTiles({ items = categories, className = "" }: { items?: 
       ))}
       <StaggerItem>
         <Link href="/book" className={`flex h-full flex-col rounded-2xl bg-surface p-1.5 sm:p-2 ${linkCard}`}>
-          <span className="flex aspect-square items-center justify-center rounded-xl bg-brand">
+          <span className="flex aspect-square items-center justify-center rounded-xl bg-peach">
             <Sparkles className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} aria-hidden />
           </span>
           <span className="flex flex-1 flex-col px-0.5 pb-1 pt-2.5 sm:px-1.5">
             <span className={`text-[0.8125rem] font-bold leading-tight tracking-[-0.01em] text-ink hyphens-auto [overflow-wrap:anywhere] sm:text-base sm:tracking-normal ${linkTitle}`}>{bookByCategory.unsure.title}</span>
-            <span className={`mt-auto inline-flex items-center gap-1 pt-1.5 text-xs font-medium text-brand sm:text-sm ${linkText}`}>
+            <span className={`mt-auto inline-flex items-center gap-1 pt-1.5 text-xs font-medium text-ink sm:text-sm ${linkText}`}>
               {bookByCategory.unsure.action}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </span>

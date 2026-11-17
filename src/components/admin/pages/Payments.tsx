@@ -96,7 +96,7 @@ export function Payments() {
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => router.push(t.id === "verify" ? pathname : `${pathname}?tab=${t.id}`, { scroll: false })}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === t.id ? "border-brand text-ink" : "border-transparent text-muted hover:text-ink"}`}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === t.id ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}
           >
             {t.label}
             {t.id === "verify" && pending.length > 0 && <span className="ml-1.5 rounded-full bg-brand px-1.5 text-xs text-white">{pending.length}</span>}
@@ -138,7 +138,7 @@ function VerifyCard({ p, db }: { p: Payment; db: Db }) {
         {booking && (
           <p className="text-muted">
             For{" "}
-            <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="font-medium text-brand">
+            <Link href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="font-medium text-ink">
               {booking.id}
             </Link>{" "}
             · {itemsLabel(booking.items)} · expected {inr(expected)}
@@ -202,7 +202,7 @@ function PaymentDrawer({ p, db, onClose }: { p: Payment; db: Db; onClose: () => 
             ["Amount", inr(p.amount)],
             ["UTR", <span key="u" className="font-mono">{p.utr}</span>],
             ["Reported", fmtDate(p.reportedAt, true)],
-            ["Booking", booking ? <Link key="b" href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-brand">{booking.id} · {itemsLabel(booking.items)}</Link> : p.bookingId],
+            ["Booking", booking ? <Link key="b" href={sectionLink(`/admin/bookings?open=${booking.id}`)} className="text-ink">{booking.id} · {itemsLabel(booking.items)}</Link> : p.bookingId],
             ["Checked by", p.checkedBy ? `${p.checkedBy}, ${fmtDate(p.checkedAt, true)}` : "Not yet"],
             ["Reason", p.reason ?? "—"],
           ]}

@@ -104,7 +104,7 @@ export function Chat() {
                     {artist.email} · {artist.id} · {categoryNames(artist)}
                   </p>
                 </div>
-                <Link href={sectionLink(`/admin/artists?open=${artist.id}`)} className="shrink-0 text-sm font-medium text-brand hover:underline">
+                <Link href={sectionLink(`/admin/artists?open=${artist.id}`)} className="shrink-0 text-sm font-medium text-ink hover:underline">
                   Profile
                 </Link>
               </div>

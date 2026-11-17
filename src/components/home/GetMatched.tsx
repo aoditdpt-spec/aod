@@ -15,7 +15,7 @@ export function GetMatched() {
         <div className="lg:sticky lg:top-24">
           <p className="flex items-center gap-3 text-lg text-ink">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-peach">
-              <Sparkles className="h-4 w-4 text-brand" aria-hidden />
+              <Sparkles className="h-4 w-4 text-ink" aria-hidden />
             </span>
             {getMatched.eyebrow}
           </p>
@@ -27,13 +27,13 @@ export function GetMatched() {
 
           {/* Laptops only: fills the left side beside the questions; on phones the questions come first. */}
           <div className="hidden lg:block">
-            <h3 className="mt-10 text-xs font-semibold uppercase tracking-[0.15em] text-brand">{getMatched.nextTitle}</h3>
+            <h3 className="mt-10 text-xs font-semibold uppercase tracking-[0.15em] text-ink">{getMatched.nextTitle}</h3>
             <ol className="mt-5 space-y-5">
               {howItWorks.clients.map((s, i) => (
                 <li key={s.title} className="relative flex gap-4">
                   {/* A thin line joins the numbers into a timeline. */}
                   {i < howItWorks.clients.length - 1 && <span aria-hidden className="absolute left-4 top-9 h-[calc(100%-1rem)] w-px bg-line" />}
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach text-sm font-medium text-brand-hover">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach text-sm font-medium text-ink">
                     {i + 1}
                   </span>
                   <span>
@@ -47,14 +47,14 @@ export function GetMatched() {
             <div className="mt-10 max-w-md rounded-card border border-line bg-wash p-5">
               <p className="font-medium text-ink">{getMatched.talkTitle}</p>
               <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                <a href={brand.phoneHref} className="inline-flex items-center gap-2 font-medium text-brand hover:text-brand-hover">
+                <a href={brand.phoneHref} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand-hover">
                   <Phone className="h-4 w-4" aria-hidden /> {brand.phoneDisplay}
                 </a>
                 <a
                   href={whatsappUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-medium text-brand hover:text-brand-hover"
+                  className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand-hover"
                 >
                   <WhatsAppIcon className="h-4 w-4" /> Chat on WhatsApp
                 </a>

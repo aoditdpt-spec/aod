@@ -48,12 +48,12 @@ export function ApprovalSteps() {
     {
       label: "Profile photo",
       text: "A clear photo of your face, shown to the AOD team.",
-      state: profile.photo ? <Badge tone="good">Added</Badge> : <Link href={sectionLink("/artists/profile")} className="text-sm font-medium text-brand hover:underline">Add one</Link>,
+      state: profile.photo ? <Badge tone="good">Added</Badge> : <Link href={sectionLink("/artists/profile")} className="text-sm font-medium text-ink hover:underline">Add one</Link>,
     },
     {
       label: "Portfolio",
       text: `${files} photo${files === 1 ? "" : "s"} or video${files === 1 ? "" : "s"} uploaded, ${profile.links.length} link${profile.links.length === 1 ? "" : "s"}.`,
-      state: files + profile.links.length > 0 ? <Badge tone="good">Shared</Badge> : <Link href={sectionLink("/artists/portfolio")} className="text-sm font-medium text-brand hover:underline">Add work</Link>,
+      state: files + profile.links.length > 0 ? <Badge tone="good">Shared</Badge> : <Link href={sectionLink("/artists/portfolio")} className="text-sm font-medium text-ink hover:underline">Add work</Link>,
     },
     { label: "Artist agreement", text: "Rates, cancellations and conduct, shared by AOD to sign once you're approved.", state: <Badge>{status === "approved" ? "From AOD" : "After approval"}</Badge> },
     { label: "Payout details", text: "Bank account or UPI and PAN, added after your trial booking.", state: <Badge>After the trial</Badge> },
@@ -73,16 +73,16 @@ export function ApprovalSteps() {
             const last = i === approvalSteps.length - 1;
             return (
               <li key={s.id} className="relative flex gap-4 pb-6 last:pb-0">
-                {!last && <span aria-hidden className={`absolute left-[0.9rem] top-8 h-[calc(100%-2rem)] w-0.5 ${isDone ? "bg-brand" : "bg-line"}`} />}
+                {!last && <span aria-hidden className={`absolute left-[0.9rem] top-8 h-[calc(100%-2rem)] w-0.5 ${isDone ? "bg-ink" : "bg-line"}`} />}
                 <span
                   className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
-                    isDone ? "bg-brand text-white" : now ? "bg-surface text-brand ring-2 ring-brand" : closed && i === current ? "bg-red-950/50 text-red-300 ring-1 ring-red-900" : "bg-wash text-muted ring-1 ring-line"
+                    isDone ? "bg-ink text-surface" : now ? "bg-surface text-ink ring-2 ring-brand" : closed && i === current ? "bg-red-950/50 text-red-300 ring-1 ring-red-900" : "bg-wash text-muted ring-1 ring-line"
                   }`}
                 >
                   {isDone ? <Check className="h-4 w-4" aria-hidden /> : closed && i === current ? <X className="h-4 w-4" aria-hidden /> : i + 1}
                 </span>
                 <div className="pt-0.5">
-                  <p className={`flex flex-wrap items-center gap-2 font-medium ${now ? "text-brand" : isDone ? "text-ink" : "text-muted"}`}>
+                  <p className={`flex flex-wrap items-center gap-2 font-medium ${now ? "text-ink" : isDone ? "text-ink" : "text-muted"}`}>
                     {s.title}
                     {now && <Badge tone="brand">Now</Badge>}
                     {isDone && <span className="sr-only">(done)</span>}
@@ -98,7 +98,7 @@ export function ApprovalSteps() {
           href={whatsappUrl("Hi AOD, I have a question about my artist application.")}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-hover"
+          className="mt-6 inline-flex text-sm font-medium text-ink underline underline-offset-4 hover:text-brand-hover"
         >
           Have a question? Message us
         </a>

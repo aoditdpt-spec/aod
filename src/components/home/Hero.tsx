@@ -114,7 +114,7 @@ function HeroDesktop() {
               {hero.artistLine}{" "}
               <a
                 href={portalHref("/artists/apply")}
-                className="font-medium text-apricot underline underline-offset-4 hover:text-white"
+                className="font-medium text-ink underline underline-offset-4 hover:text-white"
               >
                 {hero.artistLink}
               </a>

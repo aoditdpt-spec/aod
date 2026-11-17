@@ -138,9 +138,9 @@ export function InstallPrompt() {
               <ol className="mt-4 space-y-2 text-sm text-ink">
                 {installApp.iosSteps.map((step, i) => (
                   <li key={step} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-peach text-xs font-bold text-brand-hover">{i + 1}</span>
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-peach text-xs font-bold text-ink">{i + 1}</span>
                     {step}
-                    {i === 0 && <Share className="h-4 w-4 shrink-0 text-brand" aria-label="(the Share icon)" />}
+                    {i === 0 && <Share className="h-4 w-4 shrink-0 text-ink" aria-label="(the Share icon)" />}
                   </li>
                 ))}
               </ol>
@@ -149,9 +149,9 @@ export function InstallPrompt() {
                 {installApp.points.map((p) => (
                   <li key={p.text} className="flex gap-3">
                     {p.icon === "shield" ? (
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden />
                     ) : (
-                      <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                      <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden />
                     )}
                     {p.text}
                   </li>
@@ -166,7 +166,7 @@ export function InstallPrompt() {
                 </button>
               ) : done ? (
                 <p className="flex h-12 items-center justify-center gap-2 rounded-lg bg-wash text-sm font-medium text-ink" role="status">
-                  <Check className="h-4 w-4 text-brand" aria-hidden /> {installApp.installing}
+                  <Check className="h-4 w-4 text-ink" aria-hidden /> {installApp.installing}
                 </p>
               ) : (
                 <>

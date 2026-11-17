@@ -53,10 +53,10 @@ export function PhotoPicker({
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => gallery.current?.click()} disabled={busy} className={button}>
-            {busy ? <Spinner /> : <ImageIcon className="h-4 w-4 text-brand" aria-hidden />} {src ? "Change photo" : "Choose from gallery"}
+            {busy ? <Spinner /> : <ImageIcon className="h-4 w-4 text-ink" aria-hidden />} {src ? "Change photo" : "Choose from gallery"}
           </button>
           <button type="button" onClick={() => camera.current?.click()} disabled={busy} className={button}>
-            <Camera className="h-4 w-4 text-brand" aria-hidden /> Take a photo
+            <Camera className="h-4 w-4 text-ink" aria-hidden /> Take a photo
           </button>
         </div>
         {shown ? <p className="mt-1.5 text-xs text-red-400">{shown}</p> : <p className="mt-1.5 text-xs text-muted">A clear photo of your face. JPG or PNG.</p>}
