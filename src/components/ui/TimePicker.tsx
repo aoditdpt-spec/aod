@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Clock, X } from "lucide-react";
 import { time12 } from "@/lib/event-time";
 
-// A scroll-wheel time picker in the style of Material's time dropdown: a field with a clock icon,
-// the time and a clear button; tapping it opens three wheels under it, hour, minutes and AM / PM.
-// The hour and minute wheels go round without end (…11, 12, 1, 2… and …58, 59, 00, 01…); the
-// middle row, on a grey band, is the pick, in orange. Scroll, tap a row or use the arrow keys,
-// then OK; Cancel, Escape or a tap outside leave the time as it was. Values are "HH:MM", 24-hour,
-// as the rest of the site stores them (src/lib/event-time.ts).
+// Scroll-wheel pickers in the style of Material's time dropdown: a field with an icon, the value
+// and a clear button; tapping it opens wheels under it. `TimeField` has three, hour, minutes and
+// AM / PM; `WheelField` has one, over any list (the booking questions' "How many hours?"). The
+// hour and minute wheels go round without end (…11, 12, 1, 2… and …58, 59, 00, 01…); the middle
+// row, on a grey band, is the pick, in orange. Scroll, tap a row or use the arrow keys, then OK;
+// Cancel, Escape or a tap outside leave the value as it was. Times are "HH:MM", 24-hour, as the
+// rest of the site stores them (src/lib/event-time.ts).
 
 const ITEM = 40; // height of one row, px
 const ROWS = 7; // rows on show; the middle one is the pick
@@ -41,14 +42,85 @@ export function TimeField({
   onChange: (time: string) => void; // on OK, or "" when cleared
   defaultTime?: string; // shown on the wheels when nothing is picked yet
 }) {
-  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value || defaultTime);
+  const parts = partsOf(draft);
+  const set = (p: Partial<Parts>) => setDraft(timeOf({ ...parts, ...p }));
+
+  return (
+    <PickerField
+      label={label}
+      shown={value ? time12(value) : ""}
+      icon={Clock}
+      onOpen={() => setDraft(value || defaultTime)}
+      onOk={() => onChange(draft)}
+      onClear={() => onChange("")}
+    >
+      <Wheel label="Hour" items={hours} index={parts.hour} loop onPick={(i) => set({ hour: i })} />
+      <Wheel label="Minutes" items={minutes} index={parts.minute} loop onPick={(i) => set({ minute: i })} />
+      <Wheel label="AM or PM" items={periods} index={parts.period} onPick={(i) => set({ period: i })} />
+    </PickerField>
+  );
+}
+
+// One wheel over a list of choices, with the same field, band and Cancel / OK as TimeField.
+export function WheelField<T extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+  defaultValue,
+  icon = Clock,
+}: {
+  label: string;
+  value: T | null; // null until picked
+  options: readonly { value: T; label: string }[];
+  onChange: (value: T | null) => void; // on OK, or null when cleared
+  defaultValue?: T; // shown on the wheel when nothing is picked yet
+  icon?: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+}) {
+  const indexOf = (v: T | null | undefined) => Math.max(0, options.findIndex((o) => o.value === v));
+  const [draft, setDraft] = useState(indexOf(value ?? defaultValue));
+  const picked = value === null ? undefined : options.find((o) => o.value === value);
+
+  return (
+    <PickerField
+      label={label}
+      shown={picked?.label ?? ""}
+      icon={icon}
+      onOpen={() => setDraft(indexOf(value ?? defaultValue))}
+      onOk={() => onChange(options[draft]?.value ?? null)}
+      onClear={() => onChange(null)}
+    >
+      <Wheel label={label} items={options.map((o) => o.label)} index={draft} onPick={setDraft} width="w-44" />
+    </PickerField>
+  );
+}
+
+// The field and the drop-down holding the wheels, shared by TimeField and WheelField.
+function PickerField({
+  label,
+  shown,
+  icon: Icon,
+  onOpen,
+  onOk,
+  onClear,
+  children,
+}: {
+  label: string;
+  shown: string; // the value as text, "" until picked
+  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  onOpen: () => void;
+  onOk: () => void;
+  onClear: () => void;
+  children: ReactNode; // the wheels
+}) {
+  const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const labelId = useId();
 
   function show() {
-    setDraft(value || defaultTime);
+    onOpen();
     setOpen(true);
   }
   function close() {
@@ -56,7 +128,7 @@ export function TimeField({
     button.current?.focus();
   }
 
-  // A tap outside or Escape closes without changing the time (as Cancel).
+  // A tap outside or Escape closes without changing the value (as Cancel).
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
@@ -75,14 +147,11 @@ export function TimeField({
     };
   }, [open]);
 
-  const parts = partsOf(draft);
-  const set = (p: Partial<Parts>) => setDraft(timeOf({ ...parts, ...p }));
-
   return (
     <div ref={box} className="relative text-sm font-medium text-ink">
       <span id={labelId}>{label}</span>
       <div
-        className={`mt-1.5 flex w-full items-center rounded-xl border bg-white font-normal transition-colors ${
+        className={`mt-1.5 flex w-full items-center rounded-xl border bg-surface font-normal transition-colors ${
           open ? "border-brand ring-1 ring-brand" : "border-line focus-within:border-brand"
         }`}
       >
@@ -95,17 +164,17 @@ export function TimeField({
           aria-labelledby={`${labelId} ${labelId}-value`}
           className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left outline-none"
         >
-          <Clock className={`h-5 w-5 shrink-0 ${open ? "text-brand" : "text-muted"}`} aria-hidden />
-          <span id={`${labelId}-value`} className={`tabular-nums ${value ? "text-ink" : "text-muted"}`}>
-            {value ? time12(value) : "Choose"}
+          <Icon className={`h-5 w-5 shrink-0 ${open ? "text-brand" : "text-muted"}`} aria-hidden />
+          <span id={`${labelId}-value`} className={`tabular-nums ${shown ? "text-ink" : "text-muted"}`}>
+            {shown || "Choose"}
           </span>
         </button>
-        {value && (
+        {shown && (
           <button
             type="button"
             onClick={() => {
               setOpen(false);
-              onChange("");
+              onClear();
             }}
             aria-label={`Clear ${label.toLowerCase()}`}
             className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-wash hover:text-ink"
@@ -118,15 +187,13 @@ export function TimeField({
       {open && (
         <div
           role="dialog"
-          aria-label={`Choose the ${label.toLowerCase()}`}
-          className="absolute left-0 top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-white shadow-xl"
+          aria-label={`Choose ${label.toLowerCase()}`}
+          className="absolute left-0 top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-surface shadow-xl"
         >
           <div className="relative flex justify-center gap-2 px-4 pt-3" style={{ height: ITEM * ROWS + 12 }}>
-            {/* The grey band across the middle row: the time picked. */}
+            {/* The grey band across the middle row: the value picked. */}
             <div aria-hidden className="pointer-events-none absolute inset-x-3 rounded-lg bg-line/70" style={{ top: 12 + PAD, height: ITEM }} />
-            <Wheel label="Hour" items={hours} index={parts.hour} loop onPick={(i) => set({ hour: i })} />
-            <Wheel label="Minutes" items={minutes} index={parts.minute} loop onPick={(i) => set({ minute: i })} />
-            <Wheel label="AM or PM" items={periods} index={parts.period} onPick={(i) => set({ period: i })} />
+            {children}
           </div>
           <div className="flex justify-end gap-1 px-2 py-2">
             <button type="button" onClick={close} className="h-9 rounded-lg px-4 text-sm font-semibold uppercase tracking-wide text-brand hover:bg-wash">
@@ -135,7 +202,7 @@ export function TimeField({
             <button
               type="button"
               onClick={() => {
-                onChange(draft);
+                onOk();
                 close();
               }}
               className="h-9 rounded-lg px-4 text-sm font-semibold uppercase tracking-wide text-brand hover:bg-wash"
@@ -154,7 +221,21 @@ export function TimeField({
 // which makes it go round without end. The row that settles in the middle is the pick.
 const COPIES = 7;
 
-function Wheel({ label, items, index, loop = false, onPick }: { label: string; items: string[]; index: number; loop?: boolean; onPick: (i: number) => void }) {
+function Wheel({
+  label,
+  items,
+  index,
+  loop = false,
+  onPick,
+  width = "w-16",
+}: {
+  label: string;
+  items: string[];
+  index: number;
+  loop?: boolean;
+  onPick: (i: number) => void;
+  width?: string;
+}) {
   const n = items.length;
   const copies = loop ? COPIES : 1;
   const base = loop ? n * Math.floor(COPIES / 2) : 0; // first row of the middle copy
@@ -220,7 +301,7 @@ function Wheel({ label, items, index, loop = false, onPick }: { label: string; i
       tabIndex={0}
       onScroll={onScroll}
       onKeyDown={onKey}
-      className="relative w-16 snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-lg outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-scrollbar]:hidden"
+      className={`relative ${width} snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-lg outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-scrollbar]:hidden`}
       style={{
         paddingBlock: PAD,
         maskImage: "linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)",
@@ -234,7 +315,7 @@ function Wheel({ label, items, index, loop = false, onPick }: { label: string; i
           role="option"
           aria-selected={p === center}
           onClick={() => mod(p) !== index && onPick(mod(p))}
-          className={`flex snap-center cursor-pointer items-center justify-center tabular-nums transition-colors ${
+          className={`flex snap-center cursor-pointer items-center justify-center whitespace-nowrap tabular-nums transition-colors ${
             p === center ? "text-xl font-semibold text-brand" : "text-base text-muted"
           }`}
           style={{ height: ITEM }}

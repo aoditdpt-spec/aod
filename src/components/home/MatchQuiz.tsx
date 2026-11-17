@@ -5,11 +5,11 @@ import Link from "next/link";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eraser, Mail, MapPin, RotateCcw, Undo2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eraser, Hourglass, Mail, MapPin, RotateCcw, Undo2, X } from "lucide-react";
 import { categories, cities, type Audience } from "@/content/site";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { Spinner } from "@/components/ui/Spinner";
-import { TimeField } from "@/components/ui/TimePicker";
+import { TimeField, WheelField } from "@/components/ui/TimePicker";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
 import { backendEnabled } from "@/lib/backend";
@@ -33,6 +33,7 @@ const titles = ["Who do you need?", "What's the occasion?", "When and where?"];
 
 // "How many hours?": half hours up to 12, then whole hours up to 24 (as minutes).
 const hourChoices = [...Array.from({ length: 24 }, (_, i) => (i + 1) * 30), ...Array.from({ length: 12 }, (_, i) => (13 + i) * 60)];
+const hourOptions = hourChoices.map((m) => ({ value: m, label: durationText(m) }));
 
 const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
@@ -770,26 +771,20 @@ export function MatchQuiz({
                     </select>
                   </label>
                 )}
-                <label className="text-sm font-medium text-ink">
-                  How many hours?
-                  <select
-                    value={hours || ""}
-                    onChange={(e) => {
-                      remember();
-                      setHours(Number(e.target.value));
-                    }}
-                    className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
-                  >
-                    <option value="" disabled>
-                      Choose
-                    </option>
-                    {hourChoices.map((m) => (
-                      <option key={m} value={m}>
-                        {durationText(m)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {/* The same scroll wheel as the start time, with Cancel / OK, not the browser's
+                    own list. */}
+                <WheelField
+                  label="How many hours?"
+                  value={hours || null}
+                  options={hourOptions}
+                  defaultValue={180}
+                  icon={Hourglass}
+                  onChange={(m) => {
+                    if ((m ?? 0) === hours) return;
+                    remember();
+                    setHours(m ?? 0);
+                  }}
+                />
                 {/* Scroll wheels (hour, minutes, AM / PM) with Cancel / OK, not the browser's own
                     time picker, which looks different on every phone. */}
                 <TimeField
