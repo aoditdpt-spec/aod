@@ -39,11 +39,11 @@ export function LinkFields({ links, onChange }: { links: string[]; onChange: (li
 
   const hint = (error: string | undefined, ok: boolean, warning?: string) =>
     error ? (
-      <span className="mt-1.5 flex items-start gap-1.5 text-xs font-normal text-red-400">
+      <span className="mt-1.5 flex items-start gap-1.5 text-xs font-normal text-red-600">
         <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden /> {error}
       </span>
     ) : ok ? (
-      <span className={`mt-1.5 flex items-start gap-1.5 text-xs font-normal ${warning ? "text-amber-300" : "text-emerald-300"}`}>
+      <span className={`mt-1.5 flex items-start gap-1.5 text-xs font-normal ${warning ? "text-amber-700" : "text-emerald-700"}`}>
         {warning ? <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden /> : <CheckCircle2 className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />}
         {warning ?? "Looks good."}
       </span>

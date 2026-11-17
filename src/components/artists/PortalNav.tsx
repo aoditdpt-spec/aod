@@ -46,7 +46,7 @@ export function PortalNav() {
     <>
       <PushPrompt as="artist" enabled={portal.data?.kind === "artist"} />
       {/* Phones and tablets */}
-      <nav aria-label="Portal" className="sticky top-16 z-20 border-b border-line bg-surface lg:hidden">
+      <nav aria-label="Portal" className="sticky top-16 z-20 border-b border-line bg-white lg:hidden">
         <ul className="flex gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none]">
           {items.map(({ href, label, icon: I, active, count }) => (
             <li key={href} className="shrink-0">
@@ -55,7 +55,7 @@ export function PortalNav() {
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm ${active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"}`}
               >
-                <I className={`h-4 w-4 ${active ? "text-ink" : "text-muted"}`} aria-hidden />
+                <I className={`h-4 w-4 ${active ? "text-brand" : "text-muted"}`} aria-hidden />
                 {label}
                 {count && <span className="rounded-full bg-brand px-1.5 text-[0.7rem] font-medium text-white">{count}</span>}
               </Link>
@@ -65,7 +65,7 @@ export function PortalNav() {
       </nav>
 
       {/* Laptops and up */}
-      <nav aria-label="Portal" className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-6 lg:flex">
+      <nav aria-label="Portal" className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r border-line bg-white px-3 py-6 lg:flex">
         <ul className="space-y-1">
           {items.map(({ href, label, icon: I, active, count }) => (
             <li key={href}>
@@ -76,7 +76,7 @@ export function PortalNav() {
                   active ? "bg-peach/60 font-medium text-ink" : "text-body hover:bg-wash"
                 }`}
               >
-                <I className={`h-[1.125rem] w-[1.125rem] ${active ? "text-ink" : "text-muted"}`} aria-hidden />
+                <I className={`h-[1.125rem] w-[1.125rem] ${active ? "text-brand" : "text-muted"}`} aria-hidden />
                 <span className="flex-1">{label}</span>
                 {count && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-white">{count}</span>}
               </Link>

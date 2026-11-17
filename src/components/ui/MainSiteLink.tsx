@@ -9,7 +9,7 @@ export function MainSiteLink({ compact = false }: { compact?: boolean }) {
     <a
       href={siteHref("/")}
       aria-label="Back to the main site, aod.co.in"
-      className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-peach px-3 text-sm font-medium text-ink transition-colors hover:bg-ink hover:text-surface"
+      className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-peach px-3 text-sm font-medium text-ink transition-colors hover:bg-brand hover:text-white"
     >
       <ArrowLeft className="h-4 w-4" aria-hidden />
       <span className={compact ? "hidden sm:inline" : undefined}>

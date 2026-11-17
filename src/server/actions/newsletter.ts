@@ -137,7 +137,7 @@ export async function unsubscribe(tokenInput: string): Promise<NewsletterResult>
 
 function issueEmail(subject: string, body: string, unsubscribeHref: string) {
   const blocks = parse(body);
-  const footerHtml = `<p style="margin:0">${copy.emailFooter} <a href="${unsubscribeHref}" style="color:#6b6b6b">${copy.unsubscribeLabel}</a></p>`;
+  const footerHtml = `<p style="margin:0">${copy.emailFooter} <a href="${unsubscribeHref}" style="color:#5c5c5c">${copy.unsubscribeLabel}</a></p>`;
   return {
     html: emailLayout({ bodyHtml: toHtml(blocks, emailStyles), footerHtml }),
     // Plain-text links to the site's own pages ("Book (/book)") get the full address.

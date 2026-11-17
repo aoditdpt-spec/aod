@@ -69,7 +69,7 @@ function Bars({ rows }: { rows: { label: string; value: number; display?: string
         <li key={r.label} className="grid grid-cols-[9rem_1fr_5rem] items-center gap-3 text-sm" title={`${r.label}: ${r.display ?? r.value}`}>
           <span className="truncate text-body">{r.label}</span>
           <span className="h-3 rounded-full bg-wash">
-            <span className="block h-3 rounded-full bg-ink" style={{ width: `${(r.value / max) * 100}%`, minWidth: r.value ? "0.75rem" : 0 }} />
+            <span className="block h-3 rounded-full bg-brand" style={{ width: `${(r.value / max) * 100}%`, minWidth: r.value ? "0.75rem" : 0 }} />
           </span>
           <span className="text-right font-medium text-ink">{r.display ?? r.value}</span>
         </li>
@@ -141,10 +141,10 @@ export function Reports() {
             {masterWorkbook(db).map((s) => (
               <li key={s.name} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <span className="flex items-center gap-2 text-ink">
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-300" aria-hidden /> {s.name} <span className="text-muted">({s.rows.length - 1} rows)</span>
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-700" aria-hidden /> {s.name} <span className="text-muted">({s.rows.length - 1} rows)</span>
                 </span>
                 {allowed("export") && (
-                  <button type="button" onClick={() => exportExcel(`aod-${s.name.toLowerCase().replace(/\W+/g, "-")}-${stamp}.xlsx`, () => buildXlsx([s]))} className="text-sm font-medium text-ink hover:text-brand-hover">
+                  <button type="button" onClick={() => exportExcel(`aod-${s.name.toLowerCase().replace(/\W+/g, "-")}-${stamp}.xlsx`, () => buildXlsx([s]))} className="text-sm font-medium text-brand hover:text-brand-hover">
                     Excel
                   </button>
                 )}
@@ -154,7 +154,7 @@ export function Reports() {
         </Card>
         <Card title="Live Google Sheet">
           <p className="flex items-start gap-3 text-sm text-body">
-            <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden />
+            <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
             Once the backend is connected, the same sheets update a shared Google Sheet every few minutes, so the team can work in a spreadsheet without touching the database.
           </p>
         </Card>

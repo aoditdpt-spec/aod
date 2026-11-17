@@ -158,7 +158,7 @@ export function Messages() {
             <Labelled label="Message" className="mt-4">
               <textarea value={text} onChange={(e) => setEdited(e.target.value)} rows={6} className={`${fieldClass} leading-relaxed`} />
             </Labelled>
-            {/\{\w+\}/.test(text) && <p className="mt-2 text-xs text-amber-200">Some details are missing for this record (shown in braces). Fill them in before sending.</p>}
+            {/\{\w+\}/.test(text) && <p className="mt-2 text-xs text-amber-800">Some details are missing for this record (shown in braces). Fill them in before sending.</p>}
             <div className="mt-4 flex flex-wrap gap-2">
               <a
                 href={recipient?.phone && allowed("messages.send") ? whatsappTo(recipient.phone, text) : undefined}

@@ -37,11 +37,11 @@ const otherSteps: Record<string, string> = { rescheduled: "Date changed", cancel
 
 const statusInfo = (o: CustomerOrder) => {
   if (o.status === "sent") return { label: "Sent on WhatsApp", tone: "bg-wash text-muted" };
-  if (o.status === "cancelled") return { label: "Cancelled", tone: "bg-red-950/50 text-red-300" };
-  if (o.status === "rescheduled") return { label: "Rescheduled", tone: "bg-amber-950/50 text-amber-200" };
+  if (o.status === "cancelled") return { label: "Cancelled", tone: "bg-red-50 text-red-700" };
+  if (o.status === "rescheduled") return { label: "Rescheduled", tone: "bg-amber-50 text-amber-800" };
   const step = customerSteps.find((s) => s.id === o.status);
   const good = ["confirmed", "completed", "delivered", "reviewed"].includes(o.status);
-  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-950/50 text-emerald-300" : "bg-peach text-ink" };
+  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-50 text-emerald-700" : "bg-peach text-brand-hover" };
 };
 
 // What the customer should do next, if anything.
@@ -139,9 +139,9 @@ function LiveMyBookings() {
 
   if (error && !data) {
     return (
-      <div className="mx-auto max-w-md rounded-lg border border-line bg-surface p-6 text-center text-sm text-body">
+      <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 text-center text-sm text-body">
         {error}{" "}
-        <button type="button" onClick={load} className="font-medium text-ink underline underline-offset-2">
+        <button type="button" onClick={load} className="font-medium text-brand underline underline-offset-2">
           Try again
         </button>
       </div>
@@ -179,10 +179,10 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const field = "mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal text-ink outline-none focus:border-brand";
+  const field = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none focus:border-brand";
 
   return (
-    <div className="mx-auto max-w-md rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8">
+    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">{myBookingsCopy.signInTitle}</h2>
       <p className="mt-2 text-sm text-body">{myBookingsCopy.signInText}</p>
       <form
@@ -233,14 +233,14 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
             />
             <span className="mt-1.5 block text-xs font-normal text-muted">
               Sent to {email}.{" "}
-              <button type="button" onClick={() => setSent(false)} className="font-medium text-ink underline underline-offset-2">
+              <button type="button" onClick={() => setSent(false)} className="font-medium text-brand underline underline-offset-2">
                 Change
               </button>
             </span>
           </label>
         )}
         {error && (
-          <p className="text-sm text-red-400" role="alert">
+          <p className="text-sm text-red-600" role="alert">
             {error}
           </p>
         )}
@@ -294,7 +294,7 @@ function BookingsView({
       {/* The account sits at the top right, as on most shops' sites. */}
       <div className="mb-4 flex justify-end">
         <div className="flex min-w-0 items-center gap-2.5 text-sm">
-          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach font-bold uppercase text-ink">
+          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach font-bold uppercase text-brand">
             {email.charAt(0)}
           </span>
           <span className="min-w-0 truncate text-muted">
@@ -304,7 +304,7 @@ function BookingsView({
           <button
             type="button"
             onClick={onSignOut}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 font-medium text-ink hover:border-ink hover:text-brand"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 font-medium text-ink hover:border-brand hover:text-brand"
           >
             <LogOut className="h-4 w-4" aria-hidden /> Sign out
           </button>
@@ -332,7 +332,7 @@ function BookingsView({
                 role="tab"
                 aria-selected={tab === id}
                 onClick={() => setTab(id)}
-                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${tab === id ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${tab === id ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"}`}
               >
                 {label}
               </button>
@@ -351,7 +351,7 @@ function BookingsView({
                       type="button"
                       onClick={() => setOpenId(o.id)}
                       aria-current={openId === o.id ? "true" : undefined}
-                      className={`w-full rounded-2xl border bg-surface p-4 text-left transition hover:border-ink/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
+                      className={`w-full rounded-2xl border bg-white p-4 text-left transition hover:border-brand/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
                     >
                       <span className="flex items-center justify-between gap-2 text-xs text-muted">
                         <span>
@@ -415,7 +415,7 @@ function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: Can
         <strong className="font-medium text-ink">Changed your mind?</strong> You can cancel this booking here until {until} (
         {left < 60 ? `${left} min` : `${Math.floor(left / 60)} h ${left % 60} min`} left, {customerCancelHours} hours after booking). After that, message AOD;
         the{" "}
-        <Link href="/refund-policy" className="font-medium text-ink underline underline-offset-2">
+        <Link href="/refund-policy" className="font-medium text-brand underline underline-offset-2">
           refund policy
         </Link>{" "}
         applies.
@@ -452,13 +452,13 @@ function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: Can
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="mt-3 inline-flex h-10 items-center rounded-lg border border-red-900 bg-surface px-4 text-sm font-medium text-red-300 hover:bg-red-950/50"
+          className="mt-3 inline-flex h-10 items-center rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50"
         >
           Cancel booking
         </button>
       )}
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-400">
+        <p role="alert" className="mt-2 text-sm text-red-600">
           {error}
         </p>
       )}
@@ -480,7 +480,7 @@ function BookAgain({ order: o }: { order: CustomerOrder }) {
         startRebook({ audience, occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
         router.push(rebookHref(audience));
       }}
-      className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-ink hover:text-brand"
+      className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-brand hover:text-brand"
     >
       <RotateCcw className="h-4 w-4" aria-hidden /> Book again
     </button>
@@ -499,7 +499,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
   const paid = o.payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
   const ask = whatsappUrl(`Hi AOD, about my booking ${o.id} (${o.occasion}, ${fmt(o.date)}): `);
   const changeMail = `mailto:${brand.email}?subject=${encodeURIComponent(`Change or cancel booking ${o.id}`)}&body=${encodeURIComponent(`Booking ${o.id}\nWhat I'd like to change:\n`)}`;
-  const box = "rounded-2xl border border-line bg-surface p-5";
+  const box = "rounded-2xl border border-line bg-white p-5";
 
   return (
     <div className="space-y-5">
@@ -536,7 +536,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
                 <li key={step.id} className="flex items-center gap-2 sm:flex-col sm:items-start">
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
-                      done ? "bg-ink text-surface" : now ? "bg-peach text-ink ring-2 ring-brand" : "bg-wash text-muted"
+                      done ? "bg-brand text-white" : now ? "bg-peach text-brand-hover ring-2 ring-brand" : "bg-wash text-muted"
                     }`}
                   >
                     {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
@@ -651,7 +651,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-ink">{inr(p.amount)}</span>
-                    <span className={p.status === "verified" ? "text-emerald-300" : "text-amber-300"}>{p.status === "verified" ? "Confirmed" : "Being checked"}</span>
+                    <span className={p.status === "verified" ? "text-emerald-700" : "text-amber-700"}>{p.status === "verified" ? "Confirmed" : "Being checked"}</span>
                   </span>
                 </li>
               ))}
@@ -666,10 +666,10 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
               <WhatsAppIcon className="h-4 w-4 text-whatsapp" /> Ask about this booking
             </a>
             <a href={changeMail} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
-              <Mail className="h-4 w-4 text-ink" aria-hidden /> Change or cancel by email
+              <Mail className="h-4 w-4 text-brand" aria-hidden /> Change or cancel by email
             </a>
             <Link href={portalHref(`/resolve/new?role=customer&ref=${encodeURIComponent(o.id)}`)} className="inline-flex items-center gap-2 font-medium text-ink hover:text-brand">
-              <Scale className="h-4 w-4 text-ink" aria-hidden /> A dispute with the artist? Raise it
+              <Scale className="h-4 w-4 text-brand" aria-hidden /> A dispute with the artist? Raise it
             </Link>
             <Link href="/refund-policy" className="text-xs text-muted underline underline-offset-2 hover:text-ink">
               Cancellation & refund policy
@@ -719,7 +719,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
               <div className="flex gap-1" role="radiogroup" aria-label="Rating">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} stars`} onClick={() => setRating(n)}>
-                    <Star className={`h-6 w-6 ${n <= rating ? "fill-ink text-ink" : "text-line"}`} aria-hidden />
+                    <Star className={`h-6 w-6 ${n <= rating ? "fill-brand-bright text-brand-bright" : "text-line"}`} aria-hidden />
                   </button>
                 ))}
               </div>
@@ -744,7 +744,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
                 )}
               </button>
               {reviewError && (
-                <p className="mt-2 text-sm text-red-400" role="alert">
+                <p className="mt-2 text-sm text-red-600" role="alert">
                   {reviewError}
                 </p>
               )}

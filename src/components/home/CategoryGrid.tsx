@@ -14,7 +14,7 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
     <Container className="py-12">
       <section id="categories" className="scroll-mt-24">
         <Reveal className="text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink">{categories.length} categories · one booking</p>
+          <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{categories.length} categories · one booking</p>
           <h2 className="mt-3 text-3xl font-normal sm:text-[2.5rem]">{title}</h2>
         </Reveal>
 
@@ -24,7 +24,7 @@ export function CategoryGrid({ title = "Find artists for every kind of event" }:
 
         <Reveal className="mt-10 hidden items-end justify-between gap-5 rounded-3xl bg-wash px-12 py-12 lg:flex">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.15em] text-ink">{bookByCategory.eyebrow}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.15em] text-brand">{bookByCategory.eyebrow}</p>
             <h3 className="mt-3 text-5xl font-bold">{bookByCategory.title}</h3>
             <p className="mt-4 max-w-2xl text-xl text-body">{bookByCategory.text}</p>
           </div>

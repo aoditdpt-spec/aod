@@ -49,18 +49,18 @@ export function PushToggle({ as }: { as: "staff" | "artist" }) {
         type="button"
         disabled={busy}
         onClick={() => void (on ? turnOff() : turnOn())}
-        className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3.5 text-sm font-medium text-ink hover:border-ink disabled:opacity-60"
+        className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink disabled:opacity-60"
       >
         {busy ? <Spinner /> : on ? <BellOff className="h-4 w-4" aria-hidden /> : <Bell className="h-4 w-4" aria-hidden />}
         {on ? "Turn off notifications" : "Get notifications"}
       </button>
       {on && (
-        <button type="button" disabled={busy} onClick={() => void test()} className="inline-flex h-9 items-center rounded-lg border border-line bg-surface px-3.5 text-sm font-medium text-ink hover:border-ink disabled:opacity-60">
+        <button type="button" disabled={busy} onClick={() => void test()} className="inline-flex h-9 items-center rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink disabled:opacity-60">
           Send a test notification
         </button>
       )}
-      {on && !message && <span className="text-xs text-emerald-300">Notifications are on for this device.</span>}
-      {message && <span className={`text-xs ${/^Test sent/.test(message) ? "text-emerald-300" : "text-red-400"}`}>{message}</span>}
+      {on && !message && <span className="text-xs text-emerald-700">Notifications are on for this device.</span>}
+      {message && <span className={`text-xs ${/^Test sent/.test(message) ? "text-emerald-700" : "text-red-600"}`}>{message}</span>}
       {status}
     </div>
   );

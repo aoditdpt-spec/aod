@@ -86,8 +86,8 @@ export function Navbar() {
 
   return (
     // Solid white on phones (a blurred see-through bar costs every frame of scrolling there).
-    <header className="sticky top-0 z-40 border-b border-transparent bg-surface max-lg:border-line lg:bg-surface/95 lg:backdrop-blur">
-      <nav className="mx-auto flex h-14 w-full max-w-[90rem] items-center gap-3 px-4 sm:px-6 lg:h-16 lg:gap-4 lg:px-8 xl:gap-6" aria-label="Main">
+    <header className="sticky top-0 z-40 border-b border-transparent bg-white max-lg:border-line lg:bg-white/95 lg:backdrop-blur">
+      <nav className="mx-auto flex h-14 w-full max-w-page items-center gap-3 px-4 sm:px-6 lg:h-16 lg:gap-4 lg:px-8 xl:gap-6" aria-label="Main">
         <div className="flex min-w-0 items-center">
           <BackButton />
           <Logo />
@@ -96,7 +96,7 @@ export function Navbar() {
         {/* Every link shows from 1024px. To fit them beside the search box on smaller laptops, the
             links are a little smaller below 1280px and the city picker waits until 1152px (the
             booking questions ask for the city when it isn't picked; phones and tablets use the city pill). */}
-        <div className="hidden min-[90rem]:block">
+        <div className="hidden min-[72rem]:block">
           <CityPicker />
         </div>
 
@@ -111,7 +111,7 @@ export function Navbar() {
               <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" aria-hidden />
             </button>
             {/* Opens on hover and on keyboard focus. */}
-            <div className="invisible absolute left-0 top-full w-[32.5rem] rounded-card border border-line bg-surface p-4 opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+            <div className="invisible absolute left-0 top-full w-[32.5rem] rounded-card border border-line bg-white p-4 opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
               <ul className="grid grid-cols-2 gap-1">
                 {categories.map((c) => (
                   <li key={c.slug}>
@@ -160,7 +160,7 @@ export function Navbar() {
             href="/my-bookings"
             aria-label="My bookings"
             title="My bookings"
-            className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-2.5 text-[0.9375rem] text-ink transition-colors hover:border-ink hover:text-brand"
+            className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-2.5 text-[0.9375rem] text-ink transition-colors hover:border-brand hover:text-brand"
           >
             <Ticket className="h-[1.125rem] w-[1.125rem]" aria-hidden />
             <span className="hidden xl:inline">My bookings</span>
@@ -174,7 +174,7 @@ export function Navbar() {
       {/* Phones and tablets: the search bar opens under the logo row from the search button,
           hanging below the bar (out of the page flow, so nothing jumps). */}
       {searchOpen && (
-        <div id="nav-search" className="absolute inset-x-0 top-full border-b border-line bg-surface px-4 pb-2.5 pt-0.5 sm:px-6 lg:hidden">
+        <div id="nav-search" className="absolute inset-x-0 top-full border-b border-line bg-white px-4 pb-2.5 pt-0.5 sm:px-6 lg:hidden">
           <SearchBox variant="nav" autoFocus />
         </div>
       )}

@@ -56,7 +56,7 @@ export function Blog() {
         text={
           <>
             Posts on{" "}
-            <a href={siteHref("/blog")} target="_blank" rel="noopener noreferrer" className="text-ink hover:underline">
+            <a href={siteHref("/blog")} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
               aod.co.in/blog
             </a>
             . Write in simple formatting, preview it, then publish: it shows on the site straight away, and in search results and link previews.
@@ -188,7 +188,7 @@ function PostEditor({ post, onClose }: { post: Post; onClose: () => void }) {
                 href={siteHref(`/blog/${post.slug}`)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-3.5 text-sm font-medium text-ink hover:border-ink"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink"
               >
                 <ExternalLink className="h-4 w-4" aria-hidden /> View on the site
               </a>
@@ -219,7 +219,7 @@ function PostEditor({ post, onClose }: { post: Post; onClose: () => void }) {
       }
     >
       {error && (
-        <p role="alert" className="rounded-lg border border-red-900 bg-red-950/50 px-4 py-3 text-sm text-red-200">
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
         </p>
       )}
@@ -243,7 +243,7 @@ function PostEditor({ post, onClose }: { post: Post; onClose: () => void }) {
                 className="min-w-0 flex-1 bg-transparent px-1 py-2 text-ink outline-none"
               />
             </div>
-            {isLive && slug !== post.slug && <span className="mt-1 block text-xs text-amber-300">Changing a published post&apos;s address breaks links already shared.</span>}
+            {isLive && slug !== post.slug && <span className="mt-1 block text-xs text-amber-700">Changing a published post&apos;s address breaks links already shared.</span>}
           </Labelled>
           <Labelled label={`Summary (shown on the blog and in link previews) · ${f.excerpt.length}/300`}>
             <textarea value={f.excerpt} onChange={(e) => set("excerpt")(e.target.value)} disabled={!editable} rows={2} className={fieldClass} />

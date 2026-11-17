@@ -12,7 +12,7 @@ export function PortalLogo({ href = sectionLink("/artists") }: { href?: string }
   return (
     <Link href={href} className="flex shrink-0 items-center gap-2" aria-label={`${portal.name} home`}>
       <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={85} height={24} priority className="h-6 w-auto" />
-      <span className="rounded-md bg-peach px-2 py-0.5 text-xs font-medium text-ink">for Artists</span>
+      <span className="rounded-md bg-peach px-2 py-0.5 text-xs font-medium text-brand-hover">for Artists</span>
     </Link>
   );
 }
@@ -21,7 +21,7 @@ export function PortalLogo({ href = sectionLink("/artists") }: { href?: string }
 // actions (a sign-in link, the account menu).
 export function PortalHeader({ right, logoHref }: { right?: ReactNode; logoHref?: string }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <PortalLogo href={logoHref} />
         <div className="flex items-center gap-2 sm:gap-3">

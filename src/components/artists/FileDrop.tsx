@@ -110,15 +110,15 @@ export function FileDrop({
         add(e.dataTransfer.files);
       }}
       className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center outline-none transition-colors focus-visible:border-brand ${
-        over ? "border-brand bg-peach/40" : "border-line bg-wash/60 hover:border-ink/50"
+        over ? "border-brand bg-peach/40" : "border-line bg-wash/60 hover:border-brand/50"
       }`}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface text-ink shadow-sm">
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-brand shadow-sm">
         {variant === "gallery" ? <ImagePlus className="h-5 w-5" aria-hidden /> : <Upload className="h-5 w-5" aria-hidden />}
       </span>
       <p className="text-sm text-ink">
         Drag {multiple ? "files" : "a file"} here or{" "}
-        <span className="font-medium text-ink underline underline-offset-4">browse</span>
+        <span className="font-medium text-brand underline underline-offset-4">browse</span>
       </p>
       <p className="max-w-md text-xs text-muted">{hint}</p>
       <input
@@ -143,7 +143,7 @@ export function FileDrop({
       {(multiple || files.length === 0) && zone}
 
       {errors.length > 0 && (
-        <ul className="mt-3 space-y-1 text-xs text-red-400" role="alert">
+        <ul className="mt-3 space-y-1 text-xs text-red-600" role="alert">
           {errors.map((e) => (
             <li key={e}>{e}</li>
           ))}
@@ -164,11 +164,11 @@ export function FileDrop({
                 </>
               ) : (
                 <span className="flex h-full flex-col items-center justify-center gap-2 p-3 text-center text-xs text-muted">
-                  <FileText className="h-6 w-6 text-ink" aria-hidden /> {f.file.name}
+                  <FileText className="h-6 w-6 text-brand" aria-hidden /> {f.file.name}
                 </span>
               )}
               {i === 0 && multiple && (
-                <span className="absolute left-2 bottom-2 rounded-md bg-ink px-2 py-0.5 text-[0.7rem] font-medium text-surface">Cover</span>
+                <span className="absolute left-2 bottom-2 rounded-md bg-brand px-2 py-0.5 text-[0.7rem] font-medium text-white">Cover</span>
               )}
               <span className="absolute right-2 top-2 flex gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
                 {i > 0 && multiple && (
@@ -176,7 +176,7 @@ export function FileDrop({
                     type="button"
                     onClick={() => makeCover(f.id)}
                     aria-label={`Make ${f.file.name} the cover`}
-                    className="rounded-md bg-surface/90 p-1.5 text-ink hover:text-brand"
+                    className="rounded-md bg-white/90 p-1.5 text-ink hover:text-brand"
                   >
                     <Star className="h-3.5 w-3.5" aria-hidden />
                   </button>
@@ -185,7 +185,7 @@ export function FileDrop({
                   type="button"
                   onClick={() => remove(f.id)}
                   aria-label={`Remove ${f.file.name}`}
-                  className="rounded-md bg-surface/90 p-1.5 text-ink hover:text-red-400"
+                  className="rounded-md bg-white/90 p-1.5 text-ink hover:text-red-600"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden />
                 </button>
@@ -198,13 +198,13 @@ export function FileDrop({
       {files.length > 0 && variant === "single" && (
         <ul className="space-y-2">
           {files.map((f) => (
-            <li key={f.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3">
+            <li key={f.id} className="flex items-center gap-3 rounded-xl border border-line bg-white p-3">
               {f.kind === "image" ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={f.url} alt="" className="h-12 w-12 rounded-lg object-cover" />
               ) : (
                 <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-wash">
-                  <FileText className="h-5 w-5 text-ink" aria-hidden />
+                  <FileText className="h-5 w-5 text-brand" aria-hidden />
                 </span>
               )}
               <span className="min-w-0 flex-1">
@@ -214,7 +214,7 @@ export function FileDrop({
               <button
                 type="button"
                 onClick={() => remove(f.id)}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted hover:bg-wash hover:text-red-400"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted hover:bg-wash hover:text-red-600"
               >
                 Remove
               </button>

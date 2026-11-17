@@ -35,7 +35,7 @@ function LiveSignIn() {
 
   if (portal.status === "ready" && portal.data) {
     return (
-      <div className="rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8">
+      <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
         <h2 className="text-2xl font-bold">Welcome back</h2>
         <p className="mt-2 text-sm text-body">Signed in as {portal.data.email}.</p>
         <Link href={sectionLink("/artists/dashboard")} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
@@ -46,7 +46,7 @@ function LiveSignIn() {
   }
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8">
+    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">Sign in</h2>
       <form
         noValidate
@@ -92,7 +92,7 @@ function LiveSignIn() {
             hint={
               <>
                 Sent to {email}. Check spam if it isn&apos;t there in a minute.{" "}
-                <button type="button" onClick={() => (setSent(false), setCode(""))} className="font-medium text-ink underline underline-offset-2">
+                <button type="button" onClick={() => (setSent(false), setCode(""))} className="font-medium text-brand underline underline-offset-2">
                   Change
                 </button>
               </>
@@ -132,7 +132,7 @@ function LiveSignIn() {
       </form>
       <p className="mt-6 border-t border-line pt-5 text-sm text-body">
         New to AOD?{" "}
-        <Link href={sectionLink("/artists/apply")} className="font-medium text-ink underline underline-offset-4 hover:text-brand-hover">
+        <Link href={sectionLink("/artists/apply")} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
           Apply to join
         </Link>
       </p>
@@ -167,7 +167,7 @@ function PreviewSignIn() {
   }
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8">
+    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">Sign in</h2>
 
       <div role="tablist" aria-label="Sign in with" className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-wash p-1">
@@ -190,7 +190,7 @@ function PreviewSignIn() {
               setError(null);
             }}
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              method === value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"
+              method === value ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
             }`}
           >
             <I className="h-4 w-4" aria-hidden /> {label}
@@ -245,7 +245,7 @@ function PreviewSignIn() {
               <>
                 {method === "phone" ? "Sent on WhatsApp to +91 " : "Sent to "}
                 {contact}.{" "}
-                <button type="button" onClick={() => setSent(false)} className="font-medium text-ink underline underline-offset-2">
+                <button type="button" onClick={() => setSent(false)} className="font-medium text-brand underline underline-offset-2">
                   Change
                 </button>
               </>
@@ -292,7 +292,7 @@ function PreviewSignIn() {
 
       <p className="mt-6 border-t border-line pt-5 text-sm text-body">
         New to AOD?{" "}
-        <Link href={sectionLink("/artists/apply")} className="font-medium text-ink underline underline-offset-4 hover:text-brand-hover">
+        <Link href={sectionLink("/artists/apply")} className="font-medium text-brand underline underline-offset-4 hover:text-brand-hover">
           Apply to join
         </Link>
       </p>

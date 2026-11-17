@@ -57,7 +57,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
   }
 
   return (
-    <article className="rounded-xl border border-line bg-surface p-5">
+    <article className="rounded-xl border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="text-xs text-muted">{booking.ref ?? booking.id}</p>
@@ -109,7 +109,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
       {(booking.status === "new" || booking.status === "accepted" || booking.status === "shortlisted") && (
         <div className="mt-4 border-t border-line pt-4">
           {booking.status === "new" && booking.replyBy && (
-            <p className="mb-3 flex items-center gap-1.5 text-xs font-medium text-ink">
+            <p className="mb-3 flex items-center gap-1.5 text-xs font-medium text-brand">
               <Clock className="h-3.5 w-3.5" aria-hidden /> {booking.replyBy}
             </p>
           )}
@@ -154,14 +154,14 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
         </div>
       )}
 
-      {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
 
       {(booking.status === "confirmed" || booking.status === "selected") && !compact && (
         <a
           href={whatsappUrl(`Hi AOD, about booking ${booking.ref ?? booking.id} (${booking.event}, ${booking.date}).`)}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex text-sm font-medium text-ink underline underline-offset-4 hover:text-brand-hover"
+          className="mt-4 inline-flex text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-hover"
         >
           Questions about this booking? Message AOD
         </a>

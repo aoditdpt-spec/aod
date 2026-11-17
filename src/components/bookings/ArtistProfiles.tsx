@@ -24,7 +24,7 @@ export function ArtistProfiles({ artists, label }: { artists: MatchedArtist[]; l
               </p>
             </div>
             {a.profile && (
-              <button type="button" onClick={() => setOpen(a)} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink hover:border-ink">
+              <button type="button" onClick={() => setOpen(a)} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-brand hover:border-brand">
                 View profile
               </button>
             )}
@@ -54,7 +54,7 @@ function Profile({ artist: a }: { artist: MatchedArtist }) {
           <p className="text-muted">
             {a.craft} · {a.city}
           </p>
-          <p className="mt-1 text-xs font-medium text-emerald-300">Verified by AOD</p>
+          <p className="mt-1 text-xs font-medium text-emerald-700">Verified by AOD</p>
         </div>
       </div>
       {p.bio && <p className="whitespace-pre-line text-body">{p.bio}</p>}

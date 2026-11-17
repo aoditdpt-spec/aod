@@ -21,7 +21,7 @@ export function ArtistPhoto({ name, src, className = "h-9 w-9 text-sm", alt = ""
       <img src={src} alt={alt} loading="lazy" onError={() => setFailed(src)} className={`shrink-0 rounded-full bg-wash object-cover ${className}`} />
     );
   return (
-    <span aria-hidden={!alt} className={`flex shrink-0 items-center justify-center rounded-full bg-peach font-medium text-ink ${className}`}>
+    <span aria-hidden={!alt} className={`flex shrink-0 items-center justify-center rounded-full bg-brand font-medium text-white ${className}`}>
       {initials(name)}
     </span>
   );

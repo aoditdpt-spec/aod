@@ -14,9 +14,9 @@ export function PhotoPlaceholder({
     <div
       role="img"
       aria-label={`${label} (photo coming soon)`}
-      className={`relative flex items-center justify-center overflow-hidden rounded-card bg-gradient-to-br from-wash via-peach/40 to-peach ${className}`}
+      className={`relative flex items-center justify-center overflow-hidden rounded-card bg-gradient-to-br from-wash via-peach/40 to-apricot/50 ${className}`}
     >
-      <Icon name={icon} className="relative h-12 w-12 text-ink" strokeWidth={1.25} />
+      <Icon name={icon} className="relative h-12 w-12 text-brand" strokeWidth={1.25} />
     </div>
   );
 }

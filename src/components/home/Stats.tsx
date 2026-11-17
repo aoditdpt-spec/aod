@@ -19,12 +19,12 @@ function StatVisual({ visual, value }: { visual: Stat["visual"]; value: string }
       return (
         <span aria-hidden className="flex -space-x-2">
           {[0, 1, 2].map((i) => (
-            <span key={i} className="flex h-7 w-7 items-center justify-center rounded-full bg-peach ring-2 ring-surface">
-              <User className="h-4 w-4 text-ink" />
+            <span key={i} className="flex h-7 w-7 items-center justify-center rounded-full bg-peach ring-2 ring-white">
+              <User className="h-4 w-4 text-brand" />
             </span>
           ))}
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink ring-2 ring-surface">
-            <BadgeCheck className="h-4 w-4 text-surface" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand ring-2 ring-white">
+            <BadgeCheck className="h-4 w-4 text-white" />
           </span>
         </span>
       );
@@ -35,17 +35,17 @@ function StatVisual({ visual, value }: { visual: Stat["visual"]; value: string }
         <span aria-hidden className="flex gap-1">
           {categories.slice(0, SHOWN_CATEGORIES).map((c) => (
             <span key={c.slug} className="flex h-7 w-7 items-center justify-center rounded-lg bg-wash">
-              <Icon name={c.icon} className="h-4 w-4 text-ink" />
+              <Icon name={c.icon} className="h-4 w-4 text-brand" />
             </span>
           ))}
-          <span className="flex h-7 items-center justify-center rounded-lg bg-peach px-1.5 text-xs font-medium text-ink">
+          <span className="flex h-7 items-center justify-center rounded-lg bg-peach px-1.5 text-xs font-medium text-brand-hover">
             +{categories.length - SHOWN_CATEGORIES}
           </span>
         </span>
       );
     case "smile":
       return (
-        <span aria-hidden className="flex h-7 items-center gap-1.5 rounded-full bg-peach px-3 text-ink">
+        <span aria-hidden className="flex h-7 items-center gap-1.5 rounded-full bg-peach px-3 text-brand">
           <Smile className="h-4 w-4" />
           <Check className="h-4 w-4" />
         </span>
@@ -77,7 +77,7 @@ export function Stats() {
       <StaggerList className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <StaggerItem key={s.label}>
-            <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-surface px-4 py-8 text-center`}>
+            <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-white px-4 py-8 text-center`}>
               <StatBody stat={s} />
             </TiltCard>
           </StaggerItem>

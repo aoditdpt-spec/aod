@@ -44,7 +44,7 @@ function LiveSignIn() {
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
-          <span className="rounded-md bg-ink px-2 py-0.5 text-xs font-medium text-surface">Admin</span>
+          <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
         </div>
         <form
           noValidate
@@ -64,7 +64,7 @@ function LiveSignIn() {
             }
             setBusy(false);
           }}
-          className="rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8"
+          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
         >
           {!sent ? (
             <>
@@ -77,13 +77,13 @@ function LiveSignIn() {
             </>
           ) : (
             <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-ink">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-brand">
                 <KeyRound className="h-5 w-5" aria-hidden />
               </span>
               <h1 className="mt-4 text-2xl font-bold">Check your email</h1>
               <p className="mt-1 text-sm text-muted">
                 Enter the 6-digit code sent to {email}.{" "}
-                <button type="button" onClick={() => { setSent(false); setCode(""); }} className="font-medium text-ink underline underline-offset-2">
+                <button type="button" onClick={() => { setSent(false); setCode(""); }} className="font-medium text-brand underline underline-offset-2">
                   Change
                 </button>
               </p>
@@ -100,7 +100,7 @@ function LiveSignIn() {
             </>
           )}
           {(error || loadError) && (
-            <p className="mt-3 text-sm text-red-400" role="alert">
+            <p className="mt-3 text-sm text-red-600" role="alert">
               {error ?? loadError}
             </p>
           )}
@@ -148,7 +148,7 @@ function PreviewSignIn() {
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
-          <span className="rounded-md bg-ink px-2 py-0.5 text-xs font-medium text-surface">Admin</span>
+          <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
         </div>
         <form
           noValidate
@@ -171,7 +171,7 @@ function PreviewSignIn() {
             signIn({ name: `${name} (${roles.find((r) => r.id === role)?.label})`, email: email.trim(), role });
             router.replace(sectionLink("/admin/dashboard"));
           }}
-          className="rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8"
+          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
         >
           {step === "password" ? (
             <>
@@ -189,7 +189,7 @@ function PreviewSignIn() {
                 <legend className="text-sm font-medium text-ink">Preview as</legend>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {roles.map((r) => (
-                    <label key={r.id} className={`cursor-pointer rounded-lg border p-2.5 text-xs ${role === r.id ? "border-brand bg-peach/40" : "border-line hover:border-ink/50"}`}>
+                    <label key={r.id} className={`cursor-pointer rounded-lg border p-2.5 text-xs ${role === r.id ? "border-brand bg-peach/40" : "border-line hover:border-brand/50"}`}>
                       <input type="radio" name="role" value={r.id} checked={role === r.id} onChange={() => setRole(r.id)} className="sr-only" />
                       <span className="block text-sm font-medium text-ink">{r.label}</span>
                       <span className="mt-0.5 block text-muted">{r.text}</span>
@@ -200,7 +200,7 @@ function PreviewSignIn() {
             </>
           ) : (
             <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-ink">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach text-brand">
                 <KeyRound className="h-5 w-5" aria-hidden />
               </span>
               <h1 className="mt-4 text-2xl font-bold">2-step verification</h1>
@@ -218,7 +218,7 @@ function PreviewSignIn() {
             </>
           )}
           {error && (
-            <p className="mt-3 text-sm text-red-400" role="alert">
+            <p className="mt-3 text-sm text-red-600" role="alert">
               {error}
             </p>
           )}
@@ -232,7 +232,7 @@ function PreviewSignIn() {
             signIn({ name: "AOD Team (Admin)", email: "owner@example.com", role: "owner" });
             router.replace(sectionLink("/admin/dashboard"));
           }}
-          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-surface text-sm font-medium text-ink hover:border-ink"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-medium text-ink hover:border-ink"
         >
           Open the admin as Admin (see everything)
         </button>

@@ -31,10 +31,10 @@ function Track({ order }: { order: CustomerOrder }) {
         const now = i === done - 1;
         return (
           <li key={s.id} className="relative flex flex-col items-center text-center">
-            {i > 0 && <span aria-hidden className={`absolute right-1/2 top-4 -z-0 h-0.5 w-full ${on ? "bg-ink" : "bg-line"}`} />}
+            {i > 0 && <span aria-hidden className={`absolute right-1/2 top-4 -z-0 h-0.5 w-full ${on ? "bg-brand" : "bg-line"}`} />}
             <span
               className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                on ? "bg-ink text-surface" : "bg-surface text-muted ring-1 ring-line"
+                on ? "bg-brand text-white" : "bg-white text-muted ring-1 ring-line"
               } ${now ? "ring-4 ring-peach" : ""}`}
             >
               {on ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
@@ -79,7 +79,7 @@ export function OrderDetail({ order: o }: { order: CustomerOrder }) {
           <div key={k} className="contents">
             <dt className="text-muted">{k}</dt>
             <dd className="flex items-start gap-1.5 text-ink">
-              {k === "City" && o.city && <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink" aria-hidden />}
+              {k === "City" && o.city && <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />}
               {v}
             </dd>
           </div>
@@ -135,7 +135,7 @@ export function OrderDetail({ order: o }: { order: CustomerOrder }) {
                   <span>
                     {inr(p.amount)} · UTR {p.utr}
                   </span>
-                  <span className={p.status === "verified" ? "text-emerald-300" : "text-amber-300"}>{p.status === "verified" ? "Received" : "Being checked"}</span>
+                  <span className={p.status === "verified" ? "text-emerald-700" : "text-amber-700"}>{p.status === "verified" ? "Received" : "Being checked"}</span>
                 </li>
               ))}
             </ul>
@@ -159,7 +159,7 @@ export function OrderDetail({ order: o }: { order: CustomerOrder }) {
               startRebook({ audience: "business", occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
               window.dispatchEvent(new Event(BUSINESS_BOOK_EVENT)); // to the portal's Book artists tab
             }}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-ink px-4 text-sm font-medium text-ink hover:bg-ink hover:text-surface"
+            className="inline-flex h-10 items-center gap-2 rounded-lg border-2 border-brand px-4 text-sm font-medium text-brand hover:bg-wash"
           >
             <RotateCcw className="h-4 w-4" aria-hidden /> Book again
           </button>

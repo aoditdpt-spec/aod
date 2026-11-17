@@ -25,7 +25,7 @@ export function AvailabilityCalendar() {
 
   if (!hydrated)
     return (
-      <div className="mt-8 rounded-lg bg-surface">
+      <div className="mt-8 rounded-[1.25rem] bg-white">
         <PageLoader className="min-h-[28rem]" label="Loading your calendar…" />
       </div>
     );
@@ -61,7 +61,7 @@ export function AvailabilityCalendar() {
               onClick={() => setOffset((o) => Math.max(0, o - 1))}
               disabled={offset === 0}
               aria-label="Previous month"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-ink disabled:opacity-40"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-brand disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" aria-hidden />
             </button>
@@ -69,7 +69,7 @@ export function AvailabilityCalendar() {
               type="button"
               onClick={() => setOffset((o) => Math.min(11, o + 1))}
               aria-label="Next month"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line hover:border-brand"
             >
               <ChevronRight className="h-4 w-4" aria-hidden />
             </button>
@@ -100,7 +100,7 @@ export function AvailabilityCalendar() {
                   past
                     ? "cursor-not-allowed text-muted/40"
                     : off
-                      ? "bg-ink font-medium text-surface line-through decoration-surface/50"
+                      ? "bg-night font-medium text-white line-through decoration-white/50"
                       : "bg-wash text-ink hover:bg-peach/60"
                 } ${isToday ? "ring-2 ring-brand" : ""}`}
               >
@@ -114,7 +114,7 @@ export function AvailabilityCalendar() {
             <span className="h-3 w-3 rounded bg-wash ring-1 ring-line" /> Available
           </span>
           <span className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded bg-ink" /> Unavailable
+            <span className="h-3 w-3 rounded bg-night" /> Unavailable
           </span>
           <span className="flex items-center gap-2">
             <span className="h-3 w-3 rounded ring-2 ring-brand" /> Today
@@ -132,18 +132,18 @@ export function AvailabilityCalendar() {
                 <span className="text-ink">
                   {new Date(`${d}T00:00:00`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
                 </span>
-                <button type="button" onClick={() => toggle(d)} className="text-sm font-medium text-ink hover:text-brand-hover">
+                <button type="button" onClick={() => toggle(d)} className="text-sm font-medium text-brand hover:text-brand-hover">
                   Free up
                 </button>
               </li>
             ))}
           </ul>
         )}
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         <p className="mt-5 flex items-center gap-2 text-xs text-muted" aria-live="polite">
           {saving > 0 ? (
             <>
-              <Spinner className="h-3.5 w-3.5 text-ink" /> Saving…
+              <Spinner className="h-3.5 w-3.5 text-brand" /> Saving…
             </>
           ) : backendEnabled ? (
             "Saved to your AOD profile as you tap."

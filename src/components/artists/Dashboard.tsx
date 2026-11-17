@@ -48,7 +48,7 @@ function ProfileStrength() {
           <li key={c.label}>
             <Link href={c.href} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-wash">
               <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${c.done ? "bg-ink text-surface" : "ring-1 ring-line"}`}
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${c.done ? "bg-brand text-white" : "ring-1 ring-line"}`}
               >
                 {c.done && <Check className="h-3 w-3" aria-hidden />}
               </span>
@@ -73,7 +73,7 @@ export function ModeSwitch() {
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className="text-muted">Preview as</span>
-      <div role="radiogroup" aria-label="Preview as" className="flex rounded-lg bg-surface p-1 ring-1 ring-line">
+      <div role="radiogroup" aria-label="Preview as" className="flex rounded-lg bg-white p-1 ring-1 ring-line">
         {options.map(([value, label]) => (
           <button
             key={value}
@@ -81,7 +81,7 @@ export function ModeSwitch() {
             role="radio"
             aria-checked={mode === value}
             onClick={() => modeStore.set(value)}
-            className={`rounded-md px-3 py-1.5 font-medium transition-colors ${mode === value ? "bg-ink text-surface" : "text-body hover:text-ink"}`}
+            className={`rounded-md px-3 py-1.5 font-medium transition-colors ${mode === value ? "bg-brand text-white" : "text-body hover:text-ink"}`}
           >
             {label}
           </button>
@@ -93,7 +93,7 @@ export function ModeSwitch() {
 
 function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
   return (
-    <div className="rounded-lg border border-line bg-surface p-5">
+    <div className="rounded-[1.25rem] border border-line bg-white p-5">
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-2 text-3xl font-medium text-ink">{value}</p>
       {note && <p className="mt-1 text-xs text-muted">{note}</p>}
@@ -139,7 +139,7 @@ export function Dashboard() {
             action={
               <span className="flex items-center gap-3">
                 {sampleTag}
-                <Link href={sectionLink("/artists/approval")} className="text-sm font-medium text-ink hover:text-brand-hover">
+                <Link href={sectionLink("/artists/approval")} className="text-sm font-medium text-brand hover:text-brand-hover">
                   See every step
                 </Link>
               </span>
@@ -150,7 +150,7 @@ export function Dashboard() {
               detail={
                 <div className="rounded-xl bg-peach/40 p-4">
                   <p className="flex items-center gap-2 text-sm font-medium text-ink">
-                    <Search className="h-4 w-4 text-ink" aria-hidden /> {status?.title ?? "Our team is reviewing your portfolio"}
+                    <Search className="h-4 w-4 text-brand" aria-hidden /> {status?.title ?? "Our team is reviewing your portfolio"}
                   </p>
                   <p className="mt-1 text-sm text-body">{status?.text ?? "We'll message you on WhatsApp if we need anything else."}</p>
                   {live?.meeting && live.applicationStatus === "meeting" && (
@@ -163,7 +163,7 @@ export function Dashboard() {
                     href={whatsappUrl("Hi AOD, I have a question about my artist application.")}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex text-sm font-medium text-ink underline underline-offset-4 hover:text-brand-hover"
+                    className="mt-3 inline-flex text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-hover"
                   >
                     Have a question? Message us
                   </a>
@@ -194,7 +194,7 @@ export function Dashboard() {
               title="New booking requests"
               text="Tap Accept if you are free on the day. AOD shortlists from the artists who accept, and the customer sees the shortlist."
               action={
-                <Link href={sectionLink("/artists/bookings")} className="text-sm font-medium text-ink hover:text-brand-hover">
+                <Link href={sectionLink("/artists/bookings")} className="text-sm font-medium text-brand hover:text-brand-hover">
                   All bookings
                 </Link>
               }

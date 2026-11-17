@@ -21,10 +21,10 @@ export function ExploreGrid() {
 export function ExploreTiles({ className = "" }: { className?: string }) {
   const tile = "press group flex flex-col items-center gap-1.5 rounded-2xl p-1 text-center outline-none focus-visible:ring-2 focus-visible:ring-brand";
   // Long names ("Cinematographers") break rather than spill out of a narrow phone tile.
-  const label = `text-[0.8125rem] font-medium leading-tight text-ink sm:text-sm ${linkTitle}`;
+  const label = `text-[0.8125rem] font-semibold leading-tight text-ink hyphens-auto [overflow-wrap:anywhere] sm:text-sm ${linkTitle}`;
 
   return (
-    <ul className={`grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 sm:gap-x-4 ${className}`}>
+    <ul className={`grid grid-cols-4 gap-x-2 gap-y-4 sm:gap-x-4 ${className}`}>
       {categories.map((c) => (
         <li key={c.slug}>
           <Link href={`/categories/${c.slug}`} className={tile}>
@@ -33,7 +33,7 @@ export function ExploreTiles({ className = "" }: { className?: string }) {
                 <Image src={c.image.src} alt="" fill sizes="22vw" className="object-cover transition-transform duration-300 group-hover:scale-110" />
               ) : (
                 <span className="flex h-full items-center justify-center">
-                  <Icon name={c.icon} className="h-7 w-7 text-ink" strokeWidth={1.5} />
+                  <Icon name={c.icon} className="h-7 w-7 text-brand" strokeWidth={1.5} />
                 </span>
               )}
             </span>
@@ -43,7 +43,7 @@ export function ExploreTiles({ className = "" }: { className?: string }) {
       ))}
       <li>
         <Link href="/book" className={tile}>
-          <span className="flex aspect-square w-full items-center justify-center rounded-2xl bg-peach">
+          <span className="flex aspect-square w-full items-center justify-center rounded-2xl bg-brand">
             <Sparkles className="h-7 w-7 text-white transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} aria-hidden />
           </span>
           <span className={label}>

@@ -45,7 +45,7 @@ export function PhotoPicker({
   }
 
   const button =
-    "inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3.5 text-sm font-medium text-ink hover:border-ink disabled:cursor-wait disabled:opacity-60";
+    "inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-ink hover:border-ink disabled:cursor-wait disabled:opacity-60";
   const shown = error ?? problem;
   return (
     <div className="flex items-center gap-4">
@@ -53,13 +53,13 @@ export function PhotoPicker({
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => gallery.current?.click()} disabled={busy} className={button}>
-            {busy ? <Spinner /> : <ImageIcon className="h-4 w-4 text-ink" aria-hidden />} {src ? "Change photo" : "Choose from gallery"}
+            {busy ? <Spinner /> : <ImageIcon className="h-4 w-4 text-brand" aria-hidden />} {src ? "Change photo" : "Choose from gallery"}
           </button>
           <button type="button" onClick={() => camera.current?.click()} disabled={busy} className={button}>
-            <Camera className="h-4 w-4 text-ink" aria-hidden /> Take a photo
+            <Camera className="h-4 w-4 text-brand" aria-hidden /> Take a photo
           </button>
         </div>
-        {shown ? <p className="mt-1.5 text-xs text-red-400">{shown}</p> : <p className="mt-1.5 text-xs text-muted">A clear photo of your face. JPG or PNG.</p>}
+        {shown ? <p className="mt-1.5 text-xs text-red-600">{shown}</p> : <p className="mt-1.5 text-xs text-muted">A clear photo of your face. JPG or PNG.</p>}
         <input ref={gallery} type="file" accept="image/*" hidden onChange={(e) => void picked(e.target.files?.[0]).then(() => (e.target.value = ""))} />
         <input ref={camera} type="file" accept="image/*" capture="user" hidden onChange={(e) => void picked(e.target.files?.[0]).then(() => (e.target.value = ""))} />
       </div>

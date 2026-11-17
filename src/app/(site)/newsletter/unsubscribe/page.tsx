@@ -14,7 +14,7 @@ export default async function UnsubscribePage({ searchParams }: PageProps<"/news
   const t = (await searchParams).t;
   return (
     <Container className="py-16 sm:py-24">
-      <div className="mx-auto max-w-xl rounded-card border border-line bg-surface p-8 sm:p-10">
+      <div className="mx-auto max-w-xl rounded-card border border-line bg-white p-8 sm:p-10">
         <h1 className="text-3xl font-medium">{newsletter.unsubscribePageTitle}</h1>
         <p className="mt-3 text-body">{newsletter.unsubscribePageText}</p>
         <NewsletterLinkAction mode="unsubscribe" token={typeof t === "string" ? t : ""} />

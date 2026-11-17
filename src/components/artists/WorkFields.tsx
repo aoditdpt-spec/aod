@@ -100,7 +100,7 @@ export function WorkQuestions({
                 className={`${inputClass} mt-2 sm:max-w-sm`}
               />
             )}
-            {errors[q.id] && <p className="mt-1.5 text-xs text-red-400">{errors[q.id]}</p>}
+            {errors[q.id] && <p className="mt-1.5 text-xs text-red-600">{errors[q.id]}</p>}
           </div>
         );
       })}

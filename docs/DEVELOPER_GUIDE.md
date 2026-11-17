@@ -112,7 +112,7 @@ npm run build && npm run lint && npm run check:search && npm run check:links && 
 | Styling | **Tailwind CSS** | 4 | No `tailwind.config`. Design tokens live in the `@theme` block of `src/app/globals.css`. |
 | Animation | **Motion** (`motion/react`) | 14 | Loaded lazily (`LazyMotion strict`): use `m.*` components from `motion/react-m`, never `motion.*`. |
 | Icons | **lucide-react** | 1.x | Mapped by name in `src/components/ui/Icon.tsx`. |
-| Fonts | **Instrument Sans** (one font for everything) | — | Through `next/font/google` in `src/app/layout.tsx`; served from the site itself. |
+| Fonts | **Bricolage Grotesque** (headings) + **Montserrat** (text) | — | Through `next/font/google` in `src/app/layout.tsx`; served from the site itself. |
 | Database, sign-in, files, live updates | **Supabase** (Postgres, Auth, Storage, Realtime) | `@supabase/supabase-js` 2, `@supabase/ssr` 0.12 | Project in Mumbai (`ap-south-1`). |
 | Email | **Resend** | HTTP API | Sign-in codes go through Supabase's SMTP set to Resend; site emails call the Resend API directly (`src/server/notify.ts`). |
 | Orders spreadsheet | **Google Sheets API** with a service account | HTTP API | No Google SDK; the JWT is signed by hand in `src/server/notify.ts`. |
@@ -703,27 +703,22 @@ are baked into the browser code at build time.
 ## 10. Design system
 
 - **Colours:** three only: AOD orange `#ff6201`, white and black. Every other shade is a mix of
-  those; the values follow the dark theme of `design-tests/test*.html`, and the site is **dark
-  only** (no light mode): black `surface`, white `ink`/`body`, `muted` #9a9a9a, `line`/`peach`
-  #262626, `wash`/`night` #0d0d0d. Use `bg-surface` (not `bg-white`) for cards and fields,
-  `bg-ink text-surface` for inverted pills, and the dark status shades (`bg-red-950/50`,
-  `text-red-400`). They are tokens in the
-  `@theme` block of `src/app/globals.css` and used through classes:
+  those. They are tokens in the `@theme` block of `src/app/globals.css` and used through classes:
   `text-ink`, `text-body`, `text-muted`, `bg-brand`, `hover:bg-brand-hover`, `bg-peach`, `bg-wash`,
   `border-line`, `bg-night`… **Never write raw hex values in components**; for a tint use
   `color-mix()` with a token, or an opacity class like `bg-brand/10`. Status colours (red errors,
   green success, amber warnings) and the WhatsApp green stay as they are.
-- **Fonts:** one font, Instrument Sans, in two weights (400 text, 500 headings and buttons; the
-  bolder utilities draw at 500), as in the clean test pages (`design-tests/`).
+- **Fonts:** Bricolage Grotesque for headings (`h1`–`h3` get it automatically; `font-display` puts
+  it on anything else), Montserrat for everything else (`font-sans`).
 - **No text shadows or glows:** no text has a shadow or glow behind it (the old raised
   `text-shadow-3d` headings and the hero's shadows and glows were removed on purpose). Smaller
   headings are bold; buttons and body text are flat.
-- **Size:** `html { font-size: 100% }` (16px) in `globals.css`; everything is in rem. Corners are small (6–10px).
-- **Width:** wrap page content in `Container` (`max-w-page`, 1200px).
+- **Size:** `html { font-size: 81% }` in `globals.css` scales the whole site (everything is in rem).
+- **Width:** wrap page content in `Container` (`max-w-page`, about 1600px).
 - **Buttons:** use `buttonClasses()` / `ButtonLink` from `src/components/ui/Button.tsx`.
 - **Cards:** two kinds (`src/components/ui/cards.ts`). A card that opens a page gets `linkCard`
   (orange border, light orange tint, bold text on hover; `linkTitle` / `linkText` on its text). A
-  card that doesn't open anything is a `TiltCard` (now a still card, for the clean look). Grids
+  card that doesn't open anything is a `TiltCard` (tilts, pops up and zooms; nothing else). Grids
   arrive with `StaggerList` + `StaggerItem`. No light or glow on any card.
 - **Animation:** `m.*` components only (see section 15). Animated elements render their final
   content on the server and carry `data-reveal`; a `<noscript>` rule shows them when JavaScript is

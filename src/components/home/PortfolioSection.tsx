@@ -23,12 +23,12 @@ export function PortfolioSection() {
         </Reveal>
 
         <Reveal className="mt-8">
-          <figure className="overflow-hidden rounded-card border border-line bg-surface">
+          <figure className="overflow-hidden rounded-card border border-line bg-white">
             <div className="aspect-video overflow-hidden bg-night">
               <PortfolioVideo base={mediaBase} label={film.label} />
             </div>
             <figcaption className="flex items-center gap-4 px-5 py-4 text-sm text-muted">
-              <Image src={film.logo} alt={film.logoAlt} width={110} height={40} className="h-10 w-auto shrink-0 box-content rounded-md bg-white px-2.5 py-1.5" />
+              <Image src={film.logo} alt={film.logoAlt} width={110} height={40} className="h-10 w-auto shrink-0" />
               <span>
                 <strong className="block font-bold text-ink">{film.title}</strong>
                 {film.text}
@@ -38,8 +38,8 @@ export function PortfolioSection() {
         </Reveal>
 
         <Reveal delay={0.1} className="mt-6">
-          <p className="flex items-center gap-3 rounded-card border border-line bg-surface p-5 font-semibold text-ink">
-            <Image src={portfolio.trustLogo} alt="" width={44} height={44} className="h-11 w-11 shrink-0 box-content rounded-md bg-white p-1" />
+          <p className="flex items-center gap-3 rounded-card border border-line bg-white p-5 font-semibold text-ink">
+            <Image src={portfolio.trustLogo} alt="" width={44} height={44} className="h-11 w-11 shrink-0" />
             {portfolio.trust}
           </p>
         </Reveal>

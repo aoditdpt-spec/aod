@@ -89,7 +89,7 @@ function LivePortal({ hero, rest }: Props) {
     );
   return (
     <Container className="py-8 sm:py-12">
-      {error && <p className="mb-4 rounded-lg bg-red-950/50 p-3 text-sm text-red-300">Couldn&apos;t load your orders just now. Refresh to try again.</p>}
+      {error && <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">Couldn&apos;t load your orders just now. Refresh to try again.</p>}
       <BusinessApp
         company={company}
         orders={data?.orders ?? []}

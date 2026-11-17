@@ -17,7 +17,7 @@ export function BusinessOrders({ orders, onBook }: { orders: CustomerOrder[]; on
     .sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999") * -1 || b.createdAt.localeCompare(a.createdAt));
 
   return (
-    <section className="rounded-lg border border-line bg-surface p-4 sm:p-7">
+    <section className="rounded-[1.25rem] border border-line bg-white p-4 sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-ink sm:text-xl">Your orders</h2>
         <button type="button" onClick={onBook} className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover">
@@ -33,7 +33,7 @@ export function BusinessOrders({ orders, onBook }: { orders: CustomerOrder[]; on
             aria-pressed={filter === s.id}
             onClick={() => setFilter(s.id)}
             className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
-              filter === s.id ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-ink/50"
+              filter === s.id ? "border-brand bg-peach/50 font-medium text-ink" : "border-line text-body hover:border-brand/50"
             }`}
           >
             {s.label} <span className="text-muted">{count(s.id)}</span>

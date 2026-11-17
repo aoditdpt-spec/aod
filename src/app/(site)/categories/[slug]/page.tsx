@@ -45,7 +45,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
   return (
     <>
       <Container className="pt-8">
-        <section className="relative overflow-hidden rounded-lg bg-night px-6 py-12 sm:px-16 sm:py-14">
+        <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-14">
           {/* The category photo on the right, fully visible at the right edge and fading into the dark
               towards the left; past where it reaches, the plain dark background. From tablets up the
               photo box takes the photo's own shape at the header's full height, so nothing is cropped.
@@ -68,8 +68,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
               <span className="text-white">{category.name}</span>
             </nav>
             <div className="mt-6 flex items-start gap-5">
-              <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:flex">
-                <Icon name={category.icon} className="h-8 w-8 text-ink" strokeWidth={1.5} />
+              <span className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-tangerine/15 sm:flex">
+                <Icon name={category.icon} className="h-8 w-8 text-tangerine" strokeWidth={1.5} />
               </span>
               <div>
                 <h1 className="text-3xl font-medium !text-white sm:text-5xl">{category.name}</h1>
@@ -96,7 +96,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <StaggerList className={`swipe-row mt-8 grid gap-6 sm:grid-cols-2 ${category.services.length > 8 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           {category.services.map((s) => (
             <StaggerItem key={s.name} className="swipe-item">
-            <TiltCard className={`flex flex-col rounded-lg border border-line bg-surface p-6`}>
+            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6`}>
               {/* The text grows to fill the card, so every card's button sits at the same height. */}
               <div className="flex-1">
               <div className="flex items-start justify-between gap-3">
@@ -128,7 +128,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 rounded-card bg-wash px-6 py-4 text-sm text-ink">
           {guarantees.map((g) => (
             <li key={g.label} className="flex items-center gap-2">
-              <Icon name={g.icon} className="h-4 w-4 text-ink" /> {g.label}
+              <Icon name={g.icon} className="h-4 w-4 text-brand" /> {g.label}
             </li>
           ))}
         </ul>
@@ -142,7 +142,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <Container>
           <div className="grid items-start gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink">{categoryBooking.eyebrow(category.name)}</p>
+              <p className="text-xs font-medium uppercase tracking-[0.15em] text-brand">{categoryBooking.eyebrow(category.name)}</p>
               <h2 id="book-title" className="mt-3 text-3xl font-normal leading-[1.1] sm:text-4xl">
                 {categoryBooking.title}
               </h2>
@@ -165,9 +165,9 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
             <StaggerItem key={c.slug}>
               <Link
                 href={`/categories/${c.slug}`}
-                className={`flex h-full flex-col gap-4 rounded-card bg-surface p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
+                className={`flex h-full flex-col gap-4 rounded-card bg-white p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
               >
-                <Icon name={c.icon} className="h-7 w-7 text-ink" strokeWidth={1.25} />
+                <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
                 <span className={`font-bold text-ink ${linkTitle}`}>{c.name}</span>
                 <span className={`text-sm text-muted ${linkText}`}>{c.short}</span>
               </Link>

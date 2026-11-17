@@ -102,7 +102,7 @@ export function InstallPrompt() {
       {mode && (
         <m.div
           key="install"
-          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-3 sm:items-center"
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 p-3 sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -114,7 +114,7 @@ export function InstallPrompt() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="install-title"
-            className="w-full max-w-md rounded-lg bg-surface p-6 shadow-xl"
+            className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-xl"
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
             exit={{ y: 40, opacity: 0, transition: { duration: 0.2 } }}
@@ -138,9 +138,9 @@ export function InstallPrompt() {
               <ol className="mt-4 space-y-2 text-sm text-ink">
                 {installApp.iosSteps.map((step, i) => (
                   <li key={step} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-peach text-xs font-bold text-ink">{i + 1}</span>
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-peach text-xs font-bold text-brand-hover">{i + 1}</span>
                     {step}
-                    {i === 0 && <Share className="h-4 w-4 shrink-0 text-ink" aria-label="(the Share icon)" />}
+                    {i === 0 && <Share className="h-4 w-4 shrink-0 text-brand" aria-label="(the Share icon)" />}
                   </li>
                 ))}
               </ol>
@@ -149,9 +149,9 @@ export function InstallPrompt() {
                 {installApp.points.map((p) => (
                   <li key={p.text} className="flex gap-3">
                     {p.icon === "shield" ? (
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden />
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
                     ) : (
-                      <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden />
+                      <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
                     )}
                     {p.text}
                   </li>
@@ -166,7 +166,7 @@ export function InstallPrompt() {
                 </button>
               ) : done ? (
                 <p className="flex h-12 items-center justify-center gap-2 rounded-lg bg-wash text-sm font-medium text-ink" role="status">
-                  <Check className="h-4 w-4 text-ink" aria-hidden /> {installApp.installing}
+                  <Check className="h-4 w-4 text-brand" aria-hidden /> {installApp.installing}
                 </p>
               ) : (
                 <>

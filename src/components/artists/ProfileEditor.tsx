@@ -168,7 +168,7 @@ function LiveProfileEditor() {
 
       <LinksAndWork view={view} set={set} />
 
-      <div className="sticky bottom-4 flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-4 shadow-lg">
+      <div className="sticky bottom-4 flex flex-wrap items-center gap-4 rounded-xl border border-line bg-white p-4 shadow-lg">
         <button
           type="button"
           onClick={() => void save()}
@@ -190,7 +190,7 @@ function LiveProfileEditor() {
             Discard
           </button>
         )}
-        {message && <p className={`text-sm ${message.ok ? "text-emerald-300" : "text-red-400"}`}>{message.text}</p>}
+        {message && <p className={`text-sm ${message.ok ? "text-emerald-700" : "text-red-600"}`}>{message.text}</p>}
         {!message && !dirty && <p className="text-sm text-muted">Your profile is up to date.</p>}
       </div>
     </div>
@@ -209,7 +209,7 @@ function PreviewProfileEditor() {
   return (
     <div className="mt-8 max-w-3xl space-y-6">
       {sample && (
-        <p className="rounded-xl border border-line bg-wash p-4 text-sm text-ink">
+        <p className="rounded-xl border border-brand/30 bg-peach/40 p-4 text-sm text-ink">
           This is a sample profile. Edit anything to make it yours; changes stay in this browser.
         </p>
       )}

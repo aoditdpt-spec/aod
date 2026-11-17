@@ -36,7 +36,7 @@ export function PortfolioManager() {
         <ul className="space-y-3 text-sm text-body">
           {tips.map((t) => (
             <li key={t} className="flex gap-2">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-ink" aria-hidden /> {t}
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden /> {t}
             </li>
           ))}
         </ul>
@@ -59,7 +59,7 @@ function Links() {
           if (links.join() !== profile.links.join()) void saveProfile({ links }).then((err) => err && setError(err));
         }}
       />
-      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </Panel>
   );
 }
@@ -147,7 +147,7 @@ function LiveFiles() {
               </div>
               <div className="flex items-center justify-between gap-2 px-2.5 py-2 text-xs">
                 <span className="min-w-0 truncate text-muted">
-                  {i === 0 && <span className="mr-1 font-medium text-ink">Cover ·</span>}
+                  {i === 0 && <span className="mr-1 font-medium text-brand">Cover ·</span>}
                   {formatSize(f.size)}
                 </span>
                 <button
@@ -155,7 +155,7 @@ function LiveFiles() {
                   onClick={() => void remove(f.path)}
                   disabled={removing === f.path}
                   aria-label={`Remove ${f.name}`}
-                  className="rounded-md p-1 text-muted hover:bg-surface hover:text-red-400 disabled:opacity-40"
+                  className="rounded-md p-1 text-muted hover:bg-white hover:text-red-600 disabled:opacity-40"
                 >
                   {removing === f.path ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />}
                 </button>
@@ -175,7 +175,7 @@ function LiveFiles() {
             <li key={u.id} className="flex items-center justify-between gap-3 rounded-lg bg-wash px-3 py-2">
               <span className="min-w-0 truncate text-ink">{u.name}</span>
               {u.error ? (
-                <span className="flex shrink-0 items-center gap-2 text-xs text-red-400">
+                <span className="flex shrink-0 items-center gap-2 text-xs text-red-600">
                   {u.error}
                   <button type="button" onClick={() => setUploads((x) => x.filter((y) => y.id !== u.id))} className="font-medium text-muted underline">
                     Dismiss
@@ -190,7 +190,7 @@ function LiveFiles() {
           ))}
         </ul>
       )}
-      {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       <p className="mt-4 text-xs text-muted">The first file is your cover. Photos are resized for the web before uploading.</p>
     </Panel>
   );

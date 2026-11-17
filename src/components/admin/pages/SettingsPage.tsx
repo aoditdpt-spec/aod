@@ -87,7 +87,7 @@ export function SettingsPage() {
                     onClick={() => update("Settings", `${v ? "Turned off" : "Turned on"} "${k}" alerts`, (d) => void (d.settings.notify[k] = !v))}
                     className={`relative h-6 w-11 rounded-full transition-colors disabled:opacity-50 ${v ? "bg-brand" : "bg-line"}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-surface shadow transition-all ${v ? "left-[1.375rem]" : "left-0.5"}`} />
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${v ? "left-[1.375rem]" : "left-0.5"}`} />
                   </button>
                 </label>
               </li>
@@ -101,7 +101,7 @@ export function SettingsPage() {
           <ul className="space-y-2 text-sm">
             {launch.map((l) => (
               <li key={l.label} className="flex items-center gap-2">
-                {l.done ? <Check className="h-4 w-4 text-emerald-400" aria-hidden /> : <Circle className="h-4 w-4 text-line" aria-hidden />}
+                {l.done ? <Check className="h-4 w-4 text-emerald-600" aria-hidden /> : <Circle className="h-4 w-4 text-line" aria-hidden />}
                 <span className={l.done ? "text-muted line-through" : "text-ink"}>{l.label}</span>
               </li>
             ))}
@@ -112,7 +112,7 @@ export function SettingsPage() {
           <ul className="space-y-2 text-sm">
             {legalDocs.map((d) => (
               <li key={d.slug} className="flex items-center justify-between gap-3">
-                <a href={siteHref(`/${d.slug}`)} target="_blank" rel="noopener noreferrer" className="font-medium text-ink hover:text-brand-hover">
+                <a href={siteHref(`/${d.slug}`)} target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:text-brand-hover">
                   {d.title}
                 </a>
                 <span className="text-xs text-muted">Draft · updated {d.updated}</span>
@@ -138,7 +138,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 onClick={() => window.confirm("Replace everything with fresh sample data? Changes made in this browser will be lost.") && resetDb()}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-900 px-3.5 text-sm font-medium text-red-300 hover:bg-red-950/50"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3.5 text-sm font-medium text-red-700 hover:bg-red-50"
               >
                 <RotateCcw className="h-4 w-4" aria-hidden /> Reset sample data
               </button>

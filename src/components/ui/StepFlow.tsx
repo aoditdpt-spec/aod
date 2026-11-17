@@ -23,8 +23,8 @@ export function StepFlow({ steps, icons }: { steps: readonly { title: string; te
           {/* On phones, a line runs down from each badge to the next one. */}
           {i < steps.length - 1 && <span aria-hidden className="absolute left-8 top-16 h-[calc(100%-2rem)] w-px bg-peach md:hidden" />}
           <span className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-line bg-peach/60">
-            <Icon name={icons[i]} className="h-7 w-7 text-ink" strokeWidth={1.5} />
-            <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-xs font-medium text-surface">
+            <Icon name={icons[i]} className="h-7 w-7 text-brand" strokeWidth={1.5} />
+            <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-medium text-white">
               {i + 1}
             </span>
           </span>

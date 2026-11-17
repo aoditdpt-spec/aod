@@ -85,7 +85,7 @@ export function MarkdownEditor({
         <span className="text-xs font-medium text-muted">{label}</span>
         <div className="inline-flex rounded-lg border border-line p-0.5 text-xs font-medium">
           {(["write", "preview"] as const).map((t) => (
-            <button key={t} type="button" onClick={() => setTab(t)} className={`rounded-md px-3 py-1 ${tab === t ? "bg-ink text-surface" : "text-muted hover:text-ink"}`}>
+            <button key={t} type="button" onClick={() => setTab(t)} className={`rounded-md px-3 py-1 ${tab === t ? "bg-ink text-white" : "text-muted hover:text-ink"}`}>
               {t === "write" ? "Write" : "Preview"}
             </button>
           ))}
@@ -138,7 +138,7 @@ export function MarkdownEditor({
             ## Heading · **bold** · *italic* · - list · 1. numbered · &gt; quote · [link text](https://…) · a blank line starts a new paragraph
           </p>
           {error && (
-            <p role="alert" className="mt-1.5 text-xs text-red-300">
+            <p role="alert" className="mt-1.5 text-xs text-red-700">
               {error}
             </p>
           )}

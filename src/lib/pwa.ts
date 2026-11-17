@@ -22,8 +22,8 @@ const icons: MetadataRoute.Manifest["icons"] = [
 // White title bar and splash screen, like the site's navbar.
 const base = {
   display: "standalone",
-  background_color: "#000000",
-  theme_color: "#000000",
+  background_color: "#ffffff",
+  theme_color: "#ffffff",
   lang: "en-IN",
   dir: "ltr",
   icons,

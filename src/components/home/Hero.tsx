@@ -39,7 +39,7 @@ function HeroApp() {
     <section className="pb-8 pt-3 sm:pt-5 lg:hidden">
       <Container>
         <div className="grid [grid-template-areas:'media'_'explore']">
-          <div className="relative aspect-[4/5] max-h-[60svh] w-full overflow-hidden rounded-lg bg-night [grid-area:media] sm:aspect-[16/10]">
+          <div className="relative aspect-[4/5] max-h-[60svh] w-full overflow-hidden rounded-[1.75rem] bg-night [grid-area:media] sm:aspect-[16/10]">
             {hasVideo ? (
               <HeroVideo base={mediaBase} media="(max-width: 1023.98px)" />
             ) : (
@@ -114,7 +114,7 @@ function HeroDesktop() {
               {hero.artistLine}{" "}
               <a
                 href={portalHref("/artists/apply")}
-                className="font-medium text-ink underline underline-offset-4 hover:text-white"
+                className="font-medium text-apricot underline underline-offset-4 hover:text-white"
               >
                 {hero.artistLink}
               </a>
@@ -123,7 +123,7 @@ function HeroDesktop() {
 
           {/* Live booking steps on dark, lightly blurred glass: narrower than the column, set to
               its right edge and a little below centre. */}
-          <div className="mt-20 w-full max-w-[38rem] justify-self-end rounded-lg border border-white/15 bg-black/30 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-[5px]">
+          <div className="mt-20 w-full max-w-[38rem] justify-self-end rounded-[1.5rem] border border-white/15 bg-black/30 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-[5px]">
             <HeroDemo />
           </div>
         </div>

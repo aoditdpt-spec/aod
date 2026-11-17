@@ -8,7 +8,7 @@ import { cities } from "@/content/site";
 // Form building blocks for the artist portal, styled like the booking questions (MatchQuiz).
 
 export const inputBase =
-  "w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-brand aria-[invalid=true]:border-red-500";
+  "w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-brand aria-[invalid=true]:border-red-500";
 export const inputClass = `mt-1.5 ${inputBase}`;
 
 // A white card with an optional heading, used for every block of portal content.
@@ -26,7 +26,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg border border-line bg-surface p-5 sm:p-7 ${className}`}>
+    <section className={`rounded-[1.25rem] border border-line bg-white p-5 sm:p-7 ${className}`}>
       {(title || action) && (
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -62,7 +62,7 @@ export function Field({
       {label} {optional && <span className="font-normal text-muted">(optional)</span>}
       {children}
       {error ? (
-        <span className="mt-1.5 block text-xs font-normal text-red-400">{error}</span>
+        <span className="mt-1.5 block text-xs font-normal text-red-600">{error}</span>
       ) : (
         hint && <span className="mt-1.5 block text-xs font-normal text-muted">{hint}</span>
       )}
@@ -124,10 +124,10 @@ export function ChipGroup({
           aria-pressed={allOn}
           onClick={() => onChange(allOn ? value.filter((v) => !all.includes(v)) : [...value, ...all.filter((o) => !value.includes(o))])}
           className={`inline-flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-sm font-medium transition-colors ${
-            allOn ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-ink hover:bg-wash"
+            allOn ? "border-brand bg-peach/50 text-ink" : "border-brand/60 bg-white text-brand hover:bg-wash"
           }`}
         >
-          {allOn && <Check className="h-3.5 w-3.5 text-ink" aria-hidden />}
+          {allOn && <Check className="h-3.5 w-3.5 text-brand" aria-hidden />}
           Select all
         </button>
       )}
@@ -140,10 +140,10 @@ export function ChipGroup({
             aria-pressed={on}
             onClick={() => onChange(multiple ? (on ? value.filter((v) => v !== o) : [...value, o]) : [o])}
             className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-normal transition-colors ${
-              on ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-body hover:border-ink/50"
+              on ? "border-brand bg-peach/50 text-ink" : "border-line bg-white text-body hover:border-brand/50"
             }`}
           >
-            {on && <Check className="h-3.5 w-3.5 text-ink" aria-hidden />}
+            {on && <Check className="h-3.5 w-3.5 text-brand" aria-hidden />}
             {o}
           </button>
         );
@@ -179,9 +179,9 @@ export function CheckRow({
 export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "brand" | "good" | "wait"; children: ReactNode }) {
   const tones = {
     neutral: "bg-wash text-muted",
-    brand: "bg-peach text-ink",
-    good: "bg-emerald-950/50 text-emerald-300",
-    wait: "bg-amber-950/50 text-amber-300",
+    brand: "bg-peach text-brand-hover",
+    good: "bg-emerald-50 text-emerald-700",
+    wait: "bg-amber-50 text-amber-700",
   };
   return <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>{children}</span>;
 }
