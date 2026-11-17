@@ -3,7 +3,6 @@ import { BadgeCheck, Building2, Handshake, LayoutGrid, Mail, MapPin, Phone, Shie
 import { about, brand, categoryCountLabel, cities } from "@/content/site";
 import { Container } from "@/components/ui/Container";
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/ui/Icon";
-import { BrandStrip } from "@/components/home/BrandStrip";
 import { FinalCta } from "@/components/home/FinalCta";
 import { Reveal, StaggerItem, StaggerList } from "@/components/motion/Reveal";
 import { linkCardDark, linkText, linkTitle, tiltText, tiltTitle, tiltZoom } from "@/components/ui/cards";
@@ -91,11 +90,6 @@ export default function AboutPage() {
             );
           })}
         </StaggerList>
-      </Container>
-
-      {/* Brands */}
-      <Container>
-        <BrandStrip />
       </Container>
 
       {/* Contact */}

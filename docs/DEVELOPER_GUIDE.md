@@ -271,7 +271,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 
 | Folder | What's in it |
 | --- | --- |
-| `home/` | One file per homepage section: `Hero` (phones: `ExploreGrid`, "What are you looking for?"; laptops: the full-screen hero with `HeroDemo` from `HeroMotion`; both use `HeroVideo`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `PortfolioSection` (AOD portfolio: the GATE 2026 film, played by `PortfolioVideo`), `Portals`, `ResolutionFlow` (the Dispute Desk's steps, in place of the old How it works), `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `BookingOptions`, `FinalCta` |
+| `home/` | One file per homepage section: `Hero` (phones: `ExploreGrid`, "What are you looking for?"; laptops: the full-screen hero with `HeroDemo` from `HeroMotion`; both use `HeroVideo`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `PortfolioSection` (AOD portfolio: the GATE 2026 film, played by `PortfolioVideo`), `Portals`, `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `FinalCta` |
 | `layout/` | `Navbar` (client: category dropdown, search, city; on phones an app-style top bar with a back arrow and the city pill), `AppTabBar` (the bottom tab bar on phones and tablets and its More sheet), `Footer`, `WhatsAppFab`, `InstallPrompt` |
 | `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Sheet` (the phone bottom sheet used for menus and pickers), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
@@ -560,7 +560,7 @@ own app.
 in `Hero.tsx`, with the booking walk-through from `HeroMotion.tsx`, copy in `hero.desktop`), the
 "Book from these services" under the coverflow (the phone hero's photo tiles, bigger, 6 above and
 5 below: `ExploreTiles variant="panel"`), the /book choices
-and booking options without photos, text-only category menu and search suggestions. The two designs are meant to stay different: put app-only changes behind `max-lg:` /
+without photos, text-only category menu and search suggestions. The two designs are meant to stay different: put app-only changes behind `max-lg:` /
 `lg:hidden` and leave the laptop layout as it is unless asked. Where a whole section differs, the
 component renders both versions and hides one with CSS (the hero's video only plays in the one shown).
 
