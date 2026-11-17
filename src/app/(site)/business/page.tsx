@@ -25,7 +25,7 @@ export default function BusinessPage() {
   const hero = (
     <>
       <Container className="pt-8">
-        <section className="rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-16">
+        <section className="rounded-lg bg-night px-6 py-12 sm:px-16 sm:py-16">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-apricot">{business.eyebrow}</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] !text-white sm:text-6xl">{business.title}</h1>
           <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-lg">{business.subtitle}</p>
@@ -50,7 +50,7 @@ export default function BusinessPage() {
             const I = segmentIcons[i];
             return (
               <StaggerItem key={s.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                <TiltCard className={`rounded-lg border border-line bg-white p-7`}>
                   <I className={`h-9 w-9 text-brand-bright ${tiltZoom}`} strokeWidth={1.25} aria-hidden />
                   <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{s.title}</h3>
                   <p className={`mt-2 text-body ${tiltText}`}>{s.text}</p>
@@ -62,7 +62,7 @@ export default function BusinessPage() {
       </Container>
 
       <Container className="pb-4">
-        <section className="grid gap-10 rounded-[1.5rem] bg-wash p-8 sm:p-12 lg:grid-cols-2">
+        <section className="grid gap-10 rounded-lg bg-wash p-8 sm:p-12 lg:grid-cols-2">
           <div>
             <h2 className="text-3xl font-normal sm:text-[2.5rem]">{business.whyTitle}</h2>
             <ul className="mt-8 space-y-4">
@@ -73,7 +73,7 @@ export default function BusinessPage() {
               ))}
             </ul>
           </div>
-          <div className="flex flex-col justify-center rounded-[1.25rem] bg-white p-8">
+          <div className="flex flex-col justify-center rounded-lg bg-white p-8">
             <p className="flex items-center gap-2 text-sm font-medium text-brand">
               <BadgeCheck className="h-5 w-5" aria-hidden /> {business.caseStudy.label}
             </p>

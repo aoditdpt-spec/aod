@@ -40,7 +40,7 @@ export default function AboutPage() {
       {/* Intro */}
       <Container className="pt-8">
         <section
-          className="rounded-[1.5rem] bg-wash px-6 py-12 sm:px-16 sm:py-20"
+          className="rounded-lg bg-wash px-6 py-12 sm:px-16 sm:py-20"
           style={{ backgroundImage: "radial-gradient(color-mix(in srgb, var(--color-brand) 12%, transparent) 1px, transparent 1.4px)", backgroundSize: "22px 22px" }}
         >
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">{about.eyebrow}</p>
@@ -79,7 +79,7 @@ export default function AboutPage() {
             const I = valueIcons[i];
             return (
               <StaggerItem key={v.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                <TiltCard className={`rounded-lg border border-line bg-white p-7`}>
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl bg-peach/60 ${tiltZoom}`}>
                     <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />
                   </span>
@@ -94,7 +94,7 @@ export default function AboutPage() {
 
       {/* Contact */}
       <Container>
-        <section className="rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-16">
+        <section className="rounded-lg bg-night px-6 py-12 sm:px-16 sm:py-16">
           <h2 className="text-3xl font-medium !text-white sm:text-[2.5rem]">{about.contactTitle}</h2>
           <p className="mt-3 text-lg text-white/80">{about.contactText}</p>
           <StaggerList className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

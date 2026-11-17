@@ -26,7 +26,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-[1.25rem] border border-line bg-white p-5 sm:p-7 ${className}`}>
+    <section className={`rounded-lg border border-line bg-white p-5 sm:p-7 ${className}`}>
       {(title || action) && (
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>

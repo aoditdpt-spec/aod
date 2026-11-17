@@ -23,7 +23,7 @@ export function BookingsBoard() {
 
   if (mode === "applicant") {
     return (
-      <div className="mt-8 rounded-[1.25rem] border border-line bg-white p-10 text-center">
+      <div className="mt-8 rounded-lg border border-line bg-white p-10 text-center">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
           <CalendarCheck2 className="h-7 w-7" aria-hidden />
         </span>
@@ -65,7 +65,7 @@ export function BookingsBoard() {
       </div>
 
       {list.length === 0 ? (
-        <p className="mt-6 rounded-[1.25rem] border border-line bg-white p-10 text-center text-muted">Nothing here yet.</p>
+        <p className="mt-6 rounded-lg border border-line bg-white p-10 text-center text-muted">Nothing here yet.</p>
       ) : (
         <div className="mt-6 grid gap-4 xl:grid-cols-2">
           {list.map((b) => (

@@ -114,7 +114,7 @@ export function InstallPrompt() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="install-title"
-            className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
             exit={{ y: 40, opacity: 0, transition: { duration: 0.2 } }}

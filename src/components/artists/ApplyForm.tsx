@@ -152,7 +152,7 @@ export function ApplyForm() {
 
   if (submitted && savedId) {
     return (
-      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-white p-6 text-center sm:p-10">
+      <div className="mx-auto max-w-2xl rounded-lg border border-line bg-white p-6 text-center sm:p-10">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <CheckCircle2 className="h-7 w-7" aria-hidden />
         </span>
@@ -192,7 +192,7 @@ export function ApplyForm() {
       .filter(Boolean)
       .join("\n");
     return (
-      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-white p-6 text-center sm:p-10">
+      <div className="mx-auto max-w-2xl rounded-lg border border-line bg-white p-6 text-center sm:p-10">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
           <Info className="h-7 w-7" aria-hidden />
         </span>
@@ -309,7 +309,7 @@ export function ApplyForm() {
             })
             .finally(() => setSending(false));
         }}
-        className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10"
+        className="rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10"
       >
         {hasDraft && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-wash px-4 py-3 text-sm">

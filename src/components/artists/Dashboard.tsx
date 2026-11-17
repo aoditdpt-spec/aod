@@ -93,7 +93,7 @@ export function ModeSwitch() {
 
 function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
   return (
-    <div className="rounded-[1.25rem] border border-line bg-white p-5">
+    <div className="rounded-lg border border-line bg-white p-5">
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-2 text-3xl font-medium text-ink">{value}</p>
       {note && <p className="mt-1 text-xs text-muted">{note}</p>}

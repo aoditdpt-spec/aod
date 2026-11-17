@@ -35,7 +35,7 @@ function LiveSignIn() {
 
   if (portal.status === "ready" && portal.data) {
     return (
-      <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
+      <div className="rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
         <h2 className="text-2xl font-bold">Welcome back</h2>
         <p className="mt-2 text-sm text-body">Signed in as {portal.data.email}.</p>
         <Link href={sectionLink("/artists/dashboard")} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand font-medium text-white hover:bg-brand-hover">
@@ -46,7 +46,7 @@ function LiveSignIn() {
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
+    <div className="rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">Sign in</h2>
       <form
         noValidate
@@ -167,7 +167,7 @@ function PreviewSignIn() {
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
+    <div className="rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">Sign in</h2>
 
       <div role="tablist" aria-label="Sign in with" className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-wash p-1">

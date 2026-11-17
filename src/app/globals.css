@@ -42,14 +42,25 @@
 
   /* Brand fonts (loaded in layout.tsx): Montserrat for text, Bricolage Grotesque for headings
      (h1–h3 below, or the font-display class on anything else). */
-  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-bricolage), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+
+  /* Two weights only, as in the test pages: 400 for text, 500 for headings, labels and buttons.
+     The bolder utilities (font-semibold, font-bold…) all draw at 500. */
+  --font-weight-semibold: 500;
+  --font-weight-bold: 500;
+  --font-weight-extrabold: 500;
+  --font-weight-black: 600;
 
   /* Widest the page content gets (about 1600px); wider screens and zoomed-out views centre it. */
-  --container-page: 124rem;
+  --container-page: 75rem; /* 1200px, as in the test pages */
 
-  --radius-card: 1rem;
-  --radius-panel: 2rem;
+  /* Small corners everywhere (6–10px), as in the test pages. */
+  --radius-card: 0.5rem;
+  --radius-panel: 0.625rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.625rem;
 
   /* Endless right-to-left scroll: the track holds the list twice, so moving it by half loops seamlessly. */
   /* 63s for 26 logos at their current size; lengthen it in proportion when adding logos (or
@@ -93,10 +104,9 @@
 
 /* In the base layer so utility classes (e.g. text-white on a heading) can override these. */
 @layer base {
-  /* Everything is sized in rem, so 81% here scales the whole site to what
-     81% browser zoom looks like (90% of the earlier 90% setting). Change this one value to resize everything. */
+  /* Everything is sized in rem; 100% is the browser's own 16px, as in the test pages. */
   html {
-    font-size: 81%;
+    font-size: 100%;
   }
 
   body {
@@ -130,7 +140,9 @@
   h3 {
     color: var(--color-ink);
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
   }
 }
 
@@ -209,7 +221,7 @@
 
 /* iPhones zoom the page in when a field under 16px gets focus (the chat box, the search boxes and
    every form); at 16px they don't. Outside any layer, so it wins over the text-sm utilities. The
-   html font size is 81%, so 16px here is a little bigger than the rest of the text on purpose. */
+   html font size is 100%, so this only matters for the few fields set smaller. */
 @media (hover: none) and (pointer: coarse) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   textarea,

@@ -139,7 +139,7 @@ function LiveMyBookings() {
 
   if (error && !data) {
     return (
-      <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 text-center text-sm text-body">
+      <div className="mx-auto max-w-md rounded-lg border border-line bg-white p-6 text-center text-sm text-body">
         {error}{" "}
         <button type="button" onClick={load} className="font-medium text-brand underline underline-offset-2">
           Try again
@@ -182,7 +182,7 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
   const field = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none focus:border-brand";
 
   return (
-    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
+    <div className="mx-auto max-w-md rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">{myBookingsCopy.signInTitle}</h2>
       <p className="mt-2 text-sm text-body">{myBookingsCopy.signInText}</p>
       <form

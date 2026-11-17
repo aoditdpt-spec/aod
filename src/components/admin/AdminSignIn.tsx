@@ -64,7 +64,7 @@ function LiveSignIn() {
             }
             setBusy(false);
           }}
-          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
+          className="rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
         >
           {!sent ? (
             <>
@@ -171,7 +171,7 @@ function PreviewSignIn() {
             signIn({ name: `${name} (${roles.find((r) => r.id === role)?.label})`, email: email.trim(), role });
             router.replace(sectionLink("/admin/dashboard"));
           }}
-          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
+          className="rounded-lg border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
         >
           {step === "password" ? (
             <>

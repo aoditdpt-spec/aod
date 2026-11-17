@@ -49,7 +49,7 @@ export function BusinessApp({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[1.25rem] bg-night px-5 py-5 text-white sm:px-8">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-night px-5 py-5 text-white sm:px-8">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-apricot">AOD for Business{company.type ? ` · ${company.type === "Other" && company.typeOther ? company.typeOther : company.type}` : ""}</p>
           <h1 className="mt-1 truncate text-2xl font-medium !text-white sm:text-3xl">{company.name}</h1>
@@ -82,7 +82,7 @@ export function BusinessApp({
       {tab === "calendar" && <CompanyCalendar orders={orders} onBook={() => setTab("book")} />}
       {tab === "orders" && <BusinessOrders orders={orders} onBook={() => setTab("book")} />}
       {tab === "book" && (
-        <section className="rounded-[1.25rem] border border-line bg-white p-4 sm:p-7">
+        <section className="rounded-lg border border-line bg-white p-4 sm:p-7">
           <h2 className="text-lg font-bold text-ink sm:text-xl">Book artists</h2>
           <p className="mt-1 text-sm text-muted">Pick the artists, the date and the time. We send curated matches, and the order appears in your calendar.</p>
           <div className="mt-6">

@@ -77,7 +77,7 @@ export function Sheet({
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className={`flex max-h-[88svh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-w-lg sm:rounded-[1.5rem] ${
+            className={`flex max-h-[88svh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-w-lg sm:rounded-lg ${
               bottomGap ? "max-lg:max-h-[calc(100svh-6rem-env(safe-area-inset-bottom))]" : ""
             }`}
             initial={{ y: "100%" }}
