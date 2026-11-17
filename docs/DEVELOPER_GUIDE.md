@@ -703,7 +703,9 @@ are baked into the browser code at build time.
 ## 10. Design system
 
 - **Colours:** three only: AOD orange `#ff6201`, white and black. Every other shade is a mix of
-  those. They are tokens in the `@theme` block of `src/app/globals.css` and used through classes:
+  those; the values follow the minimal palette in `design-tests/test*.html` (light theme: grey
+  `wash` and `peach` backgrounds, `muted` #6b6b6b, black body text). They are tokens in the
+  `@theme` block of `src/app/globals.css` and used through classes:
   `text-ink`, `text-body`, `text-muted`, `bg-brand`, `hover:bg-brand-hover`, `bg-peach`, `bg-wash`,
   `border-line`, `bg-night`… **Never write raw hex values in components**; for a tint use
   `color-mix()` with a token, or an opacity class like `bg-brand/10`. Status colours (red errors,

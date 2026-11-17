@@ -6,29 +6,30 @@
 
 /*
  * AOD design tokens — three colours only: AOD orange (#ff6201), white and black. Every other
- * shade is a mix of those (orange with white for tints, orange with black for the deep shade,
- * black with white for greys). Laid out in the style of the Upwork homepage saved in context/.
+ * shade is a mix of those (black with white for the greys and the soft backgrounds, orange with
+ * black for the deep shade). The values follow the minimal palette in design-tests/test*.html
+ * (light theme). Laid out in the style of the Upwork homepage saved in context/.
  * Use these via Tailwind classes such as bg-brand, text-ink, border-line — never raw hex values
  * in components (for a tint, use color-mix with a token). The token names (peach, apricot,
  * tangerine…) date from the first orange theme.
  */
 @theme {
   --color-ink: #000000; /* black: headings */
-  --color-body: #1a1a1a; /* body text: black, a touch softer */
-  --color-muted: #5c5c5c; /* secondary text: grey (6.7:1 on white) */
+  --color-body: #000000; /* body text: black */
+  --color-muted: #6b6b6b; /* secondary text: grey (5.3:1 on white) */
   --color-line: #e6e6e6; /* borders, dividers: light grey */
   --color-surface: #ffffff; /* page background: white */
-  --color-wash: #fff4ed; /* soft section background: 7% orange in white */
+  --color-wash: #f6f6f6; /* soft section background: light grey */
 
   --color-night: #000000; /* dark hero / footer cards: black */
-  --color-night-soft: #1a1a1a; /* panels on dark cards */
-  --color-night-line: #333333;
+  --color-night-soft: #0d0d0d; /* panels on dark cards */
+  --color-night-line: #262626;
 
   --color-brand: #ff6201; /* AOD orange: primary buttons, links, highlights */
   --color-brand-hover: #e05601; /* orange with 12% black */
   --color-brand-bright: #ff6201; /* icons, highlights, badges */
   --color-apricot: #ff6201; /* accents on dark backgrounds (7:1 on black) */
-  --color-peach: #ffe7d9; /* call-out highlight, icon tiles: 15% orange in white */
+  --color-peach: #e6e6e6; /* call-out highlight, icon tiles, picked choices: light grey */
   --color-tangerine: #ff6201; /* icons on dark backgrounds */
 
   /* The announcement bar's orange band (bg-sheen below), with optional film grain. */
