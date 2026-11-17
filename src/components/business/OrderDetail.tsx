@@ -1,11 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Check, MapPin, RotateCcw } from "lucide-react";
 import type { CustomerOrder } from "@/content/my-bookings";
 import { stageInfo, stageOf, trackDone, trackSteps } from "@/content/business-portal";
 import { timeRange } from "@/lib/event-time";
-import { startRebook } from "@/lib/rebook";
+import { BUSINESS_BOOK_EVENT, startRebook } from "@/lib/rebook";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/ui/Icon";
 import { ArtistProfiles } from "@/components/bookings/ArtistProfiles";
@@ -50,7 +49,6 @@ function Track({ order }: { order: CustomerOrder }) {
 
 // One booking in full: where it stands, the event, the artists and the money.
 export function OrderDetail({ order: o }: { order: CustomerOrder }) {
-  const router = useRouter();
   const done = trackDone(o);
   const paid = o.payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
   const step = trackSteps[Math.max(0, done - 1)];
@@ -159,7 +157,7 @@ export function OrderDetail({ order: o }: { order: CustomerOrder }) {
             type="button"
             onClick={() => {
               startRebook({ audience: "business", occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
-              router.push("/book/business");
+              window.dispatchEvent(new Event(BUSINESS_BOOK_EVENT)); // to the portal's Book artists tab
             }}
             className="inline-flex h-10 items-center gap-2 rounded-lg border-2 border-brand px-4 text-sm font-medium text-brand hover:bg-wash"
           >

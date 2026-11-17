@@ -16,10 +16,11 @@ export const metadata: Metadata = {
 
 const options = [
   { href: "/book/personal", icon: PartyPopper, ...bookingChoice.personal },
-  { href: "/book/business", icon: Briefcase, ...bookingChoice.business },
+  { href: "/business", icon: Briefcase, ...bookingChoice.business },
 ];
 
-// Choosing screen: every "book" button on the site lands here first.
+// Choosing screen: every "book" button on the site lands here first. Business goes to the
+// business portal (/business), where companies sign in and book.
 export default function BookPage() {
   return (
     <Container className="py-16 sm:py-24">

@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, Mail, MapPin, RotateCcw, Scale, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Download, IndianRupee, LogOut, Mail, MapPin, RotateCcw, Scale, Star } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { canCancel, cancelDeadline, customerCancelHours, customerSteps, myBookingsCopy, sampleOrders, type CustomerOrder } from "@/content/my-bookings";
 import { brand } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { portalHref } from "@/lib/site-url";
 import { timeRange } from "@/lib/event-time";
-import { startRebook } from "@/lib/rebook";
+import { rebookHref, startRebook } from "@/lib/rebook";
 import { cancelSentRequest, customerSessionStore, sentRequestsStore, type SentRequest } from "@/lib/customer-store";
 import { useHydrated } from "@/lib/motion-safe";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -291,16 +291,27 @@ function BookingsView({
 
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-medium sm:text-4xl">{myBookingsCopy.title}</h1>
-          <p className="mt-1 text-sm text-muted">
-            Signed in as {email} ·{" "}
-            <button type="button" onClick={onSignOut} className="font-medium text-brand underline underline-offset-2">
-              Sign out
-            </button>
-          </p>
+      {/* The account sits at the top right, as on most shops' sites. */}
+      <div className="mb-4 flex justify-end">
+        <div className="flex min-w-0 items-center gap-2.5 text-sm">
+          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-peach font-bold uppercase text-brand">
+            {email.charAt(0)}
+          </span>
+          <span className="min-w-0 truncate text-muted">
+            <span className="sr-only">Signed in as </span>
+            {email}
+          </span>
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 font-medium text-ink hover:border-brand hover:text-brand"
+          >
+            <LogOut className="h-4 w-4" aria-hidden /> Sign out
+          </button>
         </div>
+      </div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="text-3xl font-medium sm:text-4xl">{myBookingsCopy.title}</h1>
         <Link href="/book" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-medium text-white hover:bg-brand-hover">
           New booking <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
@@ -467,7 +478,7 @@ function BookAgain({ order: o }: { order: CustomerOrder }) {
       onClick={() => {
         const audience = o.audience ?? "personal";
         startRebook({ audience, occasion: o.occasion, needs: o.again!, city: o.city, time: o.time, endTime: o.endTime, details: o.notes });
-        router.push(`/book/${audience}`);
+        router.push(rebookHref(audience));
       }}
       className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-line px-4 text-sm font-medium text-ink hover:border-brand hover:text-brand"
     >

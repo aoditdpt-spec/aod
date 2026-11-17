@@ -7,7 +7,9 @@ import { Container } from "@/components/ui/Container";
 import { VerifiedArtists } from "@/components/ui/VerifiedArtists";
 import { MatchQuiz } from "@/components/home/MatchQuiz";
 
-const audiences: Audience[] = ["personal", "business"];
+// Business bookings go through the business portal only: /book/business redirects to /business
+// (next.config.ts).
+const audiences: Audience[] = ["personal"];
 
 function isAudience(value: string): value is Audience {
   return (audiences as string[]).includes(value);

@@ -1,12 +1,13 @@
 "use client";
 
 import { Building2, CalendarDays, ClipboardList, LogOut, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CustomerOrder } from "@/content/my-bookings";
 import { companyLinkError, companyLinkLabel, companyLinkOf, companyLinkPlaceholder, companyTypes, stageOf, type Company } from "@/content/business-portal";
 import { cities } from "@/content/site";
 import { backendEnabled } from "@/lib/backend";
 import { businessCompanyStore } from "@/lib/business-store";
+import { BUSINESS_BOOK_EVENT } from "@/lib/rebook";
 import { Spinner } from "@/components/ui/Spinner";
 import { Field, inputClass, Panel } from "@/components/artists/form";
 import { MatchQuiz } from "@/components/home/MatchQuiz";
@@ -36,7 +37,14 @@ export function BusinessApp({
   onCompanyChange: (c: Company) => void;
   onSignOut: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>("calendar");
+  // /business#book (My bookings' "Book again" for a business order) opens on Book artists.
+  const [tab, setTab] = useState<Tab>(() => (typeof window !== "undefined" && window.location.hash === "#book" ? "book" : "calendar"));
+  // "Book again" on one of the portal's own orders switches to Book artists, which fills itself in.
+  useEffect(() => {
+    const toBook = () => setTab("book");
+    window.addEventListener(BUSINESS_BOOK_EVENT, toBook);
+    return () => window.removeEventListener(BUSINESS_BOOK_EVENT, toBook);
+  }, []);
   const open = orders.filter((o) => stageOf(o) !== "done" && stageOf(o) !== "cancelled").length;
 
   return (

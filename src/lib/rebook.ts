@@ -1,5 +1,6 @@
 // "Book again" from My bookings: the order's answers are handed to the booking questions on
-// /book/personal or /book/business, which fill themselves in once and then forget them. Kept in
+// /book/personal, or the business portal's Book artists tab (/business#book) for a business order,
+// which fill themselves in once and then forget them. Kept in
 // sessionStorage (this tab only), so an old order never pre-fills a booking days later.
 
 export type RebookDraft = {
@@ -13,6 +14,12 @@ export type RebookDraft = {
 };
 
 const KEY = "aod-rebook";
+
+// Sent by "Book again" inside the business portal: the portal switches to its Book artists tab.
+export const BUSINESS_BOOK_EVENT = "aod:business-book";
+
+// Where "Book again" goes for an order of this audience.
+export const rebookHref = (audience: "personal" | "business") => (audience === "business" ? "/business#book" : "/book/personal");
 
 export function startRebook(draft: RebookDraft) {
   try {

@@ -28,7 +28,7 @@ export function BookingOptions() {
             <OptionCard option={bookingOptions.personal} href="/book/personal" />
           </StaggerItem>
           <StaggerItem>
-            <OptionCard option={bookingOptions.business} href="/book/business" featured />
+            <OptionCard option={bookingOptions.business} href="/business" featured />
           </StaggerItem>
         </StaggerList>
       </Container>

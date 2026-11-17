@@ -1,0 +1,247 @@
+"use client";
+
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { Clock, X } from "lucide-react";
+import { time12 } from "@/lib/event-time";
+
+// A scroll-wheel time picker in the style of Material's time dropdown: a field with a clock icon,
+// the time and a clear button; tapping it opens three wheels under it, hour, minutes and AM / PM.
+// The hour and minute wheels go round without end (…11, 12, 1, 2… and …58, 59, 00, 01…); the
+// middle row, on a grey band, is the pick, in orange. Scroll, tap a row or use the arrow keys,
+// then OK; Cancel, Escape or a tap outside leave the time as it was. Values are "HH:MM", 24-hour,
+// as the rest of the site stores them (src/lib/event-time.ts).
+
+const ITEM = 40; // height of one row, px
+const ROWS = 7; // rows on show; the middle one is the pick
+const PAD = Math.floor(ROWS / 2) * ITEM; // space above the first row and below the last
+const hours = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+const periods = ["AM", "PM"];
+
+type Parts = { hour: number; minute: number; period: number }; // indexes into the lists above
+
+function partsOf(t: string): Parts {
+  const h = Number(t.slice(0, 2));
+  return { hour: (h % 12 || 12) - 1, minute: Number(t.slice(3, 5)), period: h >= 12 ? 1 : 0 };
+}
+
+function timeOf({ hour, minute, period }: Parts): string {
+  const h = ((hour + 1) % 12) + period * 12;
+  return `${String(h).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+export function TimeField({
+  label,
+  value,
+  onChange,
+  defaultTime = "10:00",
+}: {
+  label: string;
+  value: string; // "" until picked
+  onChange: (time: string) => void; // on OK, or "" when cleared
+  defaultTime?: string; // shown on the wheels when nothing is picked yet
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(value || defaultTime);
+  const box = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const labelId = useId();
+
+  function show() {
+    setDraft(value || defaultTime);
+    setOpen(true);
+  }
+  function close() {
+    setOpen(false);
+    button.current?.focus();
+  }
+
+  // A tap outside or Escape closes without changing the time (as Cancel).
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      button.current?.focus();
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const parts = partsOf(draft);
+  const set = (p: Partial<Parts>) => setDraft(timeOf({ ...parts, ...p }));
+
+  return (
+    <div ref={box} className="relative text-sm font-medium text-ink">
+      <span id={labelId}>{label}</span>
+      <div
+        className={`mt-1.5 flex w-full items-center rounded-xl border bg-white font-normal transition-colors ${
+          open ? "border-brand ring-1 ring-brand" : "border-line focus-within:border-brand"
+        }`}
+      >
+        <button
+          ref={button}
+          type="button"
+          onClick={() => (open ? setOpen(false) : show())}
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          aria-labelledby={`${labelId} ${labelId}-value`}
+          className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left outline-none"
+        >
+          <Clock className={`h-5 w-5 shrink-0 ${open ? "text-brand" : "text-muted"}`} aria-hidden />
+          <span id={`${labelId}-value`} className={`tabular-nums ${value ? "text-ink" : "text-muted"}`}>
+            {value ? time12(value) : "Choose"}
+          </span>
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onChange("");
+            }}
+            aria-label={`Clear ${label.toLowerCase()}`}
+            className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-wash hover:text-ink"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label={`Choose the ${label.toLowerCase()}`}
+          className="absolute left-0 top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-white shadow-xl"
+        >
+          <div className="relative flex justify-center gap-2 px-4 pt-3" style={{ height: ITEM * ROWS + 12 }}>
+            {/* The grey band across the middle row: the time picked. */}
+            <div aria-hidden className="pointer-events-none absolute inset-x-3 rounded-lg bg-line/70" style={{ top: 12 + PAD, height: ITEM }} />
+            <Wheel label="Hour" items={hours} index={parts.hour} loop onPick={(i) => set({ hour: i })} />
+            <Wheel label="Minutes" items={minutes} index={parts.minute} loop onPick={(i) => set({ minute: i })} />
+            <Wheel label="AM or PM" items={periods} index={parts.period} onPick={(i) => set({ period: i })} />
+          </div>
+          <div className="flex justify-end gap-1 px-2 py-2">
+            <button type="button" onClick={close} className="h-9 rounded-lg px-4 text-sm font-semibold uppercase tracking-wide text-brand hover:bg-wash">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onChange(draft);
+                close();
+              }}
+              className="h-9 rounded-lg px-4 text-sm font-semibold uppercase tracking-wide text-brand hover:bg-wash"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// One wheel. A looping wheel draws its list several times over and, once a scroll settles, jumps
+// back to the same row in the middle copy (the rows look the same, so the jump can't be seen),
+// which makes it go round without end. The row that settles in the middle is the pick.
+const COPIES = 7;
+
+function Wheel({ label, items, index, loop = false, onPick }: { label: string; items: string[]; index: number; loop?: boolean; onPick: (i: number) => void }) {
+  const n = items.length;
+  const copies = loop ? COPIES : 1;
+  const base = loop ? n * Math.floor(COPIES / 2) : 0; // first row of the middle copy
+  const ref = useRef<HTMLDivElement>(null);
+  const timer = useRef<number | undefined>(undefined);
+  const [center, setCenter] = useState(base + index); // the row in the middle right now
+  const id = useId();
+  const mod = (p: number) => ((p % n) + n) % n;
+  const rowAt = (el: HTMLDivElement) => Math.round(el.scrollTop / ITEM);
+
+  // Opening: straight to the picked row of the middle copy.
+  useLayoutEffect(() => {
+    if (ref.current) ref.current.scrollTop = (base + index) * ITEM;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on opening
+  }, []);
+
+  // A pick by tap or key: glide the shortest way round to it.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const at = rowAt(el);
+    if (mod(at) === index) return;
+    let step = index - mod(at);
+    if (loop && Math.abs(step) > n / 2) step -= Math.sign(step) * n;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ top: (at + step) * ITEM, behavior: reduce ? "auto" : "smooth" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the pick changes
+  }, [index]);
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  function onScroll() {
+    const el = ref.current;
+    if (!el) return;
+    const at = Math.max(0, Math.min(n * copies - 1, rowAt(el)));
+    if (at !== center) setCenter(at);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      const settled = Math.max(0, Math.min(n * copies - 1, rowAt(el)));
+      const i = mod(settled);
+      if (loop && Math.floor(settled / n) !== Math.floor(COPIES / 2)) {
+        el.scrollTop = (base + i) * ITEM; // back to the middle copy, unseen
+        setCenter(base + i);
+      }
+      if (i !== index) onPick(i);
+    }, 120);
+  }
+
+  function onKey(e: React.KeyboardEvent) {
+    const move = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+    if (!move) return;
+    e.preventDefault();
+    const next = loop ? mod(index + move) : Math.max(0, Math.min(n - 1, index + move));
+    if (next !== index) onPick(next);
+  }
+
+  return (
+    <div
+      ref={ref}
+      role="listbox"
+      aria-label={label}
+      aria-activedescendant={`${id}-${center}`}
+      tabIndex={0}
+      onScroll={onScroll}
+      onKeyDown={onKey}
+      className="relative w-16 snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-lg outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-scrollbar]:hidden"
+      style={{
+        paddingBlock: PAD,
+        maskImage: "linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)",
+        WebkitMaskImage: "linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)",
+      }}
+    >
+      {Array.from({ length: n * copies }, (_, p) => (
+        <div
+          key={p}
+          id={`${id}-${p}`}
+          role="option"
+          aria-selected={p === center}
+          onClick={() => mod(p) !== index && onPick(mod(p))}
+          className={`flex snap-center cursor-pointer items-center justify-center tabular-nums transition-colors ${
+            p === center ? "text-xl font-semibold text-brand" : "text-base text-muted"
+          }`}
+          style={{ height: ITEM }}
+        >
+          {items[mod(p)]}
+        </div>
+      ))}
+    </div>
+  );
+}

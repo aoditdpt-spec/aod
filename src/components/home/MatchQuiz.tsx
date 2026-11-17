@@ -9,11 +9,12 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eraser, Mail, MapPin, Rotat
 import { categories, cities, type Audience } from "@/content/site";
 import { CountPicker } from "@/components/ui/CountPicker";
 import { Spinner } from "@/components/ui/Spinner";
+import { TimeField } from "@/components/ui/TimePicker";
 import { Icon, WhatsAppIcon } from "@/components/ui/Icon";
 import { setCity, useCity } from "@/lib/city";
 import { backendEnabled } from "@/lib/backend";
 import { needsText, withCount } from "@/lib/booking-needs";
-import { durationText, endAfter, eventMinutes, time12, timeRange, timeSpan } from "@/lib/event-time";
+import { durationText, endAfter, eventMinutes, timeRange, timeSpan } from "@/lib/event-time";
 import { addSentRequest, newRequestRef } from "@/lib/customer-store";
 import { takeRebook } from "@/lib/rebook";
 import { briefLines, cleanBrief, type Brief } from "@/content/artist-brief";
@@ -29,13 +30,6 @@ const audienceLabel: Record<Audience, string> = {
 
 // Artists first (what's being booked), then the occasion, then when and where.
 const titles = ["Who do you need?", "What's the occasion?", "When and where?"];
-
-// Start times, every half hour from 6:00 AM round to 5:30 AM (a list instead of the browser's
-// own time picker, which looks different on every phone).
-const startTimes = Array.from({ length: 48 }, (_, i) => {
-  const m = ((6 * 60 + i * 30) % (24 * 60));
-  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-});
 
 // "How many hours?": half hours up to 12, then whole hours up to 24 (as minutes).
 const hourChoices = [...Array.from({ length: 24 }, (_, i) => (i + 1) * 30), ...Array.from({ length: 12 }, (_, i) => (13 + i) * 60)];
@@ -590,6 +584,7 @@ export function MatchQuiz({
 
           {step === 0 && (
             <>
+              <p className="mt-2 text-sm text-muted">Select all that apply</p>
               {initialNeeds.length > 0 && (
                 <p className="mt-3 text-sm text-body">
                   Already added: {initialNeeds.map(categoryName).join(", ")}. Need anyone else for the same event? Add them too.
@@ -712,9 +707,9 @@ export function MatchQuiz({
               ) : (
                 !occasionOk && <p className="mt-4 text-xs text-muted">Pick one to continue.</p>
               )}
-              {/* Next shows once an occasion is chosen: "Something else", or one picked already (a
-                  service's "Request a quote", or coming back to this question to check it). */}
-              <StepNav onBack={() => go(0)} onNext={occasion ? () => go(2) : undefined} nextDisabled={!occasionOk} />
+              {/* Next is always there, greyed out until an occasion is chosen (picking one also
+                  moves straight on). */}
+              <StepNav onBack={() => go(0)} onNext={() => go(2)} nextDisabled={!occasionOk} />
             </>
           )}
 
@@ -795,26 +790,17 @@ export function MatchQuiz({
                     ))}
                   </select>
                 </label>
-                <label className="text-sm font-medium text-ink">
-                  Start time
-                  <select
-                    value={startTime}
-                    onChange={(e) => {
-                      remember();
-                      setStartTime(e.target.value);
-                    }}
-                    className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
-                  >
-                    <option value="" disabled>
-                      Choose
-                    </option>
-                    {startTimes.map((t) => (
-                      <option key={t} value={t}>
-                        {time12(t)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {/* Scroll wheels (hour, minutes, AM / PM) with Cancel / OK, not the browser's own
+                    time picker, which looks different on every phone. */}
+                <TimeField
+                  label="Start time"
+                  value={startTime}
+                  onChange={(t) => {
+                    if (t === startTime) return;
+                    remember();
+                    setStartTime(t);
+                  }}
+                />
                 {length !== null && (
                   <p className="-mt-2 text-sm text-ink sm:col-span-2" aria-live="polite">
                     <strong className="font-medium">{timeSpan(startTime, endTime)}</strong>

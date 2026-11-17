@@ -411,7 +411,8 @@ already have been run: add a new dated file instead, and add a case to `scripts/
 
 ### 7.1 A customer sends a booking request
 
-1. `/book` → personal or business → `/book/personal` runs `MatchQuiz` (`src/components/home/MatchQuiz.tsx`):
+1. `/book` → personal (`/book/personal`) or business (the business portal `/business`, where a
+   company signs in and books; `/book/business` redirects there) → `/book/personal` runs `MatchQuiz` (`src/components/home/MatchQuiz.tsx`):
    occasion, who they need (any number of categories, and how many of each: 1–4, or "More" for
    up to 20, through `CountPicker`), then event details and contact. Every field is required.
    Each category page runs the same quiz in its "Book …" section with that category already

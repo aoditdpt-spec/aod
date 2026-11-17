@@ -97,6 +97,8 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
           {category.services.map((s) => (
             <StaggerItem key={s.name} className="swipe-item">
             <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6`}>
+              {/* The text grows to fill the card, so every card's button sits at the same height. */}
+              <div className="flex-1">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className={`text-lg font-bold ${tiltTitle}`}>{s.name}</h3>
@@ -113,6 +115,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
                   <Rating rating={s.rating} count={s.bookings} unit="bookings" />
                 </div>
               )}
+              </div>
               {/* To the booking questions on this page, started again with this service, so the
                   request is saved before WhatsApp opens. */}
               <QuoteButton category={category.slug} service={s.name} className={buttonClasses("outline", "md", "mt-6")}>

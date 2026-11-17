@@ -90,6 +90,8 @@ const nextConfig: NextConfig = {
         destination: "https://www.aod.co.in/:path*",
         permanent: true,
       },
+      // Business bookings happen in the business portal only.
+      { source: "/book/business", destination: "/business", permanent: false },
       ...["artists", "admin", "resolve"].map((section) => ({
         source: `/${section}/:path*`,
         has: [{ type: "host" as const, value: "(?:www\\.)?aod\\.co\\.in" }],
