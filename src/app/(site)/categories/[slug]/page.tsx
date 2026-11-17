@@ -45,7 +45,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
   return (
     <>
       <Container className="pt-8">
-        <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-14">
+        <section className="relative overflow-hidden rounded-lg bg-night px-6 py-12 sm:px-16 sm:py-14">
           {/* The category photo on the right, fully visible at the right edge and fading into the dark
               towards the left; past where it reaches, the plain dark background. From tablets up the
               photo box takes the photo's own shape at the header's full height, so nothing is cropped.
@@ -96,7 +96,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <StaggerList className={`swipe-row mt-8 grid gap-6 sm:grid-cols-2 ${category.services.length > 8 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           {category.services.map((s) => (
             <StaggerItem key={s.name} className="swipe-item">
-            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-surface p-6`}>
+            <TiltCard className={`flex flex-col rounded-lg border border-line bg-surface p-6`}>
               {/* The text grows to fill the card, so every card's button sits at the same height. */}
               <div className="flex-1">
               <div className="flex items-start justify-between gap-3">

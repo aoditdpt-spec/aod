@@ -120,7 +120,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
   const text = mode === "in" ? businessCopy.signInText : businessCopy.signUpText;
 
   return (
-    <section id="business-account" className="mx-auto w-full max-w-2xl scroll-mt-24 rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10">
+    <section id="business-account" className="mx-auto w-full max-w-2xl scroll-mt-24 rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10">
       <div role="tablist" aria-label="Sign in or create an account" className="inline-flex rounded-xl bg-wash p-1">
         {(
           [

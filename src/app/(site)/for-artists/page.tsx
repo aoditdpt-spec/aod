@@ -30,7 +30,7 @@ export default function ForArtistsPage() {
   return (
     <>
       <Container className="pt-8">
-        <section className="relative overflow-hidden rounded-[1.5rem] bg-night px-6 py-12 sm:px-16 sm:py-20">
+        <section className="relative overflow-hidden rounded-lg bg-night px-6 py-12 sm:px-16 sm:py-20">
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink">{forArtists.eyebrow}</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.05] text-white sm:text-6xl">
@@ -63,7 +63,7 @@ export default function ForArtistsPage() {
             const I = whyIcons[i];
             return (
               <StaggerItem key={w.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-surface p-7`}>
+                <TiltCard className={`rounded-lg border border-line bg-surface p-7`}>
                   <I className={`h-9 w-9 text-ink ${tiltZoom}`} strokeWidth={1.25} aria-hidden />
                   <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{w.title}</h3>
                   <p className={`mt-2 text-body ${tiltText}`}>{w.text}</p>
@@ -75,7 +75,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container>
-        <section className="flex flex-col gap-6 rounded-[1.5rem] bg-peach/50 p-8 sm:flex-row sm:items-center sm:p-12">
+        <section className="flex flex-col gap-6 rounded-lg bg-peach/50 p-8 sm:flex-row sm:items-center sm:p-12">
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-surface">
             <ShieldCheck className="h-8 w-8 text-ink" strokeWidth={1.5} aria-hidden />
           </span>
@@ -111,7 +111,7 @@ export default function ForArtistsPage() {
       </Container>
 
       <Container>
-        <section className="rounded-[1.25rem] border border-line bg-wash px-6 py-14 text-center">
+        <section className="rounded-lg border border-line bg-wash px-6 py-14 text-center">
           <h2 className="text-3xl font-medium text-white sm:text-[2.5rem]">{forArtists.ctaTitle}</h2>
           <p className="mt-3 text-lg text-white">{forArtists.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

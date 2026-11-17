@@ -331,7 +331,7 @@ function CoverflowCard({
             onBringForward();
           }
         }}
-        className={`group block rounded-[1.25rem] border bg-surface p-3 outline-none transition-[box-shadow,border-color,background-color] focus-visible:ring-2 focus-visible:ring-brand hover:border-ink hover:bg-peach/40 hover:ring-1 hover:ring-brand ${
+        className={`group block rounded-lg border bg-surface p-3 outline-none transition-[box-shadow,border-color,background-color] focus-visible:ring-2 focus-visible:ring-brand hover:border-ink hover:bg-peach/40 hover:ring-1 hover:ring-brand ${
           isActive ? "border-ink/30 shadow-[0_30px_60px_-25px_color-mix(in_srgb,var(--color-night)_80%,transparent)]" : "border-line shadow-md"
         }`}
       >

@@ -25,7 +25,7 @@ export function AvailabilityCalendar() {
 
   if (!hydrated)
     return (
-      <div className="mt-8 rounded-[1.25rem] bg-surface">
+      <div className="mt-8 rounded-lg bg-surface">
         <PageLoader className="min-h-[28rem]" label="Loading your calendar…" />
       </div>
     );

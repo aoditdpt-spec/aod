@@ -19,7 +19,7 @@ export function VerifiedArtists({ variant = "card", dark = false }: { variant?: 
 
   if (variant === "band") {
     return (
-      <section className="grid items-center gap-8 rounded-[1.5rem] bg-peach/50 p-8 sm:p-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
+      <section className="grid items-center gap-8 rounded-lg bg-peach/50 p-8 sm:p-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
         <div>
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface">
             <BadgeCheck className="h-7 w-7 text-ink" strokeWidth={1.5} aria-hidden />
@@ -33,7 +33,7 @@ export function VerifiedArtists({ variant = "card", dark = false }: { variant?: 
   }
 
   return (
-    <aside className="rounded-[1.25rem] border border-line bg-peach/40 p-6">
+    <aside className="rounded-lg border border-line bg-peach/40 p-6">
       <p className="flex items-center gap-2 font-medium text-ink">
         <BadgeCheck className="h-5 w-5 text-ink" aria-hidden />
         {verifiedArtists.title}

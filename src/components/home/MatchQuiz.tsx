@@ -468,7 +468,7 @@ export function MatchQuiz({
     await save(tab);
   }
 
-  const card = "overflow-hidden rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10";
+  const card = "overflow-hidden rounded-lg border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10";
 
   if (sent) {
     const ref = saved ?? undefined;

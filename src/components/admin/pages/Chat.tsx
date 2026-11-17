@@ -47,7 +47,7 @@ export function Chat() {
     <div className="flex h-[calc(100svh-7.5rem)] min-h-[32rem] flex-col gap-4">
       <PageHeader title="Chat with artists" text="Pick an artist to message. Artists see your messages as coming from Admin, not your name." actions={<PushToggle as="staff" />} />
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[20rem_1fr]">
-        <section className={`min-h-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface ${artist ? "max-lg:hidden" : "flex"} lg:flex`} aria-label="Artists">
+        <section className={`min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface ${artist ? "max-lg:hidden" : "flex"} lg:flex`} aria-label="Artists">
           <div className="border-b border-line p-3">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
@@ -119,7 +119,7 @@ export function Chat() {
             empty={<span>No messages with {artist.name} yet. Say hello below.</span>}
           />
         ) : (
-          <section className="hidden items-center justify-center rounded-[1.25rem] border border-dashed border-line bg-surface p-10 text-center lg:flex">
+          <section className="hidden items-center justify-center rounded-lg border border-dashed border-line bg-surface p-10 text-center lg:flex">
             <div>
               <MessageCircle className="mx-auto h-10 w-10 text-muted" aria-hidden />
               <p className="mt-3 font-medium text-ink">Choose an artist to start chatting</p>

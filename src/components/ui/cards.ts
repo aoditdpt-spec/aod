@@ -16,8 +16,8 @@ export const linkCard =
   "press group border border-line duration-200 hover:border-ink hover:bg-wash";
 export const linkCardDark =
   "press group border border-night-line duration-200 hover:border-white/60 hover:bg-white/10";
-export const linkTitle = "transition-colors group-hover:font-extrabold group-hover:text-brand";
-export const linkText = "group-hover:font-semibold";
-export const tiltZoom = "transition-transform duration-300 group-hover/tilt:scale-110";
-export const tiltTitle = "group-hover/tilt:font-extrabold";
-export const tiltText = "group-hover/tilt:[-webkit-text-stroke:0.35px_currentColor]";
+export const linkTitle = "transition-colors group-hover:text-brand";
+export const linkText = "";
+export const tiltZoom = "";
+export const tiltTitle = "";
+export const tiltText = "";
