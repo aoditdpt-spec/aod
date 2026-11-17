@@ -20,7 +20,7 @@ export function NewsletterLinkAction({ mode, token }: { mode: "confirm" | "unsub
     return (
       <div role="status" className="mt-6">
         <p className="flex items-center gap-2 text-lg font-bold text-ink">
-          <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden /> {confirm ? newsletter.confirmedTitle : newsletter.unsubscribedTitle}
+          <CheckCircle2 className="h-6 w-6 text-emerald-400" aria-hidden /> {confirm ? newsletter.confirmedTitle : newsletter.unsubscribedTitle}
         </p>
         <p className="mt-2 text-body">{confirm ? newsletter.confirmedText : newsletter.unsubscribedText}</p>
         <Link href="/blog" className="mt-5 inline-block font-medium text-brand hover:underline">
@@ -52,7 +52,7 @@ export function NewsletterLinkAction({ mode, token }: { mode: "confirm" | "unsub
         {confirm ? newsletter.confirmButton : newsletter.unsubscribeButton}
       </button>
       {state.kind === "error" && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 text-sm text-red-300">
           {state.error}
         </p>
       )}

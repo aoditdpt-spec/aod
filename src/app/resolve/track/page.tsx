@@ -18,7 +18,7 @@ export default function TrackCasePage() {
       <div className="mt-8">
         <Suspense
           fallback={
-            <div className="rounded-panel bg-white">
+            <div className="rounded-panel bg-surface">
               <PageLoader className="min-h-56" />
             </div>
           }

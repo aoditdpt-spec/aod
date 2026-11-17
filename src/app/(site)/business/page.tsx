@@ -50,7 +50,7 @@ export default function BusinessPage() {
             const I = segmentIcons[i];
             return (
               <StaggerItem key={s.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-surface p-7`}>
                   <I className={`h-9 w-9 text-brand-bright ${tiltZoom}`} strokeWidth={1.25} aria-hidden />
                   <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{s.title}</h3>
                   <p className={`mt-2 text-body ${tiltText}`}>{s.text}</p>
@@ -73,7 +73,7 @@ export default function BusinessPage() {
               ))}
             </ul>
           </div>
-          <div className="flex flex-col justify-center rounded-[1.25rem] bg-white p-8">
+          <div className="flex flex-col justify-center rounded-[1.25rem] bg-surface p-8">
             <p className="flex items-center gap-2 text-sm font-medium text-brand">
               <BadgeCheck className="h-5 w-5" aria-hidden /> {business.caseStudy.label}
             </p>

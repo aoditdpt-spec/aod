@@ -18,7 +18,7 @@ export function CategoryTiles({ items = categories, className = "" }: { items?: 
         <StaggerItem key={c.slug}>
           <Link
             href={`/categories/${c.slug}#book`}
-            className={`flex h-full flex-col rounded-2xl bg-white p-1.5 sm:p-2 ${linkCard}`}
+            className={`flex h-full flex-col rounded-2xl bg-surface p-1.5 sm:p-2 ${linkCard}`}
           >
             <span className="relative block aspect-square overflow-hidden rounded-xl bg-peach">
               {c.image ? (
@@ -46,7 +46,7 @@ export function CategoryTiles({ items = categories, className = "" }: { items?: 
         </StaggerItem>
       ))}
       <StaggerItem>
-        <Link href="/book" className={`flex h-full flex-col rounded-2xl bg-white p-1.5 sm:p-2 ${linkCard}`}>
+        <Link href="/book" className={`flex h-full flex-col rounded-2xl bg-surface p-1.5 sm:p-2 ${linkCard}`}>
           <span className="flex aspect-square items-center justify-center rounded-xl bg-brand">
             <Sparkles className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} aria-hidden />
           </span>

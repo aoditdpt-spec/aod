@@ -31,7 +31,7 @@ export function SendToAod() {
   return (
     <Panel title={title} text={text}>
       {sentAt && (
-        <p className="mb-3 flex items-center gap-1.5 text-sm text-emerald-700">
+        <p className="mb-3 flex items-center gap-1.5 text-sm text-emerald-300">
           <CheckCircle2 className="h-4 w-4" aria-hidden /> Last sent {fmt(sentAt)}
         </p>
       )}
@@ -50,7 +50,7 @@ export function SendToAod() {
         {busy ? <Spinner /> : <Send className="h-4 w-4" aria-hidden />}
         {firstTime ? "Submit for review" : "Send update to AOD"}
       </button>
-      {message && <p className={`mt-2 text-sm ${message.ok ? "text-muted" : "text-red-600"}`}>{message.text}</p>}
+      {message && <p className={`mt-2 text-sm ${message.ok ? "text-muted" : "text-red-400"}`}>{message.text}</p>}
     </Panel>
   );
 }

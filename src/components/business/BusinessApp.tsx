@@ -82,7 +82,7 @@ export function BusinessApp({
       {tab === "calendar" && <CompanyCalendar orders={orders} onBook={() => setTab("book")} />}
       {tab === "orders" && <BusinessOrders orders={orders} onBook={() => setTab("book")} />}
       {tab === "book" && (
-        <section className="rounded-[1.25rem] border border-line bg-white p-4 sm:p-7">
+        <section className="rounded-[1.25rem] border border-line bg-surface p-4 sm:p-7">
           <h2 className="text-lg font-bold text-ink sm:text-xl">Book artists</h2>
           <p className="mt-1 text-sm text-muted">Pick the artists, the date and the time. We send curated matches, and the order appears in your calendar.</p>
           <div className="mt-6">
@@ -192,7 +192,7 @@ function CompanyDetails({ company, onChange }: { company: Company; onChange: (c:
             )}
           </button>
           {message && (
-            <p className={`text-sm ${message.ok ? "text-emerald-700" : "text-red-600"}`} role="status">
+            <p className={`text-sm ${message.ok ? "text-emerald-300" : "text-red-400"}`} role="status">
               {message.text}
             </p>
           )}

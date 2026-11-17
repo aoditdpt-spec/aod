@@ -48,7 +48,7 @@ export default function AboutPage() {
           <p className="mt-6 max-w-3xl text-lg text-body sm:text-xl sm:leading-snug">{about.intro}</p>
           <ul className="mt-8 flex flex-wrap gap-3">
             {facts.map(({ icon: I, label }) => (
-              <li key={label} className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-ink shadow-sm">
+              <li key={label} className="inline-flex items-center gap-2 rounded-lg bg-surface px-3 py-2 text-sm font-medium text-ink shadow-sm">
                 <I className="h-4 w-4 shrink-0 text-brand" aria-hidden />
                 {label}
               </li>
@@ -79,7 +79,7 @@ export default function AboutPage() {
             const I = valueIcons[i];
             return (
               <StaggerItem key={v.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-surface p-7`}>
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl bg-peach/60 ${tiltZoom}`}>
                     <I className="h-5 w-5 text-brand" strokeWidth={1.75} aria-hidden />
                   </span>

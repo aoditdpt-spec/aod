@@ -17,7 +17,7 @@ export function BusinessOrders({ orders, onBook }: { orders: CustomerOrder[]; on
     .sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999") * -1 || b.createdAt.localeCompare(a.createdAt));
 
   return (
-    <section className="rounded-[1.25rem] border border-line bg-white p-4 sm:p-7">
+    <section className="rounded-[1.25rem] border border-line bg-surface p-4 sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-ink sm:text-xl">Your orders</h2>
         <button type="button" onClick={onBook} className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover">

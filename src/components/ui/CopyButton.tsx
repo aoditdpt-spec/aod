@@ -16,9 +16,9 @@ export function CopyButton({ text, label = "Copy", className = "" }: { text: str
           window.setTimeout(() => setDone(false), 2000);
         } catch {}
       }}
-      className={`inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-sm font-medium text-ink hover:border-brand hover:text-brand ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:border-brand hover:text-brand ${className}`}
     >
-      {done ? <Check className="h-4 w-4 text-emerald-600" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+      {done ? <Check className="h-4 w-4 text-emerald-400" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
       <span aria-live="polite">{done ? "Copied" : label}</span>
     </button>
   );

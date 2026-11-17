@@ -57,7 +57,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
   }
 
   return (
-    <article className="rounded-xl border border-line bg-white p-5">
+    <article className="rounded-xl border border-line bg-surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="text-xs text-muted">{booking.ref ?? booking.id}</p>
@@ -154,7 +154,7 @@ export function BookingCard({ booking, compact = false }: { booking: Booking; co
         </div>
       )}
 
-      {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
 
       {(booking.status === "confirmed" || booking.status === "selected") && !compact && (
         <a

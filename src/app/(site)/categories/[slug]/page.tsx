@@ -96,7 +96,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
         <StaggerList className={`swipe-row mt-8 grid gap-6 sm:grid-cols-2 ${category.services.length > 8 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           {category.services.map((s) => (
             <StaggerItem key={s.name} className="swipe-item">
-            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-white p-6`}>
+            <TiltCard className={`flex flex-col rounded-[1.25rem] border border-line bg-surface p-6`}>
               {/* The text grows to fill the card, so every card's button sits at the same height. */}
               <div className="flex-1">
               <div className="flex items-start justify-between gap-3">
@@ -165,7 +165,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
             <StaggerItem key={c.slug}>
               <Link
                 href={`/categories/${c.slug}`}
-                className={`flex h-full flex-col gap-4 rounded-card bg-white p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
+                className={`flex h-full flex-col gap-4 rounded-card bg-surface p-5 outline-none focus-visible:ring-2 focus-visible:ring-brand ${linkCard}`}
               >
                 <Icon name={c.icon} className="h-7 w-7 text-brand-bright" strokeWidth={1.25} />
                 <span className={`font-bold text-ink ${linkTitle}`}>{c.name}</span>

@@ -53,7 +53,7 @@ export default function ArtistsHome() {
 
             <ul className="mt-6 flex flex-wrap gap-2" aria-label="Who we're onboarding">
               {categories.map((c) => (
-                <li key={c.slug} className="flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs text-ink">
+                <li key={c.slug} className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-xs text-ink">
                   <Icon name={c.icon} className="h-3.5 w-3.5 text-brand" /> {c.name}
                 </li>
               ))}

@@ -45,7 +45,7 @@ export function PushPrompt({ as, enabled = true }: { as: "staff" | "artist"; ena
 
   return (
     <div role="dialog" aria-label="Allow notifications" className="fixed inset-x-3 bottom-3 z-50 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-96">
-      <div className="rounded-2xl border border-line bg-white p-4 shadow-xl">
+      <div className="rounded-2xl border border-line bg-surface p-4 shadow-xl">
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-peach text-brand">
             <BellRing className="h-5 w-5" aria-hidden />

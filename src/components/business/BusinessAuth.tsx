@@ -120,7 +120,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
   const text = mode === "in" ? businessCopy.signInText : businessCopy.signUpText;
 
   return (
-    <section id="business-account" className="mx-auto w-full max-w-2xl scroll-mt-24 rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10">
+    <section id="business-account" className="mx-auto w-full max-w-2xl scroll-mt-24 rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10">
       <div role="tablist" aria-label="Sign in or create an account" className="inline-flex rounded-xl bg-wash p-1">
         {(
           [
@@ -139,7 +139,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
               setErrors({});
               setMessage(null);
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${mode === id ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${mode === id ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"}`}
           >
             {label}
           </button>
@@ -183,7 +183,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
                     className={`${inputClass} sm:max-w-sm`}
                   />
                 )}
-                {errors.type && <p className="mt-1.5 text-xs text-red-600">{errors.type}</p>}
+                {errors.type && <p className="mt-1.5 text-xs text-red-400">{errors.type}</p>}
               </div>
               <Field label="Contact person" error={errors.contactName}>
                 <input value={form.contactName} onChange={(e) => set({ contactName: e.target.value })} autoComplete="name" aria-invalid={!!errors.contactName} className={inputClass} />
@@ -239,7 +239,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
           )}
 
           {message && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-red-400" role="alert">
               {message}
             </p>
           )}
@@ -270,7 +270,7 @@ export function BusinessAuth({ onSignedIn }: { onSignedIn: (company: Company) =>
             />
           </Field>
           {message && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-red-400" role="alert">
               {message}
             </p>
           )}

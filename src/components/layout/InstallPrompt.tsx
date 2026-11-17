@@ -102,7 +102,7 @@ export function InstallPrompt() {
       {mode && (
         <m.div
           key="install"
-          className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 p-3 sm:items-center"
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-3 sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -114,7 +114,7 @@ export function InstallPrompt() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="install-title"
-            className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-[1.5rem] bg-surface p-6 shadow-xl"
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
             exit={{ y: 40, opacity: 0, transition: { duration: 0.2 } }}

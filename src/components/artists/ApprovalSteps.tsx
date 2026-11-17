@@ -76,7 +76,7 @@ export function ApprovalSteps() {
                 {!last && <span aria-hidden className={`absolute left-[0.9rem] top-8 h-[calc(100%-2rem)] w-0.5 ${isDone ? "bg-brand" : "bg-line"}`} />}
                 <span
                   className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
-                    isDone ? "bg-brand text-white" : now ? "bg-white text-brand ring-2 ring-brand" : closed && i === current ? "bg-red-50 text-red-700 ring-1 ring-red-200" : "bg-wash text-muted ring-1 ring-line"
+                    isDone ? "bg-brand text-white" : now ? "bg-surface text-brand ring-2 ring-brand" : closed && i === current ? "bg-red-950/50 text-red-300 ring-1 ring-red-900" : "bg-wash text-muted ring-1 ring-line"
                   }`}
                 >
                   {isDone ? <Check className="h-4 w-4" aria-hidden /> : closed && i === current ? <X className="h-4 w-4" aria-hidden /> : i + 1}

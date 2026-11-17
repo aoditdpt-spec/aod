@@ -73,7 +73,7 @@ export function ModeSwitch() {
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className="text-muted">Preview as</span>
-      <div role="radiogroup" aria-label="Preview as" className="flex rounded-lg bg-white p-1 ring-1 ring-line">
+      <div role="radiogroup" aria-label="Preview as" className="flex rounded-lg bg-surface p-1 ring-1 ring-line">
         {options.map(([value, label]) => (
           <button
             key={value}
@@ -93,7 +93,7 @@ export function ModeSwitch() {
 
 function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
   return (
-    <div className="rounded-[1.25rem] border border-line bg-white p-5">
+    <div className="rounded-[1.25rem] border border-line bg-surface p-5">
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-2 text-3xl font-medium text-ink">{value}</p>
       {note && <p className="mt-1 text-xs text-muted">{note}</p>}

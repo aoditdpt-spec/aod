@@ -46,7 +46,7 @@ export function PortalNav() {
     <>
       <PushPrompt as="artist" enabled={portal.data?.kind === "artist"} />
       {/* Phones and tablets */}
-      <nav aria-label="Portal" className="sticky top-16 z-20 border-b border-line bg-white lg:hidden">
+      <nav aria-label="Portal" className="sticky top-16 z-20 border-b border-line bg-surface lg:hidden">
         <ul className="flex gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none]">
           {items.map(({ href, label, icon: I, active, count }) => (
             <li key={href} className="shrink-0">
@@ -65,7 +65,7 @@ export function PortalNav() {
       </nav>
 
       {/* Laptops and up */}
-      <nav aria-label="Portal" className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r border-line bg-white px-3 py-6 lg:flex">
+      <nav aria-label="Portal" className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-6 lg:flex">
         <ul className="space-y-1">
           {items.map(({ href, label, icon: I, active, count }) => (
             <li key={href}>

@@ -141,7 +141,7 @@ export function Reports() {
             {masterWorkbook(db).map((s) => (
               <li key={s.name} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <span className="flex items-center gap-2 text-ink">
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-700" aria-hidden /> {s.name} <span className="text-muted">({s.rows.length - 1} rows)</span>
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-300" aria-hidden /> {s.name} <span className="text-muted">({s.rows.length - 1} rows)</span>
                 </span>
                 {allowed("export") && (
                   <button type="button" onClick={() => exportExcel(`aod-${s.name.toLowerCase().replace(/\W+/g, "-")}-${stamp}.xlsx`, () => buildXlsx([s]))} className="text-sm font-medium text-brand hover:text-brand-hover">

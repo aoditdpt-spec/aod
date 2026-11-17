@@ -28,7 +28,7 @@ export function PostCover({ post, sizes, priority = false, className = "" }: { p
           A.
         </div>
       )}
-      {post.sample && <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2 py-0.5 text-xs font-medium text-muted">Sample</span>}
+      {post.sample && <span className="absolute left-3 top-3 rounded-md bg-surface/90 px-2 py-0.5 text-xs font-medium text-muted">Sample</span>}
     </div>
   );
 }
@@ -38,7 +38,7 @@ export function PostCard({ post, featured = false }: { post: PublicPost; feature
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className={`${linkCard} flex h-full overflow-hidden rounded-card bg-white ${featured ? "flex-col lg:grid lg:grid-cols-[1.2fr_1fr]" : "flex-col"}`}
+      className={`${linkCard} flex h-full overflow-hidden rounded-card bg-surface ${featured ? "flex-col lg:grid lg:grid-cols-[1.2fr_1fr]" : "flex-col"}`}
     >
       <PostCover
         post={post}

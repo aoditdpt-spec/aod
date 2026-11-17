@@ -41,7 +41,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
-      <section className="rounded-[1.25rem] border border-line bg-white p-4 sm:p-6">
+      <section className="rounded-[1.25rem] border border-line bg-surface p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-ink sm:text-xl">{first.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</h2>
           <div className="flex items-center gap-1">
@@ -114,7 +114,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
         </ul>
       </section>
 
-      <section className="rounded-[1.25rem] border border-line bg-white p-4 sm:p-6">
+      <section className="rounded-[1.25rem] border border-line bg-surface p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-ink">{day ? fmtDate(day) : "Coming up"}</h2>
           {day && (
@@ -166,7 +166,7 @@ export function CompanyCalendar({ orders, onBook }: { orders: CustomerOrder[]; o
       </section>
 
       {open && (
-        <section className="rounded-[1.25rem] border border-line bg-white p-5 sm:p-7 lg:col-span-2">
+        <section className="rounded-[1.25rem] border border-line bg-surface p-5 sm:p-7 lg:col-span-2">
           <OrderDetail order={open} />
         </section>
       )}

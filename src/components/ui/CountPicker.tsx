@@ -25,7 +25,7 @@ export function CountPicker({
   const boxOpen = custom || value > quickCounts.length;
   const cell = size === "sm" ? "h-8 min-w-8 text-xs" : "h-10 min-w-10 text-sm";
   const tone = (on: boolean) =>
-    on ? "bg-brand text-white ring-1 ring-brand" : "bg-white text-ink ring-1 ring-line hover:ring-brand";
+    on ? "bg-brand text-white ring-1 ring-brand" : "bg-surface text-ink ring-1 ring-line hover:ring-brand";
 
   return (
     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`How many ${label}`}>
@@ -76,7 +76,7 @@ export function CountPicker({
             aria-invalid={tooMany}
             className={`${size === "sm" ? "h-8 w-12 text-xs" : "h-10 w-14 text-sm"} rounded-lg border px-2 text-center font-medium text-ink outline-none focus:border-brand ${tooMany ? "border-red-500" : "border-line"}`}
           />
-          <span id={hint} className={`text-xs ${tooMany ? "text-red-600" : "text-muted"}`} aria-live="polite">
+          <span id={hint} className={`text-xs ${tooMany ? "text-red-400" : "text-muted"}`} aria-live="polite">
             {tooMany ? `${MAX_ARTISTS} at most. Need more? Say so in the details.` : `Up to ${MAX_ARTISTS}`}
           </span>
         </span>

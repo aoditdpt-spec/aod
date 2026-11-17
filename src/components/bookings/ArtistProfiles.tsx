@@ -54,7 +54,7 @@ function Profile({ artist: a }: { artist: MatchedArtist }) {
           <p className="text-muted">
             {a.craft} · {a.city}
           </p>
-          <p className="mt-1 text-xs font-medium text-emerald-700">Verified by AOD</p>
+          <p className="mt-1 text-xs font-medium text-emerald-300">Verified by AOD</p>
         </div>
       </div>
       {p.bio && <p className="whitespace-pre-line text-body">{p.bio}</p>}

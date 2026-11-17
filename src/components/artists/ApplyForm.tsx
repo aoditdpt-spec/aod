@@ -152,8 +152,8 @@ export function ApplyForm() {
 
   if (submitted && savedId) {
     return (
-      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-white p-6 text-center sm:p-10">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-surface p-6 text-center sm:p-10">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-950/50 text-emerald-300">
           <CheckCircle2 className="h-7 w-7" aria-hidden />
         </span>
         <h2 className="mt-6 text-2xl font-bold sm:text-3xl">Application received</h2>
@@ -192,7 +192,7 @@ export function ApplyForm() {
       .filter(Boolean)
       .join("\n");
     return (
-      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-white p-6 text-center sm:p-10">
+      <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-surface p-6 text-center sm:p-10">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-peach text-brand">
           <Info className="h-7 w-7" aria-hidden />
         </span>
@@ -258,12 +258,12 @@ export function ApplyForm() {
                   onClick={() => setStep(i)}
                   aria-current={now ? "step" : undefined}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors disabled:cursor-not-allowed ${
-                    now ? "bg-white shadow-sm ring-1 ring-line" : "hover:bg-white/70"
+                    now ? "bg-surface shadow-sm ring-1 ring-line" : "hover:bg-surface/70"
                   }`}
                 >
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
-                      done ? "bg-brand text-white" : now ? "bg-peach text-brand-hover" : "bg-white text-muted ring-1 ring-line"
+                      done ? "bg-brand text-white" : now ? "bg-peach text-brand-hover" : "bg-surface text-muted ring-1 ring-line"
                     }`}
                   >
                     {done ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
@@ -277,7 +277,7 @@ export function ApplyForm() {
             );
           })}
         </ol>
-        <p className="mt-6 hidden rounded-xl bg-white/70 p-4 text-xs text-muted lg:block">
+        <p className="mt-6 hidden rounded-xl bg-surface/70 p-4 text-xs text-muted lg:block">
           Your answers are kept as a draft in this browser until you send them. Photos and files aren&apos;t kept if you refresh.
         </p>
       </nav>
@@ -309,7 +309,7 @@ export function ApplyForm() {
             })
             .finally(() => setSending(false));
         }}
-        className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10"
+        className="rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10"
       >
         {hasDraft && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-wash px-4 py-3 text-sm">
@@ -374,7 +374,7 @@ export function ApplyForm() {
           </button>
         </div>
         {tried[current.id] && Object.keys(errs).length > 0 && (
-          <p className="mt-3 text-right text-sm text-red-600" role="alert">
+          <p className="mt-3 text-right text-sm text-red-400" role="alert">
             Fill in the highlighted fields to continue.
           </p>
         )}
@@ -433,7 +433,7 @@ function AboutStep({
               />
             </div>
             {backendEnabled ? null : phoneVerified ? (
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-50 px-4 text-sm font-medium text-emerald-700">
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-950/50 px-4 text-sm font-medium text-emerald-300">
                 <CheckCircle2 className="h-4 w-4" aria-hidden /> Verified
               </span>
             ) : (
@@ -481,7 +481,7 @@ function AboutStep({
                 </button>
               </div>
             </label>
-            {codeError && <p className="mt-1.5 text-xs text-red-600">{codeError}</p>}
+            {codeError && <p className="mt-1.5 text-xs text-red-400">{codeError}</p>}
             <p className="mt-2 text-xs text-muted">Preview: no code is actually sent. Any 6 digits work.</p>
           </div>
         )}
@@ -559,7 +559,7 @@ function CraftStep({ profile, set, errors }: StepProps) {
             );
           })}
         </ul>
-        {errors.category && <p className="mt-1.5 text-xs text-red-600">{errors.category}</p>}
+        {errors.category && <p className="mt-1.5 text-xs text-red-400">{errors.category}</p>}
       </div>
 
       {profile.category && (
@@ -581,7 +581,7 @@ function CraftStep({ profile, set, errors }: StepProps) {
                     aria-pressed={on}
                     onClick={() => set({ otherCategories: others, services: keepServices([profile.category, ...others]) })}
                     className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                      on ? "border-brand bg-peach/50 text-ink" : "border-line bg-white text-body hover:border-brand/50"
+                      on ? "border-brand bg-peach/50 text-ink" : "border-line bg-surface text-body hover:border-brand/50"
                     }`}
                   >
                     {on ? <Check className="h-3.5 w-3.5 text-brand" aria-hidden /> : <Icon name={c.icon} className="h-3.5 w-3.5 text-brand" />}
@@ -602,7 +602,7 @@ function CraftStep({ profile, set, errors }: StepProps) {
               <ChipGroup label={`${c.name} services`} options={artistServiceOptions(c.slug)} value={profile.services} onChange={(services) => set({ services })} selectAll />
             </div>
           ))}
-          {errors.services && <p className="mt-1.5 text-xs text-red-600">{errors.services}</p>}
+          {errors.services && <p className="mt-1.5 text-xs text-red-400">{errors.services}</p>}
         </div>
       )}
 
@@ -618,11 +618,11 @@ function CraftStep({ profile, set, errors }: StepProps) {
       <div>
         <p className="text-sm font-medium text-ink">Languages you speak with clients</p>
         <ChipGroup label="Languages" options={languages} value={profile.languages} onChange={(l) => set({ languages: l })} />
-        {errors.languages && <p className="mt-1.5 text-xs text-red-600">{errors.languages}</p>}
+        {errors.languages && <p className="mt-1.5 text-xs text-red-400">{errors.languages}</p>}
       </div>
 
       {errors.links && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+        <p className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300" role="alert">
           {errors.links}
         </p>
       )}
@@ -652,7 +652,7 @@ function WorkStep({ profile, set, errors }: StepProps) {
   const d = profile.work ?? {};
   // Merge into the latest saved answers, like `set`, so quick successive taps never undo each other.
   const setAnswer = (id: string, v: string | string[]) => set({ work: { ...(profileStore.get()?.work ?? {}), [id]: v } });
-  if (!profile.category) return <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{errors.category ?? "Choose what you do on the Your craft step first."}</p>;
+  if (!profile.category) return <p className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300">{errors.category ?? "Choose what you do on the Your craft step first."}</p>;
   const sections = workSections(profile.category, profile.otherCategories).filter((s) => s.questions.length > 0);
   return (
     <>
@@ -678,7 +678,7 @@ function PortfolioStep({ profile, set, errors }: StepProps) {
         <LinkFields links={profile.links} onChange={(links) => set({ links })} />
       </div>
       {errors.links && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+        <p className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300" role="alert">
           {errors.links}
         </p>
       )}
@@ -702,7 +702,7 @@ function VerifyStep({ profile, set, errors }: StepProps) {
           . I confirm that all the information above is true and the work I&apos;ve shared is my own, and I agree to
           collaborate with AOD as per mutual understanding.
         </CheckRow>
-        {errors.agreeTerms && <p className="pl-7 text-xs text-red-600">{errors.agreeTerms}</p>}
+        {errors.agreeTerms && <p className="pl-7 text-xs text-red-400">{errors.agreeTerms}</p>}
       </div>
     </>
   );

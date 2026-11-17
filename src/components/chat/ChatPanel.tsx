@@ -61,7 +61,7 @@ export function ChatPanel({
   const lastMine = [...messages].reverse().find(isMine);
 
   return (
-    <div className={`flex min-h-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-white ${className}`}>
+    <div className={`flex min-h-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface ${className}`}>
       {header && <div className="border-b border-line px-4 py-3 sm:px-5">{header}</div>}
       <div ref={list} className="min-h-0 flex-1 space-y-1 overflow-y-auto bg-wash/60 px-3 py-4 sm:px-5" aria-live="polite">
         {count === 0 && <div className="flex h-full min-h-40 items-center justify-center text-center text-sm text-muted">{empty}</div>}
@@ -75,7 +75,7 @@ export function ChatPanel({
               {showDay && <p className="my-3 text-center text-xs font-medium text-muted">{dayLabel(m.at)}</p>}
               <div className={`flex flex-col ${mine ? "items-end" : "items-start"} ${showName ? "mt-2" : ""}`}>
                 {showName && nameOf(m) && <span className="mb-0.5 px-1 text-xs font-medium text-muted">{nameOf(m)}</span>}
-                <div className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm sm:max-w-[75%] ${mine ? "rounded-br-md bg-brand text-white" : "rounded-bl-md border border-line bg-white text-ink"}`}>
+                <div className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm sm:max-w-[75%] ${mine ? "rounded-br-md bg-brand text-white" : "rounded-bl-md border border-line bg-surface text-ink"}`}>
                   {m.body}
                 </div>
                 <span className="mt-0.5 px-1 text-[0.6875rem] text-muted">
@@ -89,7 +89,7 @@ export function ChatPanel({
         <div ref={end} />
       </div>
       {error && (
-        <p className="border-t border-red-100 bg-red-50 px-4 py-2 text-sm text-red-700" role="alert">
+        <p className="border-t border-red-950 bg-red-950/50 px-4 py-2 text-sm text-red-300" role="alert">
           {error}
         </p>
       )}
@@ -112,7 +112,7 @@ export function ChatPanel({
           rows={1}
           placeholder={placeholder}
           aria-label="Message"
-          className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-brand"
+          className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-brand"
         />
         <button
           type="submit"

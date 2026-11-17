@@ -20,7 +20,7 @@ export default function NewCasePage() {
       <div className="mt-8">
         <Suspense
           fallback={
-            <div className="rounded-panel bg-white">
+            <div className="rounded-panel bg-surface">
               <PageLoader className="min-h-[40rem]" label="Loading the form…" />
             </div>
           }

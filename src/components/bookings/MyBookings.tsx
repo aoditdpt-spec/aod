@@ -37,11 +37,11 @@ const otherSteps: Record<string, string> = { rescheduled: "Date changed", cancel
 
 const statusInfo = (o: CustomerOrder) => {
   if (o.status === "sent") return { label: "Sent on WhatsApp", tone: "bg-wash text-muted" };
-  if (o.status === "cancelled") return { label: "Cancelled", tone: "bg-red-50 text-red-700" };
-  if (o.status === "rescheduled") return { label: "Rescheduled", tone: "bg-amber-50 text-amber-800" };
+  if (o.status === "cancelled") return { label: "Cancelled", tone: "bg-red-950/50 text-red-300" };
+  if (o.status === "rescheduled") return { label: "Rescheduled", tone: "bg-amber-950/50 text-amber-200" };
   const step = customerSteps.find((s) => s.id === o.status);
   const good = ["confirmed", "completed", "delivered", "reviewed"].includes(o.status);
-  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-50 text-emerald-700" : "bg-peach text-brand-hover" };
+  return { label: step?.label ?? o.status, tone: good ? "bg-emerald-950/50 text-emerald-300" : "bg-peach text-brand-hover" };
 };
 
 // What the customer should do next, if anything.
@@ -139,7 +139,7 @@ function LiveMyBookings() {
 
   if (error && !data) {
     return (
-      <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 text-center text-sm text-body">
+      <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-surface p-6 text-center text-sm text-body">
         {error}{" "}
         <button type="button" onClick={load} className="font-medium text-brand underline underline-offset-2">
           Try again
@@ -179,10 +179,10 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const field = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none focus:border-brand";
+  const field = "mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal text-ink outline-none focus:border-brand";
 
   return (
-    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8">
+    <div className="mx-auto max-w-md rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8">
       <h2 className="text-2xl font-bold">{myBookingsCopy.signInTitle}</h2>
       <p className="mt-2 text-sm text-body">{myBookingsCopy.signInText}</p>
       <form
@@ -240,7 +240,7 @@ function CustomerSignIn({ onSignedIn }: { onSignedIn?: () => void }) {
           </label>
         )}
         {error && (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="text-sm text-red-400" role="alert">
             {error}
           </p>
         )}
@@ -332,7 +332,7 @@ function BookingsView({
                 role="tab"
                 aria-selected={tab === id}
                 onClick={() => setTab(id)}
-                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${tab === id ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${tab === id ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"}`}
               >
                 {label}
               </button>
@@ -351,7 +351,7 @@ function BookingsView({
                       type="button"
                       onClick={() => setOpenId(o.id)}
                       aria-current={openId === o.id ? "true" : undefined}
-                      className={`w-full rounded-2xl border bg-white p-4 text-left transition hover:border-brand/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
+                      className={`w-full rounded-2xl border bg-surface p-4 text-left transition hover:border-brand/50 hover:shadow-md ${openId === o.id ? "border-brand" : "border-line"}`}
                     >
                       <span className="flex items-center justify-between gap-2 text-xs text-muted">
                         <span>
@@ -452,13 +452,13 @@ function CancelBox({ order: o, onCancel }: { order: CustomerOrder; onCancel: Can
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="mt-3 inline-flex h-10 items-center rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50"
+          className="mt-3 inline-flex h-10 items-center rounded-lg border border-red-900 bg-surface px-4 text-sm font-medium text-red-300 hover:bg-red-950/50"
         >
           Cancel booking
         </button>
       )}
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-600">
+        <p role="alert" className="mt-2 text-sm text-red-400">
           {error}
         </p>
       )}
@@ -499,7 +499,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
   const paid = o.payments.filter((p) => p.status === "verified").reduce((n, p) => n + p.amount, 0);
   const ask = whatsappUrl(`Hi AOD, about my booking ${o.id} (${o.occasion}, ${fmt(o.date)}): `);
   const changeMail = `mailto:${brand.email}?subject=${encodeURIComponent(`Change or cancel booking ${o.id}`)}&body=${encodeURIComponent(`Booking ${o.id}\nWhat I'd like to change:\n`)}`;
-  const box = "rounded-2xl border border-line bg-white p-5";
+  const box = "rounded-2xl border border-line bg-surface p-5";
 
   return (
     <div className="space-y-5">
@@ -651,7 +651,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-ink">{inr(p.amount)}</span>
-                    <span className={p.status === "verified" ? "text-emerald-700" : "text-amber-700"}>{p.status === "verified" ? "Confirmed" : "Being checked"}</span>
+                    <span className={p.status === "verified" ? "text-emerald-300" : "text-amber-300"}>{p.status === "verified" ? "Confirmed" : "Being checked"}</span>
                   </span>
                 </li>
               ))}
@@ -744,7 +744,7 @@ function OrderDetail({ order: o, onBack, onReview, onCancel }: { order: Customer
                 )}
               </button>
               {reviewError && (
-                <p className="mt-2 text-sm text-red-600" role="alert">
+                <p className="mt-2 text-sm text-red-400" role="alert">
                   {reviewError}
                 </p>
               )}

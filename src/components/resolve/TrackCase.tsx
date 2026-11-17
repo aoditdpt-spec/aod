@@ -89,7 +89,7 @@ export function TrackCase() {
   }
 
   return (
-    <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
+    <div className="rounded-panel border border-line bg-surface p-6 sm:p-8">
       <form
         noValidate
         onSubmit={(e) => {
@@ -124,14 +124,14 @@ export function TrackCase() {
       </form>
 
       {error === "preview" ? (
-        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+        <div className="mt-6 rounded-xl border border-amber-900 bg-amber-950/50 p-5 text-sm text-amber-100">
           <p>Case tracking starts once the Dispute Desk is connected. Until then, ask AOD for an update on WhatsApp.</p>
           <button type="button" onClick={() => setFound({ c: sampleCase, sample: true })} className="mt-3 font-medium text-brand hover:underline">
             See what a tracked case looks like
           </button>
         </div>
       ) : error ? (
-        <p role="alert" className="mt-6 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p role="alert" className="mt-6 flex items-start gap-2 rounded-xl border border-amber-900 bg-amber-950/50 p-4 text-sm text-amber-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {error}
         </p>
       ) : null}
@@ -164,7 +164,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
 
   return (
     <div className="space-y-6">
-      <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
+      <div className="rounded-panel border border-line bg-surface p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-sm text-muted">
@@ -194,7 +194,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
         </dl>
       </div>
 
-      <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
+      <div className="rounded-panel border border-line bg-surface p-6 sm:p-8">
         <h3 className="text-lg font-bold text-ink">Progress</h3>
         <ol className="mt-5 space-y-5">
           {steps.map((s, i) => {
@@ -206,7 +206,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
               <li key={s.id} className="relative flex gap-4">
                 {i < steps.length - 1 && <span aria-hidden className={`absolute left-[0.8125rem] top-8 h-[calc(100%-0.75rem)] w-px ${i < reached ? "bg-brand" : "bg-line"}`} />}
                 <span
-                  className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${ticked ? "bg-brand text-white" : current ? "border-2 border-brand bg-white text-brand" : "border border-line bg-white text-muted"}`}
+                  className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${ticked ? "bg-brand text-white" : current ? "border-2 border-brand bg-surface text-brand" : "border border-line bg-surface text-muted"}`}
                 >
                   {ticked ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
                 </span>
@@ -214,7 +214,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
                   <span className={`block font-medium ${i <= reached ? "text-ink" : "text-muted"}`}>
                     {s.label}
                     {at && i <= reached && <span className="ml-2 text-sm font-normal text-muted">{fmt(at)}</span>}
-                    {current && <span className="ml-2 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Now</span>}
+                    {current && <span className="ml-2 rounded-md bg-amber-950/50 px-2 py-0.5 text-xs font-medium text-amber-200">Now</span>}
                   </span>
                   <span className="mt-0.5 block text-sm text-muted">{s.text}</span>
                 </span>
@@ -223,11 +223,11 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
           })}
           {c.status === "escalated" && (
             <li className="flex gap-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-red-600 bg-white text-xs font-medium text-red-700">!</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-red-600 bg-surface text-xs font-medium text-red-300">!</span>
               <span>
                 <span className="block font-medium text-ink">
                   Escalated to the grievance officer
-                  <span className="ml-2 rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">Now</span>
+                  <span className="ml-2 rounded-md bg-red-950/50 px-2 py-0.5 text-xs font-medium text-red-300">Now</span>
                 </span>
                 <span className="mt-0.5 block text-sm text-muted">The grievance officer is reviewing the case afresh and will reply by email.</span>
               </span>
@@ -235,7 +235,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
           )}
           {c.status === "closed" && (
             <li className="flex gap-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-night text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
                 <Check className="h-4 w-4" aria-hidden />
               </span>
               <span className="block font-medium text-ink">Closed</span>
@@ -252,7 +252,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
       </div>
 
       {c.status !== "escalated" && (
-        <div className="rounded-panel border border-line bg-white p-6 sm:p-8">
+        <div className="rounded-panel border border-line bg-surface p-6 sm:p-8">
           <h3 className="text-lg font-bold text-ink">{resolution.escalateTitle}</h3>
           <p className="mt-1 text-body">Escalate the case and AOD&apos;s grievance officer reviews it afresh.</p>
           {!escalating ? (
@@ -267,7 +267,7 @@ function CaseView({ c, sample, email, onBack, onEscalated }: { c: TrackedCase; s
               </label>
               {sample && <p className="mt-2 text-sm text-muted">This is a sample case, so nothing will be sent.</p>}
               {error && (
-                <p role="alert" className="mt-2 text-sm text-red-700">
+                <p role="alert" className="mt-2 text-sm text-red-300">
                   {error}
                 </p>
               )}

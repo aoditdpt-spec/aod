@@ -44,7 +44,7 @@ function LiveSignIn() {
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
-          <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
+          <span className="rounded-md bg-ink px-2 py-0.5 text-xs font-medium text-surface">Admin</span>
         </div>
         <form
           noValidate
@@ -64,7 +64,7 @@ function LiveSignIn() {
             }
             setBusy(false);
           }}
-          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
+          className="rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8"
         >
           {!sent ? (
             <>
@@ -100,7 +100,7 @@ function LiveSignIn() {
             </>
           )}
           {(error || loadError) && (
-            <p className="mt-3 text-sm text-red-600" role="alert">
+            <p className="mt-3 text-sm text-red-400" role="alert">
               {error ?? loadError}
             </p>
           )}
@@ -148,7 +148,7 @@ function PreviewSignIn() {
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={99} height={28} priority className="h-7 w-auto" />
-          <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
+          <span className="rounded-md bg-ink px-2 py-0.5 text-xs font-medium text-surface">Admin</span>
         </div>
         <form
           noValidate
@@ -171,7 +171,7 @@ function PreviewSignIn() {
             signIn({ name: `${name} (${roles.find((r) => r.id === role)?.label})`, email: email.trim(), role });
             router.replace(sectionLink("/admin/dashboard"));
           }}
-          className="rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-8"
+          className="rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-8"
         >
           {step === "password" ? (
             <>
@@ -218,7 +218,7 @@ function PreviewSignIn() {
             </>
           )}
           {error && (
-            <p className="mt-3 text-sm text-red-600" role="alert">
+            <p className="mt-3 text-sm text-red-400" role="alert">
               {error}
             </p>
           )}
@@ -232,7 +232,7 @@ function PreviewSignIn() {
             signIn({ name: "AOD Team (Admin)", email: "owner@example.com", role: "owner" });
             router.replace(sectionLink("/admin/dashboard"));
           }}
-          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-medium text-ink hover:border-ink"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-surface text-sm font-medium text-ink hover:border-ink"
         >
           Open the admin as Admin (see everything)
         </button>

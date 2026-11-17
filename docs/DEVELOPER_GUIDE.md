@@ -703,8 +703,11 @@ are baked into the browser code at build time.
 ## 10. Design system
 
 - **Colours:** three only: AOD orange `#ff6201`, white and black. Every other shade is a mix of
-  those; the values follow the minimal palette in `design-tests/test*.html` (light theme: grey
-  `wash` and `peach` backgrounds, `muted` #6b6b6b, black body text). They are tokens in the
+  those; the values follow the dark theme of `design-tests/test*.html`, and the site is **dark
+  only** (no light mode): black `surface`, white `ink`/`body`, `muted` #9a9a9a, `line`/`peach`
+  #262626, `wash`/`night` #0d0d0d. Use `bg-surface` (not `bg-white`) for cards and fields,
+  `bg-ink text-surface` for inverted pills, and the dark status shades (`bg-red-950/50`,
+  `text-red-400`). They are tokens in the
   `@theme` block of `src/app/globals.css` and used through classes:
   `text-ink`, `text-body`, `text-muted`, `bg-brand`, `hover:bg-brand-hover`, `bg-peach`, `bg-wash`,
   `border-line`, `bg-night`… **Never write raw hex values in components**; for a tint use

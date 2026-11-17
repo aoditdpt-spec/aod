@@ -467,14 +467,14 @@ export function MatchQuiz({
     await save(tab);
   }
 
-  const card = "overflow-hidden rounded-[1.5rem] border border-line bg-white p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_6%,transparent)] sm:p-10";
+  const card = "overflow-hidden rounded-[1.5rem] border border-line bg-surface p-6 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-night)_6%,transparent)] sm:p-10";
 
   if (sent) {
     const ref = saved ?? undefined;
     const again = whatsappUrl([message, ref ? `Ref: ${ref}` : backendEnabled ? "Ref: not saved on the website" : ""].filter(Boolean).join("\n"));
     return (
       <div ref={quizTop} className={`${card} scroll-mt-28 text-center`} role="status">
-        <CheckCircle2 className={`mx-auto h-12 w-12 ${saved || !backendEnabled ? "text-emerald-600" : "text-amber-600"}`} aria-hidden />
+        <CheckCircle2 className={`mx-auto h-12 w-12 ${saved || !backendEnabled ? "text-emerald-400" : "text-amber-400"}`} aria-hidden />
         <h3 className="mt-4 text-2xl font-bold text-ink">{saved ? "Request received" : backendEnabled ? "Sent on WhatsApp" : "Request sent on WhatsApp"}</h3>
         {saved && <p className="mt-1 text-sm font-medium text-muted">Ref {saved}</p>}
         <p className="mx-auto mt-3 max-w-md text-body">
@@ -607,7 +607,7 @@ export function MatchQuiz({
                           {c.image ? (
                             <Image src={c.image.src} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover lg:hidden" />
                           ) : (
-                            <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white lg:hidden">
+                            <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface lg:hidden">
                               <Icon name={c.icon} className="h-5 w-5 text-brand" />
                             </span>
                           )}
@@ -731,7 +731,7 @@ export function MatchQuiz({
                     className={`mt-1.5 w-full rounded-xl border px-4 py-3 font-normal outline-none focus:border-brand ${date === "" || dateOk ? "border-line" : "border-red-500"}`}
                   />
                   {date !== "" && !dateOk && (
-                    <span id="event-date-error" className="mt-1.5 block text-xs font-normal text-red-600">
+                    <span id="event-date-error" className="mt-1.5 block text-xs font-normal text-red-400">
                       Choose a date from tomorrow onwards.
                     </span>
                   )}
@@ -759,7 +759,7 @@ export function MatchQuiz({
                         setCity(e.target.value);
                         setChangingCity(false);
                       }}
-                      className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
+                      className="mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal outline-none focus:border-brand"
                     >
                       <option value="" disabled>
                         Choose your city
@@ -778,7 +778,7 @@ export function MatchQuiz({
                       remember();
                       setHours(Number(e.target.value));
                     }}
-                    className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 font-normal outline-none focus:border-brand"
+                    className="mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal outline-none focus:border-brand"
                   >
                     <option value="" disabled>
                       Choose
@@ -886,7 +886,7 @@ export function MatchQuiz({
                       autoComplete="one-time-code"
                       autoFocus
                       placeholder="••••••"
-                      className="mt-1.5 block w-full max-w-[14rem] rounded-xl border border-line bg-white px-4 py-3 text-center text-xl font-normal tracking-[0.5em] outline-none focus:border-brand"
+                      className="mt-1.5 block w-full max-w-[14rem] rounded-xl border border-line bg-surface px-4 py-3 text-center text-xl font-normal tracking-[0.5em] outline-none focus:border-brand"
                     />
                   </label>
                   <p className="mt-2 text-xs text-muted">
@@ -896,7 +896,7 @@ export function MatchQuiz({
                     </button>
                     . Wrong email? Change it above.
                   </p>
-                  {!backendEnabled && <p className="mt-2 rounded-lg bg-white p-3 text-xs text-muted">Preview: no email is sent yet. Enter any 6 digits.</p>}
+                  {!backendEnabled && <p className="mt-2 rounded-lg bg-surface p-3 text-xs text-muted">Preview: no email is sent yet. Enter any 6 digits.</p>}
                 </div>
               )}
 
@@ -964,7 +964,7 @@ export function MatchQuiz({
                 .
               </p>
               {codeError && (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-ink" role="alert">
+                <div className="mt-4 rounded-xl border border-red-900 bg-red-950/50 p-4 text-sm text-ink" role="alert">
                   <p>{codeError}</p>
                   {codeFailed && (
                     <p className="mt-2">

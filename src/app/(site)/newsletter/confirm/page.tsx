@@ -13,7 +13,7 @@ export default async function ConfirmPage({ searchParams }: PageProps<"/newslett
   const t = (await searchParams).t;
   return (
     <Container className="py-16 sm:py-24">
-      <div className="mx-auto max-w-xl rounded-card border border-line bg-white p-8 sm:p-10">
+      <div className="mx-auto max-w-xl rounded-card border border-line bg-surface p-8 sm:p-10">
         <h1 className="text-3xl font-medium">{newsletter.confirmPageTitle}</h1>
         <p className="mt-3 text-body">{newsletter.confirmPageText}</p>
         <NewsletterLinkAction mode="confirm" token={typeof t === "string" ? t : ""} />

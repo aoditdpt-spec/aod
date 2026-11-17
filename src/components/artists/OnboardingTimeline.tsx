@@ -18,7 +18,7 @@ export function OnboardingTimeline({ current, detail }: { current: number; detai
             )}
             <span
               className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
-                done ? "bg-brand text-white" : now ? "bg-white text-brand ring-2 ring-brand" : "bg-wash text-muted ring-1 ring-line"
+                done ? "bg-brand text-white" : now ? "bg-surface text-brand ring-2 ring-brand" : "bg-wash text-muted ring-1 ring-line"
               }`}
             >
               {done ? <Check className="h-4 w-4" aria-hidden /> : i + 1}

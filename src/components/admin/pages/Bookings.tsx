@@ -113,11 +113,11 @@ export function Bookings() {
         text="Every request from New to Reviewed. Drag cards between columns, or open one to match an artist, send the quote and payment link, and track delivery."
         actions={
           <>
-            <div className="flex rounded-lg border border-line bg-white p-0.5" role="group" aria-label="View">
-              <button type="button" onClick={() => setParam("view", null)} aria-pressed={view === "board"} className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm ${view === "board" ? "bg-night text-white" : "text-body"}`}>
+            <div className="flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label="View">
+              <button type="button" onClick={() => setParam("view", null)} aria-pressed={view === "board"} className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm ${view === "board" ? "bg-ink text-surface" : "text-body"}`}>
                 <Columns3 className="h-4 w-4" aria-hidden /> Board
               </button>
-              <button type="button" onClick={() => setParam("view", "table")} aria-pressed={view === "table"} className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm ${view === "table" ? "bg-night text-white" : "text-body"}`}>
+              <button type="button" onClick={() => setParam("view", "table")} aria-pressed={view === "table"} className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm ${view === "table" ? "bg-ink text-surface" : "text-body"}`}>
                 <List className="h-4 w-4" aria-hidden /> Table
               </button>
             </div>
@@ -182,7 +182,7 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
               }}
               onDragLeave={() => setOver((o) => (o === s ? null : o))}
               onDrop={(e) => drop(e, s)}
-              className={`flex w-64 shrink-0 flex-col rounded-2xl p-2 transition-colors ${over === s ? "bg-peach/60" : "bg-white/60"}`}
+              className={`flex w-64 shrink-0 flex-col rounded-2xl p-2 transition-colors ${over === s ? "bg-peach/60" : "bg-surface/60"}`}
             >
               <h2 className="flex items-center justify-between px-2 py-1.5 text-sm font-bold text-ink">
                 {label(s)} <span className="rounded-full bg-wash px-2 text-xs text-muted">{cards.length}</span>
@@ -195,11 +195,11 @@ function Board({ db, onOpen }: { db: Db; onOpen: (id: string) => void }) {
                       draggable={editable}
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", b.id)}
                       onClick={() => onOpen(b.id)}
-                      className="w-full rounded-xl border border-line bg-white p-3 text-left text-sm shadow-sm transition hover:border-brand/50 hover:shadow-md"
+                      className="w-full rounded-xl border border-line bg-surface p-3 text-left text-sm shadow-sm transition hover:border-brand/50 hover:shadow-md"
                     >
                       <span className="flex items-center justify-between text-xs text-muted">
                         {b.id}
-                        <span className={b.audience === "Business" ? "rounded bg-night px-1.5 text-white" : ""}>{b.audience === "Business" ? "B2B" : ""}</span>
+                        <span className={b.audience === "Business" ? "rounded bg-ink px-1.5 text-surface" : ""}>{b.audience === "Business" ? "B2B" : ""}</span>
                       </span>
                       <span className="mt-1 block font-medium text-ink">{b.customer.name}</span>
                       <span className="block text-body">{itemsLabel(b.items)}</span>
@@ -282,7 +282,7 @@ function BookingDrawer({ booking: b, db, onClose }: { booking: Booking; db: Db; 
     return brief.length ? `${text}\n\nBrief from the customer:\n${brief.map((l) => `- ${l}`).join("\n")}` : text;
   }
   const edit = (text: string, fn: (x: Booking) => void) => update("Bookings", text, (d) => fn(d.bookings.find((x) => x.id === b.id)!), b.id);
-  const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 text-sm font-medium text-ink hover:border-ink";
+  const waBtn = "inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-ink hover:border-ink";
   const first = (a: Artist) => a.name.split(" ")[0];
   const artistRef = (a: Artist) => {
     const line = itemFor(b.items, a.id, a);
@@ -717,7 +717,7 @@ function OrderLine({
           {/* Each line of an order for several categories has its own ID: the order's number with its category's code. */}
           {b.items.length > 1 && lineId(b.id, item.category) !== b.id && <span className="ml-2 text-xs font-normal text-muted">{lineId(b.id, item.category)}</span>}
         </p>
-        <span className={`text-xs ${full ? "text-emerald-700" : "text-muted"}`}>
+        <span className={`text-xs ${full ? "text-emerald-300" : "text-muted"}`}>
           {item.artistIds.length} of {item.count} assigned
         </span>
       </div>
@@ -759,7 +759,7 @@ function OrderLine({
           <button
             type="button"
             onClick={() => update("Bookings", `Removed ${name} from ${b.id}`, (d) => void d.bookings.find((x) => x.id === b.id)!.items.splice(i, 1), b.id)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-red-700"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-red-300"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden /> Remove
           </button>
@@ -800,9 +800,9 @@ function OrderLine({
               <ArtistPhoto name={a.name} src={artistPhotoSrc(a.id, a.photo)} className="h-8 w-8 text-xs" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium text-ink">{a.name}</span>
-                <span className={`block text-xs ${free || isAssigned ? "text-emerald-700" : "text-red-700"}`}>{why}</span>
+                <span className={`block text-xs ${free || isAssigned ? "text-emerald-300" : "text-red-300"}`}>{why}</span>
                 {reply && (
-                  <span className={`mt-0.5 block text-xs font-medium ${reply.status === "declined" ? "text-muted" : "text-emerald-700"}`}>
+                  <span className={`mt-0.5 block text-xs font-medium ${reply.status === "declined" ? "text-muted" : "text-emerald-300"}`}>
                     {reply.status === "declined" ? "Declined" : reply.status === "quoted" ? `Available · quoted ${inr(reply.quote)}` : "Accepted · available"} in the portal · {ago(reply.at)}
                     {reply.note && <span className="block font-normal text-muted">&ldquo;{reply.note}&rdquo;</span>}
                   </span>
@@ -835,7 +835,7 @@ function OrderLine({
                     b.id,
                   )
                 }
-                className={`rounded-md px-2 py-1 text-xs font-medium disabled:opacity-40 ${listed ? "bg-night text-white" : "border border-line text-ink"}`}
+                className={`rounded-md px-2 py-1 text-xs font-medium disabled:opacity-40 ${listed ? "bg-ink text-surface" : "border border-line text-ink"}`}
               >
                 <Users className="mr-1 inline h-3 w-3" aria-hidden />
                 {listed ? "Shortlisted" : "Shortlist"}
@@ -1099,7 +1099,7 @@ export function NewBooking({ onClose, onCreated }: { onClose: () => void; onCrea
                     <button
                       type="button"
                       onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-red-700"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-red-300"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden /> Remove
                     </button>

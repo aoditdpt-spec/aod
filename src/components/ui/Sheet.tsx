@@ -63,7 +63,7 @@ export function Sheet({
       {open && (
         <m.div
           key="sheet"
-          className={`fixed inset-x-0 top-0 flex items-end justify-center bg-ink/45 sm:items-center sm:p-6 ${
+          className={`fixed inset-x-0 top-0 flex items-end justify-center bg-black/60 sm:items-center sm:p-6 ${
             bottomGap ? "bottom-0 z-[60] max-lg:bottom-[calc(4.25rem+env(safe-area-inset-bottom))]" : "bottom-0 z-[62]"
           }`}
           initial={{ opacity: 0 }}
@@ -77,7 +77,7 @@ export function Sheet({
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className={`flex max-h-[88svh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-w-lg sm:rounded-[1.5rem] ${
+            className={`flex max-h-[88svh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-surface shadow-2xl sm:max-w-lg sm:rounded-[1.5rem] ${
               bottomGap ? "max-lg:max-h-[calc(100svh-6rem-env(safe-area-inset-bottom))]" : ""
             }`}
             initial={{ y: "100%" }}

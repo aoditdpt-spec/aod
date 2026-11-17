@@ -21,7 +21,7 @@ export function VerifiedArtists({ variant = "card", dark = false }: { variant?: 
     return (
       <section className="grid items-center gap-8 rounded-[1.5rem] bg-peach/50 p-8 sm:p-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
         <div>
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface">
             <BadgeCheck className="h-7 w-7 text-brand" strokeWidth={1.5} aria-hidden />
           </span>
           <h2 className="mt-6 text-3xl font-normal sm:text-[2.5rem] sm:leading-tight">{verifiedArtists.title}</h2>
@@ -52,7 +52,7 @@ function Points({ compact = false }: { compact?: boolean }) {
       {verifiedArtists.points.map((p) => (
         <li
           key={p}
-          className={`flex items-center gap-3 text-ink ${compact ? "text-sm" : "rounded-card bg-white p-5 text-lg"}`}
+          className={`flex items-center gap-3 text-ink ${compact ? "text-sm" : "rounded-card bg-surface p-5 text-lg"}`}
         >
           <span
             className={`flex shrink-0 items-center justify-center rounded-full bg-brand text-white ${

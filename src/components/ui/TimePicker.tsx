@@ -82,7 +82,7 @@ export function TimeField({
     <div ref={box} className="relative text-sm font-medium text-ink">
       <span id={labelId}>{label}</span>
       <div
-        className={`mt-1.5 flex w-full items-center rounded-xl border bg-white font-normal transition-colors ${
+        className={`mt-1.5 flex w-full items-center rounded-xl border bg-surface font-normal transition-colors ${
           open ? "border-brand ring-1 ring-brand" : "border-line focus-within:border-brand"
         }`}
       >
@@ -119,7 +119,7 @@ export function TimeField({
         <div
           role="dialog"
           aria-label={`Choose the ${label.toLowerCase()}`}
-          className="absolute left-0 top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-white shadow-xl"
+          className="absolute left-0 top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-surface shadow-xl"
         >
           <div className="relative flex justify-center gap-2 px-4 pt-3" style={{ height: ITEM * ROWS + 12 }}>
             {/* The grey band across the middle row: the time picked. */}

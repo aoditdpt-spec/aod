@@ -73,7 +73,7 @@ function LiveBadge() {
   }
   return (
     <span
-      className={`hidden items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium sm:inline-flex ${on ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}
+      className={`hidden items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium sm:inline-flex ${on ? "bg-emerald-950/50 text-emerald-300" : "bg-amber-950/50 text-amber-200"}`}
       title={on ? "Changes by anyone appear here by themselves" : "Reconnecting to live updates"}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-emerald-500" : "animate-pulse bg-amber-500"}`} aria-hidden />
@@ -146,7 +146,7 @@ function GlobalSearch({ db }: { db: Db }) {
         className={`${fieldClass} pl-9`}
       />
       {open && results.length > 0 && (
-        <ul className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-xl">
+        <ul className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-xl">
           {results.map((r) => (
             <li key={r.href}>
               <button
@@ -189,7 +189,7 @@ function Alerts({ db }: { db: Db }) {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-line bg-white p-2 shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-line bg-surface p-2 shadow-xl">
           <p className="px-2 py-1.5 text-xs font-medium uppercase tracking-wider text-muted">Needs attention</p>
           {alerts.length === 0 ? (
             <p className="px-2 py-3 text-sm text-muted">All clear.</p>
@@ -232,7 +232,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center text-sm text-muted">
         <p className="text-base font-medium text-ink">Couldn&apos;t load the admin data.</p>
         <p>{loadError}</p>
-        <button type="button" onClick={() => window.location.reload()} className="rounded-lg border border-line bg-white px-4 py-2 font-medium text-ink hover:border-ink">
+        <button type="button" onClick={() => window.location.reload()} className="rounded-lg border border-line bg-surface px-4 py-2 font-medium text-ink hover:border-ink">
           Try again
         </button>
       </div>
@@ -294,20 +294,20 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-wash">
-      <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-line bg-white px-3 sm:px-5">
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-line bg-surface px-3 sm:px-5">
         <button type="button" onClick={() => setMenu((m) => !m)} aria-label="Menu" className="rounded-lg p-2 hover:bg-wash lg:hidden">
           {menu ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
         </button>
         <Link href={sectionLink("/admin/dashboard")} className="flex shrink-0 items-center gap-2">
           <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={71} height={20} priority className="h-5 w-auto" />
-          <span className="rounded-md bg-night px-2 py-0.5 text-xs font-medium text-white">Admin</span>
+          <span className="rounded-md bg-ink px-2 py-0.5 text-xs font-medium text-surface">Admin</span>
         </Link>
         <div className="hidden flex-1 justify-center md:flex">
           <GlobalSearch db={db} />
         </div>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           {!backendEnabled ? (
-            <span className="hidden rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 sm:inline" title="Sample data kept in this browser">
+            <span className="hidden rounded-md bg-amber-950/50 px-2 py-1 text-xs font-medium text-amber-200 sm:inline" title="Sample data kept in this browser">
               Sample data
             </span>
           ) : (
@@ -322,11 +322,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className="flex flex-1">
-        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 border-r border-line bg-white lg:block">{sidebar}</aside>
+        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 border-r border-line bg-surface lg:block">{sidebar}</aside>
         {menu && (
           <div className="fixed inset-0 top-14 z-30 lg:hidden">
             <button type="button" aria-label="Close menu" onClick={() => setMenu(false)} className="absolute inset-0 bg-night/30" />
-            <aside className="relative h-full w-64 bg-white shadow-xl">{sidebar}</aside>
+            <aside className="relative h-full w-64 bg-surface shadow-xl">{sidebar}</aside>
           </div>
         )}
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">

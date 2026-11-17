@@ -13,7 +13,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 import { createCase } from "@/server/actions/resolution";
 
 export const field =
-  "w-full rounded-xl border border-line bg-white px-4 py-3 font-normal text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-brand";
+  "w-full rounded-xl border border-line bg-surface px-4 py-3 font-normal text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-brand";
 const input = `mt-1.5 ${field}`;
 
 const isRole = (v: string | null): v is CaseRole => resolution.roles.some((r) => r.id === v);
@@ -104,8 +104,8 @@ export function CaseForm() {
 
   if (state.kind === "saved") {
     return (
-      <div className="rounded-panel border border-line bg-white p-8 text-center sm:p-10">
-        <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" aria-hidden />
+      <div className="rounded-panel border border-line bg-surface p-8 text-center sm:p-10">
+        <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-400" aria-hidden />
         <h2 className="mt-4 text-2xl font-bold text-ink">Case {state.id} received</h2>
         <p className="mx-auto mt-2 max-w-md text-body">
           AOD will reply by email to <strong className="font-medium">{f.email.trim()}</strong> within 48 hours. Keep the case number to follow it.
@@ -137,7 +137,7 @@ export function CaseForm() {
       className="space-y-6"
     >
       {/* 1. Through AOD or not: the two ways a case runs. */}
-      <fieldset className="rounded-panel border border-line bg-white p-6 sm:p-8">
+      <fieldset className="rounded-panel border border-line bg-surface p-6 sm:p-8">
         <legend className="sr-only">{resolution.throughAod.question}</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">1</span> {resolution.throughAod.question}
@@ -164,7 +164,7 @@ export function CaseForm() {
               <ul className="mt-2 space-y-1.5 text-body">
                 {resolution.paths.outside.can.map((t) => (
                   <li key={t} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-hidden /> {t}
                   </li>
                 ))}
               </ul>
@@ -174,7 +174,7 @@ export function CaseForm() {
               <ul className="mt-2 space-y-1.5 text-body">
                 {resolution.paths.outside.cant.map((t) => (
                   <li key={t} className="flex gap-2">
-                    <X className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden /> {t}
+                    <X className="mt-0.5 h-4 w-4 shrink-0 text-red-400" aria-hidden /> {t}
                   </li>
                 ))}
               </ul>
@@ -184,7 +184,7 @@ export function CaseForm() {
       </fieldset>
 
       {/* 2. Who */}
-      <fieldset disabled={throughAod === null} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
+      <fieldset disabled={throughAod === null} className="rounded-panel border border-line bg-surface p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">Which side you&apos;re on</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">2</span> Which side are you on?
@@ -218,7 +218,7 @@ export function CaseForm() {
       </fieldset>
 
       {/* 3. What happened */}
-      <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
+      <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-surface p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">The dispute</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">3</span> The dispute
@@ -317,7 +317,7 @@ export function CaseForm() {
       </fieldset>
 
       {/* 4. Contact */}
-      <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-white p-6 transition-opacity disabled:opacity-50 sm:p-8">
+      <fieldset disabled={!role || throughAod === null} className="rounded-panel border border-line bg-surface p-6 transition-opacity disabled:opacity-50 sm:p-8">
         <legend className="sr-only">Your details</legend>
         <p className="flex items-center gap-3 text-lg font-medium text-ink">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-white">4</span> Your details
@@ -352,7 +352,7 @@ export function CaseForm() {
       </fieldset>
 
       {state.kind === "preview" && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+        <div className="rounded-xl border border-amber-900 bg-amber-950/50 p-5 text-sm text-amber-100">
           <p>{resolution.previewNotice}</p>
           <a href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex h-11 items-center gap-2 rounded-lg bg-whatsapp px-5 font-medium text-white hover:bg-whatsapp-hover">
             <WhatsAppIcon className="h-4 w-4" /> Send the dispute on WhatsApp
@@ -360,7 +360,7 @@ export function CaseForm() {
         </div>
       )}
       {state.kind === "error" && (
-        <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+        <div role="alert" className="rounded-xl border border-amber-900 bg-amber-950/50 p-5 text-sm text-amber-100">
           <p className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {state.error}
           </p>

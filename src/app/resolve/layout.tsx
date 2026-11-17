@@ -34,7 +34,7 @@ export default function ResolveLayout({ children }: { children: ReactNode }) {
   const officer = resolution.grievanceOfficer;
   return (
     <div className="flex min-h-full flex-1 flex-col bg-surface">
-      <header className="sticky top-0 z-30 border-b border-line bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-page items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link href={sectionLink("/resolve")} className="flex items-center gap-2" aria-label={resolution.title}>
             <Image src="/aod-wordmark-sm.png" unoptimized alt="AOD" width={85} height={24} priority className="h-6 w-auto" />

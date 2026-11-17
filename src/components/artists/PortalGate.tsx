@@ -23,7 +23,7 @@ export function PortalGate({ children }: { children: ReactNode }) {
   if (portal.status === "no-account" || portal.status === "error") {
     return (
       <div className="flex flex-1 items-start justify-center px-4 py-16">
-        <div className="max-w-md rounded-[1.5rem] border border-line bg-white p-8 text-center">
+        <div className="max-w-md rounded-[1.5rem] border border-line bg-surface p-8 text-center">
           {portal.status === "no-account" ? (
             <>
               <h1 className="text-2xl font-bold">No artist account for this email</h1>

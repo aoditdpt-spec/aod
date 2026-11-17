@@ -38,7 +38,7 @@ export function StickyBookBar({ name, label }: { name: string; label: string }) 
     <div
       aria-hidden={!shown}
       inert={!shown}
-      className={`fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 border-t border-line bg-white/95 px-4 py-3 backdrop-blur transition-transform duration-300 lg:hidden ${
+      className={`fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur transition-transform duration-300 lg:hidden ${
         shown ? "translate-y-0" : "translate-y-[calc(100%+4.25rem)]"
       }`}
     >

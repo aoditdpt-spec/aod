@@ -37,7 +37,7 @@ export default function BookPage() {
           <StaggerItem key={href}>
             <Link
               href={href}
-              className={`flex h-full flex-col rounded-[1.5rem] bg-white p-3 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 sm:p-4 lg:p-10 ${linkCard}`}
+              className={`flex h-full flex-col rounded-[1.5rem] bg-surface p-3 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 sm:p-4 lg:p-10 ${linkCard}`}
             >
               {/* Phones and tablets: the photo on top with the icon on a small tile, as Headout's
                   cards. Laptops: the icon alone, without a photo. */}
@@ -46,7 +46,7 @@ export default function BookPage() {
               </span>
               <span className="relative block aspect-[16/9] overflow-hidden rounded-[1.1rem] bg-peach lg:hidden">
                 <Image src={image} alt="" fill preload sizes="(min-width: 768px) 40rem, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
-                <span className="absolute bottom-3 left-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm">
+                <span className="absolute bottom-3 left-3 flex h-11 w-11 items-center justify-center rounded-xl bg-surface/90 backdrop-blur-sm">
                   <I className="h-6 w-6 text-brand" strokeWidth={1.5} aria-hidden />
                 </span>
               </span>

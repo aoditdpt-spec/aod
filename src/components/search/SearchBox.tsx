@@ -19,7 +19,7 @@ const styles = {
   // Headout-style: a big white box with a soft shadow, the magnifier on the left and an orange
   // button (just the icon on phones).
   hero: {
-    box: "h-14 rounded-2xl border border-line bg-white pl-4 pr-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-within:border-brand sm:h-16 sm:pl-5 sm:pr-2",
+    box: "h-14 rounded-2xl border border-line bg-surface pl-4 pr-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-within:border-brand sm:h-16 sm:pl-5 sm:pr-2",
     lead: "mr-3 h-5 w-5 text-muted",
     input: "text-base text-ink",
     button: "h-11 justify-center rounded-xl bg-brand px-3 text-white hover:bg-brand-hover sm:h-12 sm:px-6",
@@ -27,7 +27,7 @@ const styles = {
     label: "hidden sm:inline",
   },
   nav: {
-    box: "h-10 rounded-lg border border-line bg-white pl-3 pr-1 focus-within:border-brand max-lg:rounded-xl max-lg:border-transparent max-lg:bg-wash max-lg:focus-within:bg-white",
+    box: "h-10 rounded-lg border border-line bg-surface pl-3 pr-1 focus-within:border-brand max-lg:rounded-xl max-lg:border-transparent max-lg:bg-wash max-lg:focus-within:bg-surface",
     lead: "mr-2 h-4 w-4 text-muted",
     input: "text-sm text-body",
     button: "h-8 rounded-md bg-brand px-3 text-sm text-white hover:bg-brand-hover",
@@ -233,7 +233,7 @@ export function SearchBox({
         <ul
           id={`${id}-list`}
           role="listbox"
-          className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-card border border-line bg-white py-2 shadow-xl"
+          className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-card border border-line bg-surface py-2 shadow-xl"
         >
           {results.map((r, i) => (
             <li
@@ -270,7 +270,7 @@ export function SearchBox({
       )}
 
       {showEmpty && (
-        <div className="absolute inset-x-0 top-full z-50 mt-2 rounded-card border border-line bg-white p-4 text-sm shadow-xl">
+        <div className="absolute inset-x-0 top-full z-50 mt-2 rounded-card border border-line bg-surface p-4 text-sm shadow-xl">
           <p className="text-ink">
             No match for <span className="font-medium">&ldquo;{query.trim()}&rdquo;</span>.
           </p>

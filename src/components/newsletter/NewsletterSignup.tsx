@@ -35,7 +35,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
   if (state.kind === "done") {
     return (
       <p role="status" className={`flex items-start gap-2 text-sm ${dark ? "text-white" : "text-ink"}`}>
-        <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${dark ? "text-apricot" : "text-emerald-600"}`} aria-hidden /> {newsletter.done}
+        <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${dark ? "text-apricot" : "text-emerald-400"}`} aria-hidden /> {newsletter.done}
       </p>
     );
   }
@@ -71,7 +71,7 @@ export function NewsletterSignup({ variant = "light", heading = true }: { varian
           // `sm:flex-1`, not `flex-1`: in the stacked phone layout flex-1 let the box shrink to a sliver.
           // Bigger on phones and tablets; laptops keep the smaller box.
           className={`h-14 w-full min-w-0 rounded-xl border px-5 text-base outline-none transition-colors sm:flex-1 lg:h-11 lg:rounded-lg lg:px-4 lg:text-sm ${
-            dark ? "border-white/20 bg-white/10 text-white placeholder:text-white/40 focus:border-apricot" : "border-line bg-white text-ink placeholder:text-muted/60 focus:border-brand"
+            dark ? "border-white/20 bg-white/10 text-white placeholder:text-white/40 focus:border-apricot" : "border-line bg-surface text-ink placeholder:text-muted/60 focus:border-brand"
           }`}
         />
         {/* Spam trap: not displayed at all, so people and browser autofill never reach it. */}

@@ -16,10 +16,10 @@ import { sectionLink } from "@/lib/site-url";
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const chip: Record<string, string> = {
-  good: "bg-emerald-50 text-emerald-800",
-  wait: "bg-amber-50 text-amber-900",
+  good: "bg-emerald-950/50 text-emerald-200",
+  wait: "bg-amber-950/50 text-amber-100",
   brand: "bg-peach text-brand-hover",
-  bad: "bg-red-50 text-red-700 line-through",
+  bad: "bg-red-950/50 text-red-300 line-through",
   neutral: "bg-wash text-muted",
 };
 
@@ -53,13 +53,13 @@ export function Calendar() {
       <PageHeader title="Calendar" text="Events, applicant meetings and artist days off. Click an entry to open it." />
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => setOffset((o) => o - 1)} aria-label="Previous month" className="rounded-lg border border-line bg-white p-2 hover:border-ink">
+          <button type="button" onClick={() => setOffset((o) => o - 1)} aria-label="Previous month" className="rounded-lg border border-line bg-surface p-2 hover:border-ink">
             <ChevronLeft className="h-4 w-4" aria-hidden />
           </button>
-          <button type="button" onClick={() => setOffset(0)} className="rounded-lg border border-line bg-white px-3 py-1.5 text-sm hover:border-ink">
+          <button type="button" onClick={() => setOffset(0)} className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm hover:border-ink">
             Today
           </button>
-          <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Next month" className="rounded-lg border border-line bg-white p-2 hover:border-ink">
+          <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Next month" className="rounded-lg border border-line bg-surface p-2 hover:border-ink">
             <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
         </div>
@@ -85,7 +85,7 @@ export function Calendar() {
         </label>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-line bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <div className="grid min-w-[52rem] grid-cols-7">
           {WEEKDAYS.map((w) => (
             <div key={w} className="border-b border-line px-2 py-2 text-xs font-medium text-muted">
@@ -115,7 +115,7 @@ export function Calendar() {
                   })}
                   {meets.map((a) => (
                     <li key={a.id}>
-                      <Link href={sectionLink(`/admin/applications?open=${a.id}`)} className="block truncate rounded bg-night px-1.5 py-0.5 text-[0.7rem] font-medium text-white">
+                      <Link href={sectionLink(`/admin/applications?open=${a.id}`)} className="block truncate rounded bg-ink px-1.5 py-0.5 text-[0.7rem] font-medium text-surface">
                         Meet {a.name.split(" ")[0]}
                       </Link>
                     </li>
@@ -139,10 +139,10 @@ export function Calendar() {
         </div>
       </div>
       <p className="flex flex-wrap gap-4 text-xs text-muted">
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-100" /> Confirmed or done</span>
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-100" /> In progress</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-900/40" /> Confirmed or done</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-900/40" /> In progress</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-peach" /> New</span>
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-night" /> Applicant meeting</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-ink" /> Applicant meeting</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-dashed border-line" /> Artists off that day</span>
       </p>
 

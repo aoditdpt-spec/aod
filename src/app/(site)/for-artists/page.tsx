@@ -63,7 +63,7 @@ export default function ForArtistsPage() {
             const I = whyIcons[i];
             return (
               <StaggerItem key={w.title}>
-                <TiltCard className={`rounded-[1.25rem] border border-line bg-white p-7`}>
+                <TiltCard className={`rounded-[1.25rem] border border-line bg-surface p-7`}>
                   <I className={`h-9 w-9 text-brand-bright ${tiltZoom}`} strokeWidth={1.25} aria-hidden />
                   <h3 className={`mt-6 text-xl font-bold ${tiltTitle}`}>{w.title}</h3>
                   <p className={`mt-2 text-body ${tiltText}`}>{w.text}</p>
@@ -76,14 +76,14 @@ export default function ForArtistsPage() {
 
       <Container>
         <section className="flex flex-col gap-6 rounded-[1.5rem] bg-peach/50 p-8 sm:flex-row sm:items-center sm:p-12">
-          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-surface">
             <ShieldCheck className="h-8 w-8 text-brand" strokeWidth={1.5} aria-hidden />
           </span>
           <div className="flex-1">
             <h2 className="text-2xl font-bold sm:text-3xl">{forArtists.meetTitle}</h2>
             <p className="mt-2 max-w-3xl text-body">{forArtists.meetText}</p>
           </div>
-          <ButtonLink href={portalHref("/artists/apply")} variant="outline" className="shrink-0 bg-white">
+          <ButtonLink href={portalHref("/artists/apply")} variant="outline" className="shrink-0 bg-surface">
             {forArtists.applyCta}
           </ButtonLink>
         </section>

@@ -14,7 +14,7 @@ export function Messages() {
 
   if (applicant) {
     return (
-      <p className="mt-8 rounded-xl border border-line bg-white p-6 text-sm text-body">
+      <p className="mt-8 rounded-xl border border-line bg-surface p-6 text-sm text-body">
         Chat opens once your application is approved. Until then, the AOD team replies to your application by email and WhatsApp.
       </p>
     );

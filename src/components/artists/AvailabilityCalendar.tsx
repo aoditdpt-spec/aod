@@ -25,7 +25,7 @@ export function AvailabilityCalendar() {
 
   if (!hydrated)
     return (
-      <div className="mt-8 rounded-[1.25rem] bg-white">
+      <div className="mt-8 rounded-[1.25rem] bg-surface">
         <PageLoader className="min-h-[28rem]" label="Loading your calendar…" />
       </div>
     );
@@ -100,7 +100,7 @@ export function AvailabilityCalendar() {
                   past
                     ? "cursor-not-allowed text-muted/40"
                     : off
-                      ? "bg-night font-medium text-white line-through decoration-white/50"
+                      ? "bg-ink font-medium text-surface line-through decoration-surface/50"
                       : "bg-wash text-ink hover:bg-peach/60"
                 } ${isToday ? "ring-2 ring-brand" : ""}`}
               >
@@ -114,7 +114,7 @@ export function AvailabilityCalendar() {
             <span className="h-3 w-3 rounded bg-wash ring-1 ring-line" /> Available
           </span>
           <span className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded bg-night" /> Unavailable
+            <span className="h-3 w-3 rounded bg-ink" /> Unavailable
           </span>
           <span className="flex items-center gap-2">
             <span className="h-3 w-3 rounded ring-2 ring-brand" /> Today
@@ -139,7 +139,7 @@ export function AvailabilityCalendar() {
             ))}
           </ul>
         )}
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         <p className="mt-5 flex items-center gap-2 text-xs text-muted" aria-live="polite">
           {saving > 0 ? (
             <>

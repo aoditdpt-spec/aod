@@ -32,14 +32,14 @@ export function CategoryCoverflow() {
                 />
                 {/* A faint shade at the bottom so the icon tile stands out on bright photos. */}
                 <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                <span className="absolute bottom-3 left-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 shadow-sm backdrop-blur-sm">
+                <span className="absolute bottom-3 left-3 flex h-9 w-9 items-center justify-center rounded-xl bg-surface/90 shadow-sm backdrop-blur-sm">
                   <Icon name={c.icon} className="h-[1.125rem] w-[1.125rem] text-brand" strokeWidth={1.5} />
                 </span>
               </>
             ) : (
               <>
                 <span
-                  className={`relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm transition-transform duration-500 ${
+                  className={`relative flex h-16 w-16 items-center justify-center rounded-2xl bg-surface shadow-sm transition-transform duration-500 ${
                     active ? "scale-110" : ""
                   }`}
                 >

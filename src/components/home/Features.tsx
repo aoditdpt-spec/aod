@@ -17,7 +17,7 @@ export function Features() {
         <StaggerList className="swipe-row mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
             <StaggerItem key={f.title} className="swipe-item">
-              <TiltCard className={`flex gap-4 rounded-card border border-line bg-white p-6`}>
+              <TiltCard className={`flex gap-4 rounded-card border border-line bg-surface p-6`}>
                 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach/60 ${tiltZoom}`}>
                   <Icon name={f.icon} className="h-5 w-5 text-brand" strokeWidth={1.75} />
                 </span>

@@ -19,11 +19,11 @@ function StatVisual({ visual, value }: { visual: Stat["visual"]; value: string }
       return (
         <span aria-hidden className="flex -space-x-2">
           {[0, 1, 2].map((i) => (
-            <span key={i} className="flex h-7 w-7 items-center justify-center rounded-full bg-peach ring-2 ring-white">
+            <span key={i} className="flex h-7 w-7 items-center justify-center rounded-full bg-peach ring-2 ring-surface">
               <User className="h-4 w-4 text-brand" />
             </span>
           ))}
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand ring-2 ring-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand ring-2 ring-surface">
             <BadgeCheck className="h-4 w-4 text-white" />
           </span>
         </span>
@@ -77,7 +77,7 @@ export function Stats() {
       <StaggerList className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <StaggerItem key={s.label}>
-            <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-white px-4 py-8 text-center`}>
+            <TiltCard className={`flex flex-col items-center rounded-card border border-line bg-surface px-4 py-8 text-center`}>
               <StatBody stat={s} />
             </TiltCard>
           </StaggerItem>

@@ -69,7 +69,7 @@ function PasswordDialog({ pending, onClose }: { pending: Pending; onClose: () =>
           e.preventDefault();
           void lockAndDownload();
         }}
-        className="relative w-full max-w-md rounded-card bg-white p-6 shadow-2xl"
+        className="relative w-full max-w-md rounded-card bg-surface p-6 shadow-2xl"
       >
         <div className="flex items-start justify-between gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach text-brand">
@@ -117,7 +117,7 @@ function PasswordDialog({ pending, onClose }: { pending: Pending; onClose: () =>
           You&apos;ll need this password every time you open the file, so keep it safe, and share it separately from the file (not in the same email or chat). It can&apos;t be recovered: if it&apos;s lost, download the list again with a new password.
         </p>
         {error && (
-          <p role="alert" className="mt-3 text-sm text-red-700">
+          <p role="alert" className="mt-3 text-sm text-red-300">
             {error}
           </p>
         )}

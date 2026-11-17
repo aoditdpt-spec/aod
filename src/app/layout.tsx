@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 // The browser's bar and the installed app's title bar: white, like the navbar.
 // Phones and tablets can't pinch-zoom the pages (asked for, so they feel like an app); laptops are
 // unaffected. iPhones ignore these limits, so src/instrumentation-client.ts also stops their gesture.
-export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false };
+export const viewport: Viewport = { themeColor: "#000000", width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

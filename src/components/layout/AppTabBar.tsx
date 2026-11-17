@@ -81,7 +81,7 @@ export function AppTabBar() {
     <>
       <nav
         aria-label="App"
-        className="fixed inset-x-0 bottom-0 z-[61] select-none border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-[61] select-none border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         <ul className="mx-auto grid max-w-xl grid-cols-5">
           {appMenu.tabs.map((t) => {

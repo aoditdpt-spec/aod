@@ -34,7 +34,7 @@ function Track({ order }: { order: CustomerOrder }) {
             {i > 0 && <span aria-hidden className={`absolute right-1/2 top-4 -z-0 h-0.5 w-full ${on ? "bg-brand" : "bg-line"}`} />}
             <span
               className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                on ? "bg-brand text-white" : "bg-white text-muted ring-1 ring-line"
+                on ? "bg-brand text-white" : "bg-surface text-muted ring-1 ring-line"
               } ${now ? "ring-4 ring-peach" : ""}`}
             >
               {on ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
@@ -135,7 +135,7 @@ export function OrderDetail({ order: o }: { order: CustomerOrder }) {
                   <span>
                     {inr(p.amount)} · UTR {p.utr}
                   </span>
-                  <span className={p.status === "verified" ? "text-emerald-700" : "text-amber-700"}>{p.status === "verified" ? "Received" : "Being checked"}</span>
+                  <span className={p.status === "verified" ? "text-emerald-300" : "text-amber-300"}>{p.status === "verified" ? "Received" : "Being checked"}</span>
                 </li>
               ))}
             </ul>

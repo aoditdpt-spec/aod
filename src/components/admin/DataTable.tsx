@@ -75,7 +75,7 @@ export function DataTable<T>({
   const stamp = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="rounded-2xl border border-line bg-white">
+    <div className="rounded-2xl border border-line bg-surface">
       <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">
         <div className="relative min-w-[12rem] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />

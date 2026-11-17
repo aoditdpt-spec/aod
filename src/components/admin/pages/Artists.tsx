@@ -202,7 +202,7 @@ export function ArtistDrawer({ artist, db, onClose }: { artist: Artist; db: Db; 
         <div className="flex flex-wrap gap-2">
           {artist.blockedDates.length === 0 && <p className="text-sm text-muted">No days blocked.</p>}
           {[...artist.blockedDates].sort().map((d) => (
-            <span key={d} className="inline-flex items-center gap-1.5 rounded-lg bg-night px-2.5 py-1 text-xs text-white">
+            <span key={d} className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-2.5 py-1 text-xs text-surface">
               <CalendarX className="h-3.5 w-3.5" aria-hidden /> {fmtDate(d)}
               {allowed("artists.edit") && (
                 <button type="button" aria-label={`Free up ${d}`} onClick={() => edit(`Freed ${d} for ${artist.name}`, (a) => void (a.blockedDates = a.blockedDates.filter((x) => x !== d)))} className="ml-1 text-white/70 hover:text-white">

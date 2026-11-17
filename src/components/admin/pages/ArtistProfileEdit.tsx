@@ -138,7 +138,7 @@ export function ArtistProfileEdit({ artist, onSave }: { artist: Artist; onSave: 
         </div>
       </div>
       {error && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+        <p className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300" role="alert">
           {error}
         </p>
       )}

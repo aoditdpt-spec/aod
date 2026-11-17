@@ -145,12 +145,12 @@ function VerifyCard({ p, db }: { p: Payment; db: Db }) {
           </p>
         )}
         {duplicate && (
-          <p className="flex items-center gap-2 text-amber-800">
+          <p className="flex items-center gap-2 text-amber-200">
             <AlertTriangle className="h-4 w-4" aria-hidden /> This UTR was already reported on another payment.
           </p>
         )}
         {expected !== undefined && expected !== p.amount && (
-          <p className="flex items-center gap-2 text-amber-800">
+          <p className="flex items-center gap-2 text-amber-200">
             <AlertTriangle className="h-4 w-4" aria-hidden /> Amount differs from the expected {inr(expected)}.
           </p>
         )}

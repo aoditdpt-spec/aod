@@ -59,7 +59,7 @@ export function AccountMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-72 rounded-card border border-line bg-white p-2 shadow-xl">
+        <div className="absolute right-0 top-full z-40 mt-2 w-72 rounded-card border border-line bg-surface p-2 shadow-xl">
           {backendEnabled && <p className="truncate px-3 pb-2 pt-2 text-xs text-muted">Signed in as {profile.email}</p>}
           {!backendEnabled && <p className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-wider text-muted">Preview as</p>}
           {!backendEnabled && modes.map((m) => (

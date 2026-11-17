@@ -109,7 +109,7 @@ export function Team() {
             <button type="submit" className="inline-flex h-9 items-center gap-1.5 self-end rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-brand-hover">
               <UserPlus className="h-4 w-4" aria-hidden /> Invite
             </button>
-            <p className={`text-xs sm:col-span-4 ${inviteError ? "text-red-600" : "text-muted"}`} role={inviteError ? "alert" : undefined}>
+            <p className={`text-xs sm:col-span-4 ${inviteError ? "text-red-400" : "text-muted"}`} role={inviteError ? "alert" : undefined}>
               {inviteError ??
                 (backendEnabled
                   ? "They get an email with the admin's address and sign in with a code sent to this email. Developers get full access, the same as an admin."

@@ -53,7 +53,7 @@ function LogoList({ brands, copy = false }: { brands: readonly Brand[]; copy?: b
               width={Math.round(w)}
               height={Math.round(h)}
               style={{ height: `calc(${h / 16}rem * var(--logo-scale))`, width: `calc(${w / 16}rem * var(--logo-scale))` }}
-              className="object-contain"
+              className="object-contain box-content rounded-md bg-white px-2.5 py-1.5"
             />
           </li>
         );

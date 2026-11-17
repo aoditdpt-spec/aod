@@ -210,7 +210,7 @@ function IssueEditor({ issue, subscribed, onClose, onCopy }: { issue: Issue; sub
       }
     >
       {message && (
-        <p role="status" className={`rounded-lg border px-4 py-3 text-sm ${message.tone === "good" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-red-200 bg-red-50 text-red-800"}`}>
+        <p role="status" className={`rounded-lg border px-4 py-3 text-sm ${message.tone === "good" ? "border-emerald-900 bg-emerald-950/50 text-emerald-100" : "border-red-900 bg-red-950/50 text-red-200"}`}>
           {message.text}
         </p>
       )}

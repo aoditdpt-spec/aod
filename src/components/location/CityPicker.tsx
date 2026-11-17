@@ -42,7 +42,7 @@ export function CityPicker() {
           id={listId}
           role="listbox"
           aria-label="Choose your city"
-          className="absolute left-0 top-full z-50 mt-2 w-56 rounded-card border border-line bg-white p-1.5 shadow-xl"
+          className="absolute left-0 top-full z-50 mt-2 w-56 rounded-card border border-line bg-surface p-1.5 shadow-xl"
         >
           <li className="px-3 pb-1 pt-1.5 text-xs font-medium uppercase tracking-wider text-muted">We serve</li>
           {cities.map((c) => (

@@ -108,8 +108,8 @@ export function ActionButton({
   const blocked = permission ? !allowed(permission) : false;
   const styles = {
     primary: "bg-brand text-white hover:bg-brand-hover",
-    secondary: "border border-line bg-white text-ink hover:border-ink",
-    danger: "border border-red-200 bg-white text-red-700 hover:bg-red-50",
+    secondary: "border border-line bg-surface text-ink hover:border-ink",
+    danger: "border border-red-900 bg-surface text-red-300 hover:bg-red-950/50",
     whatsapp: "bg-whatsapp text-white hover:bg-whatsapp-hover",
   };
   return (
@@ -129,9 +129,9 @@ export function ActionButton({
 
 const toneClass: Record<Tone, string> = {
   brand: "bg-peach text-brand-hover",
-  wait: "bg-amber-50 text-amber-800",
-  good: "bg-emerald-50 text-emerald-700",
-  bad: "bg-red-50 text-red-700",
+  wait: "bg-amber-950/50 text-amber-200",
+  good: "bg-emerald-950/50 text-emerald-300",
+  bad: "bg-red-950/50 text-red-300",
   neutral: "bg-wash text-muted",
 };
 
@@ -159,7 +159,7 @@ export function PageHeader({ title, text, actions }: { title: string; text?: Rea
 
 export function Card({ title, action, children, className = "" }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl border border-line bg-white p-5 ${className}`}>
+    <section className={`rounded-2xl border border-line bg-surface p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
           {title && <h2 className="text-ink font-bold">{title}</h2>}
@@ -173,7 +173,7 @@ export function Card({ title, action, children, className = "" }: { title?: Reac
 
 export function Stat({ label, value, note, tone }: { label: string; value: ReactNode; note?: ReactNode; tone?: "alert" }) {
   return (
-    <div className={`rounded-2xl border bg-white p-5 ${tone === "alert" ? "border-brand/40" : "border-line"}`}>
+    <div className={`rounded-2xl border bg-surface p-5 ${tone === "alert" ? "border-brand/40" : "border-line"}`}>
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-1.5 text-3xl font-medium text-ink">{value}</p>
       {note && <p className="mt-1 text-xs text-muted">{note}</p>}
@@ -198,7 +198,7 @@ export function Details({ rows }: { rows: [string, ReactNode][] }) {
 // Input styles. fieldClass fills its container; fieldBase has no width, for inputs that set
 // their own (w-24, flex-1…), since two width classes on one element don't reliably override.
 export const fieldBase =
-  "rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-brand";
+  "rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-brand";
 export const fieldClass = `w-full ${fieldBase}`;
 
 export function Labelled({ label, children, className = "" }: { label: string; children: ReactNode; className?: string }) {
@@ -243,7 +243,7 @@ export function Drawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-night/40" />
-      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className={`relative flex h-full w-full flex-col bg-white shadow-2xl outline-none ${wide ? "max-w-3xl" : "max-w-xl"}`}>
+      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className={`relative flex h-full w-full flex-col bg-surface shadow-2xl outline-none ${wide ? "max-w-3xl" : "max-w-xl"}`}>
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
           <div className="flex min-w-0 items-center gap-3">
             {media}
