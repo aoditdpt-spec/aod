@@ -28,7 +28,7 @@ export function CityPicker() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        className={`flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm hover:border-brand ${
+        className={`flex shrink-0 items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:border-brand ${
           city ? "border-line text-body" : "border-brand/50 text-brand"
         }`}
       >

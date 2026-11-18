@@ -40,7 +40,7 @@ export default function ArtistsHome() {
 
             <Link
               href={sectionLink("/artists/apply")}
-              className="group mt-10 flex items-center justify-between gap-4 rounded-lg bg-night p-6 text-white transition hover:-translate-y-0.5 hover:shadow-xl"
+              className="group mt-10 flex items-center justify-between gap-4 rounded-[1.25rem] bg-night p-6 text-white transition hover:-translate-y-0.5 hover:shadow-xl"
             >
               <span>
                 <span className="block text-lg font-medium">Not with AOD yet?</span>

@@ -61,7 +61,7 @@ export function ChatPanel({
   const lastMine = [...messages].reverse().find(isMine);
 
   return (
-    <div className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-white ${className}`}>
+    <div className={`flex min-h-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-white ${className}`}>
       {header && <div className="border-b border-line px-4 py-3 sm:px-5">{header}</div>}
       <div ref={list} className="min-h-0 flex-1 space-y-1 overflow-y-auto bg-wash/60 px-3 py-4 sm:px-5" aria-live="polite">
         {count === 0 && <div className="flex h-full min-h-40 items-center justify-center text-center text-sm text-muted">{empty}</div>}

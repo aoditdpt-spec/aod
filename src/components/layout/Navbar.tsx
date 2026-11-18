@@ -87,7 +87,7 @@ export function Navbar() {
   return (
     // Solid white on phones (a blurred see-through bar costs every frame of scrolling there).
     <header className="sticky top-0 z-40 border-b border-transparent bg-white max-lg:border-line lg:bg-white/95 lg:backdrop-blur">
-      <nav className="mx-auto flex h-14 w-full max-w-[90rem] items-center gap-3 px-4 sm:px-6 lg:h-16 lg:gap-4 lg:px-8 xl:gap-6" aria-label="Main">
+      <nav className="mx-auto flex h-14 w-full max-w-page items-center gap-3 px-4 sm:px-6 lg:h-16 lg:gap-4 lg:px-8 xl:gap-6" aria-label="Main">
         <div className="flex min-w-0 items-center">
           <BackButton />
           <Logo />
@@ -96,7 +96,7 @@ export function Navbar() {
         {/* Every link shows from 1024px. To fit them beside the search box on smaller laptops, the
             links are a little smaller below 1280px and the city picker waits until 1152px (the
             booking questions ask for the city when it isn't picked; phones and tablets use the city pill). */}
-        <div className="hidden min-[90rem]:block">
+        <div className="hidden min-[72rem]:block">
           <CityPicker />
         </div>
 

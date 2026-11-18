@@ -1,15 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Montserrat } from "next/font/google";
 import { brand } from "@/content/site";
 import { canonicalUrl } from "@/lib/site-url";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { LoadingBar } from "@/components/ui/LoadingBar";
 import "./globals.css";
 
-// One font for everything, as in the clean test pages (design-tests/): Instrument Sans, regular
-// for text and medium for headings and buttons.
-const instrument = Instrument_Sans({
-  variable: "--font-instrument",
+// AOD's brand fonts: Bricolage Grotesque for headings (with its optical-size axis, so big
+// headings get the tighter display cut) and Montserrat for everything else.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin"],
+  axes: ["opsz"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
 });
 
@@ -42,7 +48,7 @@ export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width"
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${instrument.variable} h-full antialiased`}>
+    <html lang="en-IN" className={`${bricolage.variable} ${montserrat.variable} h-full antialiased`}>
       <head>
         {/* Without JavaScript, show everything that would otherwise animate in, and hide the
             loading bar (nothing would ever tell it the page has loaded). */}
