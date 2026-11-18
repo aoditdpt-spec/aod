@@ -112,7 +112,7 @@ npm run build && npm run lint && npm run check:search && npm run check:links && 
 | Styling | **Tailwind CSS** | 4 | No `tailwind.config`. Design tokens live in the `@theme` block of `src/app/globals.css`. |
 | Animation | **Motion** (`motion/react`) | 14 | Loaded lazily (`LazyMotion strict`): use `m.*` components from `motion/react-m`, never `motion.*`. |
 | Icons | **lucide-react** | 1.x | Mapped by name in `src/components/ui/Icon.tsx`. |
-| Fonts | **Instrument Sans** (one font for everything) | — | Through `next/font/google` in `src/app/layout.tsx`; served from the site itself. |
+| Fonts | **Bricolage Grotesque** (headings) + **Montserrat** (text) | — | Through `next/font/google` in `src/app/layout.tsx`; served from the site itself. |
 | Database, sign-in, files, live updates | **Supabase** (Postgres, Auth, Storage, Realtime) | `@supabase/supabase-js` 2, `@supabase/ssr` 0.12 | Project in Mumbai (`ap-south-1`). |
 | Email | **Resend** | HTTP API | Sign-in codes go through Supabase's SMTP set to Resend; site emails call the Resend API directly (`src/server/notify.ts`). |
 | Orders spreadsheet | **Google Sheets API** with a service account | HTTP API | No Google SDK; the JWT is signed by hand in `src/server/notify.ts`. |
@@ -273,7 +273,7 @@ through untouched. The `matcher` skips `_next/` and any path with a file extensi
 | --- | --- |
 | `home/` | One file per homepage section: `Hero` (phones: `ExploreGrid`, "What are you looking for?"; laptops: the full-screen hero with `HeroDemo` from `HeroMotion`; both use `HeroVideo`), `Stats`, `BrandStrip`, `CategoryCoverflow`, `CategoryGrid`, `PortfolioSection` (AOD portfolio: the GATE 2026 film, played by `PortfolioVideo`), `Portals`, `Features`, `GetMatched`, `MatchQuiz` (the booking quiz), `FinalCta` |
 | `layout/` | `Navbar` (client: category dropdown, search, city; on phones an app-style top bar with a back arrow and the city pill), `AppTabBar` (the bottom tab bar on phones and tablets and its More sheet), `Footer`, `WhatsAppFab`, `InstallPrompt` |
-| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `Sheet` (the phone bottom sheet used for menus and pickers), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
+| `ui/` | Shared pieces: `Container` (page width), `Button` (`buttonClasses()`, `ButtonLink`), `Icon` (icon names → lucide + brand SVGs), `PhotoPlaceholder`, `Rating`, `StepFlow` (numbered steps), `VerifiedArtists`, `CopyButton`, `CountPicker` ("How many?": 1–4, then "More" up to 20), `TimeField` / `WheelField` (in `TimePicker.tsx`: Material-style scroll wheels with Cancel / OK, for the booking questions' start time and "How many hours?"), `Sheet` (the phone bottom sheet used for menus and pickers), `Spinner` / `PageLoader` (in `Spinner.tsx`: a small turning ring for buttons that wait; the AOD loader for areas loading their data), `LoadingBar` (the orange bar at the top while a page loads or the app moves to another page, and a "Loading…" pill when that's slow; started by `src/instrumentation-client.ts`) |
 | `motion/` | `MotionProvider` (LazyMotion + reduced-motion), `features.ts` (the lazily loaded animation code), `Reveal` / `StaggerList` / `StaggerItem` (scroll-in), `TiltCard` (tilt, pop up and zoom for cards that don't open anything), `Coverflow` (the 3D carousel), `ScrollProgress` |
 | `search/` | `SearchBox`: navbar search with suggestions, keyboard navigation, typed placeholder |
 | `location/` | `CityPicker`, `CitySheetButton` (phones) and `CityChips`: the visitor's city |
@@ -708,17 +708,17 @@ are baked into the browser code at build time.
   `border-line`, `bg-night`… **Never write raw hex values in components**; for a tint use
   `color-mix()` with a token, or an opacity class like `bg-brand/10`. Status colours (red errors,
   green success, amber warnings) and the WhatsApp green stay as they are.
-- **Fonts:** one font, Instrument Sans, in two weights (400 text, 500 headings and buttons; the
-  bolder utilities draw at 500), as in the clean test pages (`design-tests/`).
+- **Fonts:** Bricolage Grotesque for headings (`h1`–`h3` get it automatically; `font-display` puts
+  it on anything else), Montserrat for everything else (`font-sans`).
 - **No text shadows or glows:** no text has a shadow or glow behind it (the old raised
   `text-shadow-3d` headings and the hero's shadows and glows were removed on purpose). Smaller
   headings are bold; buttons and body text are flat.
-- **Size:** `html { font-size: 100% }` (16px) in `globals.css`; everything is in rem. Corners are small (6–10px).
-- **Width:** wrap page content in `Container` (`max-w-page`, 1200px).
+- **Size:** `html { font-size: 81% }` in `globals.css` scales the whole site (everything is in rem).
+- **Width:** wrap page content in `Container` (`max-w-page`, about 1600px).
 - **Buttons:** use `buttonClasses()` / `ButtonLink` from `src/components/ui/Button.tsx`.
 - **Cards:** two kinds (`src/components/ui/cards.ts`). A card that opens a page gets `linkCard`
   (orange border, light orange tint, bold text on hover; `linkTitle` / `linkText` on its text). A
-  card that doesn't open anything is a `TiltCard` (now a still card, for the clean look). Grids
+  card that doesn't open anything is a `TiltCard` (tilts, pops up and zooms; nothing else). Grids
   arrive with `StaggerList` + `StaggerItem`. No light or glow on any card.
 - **Animation:** `m.*` components only (see section 15). Animated elements render their final
   content on the server and carry `data-reveal`; a `<noscript>` rule shows them when JavaScript is
