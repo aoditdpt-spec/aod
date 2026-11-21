@@ -64,21 +64,24 @@ export function Messages() {
   const [order, setOrder] = useState("");
   const [copied, setCopied] = useState("");
   if (!db) return <Loading />;
+  // The order the messages are filled from; with no orders yet (a new database) the messages show
+  // with blanks to fill in by hand, instead of the page failing to load (fixed 2026-11-21).
   const b = db.bookings.find((x) => x.id === order) ?? db.bookings[0];
   const fill = (t: string) =>
     t
-      .replace("{name}", b.customer)
-      .replace("{ref}", b.id)
-      .replace("{date}", `${shortDate(b.date)}${b.start ? `, ${timeRange(b.start, b.end)}` : ""}`)
-      .replace("{city}", b.city)
-      .replace("{advance}", b.quote ? rupees(Math.round(b.quote * 0.3)) : "the advance");
+      .replace("{name}", b?.customer ?? "[Name]")
+      .replace("{ref}", b?.id ?? "[Order]")
+      .replace("{date}", b ? `${shortDate(b.date)}${b.start ? `, ${timeRange(b.start, b.end)}` : ""}` : "[Date]")
+      .replace("{city}", b?.city ?? "[City]")
+      .replace("{advance}", b?.quote ? rupees(Math.round(b.quote * 0.3)) : "the advance");
 
   return (
     <>
-      <Title title="Messages" text="Ready messages for customers, filled in from an order." />
+      <Title title="WhatsApp Templates" text="Ready messages for customers, filled in from an order. To message an artist, use Chat With Artists." />
       <label className="mt-7 block max-w-sm">
         <span className={label}>Order</span>
-        <select value={b.id} onChange={(e) => setOrder(e.target.value)} className={field}>
+        <select value={b?.id ?? ""} onChange={(e) => setOrder(e.target.value)} disabled={!b} className={field}>
+          {!b && <option value="">No orders yet</option>}
           {db.bookings.map((x) => (
             <option key={x.id} value={x.id}>
               {x.id}, {x.customer}

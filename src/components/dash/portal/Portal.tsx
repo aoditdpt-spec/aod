@@ -446,7 +446,24 @@ function PortfolioSample() {
 
 export function MessagesPage() {
   const db = useDb();
+  const email = usePortalEmail();
   if (!db) return <Loading />;
+  // Signed in with an applicant's email (not yet approved): no chat yet. A conversation belongs to an
+  // approved artist (chat_messages.artist_id), so say so instead of failing (2026-11-21).
+  const applicant = email ? db.applications.find((a) => a.email.toLowerCase() === email && a.stage !== "approved") : undefined;
+  if (applicant)
+    return (
+      <>
+        <PageTitle title="Messages" text="Your conversation with the AOD team." />
+        <div className="mt-8 max-w-xl rounded-2xl border border-line p-6">
+          <p className="text-lg font-medium">Messages Open Once You&apos;re Approved.</p>
+          <p className="mt-2 text-muted">Until then, the AOD team gets in touch by email or WhatsApp. Finish Complete Your Details and submit it for review.</p>
+          <Link href="/artists/profile" className={`${btnMain} mt-5`}>
+            Complete Your Details
+          </Link>
+        </div>
+      </>
+    );
   return (
     <>
       <PageTitle title="Messages" text="Your conversation with the AOD team." />

@@ -43,7 +43,7 @@ export function Calendar() {
                   <small className="block text-xs text-muted">Applicant, {a.craft}</small>
                 </Link>
               )),
-            ...(db.daysOff.includes(k) ? [<span key="off" className="block text-muted">{me.name} Off</span>] : []),
+            ...(db.daysOff.includes(k) ? [<span key="off" className="block text-muted">{me?.name ?? "Artist"} Off</span>] : []),
           ]}
         />
       </div>
@@ -69,7 +69,7 @@ export function Calendar() {
                         Meeting, {a.name}
                       </Link>
                     ))}
-                    {off && <span className="block truncate px-1.5 text-xs text-muted">{me.name} Off</span>}
+                    {off && <span className="block truncate px-1.5 text-xs text-muted">{me?.name ?? "Artist"} Off</span>}
                   </div>
                 </>
               );

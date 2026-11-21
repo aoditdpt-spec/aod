@@ -42,13 +42,16 @@ const toMessage = (r: Row, forArtist: boolean): ChatMessage => ({
 const signedOut = { ok: false as const, error: "You're signed out. Please sign in again." };
 const unavailable = { ok: false as const, error: "Chat isn't available right now." };
 
-async function thisArtist() {
+const notApproved = { ok: false as const, error: "Messages open once AOD approves your profile." };
+
+// The signed-in artist; "applicant" when signed in but not (yet) an approved artist.
+async function thisArtist(): Promise<{ id: string; name: string } | "applicant" | null> {
   if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return null;
   const { data } = await (await createClient()).auth.getUser();
   const email = data.user?.email?.toLowerCase();
   if (!email) return null;
   const { data: artist } = await createAdminClient().from("artists").select("id, name, status").eq("email", email).limit(1).maybeSingle();
-  return artist ? { id: String(artist.id), name: String(artist.name) } : null;
+  return artist ? { id: String(artist.id), name: String(artist.name) } : "applicant";
 }
 
 async function thisStaff() {
@@ -136,6 +139,7 @@ AOD`,
 export async function artistChatLoad(markRead: boolean): Promise<ChatResult<{ messages: ChatMessage[]; unread: number }>> {
   const me = await thisArtist();
   if (!me) return signedOut;
+  if (me === "applicant") return notApproved;
   const db = createAdminClient();
   const { data, error } = await db.from("chat_messages").select("*").eq("artist_id", me.id).order("created_at", { ascending: false }).limit(KEEP);
   if (error) return unavailable;
@@ -151,6 +155,7 @@ export async function artistChatLoad(markRead: boolean): Promise<ChatResult<{ me
 export async function artistChatSend(body: string): Promise<ChatResult<{ message: ChatMessage }>> {
   const me = await thisArtist();
   if (!me) return signedOut;
+  if (me === "applicant") return notApproved;
   const text = cleanBody(body);
   if (!text) return { ok: false, error: "Write a message first." };
   const db = createAdminClient();
