@@ -1,6 +1,7 @@
 "use server";
 
 import { categories } from "@/content/site";
+import { kinds } from "@/data/work-questions";
 import type { CustomerOrder, MatchedArtist } from "@/content/my-bookings";
 import { artistPhotoSrc } from "@/lib/artist-photo";
 import { backendEnabled } from "@/lib/backend";
@@ -23,6 +24,11 @@ export type MyOrders = { email: string; orders: CustomerOrder[]; topic: string }
 const portfolioUrl = (path: string) =>
   `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/portfolio/${path.split("/").map(encodeURIComponent).join("/")}`;
 const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+// The artist's kind ("Photographer"), from their record; else the category's name.
+const craftName = (details: Record<string, unknown> | undefined, category: string) => {
+  const k = kinds.find((x) => x.id === String(details?.kind ?? ""));
+  return k ? k.name : categoryName(category);
+};
 
 export async function myOrders(): Promise<MyOrders | null> {
   if (!backendEnabled) return null;
@@ -63,7 +69,7 @@ export async function myOrders(): Promise<MyOrders | null> {
       ? [
           {
             name: a.name,
-            craft: categoryName(category),
+            craft: craftName(a.details, category),
             city: a.city,
             profile: {
               id: a.id,
@@ -121,6 +127,8 @@ export async function myOrders(): Promise<MyOrders | null> {
       delivery: b.delivery,
       review: b.review,
       history: b.history.map((h) => ({ status: h.status, at: h.at })),
+      lines: b.items.map((i) => ({ category: i.category, name: i.service || categoryName(i.category), count: i.count })),
+      cancelledByYou: b.status === "cancelled" ? b.history.find((h) => h.status === "cancelled" && h.by === "Customer")?.at : undefined,
     };
   });
   return { email, orders, topic };

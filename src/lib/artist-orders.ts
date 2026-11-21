@@ -45,7 +45,8 @@ export function artistOrder(
 ): { status: ArtistOrderStatus; item?: BookingItem } | null {
   const item = itemFor(b.items, artist.id, artist);
   if (item?.artistIds.includes(artist.id)) {
-    if (b.status === "confirmed" || (b.status === "rescheduled" && paid)) return { status: "confirmed", item };
+    // "advance": the advance is paid (the new admin's stage before Confirmed).
+    if (b.status === "confirmed" || b.status === "advance" || (b.status === "rescheduled" && paid)) return { status: "confirmed", item };
     if (["completed", "delivered", "reviewed"].includes(b.status)) return { status: "completed", item };
     if (b.status === "cancelled") return { status: "cancelled", item };
     return { status: "selected", item };

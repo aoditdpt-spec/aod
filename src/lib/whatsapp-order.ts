@@ -1,116 +1,99 @@
-// Reads the WhatsApp message that the website's booking form sends ("Hi Artists on Demand! I'd
-// like curated matches." followed by "Occasion: …", "Looking for: …" and so on) back into its
-// fields, so the team can paste a message into the admin's New booking form instead of typing it.
-// A message someone typed by hand in the same "Label: value" shape works too. No imports, so
-// scripts/order-check.mts can test it on its own.
+// No imports (npm run check:orders tests it): the categories come in as an argument.
+type Cat = { slug: string; name: string; types: string[] };
+
+// "Paste A WhatsApp Message" in the admin's New Booking, as on aod.co.in: reads an order written
+// on WhatsApp (the booking form's message, or one typed by hand) into the form's fields. It reads
+// "Name: …", "Phone: …", "Date: …", "Time: 6 PM – 11 PM", "City: …", "Venue: …", "Occasion: …",
+// "Budget: …", and who they need from "Photographers × 2", "3 x DJs" or "Anchors (2)"; anything
+// it doesn't recognise goes into the notes.
 
 export type ParsedOrder = {
-  audience?: "Personal" | "Business";
-  occasion?: string;
-  needs: { name: string; count: number }[]; // category names as written in the message, and how many of each
-  date?: string; // yyyy-mm-dd
-  startTime?: string; // HH:MM, 24-hour
-  endTime?: string; // HH:MM, 24-hour
-  city?: string;
-  details?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  ref?: string; // AOD-PH-261001 (or an older AOD-1201). Missing, or AOD-0, means the website didn't save the request.
+  customer: string;
+  phone: string;
+  email: string;
+  date: string;
+  start: string;
+  end: string;
+  city: string;
+  venue: string;
+  occasion: string;
+  budget: string;
+  notes: string;
+  lines: { category: string; name: string; count: number }[];
 };
 
-// The labels the booking form writes, and a few a person might type instead.
-const labels: Record<string, string> = {
-  "booking for": "audience",
-  occasion: "occasion",
-  event: "occasion",
-  "looking for": "needs",
-  date: "date",
-  time: "time",
-  city: "city",
-  details: "details",
-  name: "name",
-  email: "email",
-  phone: "phone",
-  mobile: "phone",
-  ref: "ref",
-};
+const pad = (n: number) => String(n).padStart(2, "0");
 
-// "2:00 PM" → "14:00"; "18:30" stays as it is.
-function to24h(hour: string, minute: string, ampm?: string): string {
-  const half = ampm?.replace(/\./g, "").toUpperCase();
-  const h = half ? (Number(hour) % 12) + (half === "PM" ? 12 : 0) : Number(hour) % 24;
-  return `${String(h).padStart(2, "0")}:${minute}`;
+function toTime(t: string): string {
+  const m = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i.exec(t.trim());
+  if (!m) return "";
+  let h = Number(m[1]);
+  const min = Number(m[2] ?? 0);
+  const ap = m[3]?.toLowerCase();
+  if (ap === "pm" && h < 12) h += 12;
+  if (ap === "am" && h === 12) h = 0;
+  return h < 24 && min < 60 ? `${pad(h)}:${pad(min)}` : "";
 }
 
-// "Photographers × 3" (as the booking form writes it), "Photographers x3", "Photographers (3)",
-// "3 x Photographers" or "3 Photographers"; no number means one. At most 20 (MAX_ARTISTS).
-function readNeed(item: string): { name: string; count: number } {
-  const text = item.trim();
-  const after = /^(.*?)\s*(?:[×xX*]\s*(\d{1,3})|\((\d{1,3})\))$/.exec(text);
-  const before = /^(\d{1,3})\s*(?:[×xX*]\s*)?([^\d].*)$/.exec(text);
-  const [name, n] = after ? [after[1], after[2] ?? after[3]] : before ? [before[2], before[1]] : [text, "1"];
-  return { name: name.trim(), count: Math.min(20, Math.max(1, Number(n) || 1)) };
+function toDate(t: string): string {
+  const iso = /(\d{4})-(\d{2})-(\d{2})/.exec(t);
+  if (iso) return iso[0];
+  const dmy = /(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/.exec(t);
+  if (dmy) {
+    const y = dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3];
+    return `${y}-${pad(Number(dmy[2]))}-${pad(Number(dmy[1]))}`;
+  }
+  const d = new Date(t.replace(/(\d+)(st|nd|rd|th)/, "$1"));
+  return Number.isNaN(d.getTime()) ? "" : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-export function parseOrderMessage(text: string): ParsedOrder {
-  const fields: Record<string, string> = {};
-  let current = "";
-  for (const raw of text.replace(/\r/g, "").split("\n")) {
-    // Copying several WhatsApp messages at once puts "[16/10/2026, 10:23] Khushboo: " in front.
-    const line = raw.replace(/^\[[^\]]*\]\s*[^:]{1,40}:\s*/, "").trim();
+// Every kind of artist (and category name) to look for, longest first.
+const namesOf = (categories: Cat[]) =>
+  categories
+  .flatMap((c) => [...c.types.map((t) => ({ name: t, category: c.slug })), { name: c.name, category: c.slug }])
+  .sort((a, b) => b.name.length - a.name.length);
+
+function linesFrom(text: string, names: { name: string; category: string }[]) {
+  const out: ParsedOrder["lines"] = [];
+  let rest = text;
+  for (const n of names) {
+    const singular = n.name.replace(/s$/, "");
+    const re = new RegExp(`(?:(\\d+)\\s*[x×]\\s*)?(${n.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}|${singular.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})s?(?:\\s*[x×]\\s*(\\d+)|\\s*\\((\\d+)\\))?`, "i");
+    const m = re.exec(rest);
+    if (!m) continue;
+    out.push({ category: n.category, name: n.name, count: Number(m[1] ?? m[3] ?? m[4] ?? 1) || 1 });
+    rest = rest.replace(m[0], " ");
+  }
+  return out;
+}
+
+export function parseWhatsappOrder(message: string, categories: Cat[]): ParsedOrder {
+  const names = namesOf(categories);
+  const o: ParsedOrder = { customer: "", phone: "", email: "", date: "", start: "", end: "", city: "", venue: "", occasion: "", budget: "", notes: "", lines: [] };
+  const notes: string[] = [];
+  for (const raw of message.split(/\r?\n/)) {
+    const line = raw.replace(/^[*•\-\s]+/, "").replace(/\*/g, "").trim();
     if (!line) continue;
-    const m = /^\*?([A-Za-z][A-Za-z ]{1,19})\*?\s*:\s*(.*)$/.exec(line);
-    const key = m ? labels[m[1].trim().toLowerCase()] : undefined;
-    if (m && key) {
-      current = key;
-      fields[key] = m[2].trim();
-    } else if (current === "details") {
-      fields.details += `\n${line}`; // the event details can run over several lines
-    }
+    const m = /^([A-Za-z ]{2,24}):\s*(.+)$/.exec(line);
+    const key = m?.[1].trim().toLowerCase() ?? "";
+    const value = m?.[2].trim() ?? "";
+    if (/^(name|customer|your name)$/.test(key)) o.customer = value;
+    else if (/^(phone|mobile|number|phone number)$/.test(key)) o.phone = value;
+    else if (/^email$/.test(key)) o.email = value;
+    else if (/^(date|event date)$/.test(key)) o.date = toDate(value);
+    else if (/^(time|timing)$/.test(key)) {
+      const [a, b] = value.split(/\s*(?:–|-|to)\s*/i);
+      o.start = toTime(a ?? "");
+      o.end = toTime((b ?? "").replace(/\(.*$/, ""));
+    } else if (/^city$/.test(key)) o.city = value;
+    else if (/^(venue|where|location)$/.test(key)) o.venue = value;
+    else if (/^(occasion|event)$/.test(key)) o.occasion = value;
+    else if (/^budget$/.test(key)) o.budget = value;
+    else if (/^(who|looking for|artists|need|needs)$/.test(key)) o.lines.push(...linesFrom(value, names));
+    else notes.push(line);
   }
-
-  const order: ParsedOrder = { needs: [] };
-  const audience = (fields.audience ?? "").toLowerCase();
-  if (audience.includes("business")) order.audience = "Business";
-  else if (audience.includes("personal")) order.audience = "Personal";
-  if (fields.occasion) order.occasion = fields.occasion;
-  if (fields.needs) order.needs = fields.needs.split(",").map(readNeed).filter((n) => n.name);
-  const date = /\d{4}-\d{2}-\d{2}/.exec(fields.date ?? "");
-  if (date) order.date = date[0];
-  const time = /(\d{1,2})[:.](\d{2})\s*([AaPp]\.?[Mm]\.?)?\s*(?:–|—|-|to)\s*(\d{1,2})[:.](\d{2})\s*([AaPp]\.?[Mm]\.?)?/.exec(fields.time ?? "");
-  if (time) {
-    order.startTime = to24h(time[1], time[2], time[3]);
-    order.endTime = to24h(time[4], time[5], time[6]);
-  }
-  if (fields.city && !/^not selected$/i.test(fields.city)) order.city = fields.city;
-  if (fields.details) order.details = fields.details.trim();
-  if (fields.name) order.name = fields.name;
-  const email = /[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}/.exec(fields.email ?? "");
-  if (email) order.email = email[0].toLowerCase();
-  const phone = (fields.phone ?? "").replace(/[^\d+]/g, "");
-  if (phone.replace(/\D/g, "").length >= 10) order.phone = phone;
-  const ref = /AOD-(?:[A-Z]{2,3}-)?\d+/i.exec(fields.ref ?? "");
-  if (ref) order.ref = ref[0].toUpperCase();
-  return order;
-}
-
-// Words that say nothing about which service is meant.
-const generic = new Set(["shoot", "need", "needs", "with", "from", "that", "this", "photographer", "photography", "photos", "video", "artist", "artists", "team"]);
-
-// The service of a category that best matches the occasion and details ("Brand / product shoot"
-// → "Product photography"), or the category's first service when nothing matches.
-export function pickService(services: string[], text: string): string {
-  const words = (text.toLowerCase().match(/[a-z]{4,}/g) ?? []).filter((w) => !generic.has(w));
-  let best = services[0] ?? "";
-  let bestScore = 0;
-  for (const service of services) {
-    const name = service.toLowerCase();
-    const score = words.filter((w) => name.includes(w)).length;
-    if (score > bestScore) {
-      best = service;
-      bestScore = score;
-    }
-  }
-  return best;
+  // No "Who:" line: look for artists anywhere in the message.
+  if (!o.lines.length) o.lines = linesFrom(message, names);
+  o.notes = notes.join("\n");
+  return o;
 }

@@ -92,6 +92,12 @@ const nextConfig: NextConfig = {
       },
       // Business bookings happen in the business portal only.
       { source: "/book/business", destination: "/business", permanent: false },
+      // Addresses of the design before 2026-11-21 (and of the redesign's test site), so old links,
+      // bookmarks and emails still land on the right page.
+      { source: "/book/personal", destination: "/book", permanent: true },
+      { source: "/dispute-desk", destination: "/resolve", permanent: true },
+      { source: "/dispute-desk/:path*", destination: "/resolve/:path*", permanent: true },
+      { source: "/artists/sign-in", destination: "/artists", permanent: true },
       ...["artists", "admin", "resolve"].map((section) => ({
         source: `/${section}/:path*`,
         has: [{ type: "host" as const, value: "(?:www\\.)?aod\\.co\\.in" }],

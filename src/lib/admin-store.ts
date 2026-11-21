@@ -84,6 +84,7 @@ export type ArtistReply = { artistId: string; status: "accepted" | "quoted" | "d
 export type BookingStatus =
   | "new"
   | "matched"
+  | "advance" // the advance is paid (new design, 2026-11-21: Matched → Advance Paid → Confirmed)
   | "quoted"
   | "payment_pending"
   | "confirmed"
@@ -119,6 +120,7 @@ export type Booking = {
   history: { at: string; by: string; status: BookingStatus }[];
   notesLog: Note[];
   replies?: ArtistReply[]; // read-only here: written by artists through the portal
+  source?: string; // website, business, whatsapp, admin …
 };
 
 export type Payment = {

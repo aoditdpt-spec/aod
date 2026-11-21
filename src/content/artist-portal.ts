@@ -89,10 +89,10 @@ const artistServiceLists: Record<string, string[]> = {
   editors: ["Podcast Editing", "Reels, Shorts & UGC Edits", "Wedding Film Post-Production", "Birthday & Party Recap Edits", "YouTube Long-Form & Color Grading"],
 };
 export const artistServiceOptions = (slug: string): string[] =>
-  artistServiceLists[slug] ?? categories.find((c) => c.slug === slug)?.services.map((s) => s.name) ?? [];
+  artistServiceLists[slug] ?? categories.find((c) => c.slug === slug)?.groups.flatMap((g) => g.services) ?? [];
 // Every service name an artist's record may hold: the short lists, plus the longer names saved before.
 export const artistServiceNames = (slug: string): string[] => [
-  ...new Set([...artistServiceOptions(slug), ...(categories.find((c) => c.slug === slug)?.services.map((s) => s.name) ?? [])]),
+  ...new Set([...artistServiceOptions(slug), ...(categories.find((c) => c.slug === slug)?.groups.flatMap((g) => g.services) ?? [])]),
 ];
 
 // The same buckets as AOD's registration forms (Google Forms).
@@ -260,7 +260,7 @@ export const workQuestionsFor = (category: string) => workQuestions[category] ??
 // "<category>.<id>" and labelled with the category ("Cinematographer: Specialisation").
 export type WorkSection = { category: string; questions: WorkQuestion[] };
 export function workSections(main: string, others: string[] = []): WorkSection[] {
-  const singular = (slug: string) => categories.find((c) => c.slug === slug)?.singular ?? slug;
+  const singular = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
   const asked = new Map<string, string>(); // "id|label" → the id it's saved under
   return [main, ...others.filter((c) => c && c !== main)].filter(Boolean).map((category, i) => {
     const ids = new Map<string, string>(); // this category's question id → saved id

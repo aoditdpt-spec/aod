@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
-import { Clock, X } from "lucide-react";
-import { time12 } from "@/lib/event-time";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { durationText, time12 } from "@/lib/event-time";
 
-// Scroll-wheel pickers in the style of Material's time dropdown: a field with an icon, the value
-// and a clear button; tapping it opens wheels under it. `TimeField` has three, hour, minutes and
-// AM / PM; `WheelField` has one, over any list (the booking questions' "How many hours?"). The
-// hour and minute wheels go round without end (…11, 12, 1, 2… and …58, 59, 00, 01…); the middle
+// Scroll-wheel pickers, as on aod.co.in (no icons here: the site has none but search and the
+// menu): a field showing the value; tapping it opens wheels under it. `TimeField` has three, hour,
+// minutes and AM / PM; `DurationField` has two, hours and minutes ("How Many Hours?"). The
+// minute wheels and the time's hour wheel go round without end (…11, 12, 1, 2… and …58, 59, 00, 01…); the middle
 // row, on a grey band, is the pick, in orange. Scroll, tap a row or use the arrow keys, then OK;
 // Cancel, Escape or a tap outside leave the value as it was. Times are "HH:MM", 24-hour, as the
 // rest of the site stores them (src/lib/event-time.ts).
@@ -36,11 +35,13 @@ export function TimeField({
   value,
   onChange,
   defaultTime = "10:00",
+  align = "left",
 }: {
   label: string;
   value: string; // "" until picked
-  onChange: (time: string) => void; // on OK, or "" when cleared
+  onChange: (time: string) => void; // on OK
   defaultTime?: string; // shown on the wheels when nothing is picked yet
+  align?: "left" | "right"; // which edge of the field the wheels line up with
 }) {
   const [draft, setDraft] = useState(value || defaultTime);
   const parts = partsOf(draft);
@@ -49,11 +50,10 @@ export function TimeField({
   return (
     <PickerField
       label={label}
+      align={align}
       shown={value ? time12(value) : ""}
-      icon={Clock}
       onOpen={() => setDraft(value || defaultTime)}
       onOk={() => onChange(draft)}
-      onClear={() => onChange("")}
     >
       <Wheel label="Hour" items={hours} index={parts.hour} loop onPick={(i) => set({ hour: i })} />
       <Wheel label="Minutes" items={minutes} index={parts.minute} loop onPick={(i) => set({ minute: i })} />
@@ -62,62 +62,70 @@ export function TimeField({
   );
 }
 
-// One wheel over a list of choices, with the same field, band and Cancel / OK as TimeField.
-export function WheelField<T extends string | number>({
+// "How Many Hours?": two wheels like the time's, hours (0 to 24) and minutes (00 to 59, going
+// round without end). The value is the length in minutes; 0 until picked.
+const lengthHours = Array.from({ length: 25 }, (_, i) => `${i} hr`);
+const lengthMinutes = Array.from({ length: 60 }, (_, i) => `${String(i).padStart(2, "0")} min`);
+
+export function DurationField({
   label,
   value,
-  options,
   onChange,
-  defaultValue,
-  icon = Clock,
+  defaultMinutes = 180,
+  align = "left",
 }: {
   label: string;
-  value: T | null; // null until picked
-  options: readonly { value: T; label: string }[];
-  onChange: (value: T | null) => void; // on OK, or null when cleared
-  defaultValue?: T; // shown on the wheel when nothing is picked yet
-  icon?: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  value: number; // minutes, 0 until picked
+  onChange: (minutes: number) => void; // on OK
+  defaultMinutes?: number; // shown on the wheels when nothing is picked yet
+  align?: "left" | "right"; // a field on the right opens its wheels leftwards, so they stay on screen
 }) {
-  const indexOf = (v: T | null | undefined) => Math.max(0, options.findIndex((o) => o.value === v));
-  const [draft, setDraft] = useState(indexOf(value ?? defaultValue));
-  const picked = value === null ? undefined : options.find((o) => o.value === value);
+  const [draft, setDraft] = useState(value || defaultMinutes);
+  const h = Math.floor(draft / 60);
+  const m = draft % 60;
 
   return (
     <PickerField
       label={label}
-      shown={picked?.label ?? ""}
-      icon={icon}
-      onOpen={() => setDraft(indexOf(value ?? defaultValue))}
-      onOk={() => onChange(options[draft]?.value ?? null)}
-      onClear={() => onChange(null)}
+      align={align}
+      shown={value ? durationText(value) : ""}
+      onOpen={() => setDraft(value || defaultMinutes)}
+      onOk={() => onChange(draft)}
     >
-      <Wheel label={label} items={options.map((o) => o.label)} index={draft} onPick={setDraft} width="w-44" />
+      <Wheel label="Hours" items={lengthHours} index={h} onPick={(i) => setDraft(i * 60 + m)} width="w-24" />
+      <Wheel label="Minutes" items={lengthMinutes} index={m} loop onPick={(i) => setDraft(h * 60 + i)} width="w-24" />
     </PickerField>
   );
 }
 
-// The field and the drop-down holding the wheels, shared by TimeField and WheelField.
+// The field and the drop-down holding the wheels, shared by TimeField and DurationField.
 function PickerField({
   label,
+  align,
   shown,
-  icon: Icon,
   onOpen,
   onOk,
-  onClear,
   children,
 }: {
   label: string;
+  align: "left" | "right";
   shown: string; // the value as text, "" until picked
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   onOpen: () => void;
   onOk: () => void;
-  onClear: () => void;
   children: ReactNode; // the wheels
 }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const labelId = useId();
+
+  // Opening near the bottom of the screen (phones, above the bottom bar): bring the wheels into view.
+  useEffect(() => {
+    if (!open) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panel.current?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }, [open]);
 
   function show() {
     onOpen();
@@ -148,55 +156,38 @@ function PickerField({
   }, [open]);
 
   return (
-    <div ref={box} className="relative text-sm font-medium text-ink">
+    <div ref={box} className="relative text-sm text-muted">
       <span id={labelId}>{label}</span>
-      <div
-        className={`mt-1.5 flex w-full items-center rounded-xl border bg-surface font-normal transition-colors ${
-          open ? "border-brand ring-1 ring-brand" : "border-line focus-within:border-brand"
+      <button
+        ref={button}
+        type="button"
+        onClick={() => (open ? setOpen(false) : show())}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        aria-labelledby={`${labelId} ${labelId}-value`}
+        className={`mt-2 flex h-12 w-full items-center rounded-lg border bg-paper px-4 text-left text-base outline-none transition-colors ${
+          open ? "border-ink" : "border-line hover:border-ink focus-visible:border-ink"
         }`}
       >
-        <button
-          ref={button}
-          type="button"
-          onClick={() => (open ? setOpen(false) : show())}
-          aria-expanded={open}
-          aria-haspopup="dialog"
-          aria-labelledby={`${labelId} ${labelId}-value`}
-          className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left outline-none"
-        >
-          <Icon className={`h-5 w-5 shrink-0 ${open ? "text-brand" : "text-muted"}`} aria-hidden />
-          <span id={`${labelId}-value`} className={`tabular-nums ${shown ? "text-ink" : "text-muted"}`}>
-            {shown || "Choose"}
-          </span>
-        </button>
-        {shown && (
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onClear();
-            }}
-            aria-label={`Clear ${label.toLowerCase()}`}
-            className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-wash hover:text-ink"
-          >
-            <X className="h-4 w-4" aria-hidden />
-          </button>
-        )}
-      </div>
+        <span id={`${labelId}-value`} className={`tabular-nums ${shown ? "text-ink" : "text-muted"}`}>
+          {shown || "Choose"}
+        </span>
+      </button>
 
       {open && (
         <div
+          ref={panel}
           role="dialog"
           aria-label={`Choose ${label.toLowerCase()}`}
-          className="absolute left-0 top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-surface shadow-xl"
+          className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full z-30 mt-1 w-full min-w-64 max-w-80 overflow-hidden rounded-xl border border-line bg-paper text-ink shadow-xl scroll-mb-4 max-lg:scroll-mb-[calc(var(--bottom-bar)+1rem)]`}
         >
           <div className="relative flex justify-center gap-2 px-4 pt-3" style={{ height: ITEM * ROWS + 12 }}>
             {/* The grey band across the middle row: the value picked. */}
-            <div aria-hidden className="pointer-events-none absolute inset-x-3 rounded-lg bg-line/70" style={{ top: 12 + PAD, height: ITEM }} />
+            <div aria-hidden className="pointer-events-none absolute inset-x-3 rounded-lg bg-wash" style={{ top: 12 + PAD, height: ITEM }} />
             {children}
           </div>
           <div className="flex justify-end gap-1 px-2 py-2">
-            <button type="button" onClick={close} className="h-9 rounded-lg px-4 text-sm font-semibold uppercase tracking-wide text-brand hover:bg-wash">
+            <button type="button" onClick={close} className="h-10 rounded-lg px-4 text-[15px] font-medium text-ink hover:bg-wash">
               Cancel
             </button>
             <button
@@ -205,7 +196,7 @@ function PickerField({
                 onOk();
                 close();
               }}
-              className="h-9 rounded-lg px-4 text-sm font-semibold uppercase tracking-wide text-brand hover:bg-wash"
+              className="h-10 rounded-lg px-4 text-[15px] font-medium text-brand hover:bg-wash"
             >
               OK
             </button>
@@ -301,7 +292,7 @@ function Wheel({
       tabIndex={0}
       onScroll={onScroll}
       onKeyDown={onKey}
-      className={`relative ${width} snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-lg outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-scrollbar]:hidden`}
+      className={`relative ${width} snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-lg outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-ink [&::-webkit-scrollbar]:hidden`}
       style={{
         paddingBlock: PAD,
         maskImage: "linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)",

@@ -132,7 +132,7 @@ export function useStaffChat(artistId: string | null, refresh: unknown, staffNam
 // The artist's own conversation with "Admin". `open` is true on the Messages page (it marks the
 // team's messages as read); the sidebar's badge uses it with false. `refresh` changes when the
 // portal's data reloads.
-export function useArtistChat(open: boolean, refresh: unknown) {
+export function useArtistChat(open: boolean, refresh: unknown, enabled = true) {
   const [live, setLive] = useState<{ messages: ChatMessage[]; unread: number }>({ messages: [], unread: 0 });
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -143,7 +143,7 @@ export function useArtistChat(open: boolean, refresh: unknown) {
   });
 
   const load = useCallback(async () => {
-    if (!backendEnabled) return;
+    if (!backendEnabled || !enabled) return;
     try {
       const r = await artistChatLoad(latest.current);
       if (r.ok) {
@@ -153,7 +153,7 @@ export function useArtistChat(open: boolean, refresh: unknown) {
     } catch {
       setError("Couldn't load your messages. Check your connection.");
     }
-  }, []);
+  }, [enabled]);
   useEffect(() => {
     void load();
   }, [load, refresh, open]);

@@ -170,7 +170,16 @@ async function appendToSheet(tab: string, rows: string[][]) {
   const range = (r: string) => encodeURIComponent(`'${tab.replace(/'/g, "''")}'!${r}`);
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-  const first = await fetch(`${base}/${range("1:1")}`, { headers });
+  let first = await fetch(`${base}/${range("1:1")}`, { headers });
+  // A tab that isn't there yet (a new category): add it, then carry on.
+  if (first.status === 400) {
+    const add = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ requests: [{ addSheet: { properties: { title: tab } } }] }),
+    });
+    if (add.ok) first = await fetch(`${base}/${range("1:1")}`, { headers });
+  }
   if (!first.ok) throw new Error(`Sheet tab "${tab}" ${first.status}: ${(await first.text()).slice(0, 200)}`);
   const heading = ((await first.json()) as { values?: string[][] }).values?.[0] ?? [];
   const empty = heading.length === 0;

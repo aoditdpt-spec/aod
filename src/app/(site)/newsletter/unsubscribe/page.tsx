@@ -1,24 +1,16 @@
 import type { Metadata } from "next";
-import { newsletter } from "@/content/blog";
 import { Container } from "@/components/ui/Container";
-import { NewsletterLinkAction } from "@/components/newsletter/NewsletterLinkAction";
+import { NewsletterAction } from "@/components/newsletter/NewsletterAction";
 
-export const metadata: Metadata = {
-  title: newsletter.unsubscribePageTitle,
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = { title: "Unsubscribe", robots: { index: false, follow: false } };
 
-// Opened from the "Unsubscribe" link at the bottom of every newsletter (?t=…). Mail apps' own
-// one-click Unsubscribe button goes to src/app/api/newsletter/unsubscribe instead.
-export default async function UnsubscribePage({ searchParams }: PageProps<"/newsletter/unsubscribe">) {
-  const t = (await searchParams).t;
+// Opened from the link in the newsletter's emails (?t=…), as on aod.co.in.
+export default function Page() {
   return (
-    <Container className="py-16 sm:py-24">
-      <div className="mx-auto max-w-xl rounded-card border border-line bg-white p-8 sm:p-10">
-        <h1 className="text-3xl font-medium">{newsletter.unsubscribePageTitle}</h1>
-        <p className="mt-3 text-body">{newsletter.unsubscribePageText}</p>
-        <NewsletterLinkAction mode="unsubscribe" token={typeof t === "string" ? t : ""} />
-      </div>
-    </Container>
+    <main className="flex-1">
+      <Container className="pb-24 pt-8 sm:pt-10 lg:pb-32 lg:pt-14">
+        <NewsletterAction mode="unsubscribe" />
+      </Container>
+    </main>
   );
 }

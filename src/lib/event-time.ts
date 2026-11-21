@@ -31,7 +31,7 @@ export function endAfter(start: string, minutes: number): string {
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
 }
 
-export const endsNextDay =(start: string, end: string) => isTime(start) && isTime(end) && minutesOf(end) < minutesOf(start);
+export const endsNextDay = (start: string, end: string) => isTime(start) && isTime(end) && minutesOf(end) < minutesOf(start);
 
 // 180 → "3 hours", 150 → "2 hours 30 min", 45 → "45 min".
 export function durationText(minutes: number): string {

@@ -34,7 +34,12 @@ type State = {
   error?: string;
 };
 
+export type PortalData = ArtistPortal;
+
 let state: State = { status: "idle", data: null };
+
+// The days off as last loaded (for toggling one).
+export const currentBlockedDates = () => state.data?.blockedDates ?? [];
 const listeners = new Set<() => void>();
 const set = (patch: Partial<State>) => {
   state = { ...state, ...patch };
@@ -131,12 +136,12 @@ export function useArtistProfile(): { profile: ArtistProfile; sample: boolean } 
 }
 
 // Live: only the fields an artist may change are saved (the server ignores the rest).
-export async function saveProfile(patch: Partial<ArtistProfile>): Promise<string | null> {
+export async function saveProfile(patch: Partial<ArtistProfile> & Omit<ProfilePatch, keyof ArtistProfile>): Promise<string | null> {
   if (!backendEnabled) {
     profileStore.set({ ...(profileStore.get() ?? sampleProfile), ...patch });
     return null;
   }
-  const allowed: ProfilePatch = patch;
+  const allowed = patch as ProfilePatch;
   return portalAction((d) => ({ ...d, profile: { ...d.profile, ...allowed } }), () => saveArtistProfile(allowed));
 }
 

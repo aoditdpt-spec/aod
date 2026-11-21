@@ -1,44 +1,55 @@
-// "Book again" from My bookings: the order's answers are handed to the booking questions on
-// /book/personal, or the business portal's Book artists tab (/business#book) for a business order,
-// which fill themselves in once and then forget them. Kept in
-// sessionStorage (this tab only), so an old order never pre-fills a booking days later.
+// Book Again (My Bookings and the business portal, as on aod.co.in): the old order's answers are
+// kept for the next page in this tab (sessionStorage), and the booking questions read them once.
 
-export type RebookDraft = {
-  audience: "personal" | "business";
+export type Rebook = {
+  categories: string[];
+  kinds: Record<string, string[]>;
+  counts: Record<string, number>;
   occasion: string;
-  needs: { slug: string; count: number }[];
-  city?: string;
-  time?: string; // HH:MM
-  endTime?: string;
-  details?: string;
+  venue: string;
+  time: string;
+  hours: number;
+  details: string;
+  brief: string;
 };
 
 const KEY = "aod-rebook";
 
-// Sent by "Book again" inside the business portal: the portal switches to its Book artists tab.
-export const BUSINESS_BOOK_EVENT = "aod:business-book";
-
-// Where "Book again" goes for an order of this audience.
-export const rebookHref = (audience: "personal" | "business") => (audience === "business" ? "/business#book" : "/book/personal");
-
-export function startRebook(draft: RebookDraft) {
+export function setRebook(r: Rebook) {
   try {
-    sessionStorage.setItem(KEY, JSON.stringify(draft));
+    sessionStorage.setItem(KEY, JSON.stringify(r));
   } catch {
-    // Storage blocked (private mode): the booking questions simply start empty.
+    // Storage blocked: the questions open empty.
   }
 }
 
-// The draft for this audience's booking questions, once; null when there isn't one.
-export function takeRebook(audience: string | undefined): RebookDraft | null {
+export function takeRebook(): Rebook | null {
   try {
     const raw = sessionStorage.getItem(KEY);
-    if (!raw) return null;
-    const draft = JSON.parse(raw) as RebookDraft;
-    if (draft.audience !== audience) return null;
     sessionStorage.removeItem(KEY);
-    return Array.isArray(draft.needs) ? draft : null;
+    return raw ? (JSON.parse(raw) as Rebook) : null;
   } catch {
     return null;
   }
+}
+
+// An order's answers, as Book Again fills them in.
+export function rebookFrom(b: { cats: string[]; lines: { category: string; name: string; count: number }[]; occasion?: string; venue?: string; city: string; start: string; end: string; notes: string; brief?: string }, types: Record<string, string[]>, minutes: number | null): Rebook {
+  const kinds: Record<string, string[]> = {};
+  const counts: Record<string, number> = {};
+  for (const l of b.lines) {
+    if ((types[l.category] ?? []).length > 1 && types[l.category].includes(l.name)) kinds[l.category] = [...(kinds[l.category] ?? []), l.name];
+    counts[l.name] = l.count;
+  }
+  return {
+    categories: b.cats,
+    kinds,
+    counts,
+    occasion: b.occasion ?? "",
+    venue: b.venue || b.city,
+    time: b.start,
+    hours: minutes ?? 0,
+    details: b.notes,
+    brief: b.brief ?? "",
+  };
 }

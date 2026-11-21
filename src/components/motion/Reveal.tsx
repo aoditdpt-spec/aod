@@ -1,70 +1,46 @@
 "use client";
 
-import type { Variants } from "motion/react";
-import * as m from "motion/react-m";
+import { motion, type Variants } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
+const ease = [0.22, 1, 0.36, 1] as const;
 
-// Fades and lifts its content into place the first time it scrolls into view. Kept short and
-// small (half a second, 16px), so content never seems to trail behind a fast scroll on phones.
-// `data-reveal` lets the <noscript> rule in layout.tsx show it when JavaScript is off.
-export function Reveal({
-  children,
-  className = "",
-  delay = 0,
-  y = 16,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-  y?: number;
-}) {
+// Fades and lifts its content in the first time it scrolls into view. The server renders the
+// content too, and `data-reveal` lets the <noscript> rule in the layout show it without JavaScript.
+export function Reveal({ children, className = "", delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   return (
-    <m.div
+    <motion.div
       data-reveal
-      className={className}
-      initial={{ opacity: 0, y }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.5, ease: EASE, delay }}
-    >
-      {children}
-    </m.div>
-  );
-}
-
-const group: Variants = {
-  hidden: {},
-  shown: { transition: { staggerChildren: 0.04 } },
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.98 },
-  shown: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: EASE } },
-};
-
-// A list whose items appear one after another in a wave (staggered grid).
-export function StaggerList({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
-  return (
-    <m.ul
-      data-reveal
+      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+      transition={{ duration: 0.7, ease, delay }}
       className={className}
-      style={style}
-      variants={group}
-      initial="hidden"
-      whileInView="shown"
-      viewport={{ once: true, amount: 0.08 }}
     >
       {children}
-    </m.ul>
+    </motion.div>
   );
 }
 
-export function StaggerItem({ children, className = "" }: { children: ReactNode; className?: string }) {
+// A list whose items arrive one after another (motion.dev's staggered grid).
+const group: Variants = { hidden: {}, shown: { transition: { staggerChildren: 0.06 } } };
+const piece: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
+  shown: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease } },
+};
+
+export function Stagger({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <m.li data-reveal className={className} variants={item}>
+    <motion.ul data-reveal variants={group} initial="hidden" whileInView="shown" viewport={{ once: true, margin: "0px 0px -10% 0px" }} className={className}>
       {children}
-    </m.li>
+    </motion.ul>
+  );
+}
+
+export function StaggerItem({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
+  return (
+    <motion.li data-reveal variants={piece} className={className} style={style}>
+      {children}
+    </motion.li>
   );
 }

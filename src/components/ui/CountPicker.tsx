@@ -1,86 +1,55 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
-import { MAX_ARTISTS, quickCounts } from "@/lib/booking-needs";
+import { useState } from "react";
 
-// "How many?": 1 to 4 as buttons, then "More" opens a box for any number up to MAX_ARTISTS (20).
-// Used for each category in the booking quiz and the admin's New booking form.
-export function CountPicker({
-  value,
-  onChange,
-  label,
-  size = "md",
-}: {
-  value: number;
-  onChange: (n: number) => void;
-  label: string; // what is being counted, for screen readers: "photographers"
-  size?: "sm" | "md";
-}) {
-  const [custom, setCustom] = useState(false);
-  const [draft, setDraft] = useState<string | null>(null); // what's typed in the box, while typing
-  const [tooMany, setTooMany] = useState(false);
-  const box = useRef<HTMLInputElement>(null);
-  const hint = useId();
-  // A number above 4 set from outside (a pasted WhatsApp message) opens the box too.
-  const boxOpen = custom || value > quickCounts.length;
-  const cell = size === "sm" ? "h-8 min-w-8 text-xs" : "h-10 min-w-10 text-sm";
-  const tone = (on: boolean) =>
-    on ? "bg-brand text-white ring-1 ring-brand" : "bg-white text-ink ring-1 ring-line hover:ring-brand";
+export const MAX_ARTISTS = 20;
 
+// "How many?" as on aod.co.in: 1 to 4 as buttons, then More opens a box for up to 20.
+export function CountPicker({ value, onChange, label }: { value: number; onChange: (n: number) => void; label: string }) {
+  const [more, setMore] = useState(value > 4);
+  const cell = (on: boolean) => `h-11 min-w-11 rounded-lg border px-3 text-base tabular-nums transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink hover:border-ink"}`;
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`How many ${label}`}>
-      {quickCounts.map((n) => (
+    <div role="group" aria-label={`How many ${label}`} className="flex flex-wrap items-center gap-2">
+      {[1, 2, 3, 4].map((n) => (
         <button
           key={n}
           type="button"
-          aria-pressed={!boxOpen && value === n}
+          aria-pressed={!more && value === n}
           onClick={() => {
-            setCustom(false);
-            setTooMany(false);
+            setMore(false);
             onChange(n);
           }}
-          className={`${cell} rounded-lg px-2 font-medium transition-colors ${tone(!boxOpen && value === n)}`}
+          className={cell(!more && value === n)}
         >
           {n}
         </button>
       ))}
-      <button
-        type="button"
-        aria-pressed={boxOpen}
-        onClick={() => {
-          setCustom(true);
-          if (value <= quickCounts.length) onChange(quickCounts.length + 1);
-          // Once the box is on screen, put the cursor in it with the number selected to type over.
-          requestAnimationFrame(() => box.current?.select());
-        }}
-        className={`${cell} rounded-lg px-3 font-medium transition-colors ${tone(boxOpen)}`}
-      >
-        More
-      </button>
-      {boxOpen && (
-        <span className="flex items-center gap-2">
-          <input
-            ref={box}
-            value={draft ?? String(value)}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-              setDraft(digits);
-              const n = Number(digits);
-              setTooMany(n > MAX_ARTISTS);
-              if (n >= 1) onChange(Math.min(n, MAX_ARTISTS));
-            }}
-            onBlur={() => setDraft(null)}
-            inputMode="numeric"
-            aria-label={`Number of ${label}`}
-            aria-describedby={hint}
-            aria-invalid={tooMany}
-            className={`${size === "sm" ? "h-8 w-12 text-xs" : "h-10 w-14 text-sm"} rounded-lg border px-2 text-center font-medium text-ink outline-none focus:border-brand ${tooMany ? "border-red-500" : "border-line"}`}
-          />
-          <span id={hint} className={`text-xs ${tooMany ? "text-red-600" : "text-muted"}`} aria-live="polite">
-            {tooMany ? `${MAX_ARTISTS} at most. Need more? Say so in the details.` : `Up to ${MAX_ARTISTS}`}
-          </span>
-        </span>
+      {more ? (
+        <input
+          type="number"
+          min={1}
+          max={MAX_ARTISTS}
+          value={value}
+          autoFocus
+          onChange={(e) => onChange(Math.max(1, Math.min(MAX_ARTISTS, Number(e.target.value) || 1)))}
+          aria-label={`Number of ${label}, up to ${MAX_ARTISTS}`}
+          className="h-11 w-[4.5rem] rounded-lg border border-ink px-3 text-base tabular-nums outline-none"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setMore(true);
+            onChange(Math.max(5, value));
+          }}
+          className={`${cell(false)} w-[4.5rem]`}
+        >
+          More
+        </button>
       )}
     </div>
   );
 }
+
+// "Photographers × 2": one shows the name alone.
+export const withCount = (name: string, n: number) => (n > 1 ? `${name} × ${n}` : name);

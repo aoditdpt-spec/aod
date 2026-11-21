@@ -1,88 +1,33 @@
 import Image from "next/image";
-import { clientBrands } from "@/content/site";
+import { brandStrip } from "@/data/home";
 
-// Logos have very different shapes (a long exhibition banner next to a square crest),
-// so instead of one fixed height each gets the same visual area, capped at MAX_HEIGHT.
-const AREA = 216 * 80; // in px at the 16px rem
-const MAX_HEIGHT = 88;
-const GAP = 80; // gap-x-20 between logos, in px
-// Both rows move at this speed, whatever their length: each row's loop time is its width / SPEED.
-const SPEED = 114; // px per second
+// Brands AOD has worked with, on black (in the style of snappr.com's strip), with no heading (the
+// title is for screen readers only): every logo pure white
+// at 80% (public/brands-white, made from the main site's logos with their backgrounds and white
+// parts cut out), sliding slowly in one row that never ends and fading at both edges. Each logo
+// gets the same visual area rather than the same height, so wide and square logos look balanced.
+// Under reduced motion the row stands still and wraps.
+const AREA = 5200; // px² per logo
 
-type Brand = (typeof clientBrands)[number];
-
-function logoHeight(width: number, height: number) {
-  return Math.min(MAX_HEIGHT, Math.sqrt((AREA * height) / width));
-}
-
-// The logo's display size in px, used both for its CSS size and for the width and height given to
-// next/image, so the browser fetches a copy that size (twice it on sharp screens), not the original.
-function logoSize(width: number, height: number) {
-  const h = logoHeight(width, height);
-  return { h, w: (h * width) / height };
-}
-
-// Seconds for one loop of a row (one copy of its logos) at SPEED.
-function loopSeconds(brands: readonly Brand[]) {
-  const px = brands.reduce((n, b) => n + (logoHeight(b.width, b.height) * b.width) / b.height + GAP, 0);
-  return Math.round(px / SPEED);
-}
-
-// Two rows: the first half of the list, then the second. (GATE and the GCCI badge end up in
-// different rows, so they never appear side by side.)
-const half = Math.ceil(clientBrands.length / 2);
-const rows = [clientBrands.slice(0, half), clientBrands.slice(half)];
-
-function LogoList({ brands, copy = false }: { brands: readonly Brand[]; copy?: boolean }) {
-  return (
-    <ul
-      // The second copy only exists to make the loop seamless: hidden from screen readers,
-      // and dropped entirely when the strip doesn't move.
-      aria-hidden={copy || undefined}
-      className={`flex shrink-0 items-center gap-x-[calc(5rem*var(--logo-scale))] pr-[calc(5rem*var(--logo-scale))] motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8 motion-reduce:pr-0 ${
-        copy ? "motion-reduce:hidden" : ""
-      }`}
-    >
-      {brands.map((b) => {
-        const { w, h } = logoSize(b.width, b.height);
-        return (
-          <li key={b.name} className="shrink-0">
-            <Image
-              src={b.logo}
-              alt={copy ? "" : b.name}
-              width={Math.round(w)}
-              height={Math.round(h)}
-              style={{ height: `calc(${h / 16}rem * var(--logo-scale))`, width: `calc(${w / 16}rem * var(--logo-scale))` }}
-              className="object-contain"
-            />
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-// Brands strip: two rows of logos that scroll without end, even under the pointer, the first
-// right to left and the second left to right, at the same speed. Pure CSS, so it also runs
-// without JavaScript. With reduced motion each row is a still, wrapped row.
 export function BrandStrip() {
+  const logos = brandStrip.logos.map((l) => {
+    const h = Math.round(Math.sqrt((AREA * l.h) / l.w));
+    return { ...l, height: h, width: Math.round((h * l.w) / l.h) };
+  });
+  const row = (copy: number) =>
+    logos.map((l) => (
+      <li key={`${copy}-${l.src}`} aria-hidden={copy > 0} className={`flex shrink-0 items-center px-8 sm:px-12 ${copy > 0 ? "motion-reduce:hidden" : ""}`}>
+        <Image src={l.src} alt={copy > 0 ? "" : l.name} width={l.width} height={l.height} style={{ width: l.width, height: l.height }} className="opacity-80" />
+      </li>
+    ));
   return (
-    <div className="mt-14">
-      <h3 className="text-center text-2xl font-bold sm:text-3xl">Brands we&apos;ve worked with</h3>
-      {/* --logo-scale sizes every logo, gap and loop time: 0.6 on phones and tablets (the owner asked
-          for smaller logos there), 1 on laptops. The loop time scales with the widths, so the speed stays the same. */}
-      <div className="mt-8 space-y-2 overflow-hidden py-6 [--logo-scale:0.6] lg:[--logo-scale:1] [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] motion-reduce:space-y-8 motion-reduce:[mask-image:none]">
-        {rows.map((brands, i) => (
-          <div
-            key={i}
-            style={{ animationDuration: `calc(${loopSeconds(brands)}s * var(--logo-scale))` }}
-            className={`flex w-max py-2 motion-reduce:w-full motion-reduce:animate-none ${i === 0 ? "animate-marquee" : "animate-marquee-reverse"}`}
-          >
-            <LogoList brands={brands} />
-            <LogoList brands={brands} copy />
-          </div>
-        ))}
+    <section aria-label={brandStrip.title} className="overflow-hidden bg-ink py-14 text-paper lg:py-16">
+      <div className="[mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
+        <ul className="marquee flex w-max motion-reduce:w-full motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8">
+          {row(0)}
+          {row(1)}
+        </ul>
       </div>
-    </div>
+    </section>
   );
 }

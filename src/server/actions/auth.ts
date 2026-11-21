@@ -21,7 +21,7 @@ function friendly(message: string) {
   return "Couldn't send the code just now. Please try again in a minute.";
 }
 
-export async function requestCode(rawEmail: string, who: "staff" | "customer" | "artist" | "business" | "business-new"): Promise<Result> {
+export async function requestCode(rawEmail: string, who: "staff" | "customer" | "artist" | "business" | "business-new" = "customer"): Promise<Result> {
   if (!backendEnabled) return { ok: false, error: "Sign-in isn't set up yet." };
   const email = clean(rawEmail);
   if (!emailOk(email)) return { ok: false, error: "Enter a valid email address." };

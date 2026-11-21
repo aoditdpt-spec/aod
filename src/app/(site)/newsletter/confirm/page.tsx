@@ -1,23 +1,16 @@
 import type { Metadata } from "next";
-import { newsletter } from "@/content/blog";
 import { Container } from "@/components/ui/Container";
-import { NewsletterLinkAction } from "@/components/newsletter/NewsletterLinkAction";
+import { NewsletterAction } from "@/components/newsletter/NewsletterAction";
 
-export const metadata: Metadata = {
-  title: newsletter.confirmPageTitle,
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = { title: "Confirm Your Subscription", robots: { index: false, follow: false } };
 
-// Opened from the link in the newsletter's confirmation email (?t=…).
-export default async function ConfirmPage({ searchParams }: PageProps<"/newsletter/confirm">) {
-  const t = (await searchParams).t;
+// Opened from the link in the newsletter's emails (?t=…), as on aod.co.in.
+export default function Page() {
   return (
-    <Container className="py-16 sm:py-24">
-      <div className="mx-auto max-w-xl rounded-card border border-line bg-white p-8 sm:p-10">
-        <h1 className="text-3xl font-medium">{newsletter.confirmPageTitle}</h1>
-        <p className="mt-3 text-body">{newsletter.confirmPageText}</p>
-        <NewsletterLinkAction mode="confirm" token={typeof t === "string" ? t : ""} />
-      </div>
-    </Container>
+    <main className="flex-1">
+      <Container className="pb-24 pt-8 sm:pt-10 lg:pb-32 lg:pt-14">
+        <NewsletterAction mode="confirm" />
+      </Container>
+    </main>
   );
 }

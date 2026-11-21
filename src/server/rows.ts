@@ -105,6 +105,7 @@ export const fromRow = {
     review: json<Booking["review"]>(r.review, undefined),
     history: json(r.history, []),
     notesLog: json(r.notes_log, []),
+    source: str(r.source) || "website",
   }),
   payment: (r: Row): Payment => ({
     id: str(r.id),
@@ -296,6 +297,7 @@ export const toRow = {
     review: nul(b.review),
     history: b.history,
     notes_log: b.notesLog,
+    ...(b.source ? { source: b.source } : {}),
   }),
   payment: (p: Payment): Row => ({
     id: p.id,

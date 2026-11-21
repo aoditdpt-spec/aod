@@ -74,6 +74,8 @@ export type CustomerOrder = {
   delivery?: { link: string; expires: string };
   review?: { rating: number; text: string };
   history: { status: BookingStatus; at: string }[];
+  lines?: { category: string; name: string; count: number }[]; // what the order needs, one line per kind of artist
+  cancelledByYou?: string; // when the customer cancelled it themselves
 };
 
 // Sample bookings at different stages, with dates relative to today.

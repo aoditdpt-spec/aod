@@ -1,33 +1,18 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { resolution } from "@/content/resolution";
-import { CaseForm } from "@/components/resolve/CaseForm";
-import { PageLoader } from "@/components/ui/Spinner";
+import { caseForm } from "@/data/dispute-form";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Container } from "@/components/ui/Container";
+import { CaseForm } from "@/components/dispute/CaseForm";
 
-export const metadata: Metadata = {
-  title: resolution.formTitle,
-  description: resolution.formText,
-};
+export const metadata: Metadata = { title: "Raise A Dispute", description: "Raise a dispute with a client or an artist. AOD hears both sides and works towards a fair settlement." };
 
-// The form reads ?role= and ?ref= to pre-fill, so it renders in the browser inside Suspense;
-// the page itself stays static.
 export default function NewCasePage() {
   return (
-    <div className="mx-auto w-full max-w-page px-4 py-10 sm:px-6 lg:px-8 sm:py-14">
-      <h1 className="text-3xl font-medium text-ink sm:text-4xl">{resolution.formTitle}</h1>
-      <p className="mt-2 max-w-2xl text-body">{resolution.formText}</p>
-      <p className="mt-1 max-w-2xl text-sm text-muted">{resolution.notSupport}</p>
-      <div className="mt-8">
-        <Suspense
-          fallback={
-            <div className="rounded-panel bg-white">
-              <PageLoader className="min-h-[40rem]" label="Loading the form…" />
-            </div>
-          }
-        >
-          <CaseForm />
-        </Suspense>
-      </div>
-    </div>
+    <main className="flex-1">
+      <PageHeader label="AOD Dispute Desk" title={caseForm.title} />
+      <Container className="pb-24 lg:pb-32">
+        <CaseForm />
+      </Container>
+    </main>
   );
 }

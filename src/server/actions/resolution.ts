@@ -1,7 +1,9 @@
 "use server";
 
 import { after } from "next/server";
-import { outcomesFor, resolution, type CaseRole } from "@/content/resolution";
+import { resolution, type CaseRole } from "@/content/resolution";
+import { caseForm } from "@/data/dispute-form";
+import { disputePage } from "@/data/pages";
 import { backendEnabled } from "@/lib/backend";
 import { sectionUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -74,18 +76,25 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
   const incidentDate = text(input.incidentDate, 10);
   const description = text(input.description, 4000);
   const outcome = text(input.outcome, 80);
-  const evidence = (Array.isArray(input.evidence) ? input.evidence : []).map((l) => text(l, 400)).filter(Boolean).slice(0, 5);
+  // Links, written with or without https:// (the form has one box; several links can be separated by spaces or commas).
+  const evidence = (Array.isArray(input.evidence) ? input.evidence : [])
+    .flatMap((l) => text(l, 2000).split(/[\s,]+/))
+    .filter(Boolean)
+    .map((l) => (/^https?:\/\//i.test(l) ? l : `https://${l}`).slice(0, 400))
+    .slice(0, 5);
   const name = text(input.name, 80);
   const phone = text(input.phone, 20);
   const email = text(input.email, 120).toLowerCase();
 
   if (!role) return { ok: false, error: "Choose which side you're on." };
-  if (!resolution.issues[role].includes(issue)) return { ok: false, error: "Choose what the dispute is about." };
+  // What it's about and what would settle it: the Dispute Desk form's own lists (src/data/dispute-form.ts, src/data/pages.ts).
+  const issues = [...(disputePage.roles.find((r) => r.id === role)?.issues ?? []), "Something Else"];
+  if (!issues.includes(issue)) return { ok: false, error: "Choose what the dispute is about." };
   if (throughAod && bookingRef.length < 3) return { ok: false, error: "Add the booking or request number." };
   if (!throughAod && otherParty.length < 3) return { ok: false, error: "Say who the dispute is with and how to reach them." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(incidentDate) || incidentDate > todayIst()) return { ok: false, error: "Add the date it happened (today or earlier)." };
-  if (description.length < 20) return { ok: false, error: "Describe what happened in a little more detail." };
-  if (!outcomesFor(role, throughAod).includes(outcome)) return { ok: false, error: "Choose what would settle it for you." };
+  if (incidentDate && (!/^\d{4}-\d{2}-\d{2}$/.test(incidentDate) || incidentDate > todayIst())) return { ok: false, error: "The date it happened must be today or earlier." };
+  if (description.length < 20) return { ok: false, error: "Describe what happened in a little more detail (a few sentences)." };
+  if (!(throughAod ? caseForm.outcomes : caseForm.outcomesOutside)[role].includes(outcome)) return { ok: false, error: "Choose what would settle it for you." };
   if (evidence.some((l) => !linkOk(l))) return { ok: false, error: "Evidence links must be full web addresses (https://…)." };
   if (name.length < 2) return { ok: false, error: "Enter your name." };
   if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
@@ -148,7 +157,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
           kind: "email",
           to: await teamEmails(),
           subject: spamSubject(suspect, `New dispute ${id}: ${issue} (${throughAod ? bookingRef : resolution.throughAod.outsideLabel.toLowerCase()})`),
-          text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/resolution?open=${id}`)}`,
+          text: `${summary}\n\nPhone: ${phone}\nEmail: ${email}\n\nReply within 48 hours. Open it: ${sectionUrl("admin", `/disputes?open=${id}`)}`,
           replyTo: email,
         });
       if (!suspect)
@@ -158,7 +167,7 @@ export async function createCase(input: CaseInput): Promise<CaseResult<{ id: str
           subject: `The AOD Dispute Desk has your case ${id}`,
           text: `Hi ${name},\n\nThe AOD Dispute Desk has your case. Someone will reply within 48 hours, and AOD will hear from the other side too.${
             throughAod ? "" : `\n\nThis booking wasn't made through AOD, so AOD mediates: we contact them to hear their side and help you both agree a settlement in writing. AOD never held the money, so it can't refund or pay out itself. If it doesn't settle, you get a written summary of the case and your next step.`
-          }\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?id=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
+          }\n\n${summary}\n\nFollow it any time: ${sectionUrl("resolve", `/track?case=${id}`)} (with this email address).\nTo add photos or chats, reply to this email or send them on WhatsApp quoting ${id}.\n\n– AOD Dispute Desk`,
         });
       await runOrQueue(jobs);
     });

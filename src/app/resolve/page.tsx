@@ -1,242 +1,167 @@
-import Link from "next/link";
-import { ArrowRight, Briefcase, CalendarCheck, Check, Clock, FilePlus, Gavel, Palette, Scale, Search, User, X } from "lucide-react";
-import { brand } from "@/content/site";
-import { caseSteps, resolution } from "@/content/resolution";
-import { buttonClasses } from "@/components/ui/Button";
-import { WhatsAppIcon } from "@/components/ui/Icon";
-import { whatsappUrl } from "@/lib/whatsapp";
-import { sectionLink } from "@/lib/site-url";
+import type { Metadata } from "next";
+import { disputePage as p } from "@/data/pages";
+import { caseForm } from "@/data/dispute-form";
+import { brand } from "@/data/site";
+import { Container } from "@/components/ui/Container";
+import Link from "@/components/ui/AppLink";
+import { PageHeader, Points } from "@/components/ui/PageHeader";
+import { primaryButton, secondaryButton } from "@/components/ui/buttons";
+import { Section, Steps } from "@/components/ui/Section";
 
-const promiseIcons = [Clock, CalendarCheck, Scale];
-const stepIcons = [FilePlus, Search, Gavel, Scale];
-const roleIcons = { customer: User, business: Briefcase, artist: Palette };
+export const metadata: Metadata = { title: "Dispute Desk", description: p.meta };
 
-// The Dispute Desk's front page: what it's for, what AOD promises, how a dispute is settled, who
-// can raise one and about what (each side's disputes are about the other side), and how to escalate. All server-rendered.
-export default function ResolvePage() {
-  const officer = resolution.grievanceOfficer;
+// The Dispute Desk, with aod.co.in's content (resolve.aod.co.in): what it's for, AOD's three
+// promises, how a dispute is settled, the two kinds of case (booked through AOD or outside it),
+// who can raise one and about what, and how to escalate, with Raise A Dispute (/resolve/new)
+// and Track A Dispute (/resolve/track). Also as there (2026-11-21): a picture of what tracking
+// a case looks like beside the intro, a Raise button under each kind of case (?aod=yes|no) and each
+// side (?role=…), and the grievance officer's details. Its own header and footer: (desk)/layout.tsx.
+export default function DisputeDeskPage() {
+  const { aod, outside } = p.paths;
+  const issueRows = Math.max(...p.roles.map((r) => r.issues.length));
   return (
-    <>
-      {/* Intro, with a picture of what tracking a case looks like. */}
-      <section className="border-b border-line bg-wash">
-        <div className="mx-auto grid w-full max-w-page items-center gap-10 px-4 py-14 sm:px-6 lg:px-8 lg:grid-cols-[1.25fr_1fr] lg:py-20">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-wider text-brand">{resolution.title}</p>
-            <h1 className="mt-3 text-4xl font-medium leading-tight text-ink sm:text-5xl">{resolution.headline}</h1>
-            <p className="mt-4 text-xl font-medium text-ink">{resolution.tagline}</p>
-            <p className="mt-5 max-w-xl text-lg text-body">{resolution.intro}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={sectionLink("/resolve/new")} className={buttonClasses("primary", "lg")}>
-                Raise a dispute <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-              <Link href={sectionLink("/resolve/track")} className={buttonClasses("outline", "lg")}>
-                Track a dispute
-              </Link>
-            </div>
-            <p className="mt-6 flex max-w-xl items-start gap-2 text-sm text-muted">
-              <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-whatsapp" />
-              <span>
-                {resolution.notSupport}{" "}
-                <a href={whatsappUrl("Hi AOD, I have a question.")} target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:underline">
-                  Open WhatsApp
-                </a>
-              </span>
-            </p>
-          </div>
-
-          <div aria-hidden className="rounded-panel border border-line bg-white p-6 shadow-[0_20px_60px_-30px_color-mix(in_srgb,var(--color-ink)_35%,transparent)] sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">What you&apos;ll see</p>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <p className="text-xl font-medium text-ink">Case DC-1001</p>
-              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Hearing both sides</span>
-            </div>
-            <ol className="mt-6 space-y-5">
-              {caseSteps.map((s, i) => (
-                <li key={s.id} className="relative flex gap-4">
-                  {i < caseSteps.length - 1 && <span className={`absolute left-[0.6875rem] top-7 h-[calc(100%-0.5rem)] w-px ${i < 2 ? "bg-brand" : "bg-line"}`} />}
-                  <span
-                    className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium ${i < 2 ? "bg-brand text-white" : i === 2 ? "border-2 border-brand bg-white text-brand" : "border border-line bg-white text-muted"}`}
-                  >
-                    {i + 1}
-                  </span>
-                  <span>
-                    <span className={`block text-sm font-medium ${i <= 2 ? "text-ink" : "text-muted"}`}>{s.label}</span>
-                    <span className="mt-0.5 block text-sm text-muted">{s.text}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
+    <main className="flex-1">
+      <PageHeader label={p.label} title={p.title}>
+        <Link href="/resolve/new" className={primaryButton}>
+          Raise A Dispute
+        </Link>
+        <Link href="/resolve/track" className={secondaryButton}>
+          Track A Dispute
+        </Link>
+      </PageHeader>
+      <Container className="grid items-start gap-10 pb-16 lg:grid-cols-[1.3fr_1fr] lg:gap-16 lg:pb-20">
+        <div>
+          <p className="max-w-3xl text-xl leading-relaxed sm:text-2xl sm:leading-relaxed">{p.lead}</p>
+          <p className="mt-6 max-w-3xl text-lg text-ink/80">{p.intro}</p>
+          <p className="mt-6 max-w-3xl text-muted">{p.notSupport}</p>
         </div>
-      </section>
-
-      {/* What AOD promises. */}
-      <section className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
-        <ul className="grid gap-4 md:grid-cols-3">
-          {resolution.promises.map((p, i) => {
-            const Icon = promiseIcons[i];
-            return (
-              <li key={p.title} className="rounded-card border border-line bg-white p-6">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-peach">
-                  <Icon className="h-5 w-5 text-brand" aria-hidden />
+        {/* What tracking a case looks like (a picture, not a real case). */}
+        <div aria-hidden className="rounded-2xl border border-line bg-wash p-6 sm:p-8">
+          <p className="text-sm text-muted">{p.previewLabel}</p>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xl font-medium">Case DC-1001</p>
+            <span className="rounded-full bg-paper px-3 py-1 text-xs font-medium">{caseForm.steps[1].label}</span>
+          </div>
+          <ol className="mt-6 space-y-5">
+            {caseForm.steps.map((s, i) => (
+              <li key={s.id} className="relative flex gap-4">
+                {i < caseForm.steps.length - 1 && <span className={`absolute left-[11px] top-7 h-[calc(100%-0.5rem)] w-px ${i < 1 ? "bg-brand" : "bg-line"}`} />}
+                <span className={`relative grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-medium ${i < 1 ? "bg-brand text-paper" : i === 1 ? "border-2 border-brand bg-paper text-brand" : "border border-line bg-paper text-muted"}`}>{i + 1}</span>
+                <span>
+                  <span className={`block text-sm font-medium ${i <= 1 ? "text-ink" : "text-muted"}`}>{s.label}</span>
+                  <span className="mt-0.5 block text-sm text-muted">{s.text}</span>
                 </span>
-                <h2 className="mt-4 text-lg font-bold text-ink">{p.title}</h2>
-                <p className="mt-1.5 text-body">{p.text}</p>
               </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* How a dispute is settled. */}
-      <section className="border-y border-line bg-white">
-        <div className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-medium text-ink">How a dispute is settled</h2>
-          <ol className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {resolution.steps.map((s, i) => {
-              const Icon = stepIcons[i];
-              return (
-                <li key={s.title}>
-                  <span className="relative flex h-14 w-14 items-center justify-center rounded-full border border-line bg-peach/60">
-                    <Icon className="h-6 w-6 text-brand" strokeWidth={1.5} aria-hidden />
-                    <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-medium text-white">{i + 1}</span>
-                  </span>
-                  <h3 className="mt-4 text-lg font-bold text-ink">{s.title}</h3>
-                  <p className="mt-1.5 text-body">{s.text}</p>
-                </li>
-              );
-            })}
+            ))}
           </ol>
         </div>
-      </section>
+      </Container>
 
-      {/* The two ways a case runs: through AOD, or outside it (mediation only). */}
-      <section className="mx-auto w-full max-w-page px-4 pt-14 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-medium text-ink">Booked through AOD, or not?</h2>
-        <p className="mt-2 max-w-2xl text-body">The Dispute Desk takes both. How a case runs depends on where the booking was made.</p>
-        <div className="mt-8 grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col rounded-card border border-line bg-white p-6 sm:p-8">
-            <h3 className="text-xl font-bold text-ink">{resolution.paths.aod.label}</h3>
-            <p className="mt-2 text-body">{resolution.paths.aod.text}</p>
-            <ol className="mt-5 flex-1 space-y-3">
-              {resolution.steps.map((s, i) => (
-                <li key={s.title} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-medium text-white">{i + 1}</span>
+      <Points items={p.promises} className="pb-20 lg:pb-28" />
+
+      <Section title={p.stepsTitle}>
+        <Steps items={p.steps} />
+      </Section>
+
+      <Section title={p.pathsTitle}>
+        <p className="-mt-4 mb-10 max-w-2xl text-ink/80">{p.pathsText}</p>
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <h3 className="text-2xl">{aod.title}</h3>
+            <p className="mt-3 text-ink/80">{aod.text}</p>
+            <ol className="mt-6 border-t border-line">
+              {p.steps.map((s, i) => (
+                <li key={s.title} className="grid grid-cols-[32px_1fr] border-b border-line py-3">
+                  <span className="text-sm text-muted tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                  <span>{s.title}</span>
+                </li>
+              ))}
+            </ol>
+            <Link href="/resolve/new?aod=yes" className={`${primaryButton} mt-8`}>
+              {p.paths.aod.cta}
+            </Link>
+          </div>
+          <div>
+            <h3 className="text-2xl">{outside.title}</h3>
+            <p className="mt-3 text-ink/80">{outside.text}</p>
+            <ol className="mt-6 border-t border-line">
+              {outside.steps.map((s, i) => (
+                <li key={s.title} className="grid grid-cols-[32px_1fr] border-b border-line py-3">
+                  <span className="text-sm text-muted tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                   <span>
-                    <span className="block font-medium text-ink">{s.title}</span>
-                    <span className="block text-sm text-muted">{s.text}</span>
+                    {s.title}
+                    <span className="mt-1 block text-sm text-muted">{s.text}</span>
                   </span>
                 </li>
               ))}
             </ol>
-            <Link href={sectionLink("/resolve/new?aod=yes")} className={buttonClasses("primary", "md", "mt-6 self-start")}>
-              {resolution.paths.aod.cta} <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
-          <div className="flex flex-col rounded-card border border-line bg-white p-6 sm:p-8">
-            <h3 className="text-xl font-bold text-ink">{resolution.paths.outside.label}</h3>
-            <p className="mt-2 text-body">{resolution.paths.outside.text}</p>
-            <ol className="mt-5 space-y-3">
-              {resolution.paths.outside.steps.map((s, i) => (
-                <li key={s.title} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-brand bg-white text-xs font-medium text-brand">{i + 1}</span>
-                  <span>
-                    <span className="block font-medium text-ink">{s.title}</span>
-                    <span className="block text-sm text-muted">{s.text}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-5 grid flex-1 gap-4 rounded-xl bg-wash p-4 text-sm sm:grid-cols-2">
-              <ul className="space-y-1.5 text-body">
-                {resolution.paths.outside.can.map((t) => (
-                  <li key={t} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
-                  </li>
-                ))}
-              </ul>
-              <ul className="space-y-1.5 text-body">
-                {resolution.paths.outside.cant.map((t) => (
-                  <li key={t} className="flex gap-2">
-                    <X className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden /> {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Link href={sectionLink("/resolve/new?aod=no")} className={buttonClasses("outline", "md", "mt-6 self-start")}>
-              {resolution.paths.outside.cta} <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Who can raise a dispute, and about what. */}
-      <section className="mx-auto w-full max-w-page px-4 py-14 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-medium text-ink">{resolution.whoTitle}</h2>
-        <p className="mt-2 max-w-2xl text-body">{resolution.whoText}</p>
-        <ul className="mt-8 grid gap-4 md:grid-cols-3">
-          {resolution.roles.map((r) => {
-            const Icon = roleIcons[r.id];
-            return (
-              <li key={r.id} className="flex flex-col rounded-card border border-line bg-white p-6">
-                <span className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach">
-                    <Icon className="h-5 w-5 text-brand" aria-hidden />
-                  </span>
-                  <span>
-                    <span className="block font-medium text-ink">{r.label}</span>
-                    <span className="block text-sm text-muted">{r.hint}</span>
-                  </span>
-                </span>
-                <ul className="mt-5 flex-1 space-y-1.5 text-sm text-body">
-                  {resolution.issues[r.id].map((issue) => (
-                    <li key={issue} className="flex gap-2">
-                      <span aria-hidden className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rotate-45 bg-brand-bright" />
-                      {issue}
-                    </li>
+            <div className="mt-8 grid gap-8 sm:grid-cols-2">
+              <div>
+                <h4 className="font-medium">{outside.canTitle}</h4>
+                <ul className="mt-3 space-y-2 text-sm text-ink/80">
+                  {outside.can.map((t) => (
+                    <li key={t}>{t}</li>
                   ))}
                 </ul>
-                <Link href={sectionLink(`/resolve/new?role=${r.id}`)} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
-                  Raise a dispute <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* Escalation. */}
-      <section className="mx-auto w-full max-w-page px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="rounded-panel bg-night p-8 text-white sm:p-10">
-          <h2 className="text-2xl font-bold !text-white sm:text-3xl">{resolution.escalateTitle}</h2>
-          <p className="mt-3 max-w-2xl text-white/80">{resolution.escalateText}</p>
-          <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-white/60">Grievance officer</dt>
-              <dd className="mt-1 font-medium">
-                {officer.name}, {brand.fullName}
-              </dd>
+              </div>
+              <div>
+                <h4 className="font-medium">{outside.cantTitle}</h4>
+                <ul className="mt-3 space-y-2 text-sm text-muted">
+                  {outside.cant.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <div>
-              <dt className="text-white/60">Email</dt>
-              <dd className="mt-1 font-medium">
-                <a href={`mailto:${officer.email}`} className="hover:text-apricot">
-                  {officer.email}
-                </a>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-white/60">Phone</dt>
-              <dd className="mt-1 font-medium">
-                <a href={officer.phoneHref} className="hover:text-apricot">
-                  {officer.phone}
-                </a>
-              </dd>
-            </div>
-          </dl>
-          <p className="mt-6 max-w-3xl border-t border-night-line pt-5 text-sm text-white/70">{resolution.furtherHelp}</p>
+            <Link href="/resolve/new?aod=no" className={`${secondaryButton} mt-8`}>
+              {p.paths.outside.cta}
+            </Link>
+          </div>
         </div>
-      </section>
-    </>
+      </Section>
+
+      <Section title={p.whoTitle}>
+        <p className="max-w-3xl text-lg text-ink/80">{p.whoText}</p>
+        {/* The three sides line up row by row from tablets up (subgrid): the headings, the lines
+            under them, every issue and the links share rows across the columns, however long
+            each one is. A side with fewer issues leaves its last rows empty. */}
+        <div className="mt-10 grid gap-10 md:grid-cols-3 md:gap-x-10 md:gap-y-0" style={{ "--issues": issueRows, "--rows": issueRows + 3 } as React.CSSProperties}>
+          {p.roles.map((r) => (
+            <div key={r.title} className="md:grid md:grid-rows-subgrid md:[grid-row:span_var(--rows)]">
+              <h3 className="text-2xl">{r.title}</h3>
+              <p className="mt-2 text-muted">{r.text}</p>
+              <ul className="mt-5 border-t border-line md:grid md:grid-rows-subgrid md:[grid-row:span_var(--issues)]">
+                {r.issues.map((i) => (
+                  <li key={i} className="flex items-center border-b border-line py-2.5 text-[15px]">
+                    {i}
+                  </li>
+                ))}
+              </ul>
+              <Link href={`/resolve/new?role=${r.id}`} className="mt-5 self-start justify-self-start text-sm font-medium text-ink underline underline-offset-4 hover:text-brand">
+                Raise A Dispute
+              </Link>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title={p.escalateTitle}>
+        <p className="max-w-3xl text-lg text-ink/80">{p.escalateText}</p>
+        <dl className="mt-6 max-w-xl border-t border-ink">
+          <div className="flex gap-4 border-b border-line py-3">
+            <dt className="w-36 shrink-0 text-muted">{p.officerLabel}</dt>
+            <dd className="space-y-1">
+              <a href={`mailto:${brand.email}`} className="block">
+                {brand.email}
+              </a>
+              <a href={brand.phoneHref} className="block">
+                {brand.phoneDisplay}
+              </a>
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-8 max-w-3xl text-muted">{p.furtherHelp}</p>
+      </Section>
+    </main>
   );
 }

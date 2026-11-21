@@ -1,31 +1,18 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { resolution } from "@/content/resolution";
-import { TrackCase } from "@/components/resolve/TrackCase";
-import { PageLoader } from "@/components/ui/Spinner";
+import { caseForm } from "@/data/dispute-form";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Container } from "@/components/ui/Container";
+import { TrackCase } from "@/components/dispute/TrackCase";
 
-export const metadata: Metadata = {
-  title: resolution.trackTitle,
-  description: resolution.trackText,
-};
+export const metadata: Metadata = { title: "Track A Dispute", description: "See your Dispute Desk case's progress and AOD's decision.", robots: { index: false } };
 
-// Reads ?id= (from the case emails) inside Suspense; the page itself stays static.
 export default function TrackCasePage() {
   return (
-    <div className="mx-auto w-full max-w-page px-4 py-10 sm:px-6 lg:px-8 sm:py-14">
-      <h1 className="text-3xl font-medium text-ink sm:text-4xl">{resolution.trackTitle}</h1>
-      <p className="mt-2 max-w-2xl text-body">{resolution.trackText}</p>
-      <div className="mt-8">
-        <Suspense
-          fallback={
-            <div className="rounded-panel bg-white">
-              <PageLoader className="min-h-56" />
-            </div>
-          }
-        >
-          <TrackCase />
-        </Suspense>
-      </div>
-    </div>
+    <main className="flex-1">
+      <PageHeader label="AOD Dispute Desk" title={caseForm.trackTitle} />
+      <Container className="pb-24 lg:pb-32">
+        <TrackCase />
+      </Container>
+    </main>
   );
 }

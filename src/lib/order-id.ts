@@ -12,17 +12,14 @@
 
 // Two letters per category slug (src/content/site.ts); a new category needs one here.
 export const categoryCodes: Record<string, string> = {
-  photographers: "PH",
-  cinematographers: "CN",
-  "drone-pilots": "DR",
+  // The six categories of the new design (2026-11-21), reusing the codes the old ones had:
+  // Photography & Film takes Photographers' PH, and so on.
+  "photo-video": "PH",
+  "models-creators": "MO",
   "anchors-hosts": "AH",
-  editors: "ED",
   "musicians-djs": "DJ",
   comedians: "CO",
-  singers: "SI",
-  "makeup-artists": "MU",
-  models: "MO",
-  "content-creators": "CC",
+  "makeup-styling": "MU",
 };
 export const MIX = "MIX";
 export const B2B = "B2B";

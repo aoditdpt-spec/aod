@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { AdminSignIn } from "@/components/admin/AdminSignIn";
+import { Overview } from "@/components/dash/admin/Overview";
 
-export const metadata: Metadata = { title: { absolute: "Sign in — AOD Admin" } };
+export const metadata: Metadata = { title: { absolute: "Admin · AOD" } };
 
-export default function AdminSignInPage() {
-  return <AdminSignIn />;
+export default function Page() {
+  return <Overview />;
 }

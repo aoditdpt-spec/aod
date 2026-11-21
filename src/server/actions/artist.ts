@@ -2,12 +2,14 @@
 
 import { after } from "next/server";
 import { briefCommonRows, briefRows } from "@/content/artist-brief";
-import { artistServiceNames, cityComplete, experienceLevels, isOtherCity, languages as languageList, onboardingStages, workQuestionsForAll, type BookingStatus as PortalStatus } from "@/content/artist-portal";
+import { onboardingStages, type BookingStatus as PortalStatus } from "@/content/artist-portal";
+import { experienceLevels, kinds, languages as languageList, serviceOptions } from "@/data/work-questions";
 import { cities } from "@/content/site";
 import type { ArtistProfile, WorkDetails } from "@/lib/artist-store";
 import type { ApplicationStatus, PortfolioFile } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
 import { allCategories, assignedArtists, itemFor } from "@/lib/booking-needs";
+import { artistPhotoSrc } from "@/lib/artist-photo";
 import { artistOrder, stillOpen } from "@/lib/artist-orders";
 import { lineId } from "@/lib/order-id";
 import { sectionUrl } from "@/lib/site-url";
@@ -43,6 +45,16 @@ export type PortalBooking = {
   status: PortalStatus;
   quote?: string;
   team?: number; // how many artists of this category the booking needs, when more than one
+  // The order itself, for the portal's own lists and calendar (src/lib/app-db.tsx).
+  day: string; // yyyy-mm-dd
+  start: string; // HH:MM
+  end: string; // HH:MM
+  category: string; // their line's category
+  kind: string; // their line's kind of artist ("Photographers")
+  stage: string; // the order's status
+  business: boolean;
+  occasion: string;
+  createdAt: string;
 };
 
 export type PortalFile = PortfolioFile & { url: string };
@@ -59,6 +71,7 @@ export type ArtistPortal = {
   approvedAt?: string; // when they went live (the artist record's joining date)
   sentToAodAt?: string; // when they last pressed Submit for review / Send update (sendToAod)
   profile: ArtistProfile;
+  photoSrc: string; // the profile photo's address (the private photo route), or ""
   bookings: PortalBooking[];
   blockedDates: string[];
   portfolio: PortalFile[];
@@ -143,7 +156,8 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         stage: stageOf(app.status),
         identityVerified: app.kyc === "verified",
         appliedAt: app.submittedAt,
-        profile: { fullName: app.name, phone: app.phone, email: app.email, dob: String(app.details?.dob ?? ""), city: app.city, locality: String(app.details?.locality ?? ""), work: workOf(app.details), category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, photo: app.photo ?? "", agreeTerms: true },
+        profile: { fullName: app.name, phone: app.phone, email: app.email, dob: String(app.details?.dob ?? ""), city: app.city, locality: String(app.details?.locality ?? ""), work: workOf(app.details), category: app.category, otherCategories: app.otherCategories, services: app.services, experience: app.experience, languages: app.languages, bio: app.bio, links: app.links, photo: app.photo ?? "", agreeTerms: app.details?.agree === "yes" },
+        photoSrc: artistPhotoSrc(app.id, app.photo),
         bookings: [],
         blockedDates: [],
         portfolio: withUrls(app.portfolio ?? []),
@@ -195,6 +209,15 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
       status,
       quote: reply?.status === "quoted" && reply.quote ? String(reply.quote) : undefined,
       team: item && item.count > 1 ? item.count : undefined,
+      day: b.date,
+      start: b.time,
+      end: b.endTime ?? "",
+      category: (item ?? b.items[0])?.category ?? "",
+      kind: (item ?? b.items[0])?.service ?? "",
+      stage: b.status,
+      business: b.audience === "Business",
+      occasion: b.event,
+      createdAt: b.createdAt,
     });
   }
 
@@ -227,6 +250,7 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
         photo: artist.photo ?? "",
         agreeTerms: true,
       },
+      photoSrc: artistPhotoSrc(artist.id, artist.photo),
       bookings,
       blockedDates: [...artist.blockedDates].sort(),
       portfolio: withUrls(artist.portfolio ?? []),
@@ -237,82 +261,99 @@ export async function loadArtistPortal(): Promise<PortalLoad> {
 
 // ---- Profile ----
 
-export type ProfilePatch = Partial<Pick<ArtistProfile, "phone" | "dob" | "city" | "locality" | "services" | "experience" | "languages" | "bio" | "links" | "work">>;
+// What Complete Your Details and the Profile page send: the usual fields, plus the kind of artist
+// they mainly are, the other kinds and the declaration (all kept in `details`, as are the date of
+// birth, the area and each kind's answers by "<kind>.<question id>").
+export type ProfilePatch = Partial<Pick<ArtistProfile, "phone" | "dob" | "city" | "locality" | "services" | "experience" | "languages" | "bio" | "links" | "work">> & {
+  kind?: string;
+  other?: string[];
+  agree?: boolean;
+};
+
+const kindIds = new Set(kinds.map((k) => k.id));
+const categoryOfKind = (k: string) => kinds.find((x) => x.id === k)?.cat;
+const detailsOf = (row: Record<string, unknown>) => (row.details && typeof row.details === "object" ? { ...(row.details as WorkDetails) } : {}) as WorkDetails;
+const kindsOf = (d: WorkDetails) => [String(d.kind ?? ""), ...(Array.isArray(d.other) ? d.other.map(String) : [])].filter((k) => kindIds.has(k));
 
 const phoneOk = (p: string) => {
   const d = p.replace(/\D/g, "");
   return /^(?:91|0)?[6-9]\d{9}$/.test(d) || (d.length >= 8 && d.length <= 15);
 };
 
-// Name and categories stay as AOD approved them; everything else the artist keeps up to date.
+// Saving is a draft: anything given is checked, nothing is required (Submit For Review checks that
+// everything's there, see sendToAod). Name and email stay as they are; an approved artist's kinds and
+// categories stay as AOD approved them, an applicant's follow the kinds they pick.
 export async function saveArtistProfile(patch: ProfilePatch): Promise<Result> {
   const account = await currentAccount();
   if (!account) return notSignedIn;
   const row: Record<string, unknown> = {};
-  const own = allCategories({ category: String(account.row.category), otherCategories: Array.isArray(account.row.other_categories) ? account.row.other_categories.map(String) : [] });
-  const offered = own.flatMap((slug) => artistServiceNames(slug));
+  const old = detailsOf(account.row);
+  const details: WorkDetails = { ...old };
+  const str = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
 
   if (patch.phone !== undefined) {
-    const phone = String(patch.phone).trim().slice(0, 20);
-    if (!phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
-    row.phone = phone;
+    const phone = str(patch.phone, 20);
+    if (phone && !phoneOk(phone)) return { ok: false, error: "Enter a valid phone number." };
+    if (phone) row.phone = phone;
   }
   if (patch.city !== undefined) {
-    const city = String(patch.city);
-    if (!cityComplete(city, cities)) return { ok: false, error: isOtherCity(city) ? "Write the name of your city." : "Choose your city." };
-    row.city = city;
-  }
-  if (patch.services !== undefined) {
-    const allowed = new Set(offered);
-    const services = [...new Set((Array.isArray(patch.services) ? patch.services : []).map(String))].filter((s) => allowed.has(s));
-    if (!services.length) return { ok: false, error: "Pick at least one service." };
-    row.services = services;
+    const city = str(patch.city, 40);
+    if (city && !cities.includes(city)) return { ok: false, error: "Choose your city." };
+    if (city) row.city = city;
   }
   if (patch.experience !== undefined) {
-    if (!experienceLevels.includes(String(patch.experience))) return { ok: false, error: "Choose your experience." };
-    row.experience = String(patch.experience);
+    const experience = str(patch.experience, 40);
+    if (experience && !experienceLevels.includes(experience)) return { ok: false, error: "Choose your experience." };
+    if (experience) row.experience = experience;
   }
-  if (patch.languages !== undefined) {
-    row.languages = [...new Set((Array.isArray(patch.languages) ? patch.languages : []).map(String))].filter((l) => languageList.includes(l));
-  }
-  if (patch.bio !== undefined) row.bio = String(patch.bio).trim().slice(0, 600);
+  if (patch.languages !== undefined) row.languages = [...new Set((Array.isArray(patch.languages) ? patch.languages : []).map(String))].filter((l) => languageList.includes(l));
+  if (patch.bio !== undefined) row.bio = str(patch.bio, 600);
   if (patch.links !== undefined) {
     const links: string[] = [];
-    for (const raw of (Array.isArray(patch.links) ? patch.links : []).slice(0, 10)) {
-      const check = checkPortfolioLink(String(raw));
-      if (!check.ok) return { ok: false, error: `${String(raw).slice(0, 60)}: ${check.message}` };
+    for (const raw of (Array.isArray(patch.links) ? patch.links : []).map(String).filter((l) => l.trim()).slice(0, 10)) {
+      const check = checkPortfolioLink(raw);
+      if (!check.ok) return { ok: false, error: `${raw.slice(0, 60)}: ${check.message}` };
       if (!links.includes(check.url)) links.push(check.url);
     }
     row.links = links;
   }
-  // Date of birth, area and the work-details answers all live in `details`; the other answers (and
-  // any no longer asked) stay as they are.
-  if (patch.dob !== undefined || patch.locality !== undefined || patch.work !== undefined) {
-    const old = (account.row.details && typeof account.row.details === "object" ? account.row.details : {}) as WorkDetails;
-    let dob = String(old.dob ?? "");
-    let locality = String(old.locality ?? "");
-    if (patch.dob !== undefined) {
-      dob = String(patch.dob).trim().slice(0, 10);
+  if (patch.dob !== undefined) {
+    const dob = str(patch.dob, 10);
+    if (dob) {
       const born = new Date(`${dob}T00:00:00`);
       const eighteen = new Date();
       eighteen.setFullYear(eighteen.getFullYear() - 18);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(born.getTime()) || born > eighteen || born.getFullYear() < 1920) return { ok: false, error: "Enter your date of birth (you must be 18 or older)." };
     }
-    if (patch.locality !== undefined) {
-      locality = String(patch.locality).trim().slice(0, 60);
-      if (locality.length < 2) return { ok: false, error: "Enter your area, e.g. Bopal or Satellite." };
-    }
-    const slugs = own;
-    const known = new Set(workQuestionsForAll(slugs[0] ?? "", slugs.slice(1)).map((q) => q.id));
-    const kept = Object.fromEntries(Object.entries(old).filter(([k]) => k !== "dob" && k !== "locality" && (patch.work === undefined || !known.has(k))));
-    let answers: WorkDetails = {};
-    if (patch.work !== undefined) {
-      const clean = cleanWorkDetails(slugs[0] ?? "", slugs.slice(1), patch.work, { base: { dob, locality }, required: false });
-      if (!clean.ok) return clean;
-      answers = Object.fromEntries(Object.entries(clean.details).filter(([k]) => k !== "dob" && k !== "locality"));
-    }
-    row.details = { ...kept, ...answers, dob, locality };
+    details.dob = dob;
   }
+  if (patch.locality !== undefined) details.locality = str(patch.locality, 60);
+  if (patch.agree !== undefined) details.agree = patch.agree ? "yes" : "";
+
+  let mine = kindsOf(old);
+  if (account.kind === "applicant" && (patch.kind !== undefined || patch.other !== undefined)) {
+    const main = patch.kind !== undefined && kindIds.has(String(patch.kind)) ? String(patch.kind) : String(old.kind ?? "");
+    const others = [...new Set((patch.other !== undefined ? patch.other : mine.slice(1)).map(String))].filter((k) => kindIds.has(k) && k !== main);
+    details.kind = main;
+    details.other = others;
+    mine = [main, ...others].filter((k) => kindIds.has(k));
+    const cats = [...new Set(mine.map(categoryOfKind).filter((c): c is string => Boolean(c)))];
+    if (cats.length) {
+      row.category = cats[0];
+      row.other_categories = cats.slice(1);
+    }
+  }
+  if (patch.services !== undefined) {
+    const allowed = new Set(mine.flatMap(serviceOptions));
+    row.services = [...new Set((Array.isArray(patch.services) ? patch.services : []).map(String))].filter((s) => allowed.has(s));
+  }
+  if (patch.work !== undefined) {
+    const clean = cleanWorkDetails(mine, patch.work, false);
+    if (!clean.ok) return clean;
+    for (const k of Object.keys(details)) if (k.includes(".")) delete details[k];
+    Object.assign(details, clean.work);
+  }
+  if (JSON.stringify(details) !== JSON.stringify(old)) row.details = details;
   if (!Object.keys(row).length) return { ok: true };
 
   const table = account.kind === "artist" ? "artists" : "applications";
@@ -360,6 +401,22 @@ export async function sendToAod(): Promise<SendResult> {
   if (last && Date.now() - new Date(last).getTime() < 5 * 60_000) return { ok: true, at: last };
 
   const first = !last && account.kind === "applicant";
+  if (first) {
+    const d = detailsOf(row);
+    const mine = kindsOf(d);
+    const missing = [
+      !row.photo && "your profile photo",
+      !d.dob && "your date of birth",
+      String(d.locality ?? "").length < 2 && "the area of your city",
+      !(Array.isArray(row.languages) && row.languages.length) && "the languages you speak",
+      !mine.length && "what you mainly do",
+      !(Array.isArray(row.services) && row.services.length) && "the services you offer",
+      d.agree !== "yes" && "the declaration",
+    ].filter(Boolean);
+    if (missing.length) return { ok: false, error: `Before you submit, add ${missing.join(", ")}.` };
+    const answers = cleanWorkDetails(mine, d, true);
+    if (!answers.ok) return answers;
+  }
   const links = Array.isArray(row.links) ? row.links.length : 0;
   const files = Array.isArray(row.portfolio) ? row.portfolio.length : 0;
   const summary = `photo ${row.photo ? "added" : "missing"}, ${files} portfolio file${files === 1 ? "" : "s"}, ${links} link${links === 1 ? "" : "s"}`;
