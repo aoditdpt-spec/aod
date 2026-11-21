@@ -10,6 +10,7 @@ import { backendEnabled } from "@/lib/backend";
 import { listenLive, type LiveStatus } from "@/lib/live";
 import { adminSession, loadAdminDb, saveAdminChanges, type AdminChanges, type Collection } from "@/server/actions/admin";
 import { signOutAction } from "@/server/actions/auth";
+import { showNotice } from "@/lib/notice";
 
 // The admin panel's live data (only used with the Supabase keys set; the preview's admin runs on
 // src/lib/mock-db.ts): one `Db` object loaded from the database for the signed-in staff member,
@@ -403,12 +404,12 @@ export function update(area: string, text: string, fn: (db: Db) => void, target?
   saveAdminChanges(changes)
     .then((res) => {
       if (!res.ok) {
-        window.alert(res.error);
+        showNotice(res.error);
         reloadAfterSave = true;
       }
     })
     .catch(() => {
-      window.alert("Couldn't save the change. Check your connection; the page has been refreshed.");
+      showNotice("Couldn't save the change. Check your connection; the page has been refreshed.");
       reloadAfterSave = true;
     })
     .finally(saveFinished);

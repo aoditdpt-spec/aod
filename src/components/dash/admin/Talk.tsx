@@ -64,24 +64,22 @@ export function Messages() {
   const [order, setOrder] = useState("");
   const [copied, setCopied] = useState("");
   if (!db) return <Loading />;
-  // The order the messages are filled from; with no orders yet (a new database) the messages show
-  // with blanks to fill in by hand, instead of the page failing to load (fixed 2026-11-21).
+  // The order the messages are filled from. With no orders yet (a new database) they're filled from
+  // an example order, marked so, instead of the page failing to load (2026-11-21); once orders come
+  // in, from the order picked.
   const b = db.bookings.find((x) => x.id === order) ?? db.bookings[0];
-  const fill = (t: string) =>
-    t
-      .replace("{name}", b?.customer ?? "[Name]")
-      .replace("{ref}", b?.id ?? "[Order]")
-      .replace("{date}", b ? `${shortDate(b.date)}${b.start ? `, ${timeRange(b.start, b.end)}` : ""}` : "[Date]")
-      .replace("{city}", b?.city ?? "[City]")
-      .replace("{advance}", b?.quote ? rupees(Math.round(b.quote * 0.3)) : "the advance");
+  const v = b
+    ? { name: b.customer, ref: b.id, date: `${shortDate(b.date)}${b.start ? `, ${timeRange(b.start, b.end)}` : ""}`, city: b.city, advance: b.quote ? rupees(Math.round(b.quote * 0.3)) : "the advance" }
+    : { name: "Priya Shah", ref: "AOD-PH-261101", date: `12 Dec, ${timeRange("18:00", "22:00")}`, city: "Ahmedabad", advance: rupees(6000) };
+  const fill = (t: string) => t.replace("{name}", v.name).replace("{ref}", v.ref).replace("{date}", v.date).replace("{city}", v.city).replace("{advance}", v.advance);
 
   return (
     <>
-      <Title title="WhatsApp Templates" text="Ready messages for customers, filled in from an order. To message an artist, use Chat With Artists." />
+      <Title title="Messages" text="Ready messages for customers, filled in from an order." />
       <label className="mt-7 block max-w-sm">
         <span className={label}>Order</span>
         <select value={b?.id ?? ""} onChange={(e) => setOrder(e.target.value)} disabled={!b} className={field}>
-          {!b && <option value="">No orders yet</option>}
+          {!b && <option value="">Example order (no orders yet)</option>}
           {db.bookings.map((x) => (
             <option key={x.id} value={x.id}>
               {x.id}, {x.customer}

@@ -297,8 +297,24 @@ export function Bookings() {
 
 export function Availability() {
   const db = useDb();
+  const email = usePortalEmail();
   const [month, setMonth] = useState<Date | null>(null);
   if (!db) return <Loading />;
+  // Signed in with an applicant's email (not live yet): days off only count once they're live.
+  const applicant = email ? db.applications.find((a) => a.email.toLowerCase() === email && a.stage !== "approved") : undefined;
+  if (applicant)
+    return (
+      <>
+        <PageTitle title="Availability" text="Tap a day to mark it off. AOD won't send requests for days you're off." />
+        <div className="mt-8 max-w-xl rounded-2xl border border-line p-6">
+          <p className="text-lg font-medium">Availability Opens Once You&apos;re Live On AOD.</p>
+          <p className="mt-2 text-muted">Once AOD approves your profile, mark the days you can&apos;t work here, and no requests come for them.</p>
+          <Link href="/artists/profile" className={`${btnMain} mt-5`}>
+            Complete Your Details
+          </Link>
+        </div>
+      </>
+    );
   const m = month ?? new Date(db.today.getFullYear(), db.today.getMonth(), 1);
   return (
     <>
@@ -318,12 +334,18 @@ export function Availability() {
 export function Approval() {
   const db = useDb();
   if (!db) return <Loading />;
+  // What AOD checks, from the artist's own record (on request, 2026-11-21: these used to read "Added"
+  // and "Signed" whatever was there). The agreement and payout details are kept as documents the
+  // team adds; until then they say so.
+  const me = db.artists.find((a) => a.id === db.me);
+  const doc = (title: string) => db.documents.find((d) => d.title === title)?.status;
+  const files = backendEnabled ? portfolioOf(db).length : samplePortfolio.length;
   const checks = [
-    ["Identity", "Verified By AOD"],
-    ["Profile Photo", "Added"],
-    ["Portfolio", `${backendEnabled ? portfolioOf(db).length : samplePortfolio.length} Files`],
-    ["Artist Agreement", "Signed"],
-    ["Payout Details", "Added"],
+    ["Identity", doc("Identity Check") ?? "Pending"],
+    ["Profile Photo", me?.photo ? "Added" : "Not Added"],
+    ["Portfolio", files ? `${files} File${files === 1 ? "" : "s"}` : "No Files Yet"],
+    ["Artist Agreement", doc("Artist Agreement") ?? "Not Signed Yet"],
+    ["Payout Details", doc("Payout Details") ?? "After The Trial"],
   ];
   return (
     <>
@@ -451,16 +473,32 @@ export function MessagesPage() {
   // Signed in with an applicant's email (not yet approved): no chat yet. A conversation belongs to an
   // approved artist (chat_messages.artist_id), so say so instead of failing (2026-11-21).
   const applicant = email ? db.applications.find((a) => a.email.toLowerCase() === email && a.stage !== "approved") : undefined;
+  // The chat shows greyed out, with a popup over it (on request, 2026-11-21).
   if (applicant)
     return (
       <>
         <PageTitle title="Messages" text="Your conversation with the AOD team." />
-        <div className="mt-8 max-w-xl rounded-2xl border border-line p-6">
-          <p className="text-lg font-medium">Messages Open Once You&apos;re Approved.</p>
-          <p className="mt-2 text-muted">Until then, the AOD team gets in touch by email or WhatsApp. Finish Complete Your Details and submit it for review.</p>
-          <Link href="/artists/profile" className={`${btnMain} mt-5`}>
-            Complete Your Details
-          </Link>
+        <div className="relative mt-6 max-w-3xl">
+          <div aria-hidden className="pointer-events-none flex h-[min(640px,calc(100dvh-17rem))] min-h-[380px] select-none flex-col overflow-hidden rounded-2xl border border-line bg-wash opacity-60">
+            <div className="flex-1 space-y-3 p-5">
+              <div className="h-10 w-2/3 rounded-xl bg-line/70" />
+              <div className="ml-auto h-10 w-1/2 rounded-xl bg-line/70" />
+              <div className="h-10 w-3/5 rounded-xl bg-line/70" />
+            </div>
+            <div className="flex gap-2 border-t border-line p-3">
+              <span className="h-10 flex-1 rounded-[7px] border border-line bg-paper px-3 text-sm leading-10 text-muted">Write A Message</span>
+              <span className={`${btnMain} opacity-50`}>Send</span>
+            </div>
+          </div>
+          <div role="alertdialog" aria-labelledby="chat-locked" className="absolute inset-x-4 top-1/2 mx-auto max-w-sm -translate-y-1/2 rounded-2xl border border-line bg-paper p-6 text-center shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)]">
+            <p id="chat-locked" className="text-lg font-medium">
+              You Can Only Message The Admins Once You&apos;re Verified.
+            </p>
+            <p className="mt-2 text-sm text-muted">Finish Complete Your Details and submit it for review. Until then, the AOD team gets in touch by email or WhatsApp.</p>
+            <Link href="/artists/profile" className={`${btnMain} mt-5`}>
+              Complete Your Details
+            </Link>
+          </div>
         </div>
       </>
     );

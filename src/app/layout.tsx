@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans } from "next/font/google";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { Notices } from "@/components/ui/Notices";
 import "./globals.css";
 
 const instrument = Instrument_Sans({
@@ -39,7 +40,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* The customer site's navbar and footer are in (site)/layout.tsx; the admin and the artist
           portal have their own. */}
       <body className="flex min-h-full flex-col font-sans">
-        <MotionProvider>{children}</MotionProvider>
+        <MotionProvider>
+          {children}
+          {/* The site's own alert (showNotice), in place of the browser's alert box. */}
+          <Notices />
+        </MotionProvider>
       </body>
     </html>
   );

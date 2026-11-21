@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { categories } from "@/data/site";
 import { kindName, kindOf, kinds } from "@/data/work-questions";
+import { showNotice } from "@/lib/notice";
 import { backendEnabled } from "@/lib/backend";
 import { artistPhotoSrc } from "@/lib/artist-photo";
 import { assignedArtists, worksIn } from "@/lib/booking-needs";
@@ -644,7 +645,7 @@ export const portfolioOf = (d: Db): PortfolioItem[] => (d as Db & { portfolio?: 
 
 const by = () => admin.currentUser();
 const alertError = (e: string | null | undefined) => {
-  if (e) window.alert(e);
+  if (e) showNotice(e);
 };
 const findBooking = (d: AdminDb, id: string) => d.bookings.find((b) => b.id === id);
 const pushHistory = (b: AdminBooking, status: admin.BookingStatus) => b.history.push({ at: now(), by: by(), status });
@@ -775,7 +776,7 @@ const liveAct = {
   readByArtist() {},
   addStaff(name: string, email: string, role: Staff["role"]) {
     const clean = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean) || name.trim().length < 2) return window.alert("Enter their name and work email.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean) || name.trim().length < 2) return showNotice("Enter their name and work email.");
     admin.update("Team", `Added ${name} as ${role}`, (d) => {
       if (d.team.some((m) => m.email.toLowerCase() === clean)) return;
       d.team.push({ id: admin.newId("U"), name: name.trim(), email: clean, role: role === "Admin" ? "owner" : "developer", active: true, twoFactor: false, lastActive: now() });
@@ -893,10 +894,10 @@ const liveAct = {
     }, booking);
   },
   customerCancel(id: string) {
-    void cancelMyBooking(id).then((r) => (r.ok ? customerReload() : window.alert(r.error)));
+    void cancelMyBooking(id).then((r) => (r.ok ? customerReload() : showNotice(r.error)));
   },
   review(id: string, stars: number, text: string) {
-    void submitReview(id, stars, text).then((r) => (r.ok ? customerReload() : window.alert(r.error)));
+    void submitReview(id, stars, text).then((r) => (r.ok ? customerReload() : showNotice(r.error)));
   },
   raiseCase(c: Omit<Case, "id" | "raisedAt" | "status" | "notes">) {
     void c;
@@ -1036,7 +1037,7 @@ const liveAct = {
     });
     // Sent once the draft is saved.
     window.setTimeout(() => {
-      void sendNewsletter(id, subject, body, "all").then((r) => (r.ok ? window.alert(`Sent to ${r.sent} subscribers.`) : window.alert(r.error)));
+      void sendNewsletter(id, subject, body, "all").then((r) => (r.ok ? showNotice(`Sent to ${r.sent} subscribers.`) : showNotice(r.error)));
     }, 1500);
   },
   reset() {},

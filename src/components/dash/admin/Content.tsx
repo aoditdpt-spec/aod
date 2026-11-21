@@ -8,6 +8,7 @@ import { shrinkImage } from "@/lib/image-resize";
 import { createClient } from "@/lib/supabase/client";
 import { startBlogUpload } from "@/server/actions/blog";
 import { Drawer, Loading, Status, Tabs, Title, btn, btnMain, btnText, field, label, sub, td, th, useOpen } from "../ui";
+import { showNotice } from "@/lib/notice";
 
 // The blog, as on aod.co.in's admin: write a post in simple Markdown (with a toolbar and a
 // preview), a cover photo, tags, the author and a publish date (a future date schedules it);
@@ -78,17 +79,17 @@ async function coverFor(file: File): Promise<string | undefined> {
     const small = await shrinkImage(file, 2000);
     const start = await startBlogUpload(small.name, small.type, small.size);
     if (!start.ok) {
-      window.alert(start.error);
+      showNotice(start.error);
       return undefined;
     }
     const { error } = await createClient().storage.from("blog").uploadToSignedUrl(start.path, start.token, small, { contentType: small.type });
     if (error) {
-      window.alert("The upload didn't go through. Check your connection and try again.");
+      showNotice("The upload didn't go through. Check your connection and try again.");
       return undefined;
     }
     return start.url;
   } catch {
-    window.alert("The upload didn't go through. Check your connection and try again.");
+    showNotice("The upload didn't go through. Check your connection and try again.");
     return undefined;
   }
 }
