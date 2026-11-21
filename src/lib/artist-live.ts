@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { sampleArtist } from "@/content/artist-portal";
 import { backendEnabled } from "@/lib/backend";
 import { listenLive } from "@/lib/live";
 import {
@@ -16,16 +15,13 @@ import {
   type Result,
 } from "@/server/actions/artist";
 import { signOutAction } from "@/server/actions/auth";
-import { artistPhotoSrc } from "./artist-photo";
-import { blockedDatesStore, bookingActionsStore, emptyProfile, modeStore, profileStore, type ArtistProfile, type PreviewMode } from "./artist-store";
+import type { ArtistProfile } from "./artist-store";
 
-// The artist portal's data. Two modes, like the admin (src/lib/admin-store.ts):
-//   - live (Supabase keys set): the signed-in artist's (or applicant's) own records, loaded through
-//     src/server/actions/artist.ts and reloaded whenever their live channel says something changed
-//     (the team shortlists them, confirms a booking, approves their application…). Changes show on
-//     screen straight away, are saved, then reloaded from the server.
-//   - preview (no keys): the sample artist and the browser-kept stores in ./artist-store.ts.
-// The hooks at the bottom give every portal page the same interface in both modes.
+// The artist portal's live data (only used with the Supabase keys set; the preview's portal runs on
+// src/lib/mock-db.ts): the signed-in artist's (or applicant's) own records, loaded through
+// src/server/actions/artist.ts and reloaded whenever their live channel says something changed (the
+// team shortlists them, confirms a booking, approves their application…). Changes show on screen
+// straight away, are saved, then reloaded from the server. src/lib/app-db.tsx maps it for the screens.
 
 type State = {
   status: "idle" | "loading" | "ready" | "signed-out" | "no-account" | "error";
@@ -37,14 +33,14 @@ type State = {
 export type PortalData = ArtistPortal;
 
 let state: State = { status: "idle", data: null };
-
-// The days off as last loaded (for toggling one).
-export const currentBlockedDates = () => state.data?.blockedDates ?? [];
 const listeners = new Set<() => void>();
 const set = (patch: Partial<State>) => {
   state = { ...state, ...patch };
   listeners.forEach((l) => l());
 };
+
+// The days off as last loaded (for toggling one).
+export const currentBlockedDates = () => state.data?.blockedDates ?? [];
 
 let stopLive: (() => void) | null = null;
 let listeningTo = "";
@@ -101,7 +97,6 @@ export const refreshPortal = () => load(true);
 
 export async function portalSignOut() {
   stopListening();
-  if (backendEnabled) profileStore.set(null);
   set({ status: "signed-out", data: null });
   await signOutAction();
 }
@@ -121,52 +116,19 @@ async function portalAction(optimistic: (d: ArtistPortal) => ArtistPortal, run: 
   }
 }
 
-// ---------------------------------------------------------------------------
-// One interface for the pages, live or preview.
-// ---------------------------------------------------------------------------
-
-const sampleProfile: ArtistProfile = { ...sampleArtist, agreeTerms: true };
-
-// The artist's profile. `sample` is true while the preview shows the made-up artist.
-export function useArtistProfile(): { profile: ArtistProfile; sample: boolean } {
-  const live = usePortalState();
-  const local = profileStore.use();
-  if (backendEnabled) return { profile: live.data?.profile ?? emptyProfile, sample: false };
-  return { profile: local ?? sampleProfile, sample: local === null };
-}
-
-// Live: only the fields an artist may change are saved (the server ignores the rest).
+// Profile and Complete Your Details: only the fields an artist may change are saved (the server checks).
 export async function saveProfile(patch: Partial<ArtistProfile> & Omit<ProfilePatch, keyof ArtistProfile>): Promise<string | null> {
-  if (!backendEnabled) {
-    profileStore.set({ ...(profileStore.get() ?? sampleProfile), ...patch });
-    return null;
-  }
   const allowed = patch as ProfilePatch;
   return portalAction((d) => ({ ...d, profile: { ...d.profile, ...allowed } }), () => saveArtistProfile(allowed));
 }
 
-// Where the signed-in artist's profile photo shows from ("" for none): live, the private
-// /api/artist-photos address for their record; preview, the picture kept in this browser.
-export function usePortalPhoto(): string {
-  const live = usePortalState();
-  const { profile } = useArtistProfile();
-  return artistPhotoSrc(live.data?.id, profile.photo);
-}
-
-// A new profile photo (a data URL from PhotoPicker). Live: saved to AOD's Google Drive, then the
-// portal reloads; preview: kept in this browser.
+// A new profile photo (a "data:image/…" picture shrunk in the browser): saved to AOD's Google Drive.
 export async function changePhoto(dataUrl: string): Promise<string | null> {
-  if (!backendEnabled) {
-    profileStore.set({ ...(profileStore.get() ?? sampleProfile), photo: dataUrl });
-    return null;
-  }
   return portalAction((d) => d, () => saveMyPhoto(dataUrl));
 }
 
-// The portal's Submit for review / Send update. Returns an error message, or null. Live: sent to
-// the AOD team, then the portal reloads (with the new sent date); preview: nothing is sent.
+// Submit For Review / Send Update: sent to the AOD team, then the portal reloads (with the new sent date).
 export async function sendProfileToAod(): Promise<string | null> {
-  if (!backendEnabled) return "Preview: nothing is sent to AOD from here.";
   saving++;
   try {
     const res = await sendToAod();
@@ -179,34 +141,12 @@ export async function sendProfileToAod(): Promise<string | null> {
   }
 }
 
-// Live artist or applicant (live: from their records; preview: the "Preview as" switch).
-export function usePortalMode(): PreviewMode {
-  const live = usePortalState();
-  const local = modeStore.use();
-  if (backendEnabled) return live.data?.kind === "artist" ? "live" : "applicant";
-  return local;
-}
-
-export function useBlockedDates(): string[] {
-  const live = usePortalState();
-  const local = blockedDatesStore.use();
-  return backendEnabled ? (live.data?.blockedDates ?? []) : local;
-}
-
 export async function setBlockedDates(dates: string[]): Promise<string | null> {
-  if (!backendEnabled) {
-    blockedDatesStore.set(dates);
-    return null;
-  }
   return portalAction((d) => ({ ...d, blockedDates: [...dates].sort() }), () => saveAvailability(dates));
 }
 
 // Accept (I'm available that day) or decline a booking request.
 export async function answerRequest(id: string, status: "accepted" | "declined"): Promise<string | null> {
-  if (!backendEnabled) {
-    bookingActionsStore.set({ ...bookingActionsStore.get(), [id]: { status } });
-    return null;
-  }
   return portalAction(
     (d) => ({ ...d, bookings: d.bookings.map((b) => (b.id === id ? { ...b, status } : b)) }),
     () => replyToBooking(id, status),

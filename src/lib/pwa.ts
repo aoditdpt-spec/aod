@@ -47,12 +47,12 @@ export function siteManifest(): MetadataRoute.Manifest {
     categories: ["lifestyle", "entertainment", "business"],
     shortcuts: [shortcut("Book an artist", "/book"), shortcut("My bookings", "/my-bookings")],
     // Android's install dialog shows these like an app store listing ("narrow" on phones, "wide" on
-    // laptops). Taken from the site as the installed app looks (public/screenshots/); retake them
-    // when the pages change a lot.
+    // laptops). Taken from the live site (public/screenshots/, retaken for the new design on
+    // 2026-11-21 with headless Chrome at 390×844 and 1366×768); retake them when the pages change a lot.
     screenshots: [
       { src: "/screenshots/home.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Book verified artists in Gujarat" },
-      { src: "/screenshots/book.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Three quick questions to book" },
-      { src: "/screenshots/menu.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Everything in AOD, one tap away" },
+      { src: "/screenshots/book.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Book an artist in a few taps" },
+      { src: "/screenshots/categories.webp", sizes: "780x1688", type: "image/webp", form_factor: "narrow", label: "Every kind of artist for your event" },
       { src: "/screenshots/wide-home.webp", sizes: "1366x768", type: "image/webp", form_factor: "wide", label: "Artists On Demand" },
     ],
   };

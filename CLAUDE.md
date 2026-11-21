@@ -38,7 +38,7 @@ No test runner: `scripts/*-check.mts` are plain Node scripts (Node's TypeScript 
 
 `backendEnabled` (`src/lib/backend.ts`: the Supabase URL and publishable key are set).
 - **Live**: forms save to the database first, sign-in sends real emailed 6-digit codes, the admin works on shared data, pages update by themselves (Realtime "changed" messages, `src/lib/live.ts`).
-- **Preview** (no keys): the site behaves exactly like aod-redesign: sample data and everything typed kept in this browser (`src/lib/mock-db.ts`), any code works, nothing is required.
+- **Preview** (no keys): the site behaves exactly like aod-redesign: sample data and everything typed kept in this browser (`src/lib/mock-db.ts`), any code works, nothing is required. `admin-store.ts`, `artist-live.ts` and `chat.ts` are live-only (the old design's preview samples were removed 2026-11-21).
 Every screen works in both. **Required-field checks run only live** (in the form and again on the server).
 
 ## The data adapter: `src/lib/app-db.tsx`
@@ -67,7 +67,7 @@ Six categories in `src/data/site.ts` (the owner's order and wording): **photo-vi
 - **Admin** (`dash/admin/*`): staff sign-in (email in Team And Roles + code). Overview, Bookings (table/board, drawer: stage, quote, lines, shortlist/assign, payments, delivery link, reschedule, delete; New Booking with Paste A WhatsApp Message, `lib/whatsapp-order.ts`), Applications, Artists, Calendar, Payments (verify, payouts), Dispute Desk, Chat With Artists, Messages (templates), Blog, Reports And Exports (Excel encrypted with a password in the browser, `lib/xlsx-encrypt.ts`), Team And Roles (Admin = role `owner`, Developer), Activity Log, Settings.
 - **Dispute Desk** (`components/dispute` → `server/actions/resolution.ts`): raise (side, issue, through AOD or not, booking number or who it's with, what happened, outcome, evidence, contact, confirmation; lists in `src/data/dispute-form.ts` and `pages.ts`, checked by the server) → DC-1001…; track with number + email; escalate.
 - **Blog**: published posts read on the server (`server/blog.ts`, cached an hour, refreshed when the admin saves). **Newsletter**: no sign-up on the site; confirm/unsubscribe pages and the admin's sending still work.
-- **Chat** (`chat_messages`, `server/actions/chat.ts`, `lib/chat.ts`): one conversation per artist; team members show as "AOD Team" to the artist; pushes to subscribed devices (`server/push.ts`, VAPID keys).
+- **Chat** (`chat_messages`, `server/actions/chat.ts`, `lib/chat.ts`): one conversation per artist; team members show as "AOD Team" to the artist. **Push notifications**: "Get Notifications" on both chat pages (`dash/push/PushToggle.tsx` + `usePush.ts`) saves the device (`server/actions/push.ts`, `push_subscriptions`); every message then sends a banner without its text (`server/push.ts`, VAPID keys, `public/sw.js`). Live site only; on iPhones only once the site is added to the Home Screen.
 
 ## Database
 

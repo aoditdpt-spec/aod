@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { timeRange } from "@/lib/event-time";
 import { rupees, shortDate, teamUnread, templates, useDb } from "@/lib/app-db";
 import { ChatThread } from "../ChatThread";
+import { PushToggle } from "../push/PushToggle";
 import { Head, Loading, Title, field, label } from "../ui";
 
 // Chat With Artists: every artist on the left (unread first), the conversation on the right.
@@ -23,6 +24,9 @@ export function Chat() {
   return (
     <>
       <Title title="Chat With Artists" text="One conversation per artist, shared by the whole team." />
+      <div className="mt-4">
+        <PushToggle as="staff" />
+      </div>
       <div className="mt-7 grid gap-8 border-t border-ink pt-2 md:grid-cols-[260px_1fr]">
         <ul className="max-md:flex max-md:gap-2 max-md:overflow-x-auto">
           {list.map((a) => {

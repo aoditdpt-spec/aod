@@ -6,21 +6,18 @@ import { nextOrderNumber, orderId } from "./order-id";
 import type { Brief } from "@/content/artist-brief";
 import { useSyncExternalStore } from "react";
 import type { Role } from "@/content/admin";
-import { createSampleDb } from "@/content/admin-sample";
 import { backendEnabled } from "@/lib/backend";
 import { listenLive, type LiveStatus } from "@/lib/live";
 import { adminSession, loadAdminDb, saveAdminChanges, type AdminChanges, type Collection } from "@/server/actions/admin";
 import { signOutAction } from "@/server/actions/auth";
 
-// The admin panel's data: one `Db` object the screens read with `useDb()` and change with `update()`,
-// which also writes the activity log. Two modes, picked by `backendEnabled` (src/lib/backend.ts):
-//   - live (Supabase keys set): the data is loaded from the database for the signed-in staff
-//     member, and each `update()` saves just the records it changed (server actions in
-//     src/server/actions/admin.ts, checked against the person's role). If a save is refused,
-//     the data is reloaded and the reason shown. While signed in it listens on the "staff" live
-//     channel (src/lib/live.ts) and reloads whenever anyone (another staff member, a website form,
-//     an artist in the portal) changes something.
-//   - preview (no keys): sample records (src/content/admin-sample.ts) kept in this browser.
+// The admin panel's live data (only used with the Supabase keys set; the preview's admin runs on
+// src/lib/mock-db.ts): one `Db` object loaded from the database for the signed-in staff member,
+// changed with `update()`, which also writes the activity log and saves just the records it changed
+// (server actions in src/server/actions/admin.ts, checked against the person's role). If a save is
+// refused, the data is reloaded and the reason shown. While signed in it listens on the "staff" live
+// channel (src/lib/live.ts) and reloads whenever anyone (another staff member, a website form, an
+// artist in the portal) changes something. src/lib/app-db.tsx maps it for the screens.
 
 export type Note = { at: string; by: string; text: string };
 
@@ -260,9 +257,6 @@ export type Session = { name: string; email: string; role: Role };
 
 // ---------------------------------------------------------------------------
 
-const DB_KEY = "aod-admin-db-v1";
-const SESSION_KEY = "aod-admin-session";
-
 type Listener = () => void;
 const listeners = new Set<Listener>();
 const emit = () => listeners.forEach((l) => l());
@@ -270,56 +264,9 @@ const emit = () => listeners.forEach((l) => l());
 function subscribe(l: Listener) {
   listeners.add(l);
   if (backendEnabled && live.status === "idle") void loadLive();
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === DB_KEY || e.key === SESSION_KEY) {
-      cache.clear();
-      l();
-    }
-  };
-  window.addEventListener("storage", onStorage);
   return () => {
     listeners.delete(l);
-    window.removeEventListener("storage", onStorage);
   };
-}
-
-// Keeps the parsed object stable between reads (useSyncExternalStore needs that).
-const memory = new Map<string, string>();
-const cache = new Map<string, { raw: string | null; value: unknown }>();
-
-function readRaw(key: string): string | null {
-  try {
-    const v = localStorage.getItem(key);
-    if (v !== null) return v;
-  } catch {}
-  return memory.get(key) ?? null;
-}
-
-function store(key: string, value: string | null) {
-  if (value === null) memory.delete(key);
-  else memory.set(key, value);
-  try {
-    if (value === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, value);
-  } catch {}
-  cache.delete(key);
-}
-
-function writeRaw(key: string, value: string | null) {
-  store(key, value);
-  emit();
-}
-
-function readJson<T>(key: string): T | null {
-  const raw = readRaw(key);
-  const hit = cache.get(key);
-  if (hit && hit.raw === raw) return hit.value as T | null;
-  let value: T | null = null;
-  try {
-    value = raw ? (JSON.parse(raw) as T) : null;
-  } catch {}
-  cache.set(key, { raw, value });
-  return value;
 }
 
 // ---- Live mode (Supabase) ----
@@ -410,63 +357,13 @@ function diff(before: Db, after: Db): AdminChanges {
   return changes;
 }
 
-// ---- Database ----
-
-// Data saved by an older version of the preview: a booking was one category with one artist
-// (`category`, `service`, `artistId`, later `artistsNeeded` and `artistIds`), and artists and
-// applications had one category. Returns the data brought up to date, or null when it already is.
-type OldBooking = Booking & { category?: string; service?: string; artistId?: string; artistIds?: string[]; artistsNeeded?: number };
-function upgradePreviewDb(db: Db): Db | null {
-  const old =
-    !Array.isArray(db.cases) ||
-    !Array.isArray(db.posts) ||
-    !Array.isArray(db.subscribers) ||
-    !Array.isArray(db.newsletters) ||
-    db.bookings.some((b) => !Array.isArray(b.items)) ||
-    [...db.artists, ...db.applications].some((a) => !Array.isArray(a.otherCategories));
-  if (!old) return null;
-  return {
-    ...db,
-    // Saved before Resolution Centre cases existed: add the sample cases, keep everything else.
-    cases: Array.isArray(db.cases) ? db.cases : createSampleDb(new Date()).cases,
-    // Saved before the blog and newsletter existed: add their samples too.
-    posts: Array.isArray(db.posts) ? db.posts : createSampleDb(new Date()).posts,
-    subscribers: Array.isArray(db.subscribers) ? db.subscribers : createSampleDb(new Date()).subscribers,
-    newsletters: Array.isArray(db.newsletters) ? db.newsletters : createSampleDb(new Date()).newsletters,
-    bookings: db.bookings.map(({ category, service, artistId, artistIds, artistsNeeded, ...b }: OldBooking) => {
-      if (Array.isArray(b.items)) return b;
-      const ids = Array.isArray(artistIds) ? artistIds : artistId ? [artistId] : [];
-      return { ...b, items: [{ category: category ?? "", service: service ?? "", count: Math.max(artistsNeeded ?? 1, ids.length, 1), artistIds: ids }] };
-    }),
-    artists: db.artists.map((a) => ({ ...a, otherCategories: a.otherCategories ?? [] })),
-    applications: db.applications.map((a) => ({ ...a, otherCategories: a.otherCategories ?? [] })),
-  };
-}
-
-function getPreviewDb(): Db {
-  const db = readJson<Db>(DB_KEY);
-  if (db && db.version === 1) {
-    const upgraded = upgradePreviewDb(db);
-    if (!upgraded) return db;
-    store(DB_KEY, JSON.stringify(upgraded));
-    return readJson<Db>(DB_KEY)!;
-  }
-  // First visit (or an old format): seed sample data. Stored without notifying, because this
-  // runs while React reads the snapshot.
-  store(DB_KEY, JSON.stringify(createSampleDb(new Date())));
-  return readJson<Db>(DB_KEY)!;
-}
-
-// The data the screens work on (live: only called once it has loaded).
-function getDb(): Db {
-  return backendEnabled ? live.db! : getPreviewDb();
-}
-
+// The data the screens work on (only called once it has loaded).
+const getDb = (): Db => live.db!;
 const getLiveDb = () => live.db;
 
 // null during server rendering and until the data is ready.
 export function useDb(): Db | null {
-  return useSyncExternalStore(subscribe, backendEnabled ? getLiveDb : getPreviewDb, () => null);
+  return useSyncExternalStore(subscribe, getLiveDb, () => null);
 }
 
 // A new booking's order ID for these categories (AOD-PH-261001, AOD-MIX-… for several; src/lib/order-id.ts).
@@ -498,11 +395,8 @@ export function update(area: string, text: string, fn: (db: Db) => void, target?
   db.activity.unshift(entry);
   db.activity = db.activity.slice(0, 500);
 
-  if (!backendEnabled) {
-    writeRaw(DB_KEY, JSON.stringify(db));
-    return;
-  }
-  // Live: show the change straight away, save it, and reload if the save is refused.
+  if (!backendEnabled) return;
+  // Show the change straight away, save it, and reload if the save is refused.
   const changes = { ...diff(before, db), activity: [entry] };
   saving++; // before setLive, so the header shows "Saving…" with the change
   setLive({ db });
@@ -520,33 +414,20 @@ export function update(area: string, text: string, fn: (db: Db) => void, target?
     .finally(saveFinished);
 }
 
-// Start over with fresh sample data (preview only).
-export function resetDb() {
-  if (backendEnabled) return;
-  writeRaw(DB_KEY, JSON.stringify(createSampleDb(new Date())));
-}
-
 // The signed-in person's name, for notes and history entries.
 export const currentUser = () => getSession()?.name ?? "Someone";
 
 // ---- Session ----
 
 export function getSession(): Session | null {
-  return backendEnabled ? live.session : readJson<Session>(SESSION_KEY);
+  return live.session;
 }
 
 export function useSession(): Session | null {
   return useSyncExternalStore(subscribe, getSession, () => null);
 }
 
-// Preview only: sign in as anyone, with any role.
-export function signIn(session: Session) {
-  if (backendEnabled) return;
-  writeRaw(SESSION_KEY, JSON.stringify(session));
-}
-
 export function signOut() {
-  if (!backendEnabled) return writeRaw(SESSION_KEY, null);
   stopListening();
   setLive({ status: "signed-out", session: null, db: null });
   void signOutAction();

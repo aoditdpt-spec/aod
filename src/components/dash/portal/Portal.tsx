@@ -8,6 +8,7 @@ import { act, ago, longDate, myOrders, parseDay, portfolioOf, rupees, sameMonth,
 import { backendEnabled } from "@/lib/backend";
 import { PortfolioLive } from "./PortfolioLive";
 import { ChatThread } from "../ChatThread";
+import { PushToggle } from "../push/PushToggle";
 import { ApplicantDashboard } from "./Applicant";
 import { CompleteProfile } from "./CompleteProfile";
 import { MonthGrid, MonthSwitch } from "../MonthGrid";
@@ -449,6 +450,9 @@ export function MessagesPage() {
   return (
     <>
       <PageTitle title="Messages" text="Your conversation with the AOD team." />
+      <div className="mt-4">
+        <PushToggle as="artist" />
+      </div>
       <div className="mt-6 max-w-3xl">
         <ChatThread artist={db.me} side="artist" />
       </div>

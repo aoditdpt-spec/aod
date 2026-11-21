@@ -1,14 +1,13 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { samplePosts } from "@/content/blog";
 import type { Post } from "@/lib/admin-store";
 import { backendEnabled } from "@/lib/backend";
 import { fromRow } from "@/server/rows";
 
 // The blog's published posts, for the public pages (src/app/(site)/blog), the sitemap and the feed.
 // Live: read with the publishable key and nobody signed in, so row-level security only ever returns
-// published posts, and the pages stay cached (no cookies are read). Preview (no keys): the sample
-// posts in src/content/blog.ts, marked `sample`. If the database can't be reached the blog shows
-// as empty rather than failing.
+// published posts, and the pages stay cached (no cookies are read). Preview (no keys): nothing here
+// (the preview's blog pages show the sample posts of src/lib/mock-db.ts in the browser). If the
+// database can't be reached the blog shows as empty rather than failing.
 
 export type PublicPost = Post & { sample?: boolean };
 
@@ -21,7 +20,7 @@ function publicClient() {
 }
 
 export async function publishedPosts(): Promise<PublicPost[]> {
-  if (!backendEnabled) return samplePosts.filter(isLive).map((p) => ({ ...p, sample: true }));
+  if (!backendEnabled) return [];
   try {
     const { data, error } = await publicClient()
       .from("posts")
@@ -40,10 +39,7 @@ export async function publishedPosts(): Promise<PublicPost[]> {
 
 export async function postBySlug(slug: string): Promise<PublicPost | null> {
   if (!/^[a-z0-9-]{1,100}$/.test(slug)) return null;
-  if (!backendEnabled) {
-    const p = samplePosts.find((x) => x.slug === slug && isLive(x));
-    return p ? { ...p, sample: true } : null;
-  }
+  if (!backendEnabled) return null;
   try {
     const { data, error } = await publicClient().from("posts").select("*").eq("slug", slug).eq("status", "published").maybeSingle();
     if (error) throw new Error(error.message);
