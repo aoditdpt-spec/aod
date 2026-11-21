@@ -33,7 +33,7 @@ const groups: { title: string; items: Item[] }[] = [
     title: "Talk",
     items: [
       { href: "/admin/chat", label: "Chat With Artists", count: (c) => c.unread, hot: true },
-      { href: "/admin/messages", label: "Messages" },
+      { href: "/admin/messages", label: "Templates" }, // ready WhatsApp texts for customers (the address stays /admin/messages)
       { href: "/admin/blog", label: "Blog" },
     ],
   },

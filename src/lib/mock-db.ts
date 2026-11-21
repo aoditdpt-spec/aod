@@ -855,6 +855,18 @@ export const act = {
     const artist: Artist = { id: artistId, name: a.name, craft: a.craft, cats: [a.cat], city: a.city, photo: a.photo, email: a.email, phone: a.phone, since: dayKey(new Date()), active: true };
     change((p) => ({ ...p, appStage: { ...p.appStage, [id]: "approved" }, artists: [...(p.artists ?? []), artist] }), { text: `Approved ${a.name}; artist ${artistId} created` });
   },
+  // Mark unapproved (on request, 2026-11-21): the application goes back to Portfolio Review and
+  // the artist record approving made is removed (the admin only offers it while that artist isn't
+  // on any order or payout).
+  unapprove(id: string) {
+    const a = db().applications.find((x) => x.id === id);
+    if (!a) return;
+    const email = a.email.toLowerCase();
+    change(
+      (p) => ({ ...p, appStage: { ...p.appStage, [id]: "review" }, artists: (p.artists ?? []).filter((x) => x.email.toLowerCase() !== email) }),
+      { text: `Marked ${a.name} unapproved` },
+    );
+  },
   saveAppDetails(appId: string, details: AppDetails, name: string) {
     change((p) => ({ ...p, appDetails: { ...p.appDetails, [appId]: { ...p.appDetails?.[appId], ...details } } }), { text: `${name || "An applicant"} completed their profile`, by: name || "Applicant" });
   },

@@ -1000,6 +1000,20 @@ const liveAct = {
       });
     }, id);
   },
+  // Mark unapproved: the application goes back to Portfolio Review and the artist record made by
+  // approving it is deleted (its replies and chat go with it). The admin only offers it while that
+  // artist isn't on any order or payout.
+  unapprove(id: string) {
+    admin.update("Applications", `Marked ${id} unapproved`, (d) => {
+      const a = d.applications.find((x) => x.id === id);
+      if (!a) return;
+      const email = a.email.toLowerCase();
+      const artist = d.artists.find((x) => x.id === a.artistId) ?? d.artists.find((x) => x.email.toLowerCase() === email);
+      a.status = "review";
+      a.artistId = undefined;
+      if (artist) d.artists = d.artists.filter((x) => x.id !== artist.id);
+    }, id);
+  },
   saveAppDetails(_appId: string, details: AppDetails) {
     void savePortalDetails(details).then(alertError);
   },

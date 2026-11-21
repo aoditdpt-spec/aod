@@ -108,7 +108,10 @@ export function Applications() {
             <section>
               <Head title="Approve" />
               {open.stage === "approved" ? (
-                <p className="text-muted">Approved. They&apos;re on the Artists page.</p>
+                <div className="space-y-3">
+                  <p className="text-muted">Approved. They&apos;re on the Artists page.</p>
+                  <Unapprove db={db} appId={open.id} email={open.email} />
+                </div>
               ) : (
                 <>
                   <p className="mb-3 text-[13px] text-muted">Makes them an artist in {catName(open.cat)}, ready for requests.</p>
@@ -199,6 +202,11 @@ export function Artists() {
                 {open.active ? "Pause Artist" : "Activate Artist"}
               </button>
             </div>
+            {(() => {
+              // An artist who came from an application can be marked unapproved.
+              const app = db.applications.find((x) => x.email.toLowerCase() === open.email.toLowerCase() && x.stage === "approved");
+              return app ? <Unapprove db={db} appId={app.id} email={open.email} /> : null;
+            })()}
             <section>
               <Head title="Edit Profile" />
               <ArtistForm key={open.id} initial={open} onSave={(a) => act.editArtist(open.id, a)} cta="Save Changes" />
@@ -316,5 +324,34 @@ function ArtistForm({ initial, onSave, cta }: { initial?: Artist; onSave: (a: Pa
         {saved && <span className="text-[13px] text-muted">Saved.</span>}
       </div>
     </form>
+  );
+}
+
+// Mark an approved artist unapproved, with a check first: an artist already on an order or a
+// payout can't be removed (pause them instead), and the team confirms before anything changes.
+function Unapprove({ db, appId, email }: { db: NonNullable<ReturnType<typeof useDb>>; appId: string; email: string }) {
+  const [asking, setAsking] = useState(false);
+  const artist = db.artists.find((x) => x.email.toLowerCase() === email.toLowerCase());
+  const busy = artist ? db.bookings.filter((b) => b.assigned.includes(artist.id) || b.shortlist.includes(artist.id)).length + db.payouts.filter((p) => p.artist === artist.id).length : 0;
+  if (busy)
+    return <p className="text-[13px] text-muted">On {busy} order{busy === 1 ? "" : "s"} or payout{busy === 1 ? "" : "s"}, so they can&apos;t be marked unapproved. Pause them on the Artists page instead.</p>;
+  if (!asking)
+    return (
+      <button type="button" onClick={() => setAsking(true)} className={btn}>
+        Mark Unapproved
+      </button>
+    );
+  return (
+    <div className="rounded-xl border border-line p-4">
+      <p className="text-[13px]">They go back to Portfolio Review and lose their artist record (and their chat). They can be approved again later.</p>
+      <div className="mt-3 flex gap-2">
+        <button type="button" onClick={() => act.unapprove(appId)} className={btnMain}>
+          Yes, Mark Unapproved
+        </button>
+        <button type="button" onClick={() => setAsking(false)} className={btn}>
+          Cancel
+        </button>
+      </div>
+    </div>
   );
 }

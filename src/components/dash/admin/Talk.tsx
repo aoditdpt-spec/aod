@@ -75,7 +75,7 @@ export function Messages() {
 
   return (
     <>
-      <Title title="Messages" text="Ready messages for customers, filled in from an order." />
+      <Title title="Templates" text="Ready messages for customers, filled in from an order." />
       <label className="mt-7 block max-w-sm">
         <span className={label}>Order</span>
         <select value={b?.id ?? ""} onChange={(e) => setOrder(e.target.value)} disabled={!b} className={field}>
