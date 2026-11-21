@@ -6,6 +6,8 @@ import { useAppRouter as useRouter } from "@/components/ui/AppLink";
 import { act, CustomerData, CustomerReloader, customerSignOut, hoursLeft, parseDay, stageLabel, useCustomerInfo, useDb, type Booking, type Db } from "@/lib/app-db";
 import { backendEnabled } from "@/lib/backend";
 import { requestCode, verifyCode } from "@/server/actions/auth";
+import { isCompanyEmail } from "@/server/actions/business";
+import { isLocalCompanyEmail } from "@/lib/business";
 import { primaryButton, secondaryButton } from "@/components/ui/buttons";
 import { ArtistCards, EventRows, Payments, Progress, Timeline, bookAgain } from "./OrderParts";
 
@@ -77,18 +79,41 @@ function SignIn() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [companyEmail, setCompanyEmail] = useState(false);
   const { reload } = useCustomerInfo();
   return (
     <div className="max-w-md border-t border-ink pt-10">
-      {step === "email" ? (
+      {companyEmail ? (
+        // A company's email: its orders are in AOD For Business, not here (on request, 2026-11-21).
+        <div className="space-y-5" role="status">
+          <p className="text-xl font-medium">This Is A Company Email.</p>
+          <p className="text-muted">
+            <span className="text-ink">{email.trim().toLowerCase()}</span> belongs to a company account on AOD For Business. Its orders are in the business portal, not My Bookings.
+          </p>
+          <div className="flex flex-wrap gap-3 max-sm:*:flex-1">
+            <Link href="/business" className={primaryButton}>
+              Sign In To AOD For Business
+            </Link>
+            <button type="button" onClick={() => setCompanyEmail(false)} className={secondaryButton}>
+              Use Another Email
+            </button>
+          </div>
+        </div>
+      ) : step === "email" ? (
         <form
           className="space-y-6"
           onSubmit={async (e) => {
             e.preventDefault();
             if (busy) return;
             setError(null);
+            // A company's email goes to AOD For Business instead.
+            if (backendEnabled) setBusy(true);
+            const company = backendEnabled ? await isCompanyEmail(email).catch(() => false) : isLocalCompanyEmail(email);
+            if (company) {
+              setBusy(false);
+              return setCompanyEmail(true);
+            }
             if (backendEnabled) {
-              setBusy(true);
               const res = await requestCode(email, "customer").catch(() => ({ ok: false as const, error: "Couldn't send the code just now. Please try again in a minute." }));
               setBusy(false);
               if (!res.ok) return setError(res.error);

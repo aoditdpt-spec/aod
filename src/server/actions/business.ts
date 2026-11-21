@@ -55,6 +55,16 @@ async function signedIn(): Promise<string | null> {
   return data.user?.email?.toLowerCase() ?? null;
 }
 
+// Whether an email belongs to a company account (My Bookings sends it to AOD For Business
+// instead of signing it in). Only yes or no; nothing else about the company.
+export async function isCompanyEmail(email: string): Promise<boolean> {
+  if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return false;
+  const e = text(email, 120).toLowerCase();
+  if (!emailOk(e)) return false;
+  const { data } = await createAdminClient().from("companies").select("email").eq("email", e).maybeSingle();
+  return !!data;
+}
+
 // The signed-in company, or null (not signed in, or the email has no company).
 export async function myCompany(): Promise<Company | null> {
   if (!backendEnabled || !process.env.SUPABASE_SECRET_KEY) return null;
