@@ -12,7 +12,8 @@
     "check:db": "node --experimental-strip-types --no-warnings scripts/db-check.mts",
     "check:orders": "node --experimental-strip-types --no-warnings scripts/order-check.mts",
     "check:markdown": "node --experimental-strip-types --no-warnings scripts/markdown-check.mts",
-    "check:xlsx": "node --experimental-strip-types --no-warnings scripts/xlsx-encrypt-check.mts"
+    "check:xlsx": "node --experimental-strip-types --no-warnings scripts/xlsx-encrypt-check.mts",
+    "check:fresh": "node --experimental-strip-types --no-warnings scripts/fresh-start-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
