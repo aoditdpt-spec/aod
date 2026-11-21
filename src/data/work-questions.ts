@@ -29,7 +29,7 @@ export const kinds: { id: string; name: string; cat: string }[] = [
   { id: "cinematographers", name: "Cinematographer", cat: "photo-video" },
   { id: "drone-pilots", name: "Drone Operator", cat: "photo-video" },
   { id: "anchors-hosts", name: "Anchor / Host", cat: "anchors-hosts" },
-  { id: "musicians-djs", name: "Musician / DJ", cat: "musicians-djs" },
+  { id: "musicians-djs", name: "Musician / Live Band", cat: "musicians-djs" },
   { id: "singers", name: "Singer", cat: "musicians-djs" },
   { id: "comedians", name: "Stand-Up Comedian", cat: "comedians" },
   { id: "models", name: "Model", cat: "models-creators" },
@@ -47,7 +47,8 @@ const crafts: Record<string, string> = {
   anchor: "anchors-hosts",
   host: "anchors-hosts",
   musician: "musicians-djs",
-  dj: "musicians-djs",
+  dj: "musicians-djs", // the kind was "DJs" until 2026-11-21
+  "live band": "musicians-djs",
   singer: "singers",
   "stand-up comedian": "comedians",
   comedian: "comedians",
@@ -104,7 +105,7 @@ const serviceLists: Record<string, string[]> = {
   ],
   "drone-pilots": ["Real Estate, Resorts & Commercial", "Industrial Plants & Factories", "Destination Wedding Aerials"],
   "anchors-hosts": ["Corporate Summits, Conferences & Awards", "Panels, Webinars & Product Launches", "Weddings, Engagements & Sangeet", "Birthday & Kitty Party Host", "Podcast Host"],
-  "musicians-djs": ["Corporate Gala & Brand DJ Sets", "Wedding Sangeet & Cocktail DJ", "Live Acoustic Sets", "Birthday & Anniversary DJ"],
+  "musicians-djs": ["Corporate Gala & Brand Live Band Sets", "Wedding Sangeet & Cocktail Live Band", "Live Acoustic Sets", "Birthday & Anniversary Live Band"],
   comedians: ["Corporate Shows & Offsites", "Milestone Birthday Shows", "Wedding Sangeet Stand-Up", "Private & Bachelor / Bachelorette Parties", "College Festivals & Club Nights"],
   singers: ["Corporate & Executive Dinners", "Navratri / Garba & Dandiya", "Wedding Sangeet & Cocktail", "Sufi, Bollywood & Ghazal Nights", "Milestone Birthday & Anniversary"],
 };
@@ -175,7 +176,7 @@ export const workQuestions: Record<string, WorkQuestion[]> = {
     travel("events"),
   ],
   "musicians-djs": [
-    level("musician or DJ"),
+    level("musician or live band"),
     many("specialisations", "What you play", "Specialisation", ["Wedding / Sangeet", "Club / Lounge", "Corporate", "Bollywood", "Garba / Dandiya", "Live band", "Sufi / Ghazal", "Instrumental", "Other"]),
     one("lineUp", "Do you perform solo or with a band?", "Line-up", ["Solo", "Duo", "Band (3 or more)"]),
     many("equipment", "Equipment you bring", "Equipment", ["DJ controller / CDJs", "Speakers / PA", "Microphones", "Lights", "Smoke / effects", "Instruments", "None"]),

@@ -179,7 +179,7 @@ export const slugOf = (t: string) =>
 
 export const catName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
 
-// "Photographers × 2, DJs" as lines, each matched to its category.
+// "Photographers × 2, Live Band" as lines, each matched to its category.
 export function linesFromNeeds(needs: string, cats: string[]): Line[] {
   return needs
     .split(",")
@@ -245,7 +245,7 @@ function seed(today: Date, now: number) {
   });
 
   const bookings: Booking[] = [
-    b({ customer: "Patel Family", cats: ["photo-video", "musicians-djs"], needs: "Photographers × 2, DJs", date: day(2), start: "18:00", end: "23:00", city: "Ahmedabad", stage: "new", quote: null, source: "Website", assigned: [], made: 40, notes: "Sangeet night. Candids of the family dances and a few posed portraits of the couple.", occasion: "Haldi, Mehendi Or Sangeet", brief: "Lots of candids of the dances; a few posed portraits of the couple.", shortlist: ["ART-201", "ART-205"] }),
+    b({ customer: "Patel Family", cats: ["photo-video", "musicians-djs"], needs: "Photographers × 2, Live Band", date: day(2), start: "18:00", end: "23:00", city: "Ahmedabad", stage: "new", quote: null, source: "Website", assigned: [], made: 40, notes: "Sangeet night. Candids of the family dances and a few posed portraits of the couple.", occasion: "Haldi, Mehendi Or Sangeet", brief: "Lots of candids of the dances; a few posed portraits of the couple.", shortlist: ["ART-201", "ART-205"] }),
     b({ customer: "Shreeji Realty", cats: ["photo-video"], needs: "Drone Operators", date: day(5), start: "07:00", end: "10:00", city: "Surat", stage: "new", quote: null, source: "Business", business: true, assigned: [], made: 180, notes: "Aerial shots of the new tower for the brochure." }),
     b({ customer: "Galco", cats: ["photo-video"], needs: "Photographers, Cinematographers", date: day(9), start: "09:30", end: "17:30", city: "Gandhinagar", stage: "new", quote: null, source: "Business", business: true, assigned: [], made: 300, notes: "Conference coverage, keynote and stalls." }),
     b({ customer: "Trivedi Birthday", cats: ["comedians"], needs: "Stand-Up Comedians", date: day(7), start: "20:00", end: "21:00", city: "Rajkot", stage: "new", quote: null, source: "WhatsApp", assigned: [], made: 600 }),
@@ -256,7 +256,7 @@ function seed(today: Date, now: number) {
     b({ customer: "Joshi Reception", cats: ["photo-video"], needs: "Photographers, Cinematographers", date: day(20), start: "19:30", end: "23:30", city: "Ahmedabad", stage: "matched", quote: 54000, source: "Website", assigned: ["ART-201", "ART-205"], occasion: "Reception" }),
     b({ customer: "HoneyVeda", cats: ["models-creators"], needs: "Reel Creators", date: day(-9), start: "11:00", end: "14:00", city: "Ahmedabad", stage: "completed", quote: 9990, source: "Business", business: true, assigned: ["ART-206"] }),
     b({ customer: "Mehta Engagement", cats: ["photo-video"], needs: "Photographers", date: day(-16), start: "18:00", end: "22:00", city: "Vadodara", stage: "completed", quote: 18000, source: "Website", assigned: ["ART-201"] }),
-    b({ customer: "Desai Sangeet", cats: ["musicians-djs"], needs: "Singers, DJs", date: day(-3), start: "19:00", end: "23:00", city: "Surat", stage: "cancelled", quote: 30000, source: "Website", assigned: [] }),
+    b({ customer: "Desai Sangeet", cats: ["musicians-djs"], needs: "Singers, Live Band", date: day(-3), start: "19:00", end: "23:00", city: "Surat", stage: "cancelled", quote: 30000, source: "Website", assigned: [] }),
     b({ customer: "Patel Anniversary", cats: ["photo-video"], needs: "Photographers", date: day(-6), start: "19:00", end: "22:00", city: "Ahmedabad", stage: "completed", quote: 12000, source: "Website", assigned: ["ART-201"] }),
   ];
   const ref = (customer: string) => bookings.find((x) => x.customer === customer)!.id;
@@ -292,7 +292,7 @@ function seed(today: Date, now: number) {
     ["APP-235", "Nisha Rao", "Host", "anchors-hosts", "Ahmedabad", "anchors-hosts.jpg", -11, "review"],
     ["APP-234", "Pooja Desai", "Makeup Artist", "makeup-styling", "Rajkot", "makeup-artists.jpg", -12, "meeting", 2, 11],
     ["APP-233", "Arjun Patel", "Reel Creator", "models-creators", "Ahmedabad", "content-creators.webp", -13, "review"],
-    ["APP-232", "Rohan Iyer", "DJ", "musicians-djs", "Gandhinagar", "musicians-djs.jpg", -20, "approved"],
+    ["APP-232", "Rohan Iyer", "Live Band", "musicians-djs", "Gandhinagar", "musicians-djs.jpg", -20, "approved"],
     ["APP-231", "Kavya Shah", "Model", "models-creators", "Surat", "models.jpg", -22, "rejected"],
   ].map(([id, name, craft, cat, city, , applied, stage, meetDay, meetHour], i) => ({
     id: id as string,

@@ -41,7 +41,7 @@ export function siteManifest(): MetadataRoute.Manifest {
     id: "/",
     name: `${brand.name} — ${brand.fullName}`,
     short_name: brand.name,
-    description: "Book verified photographers, cinematographers, DJs, anchors, makeup artists and more in Gujarat.",
+    description: "Book verified photographers, cinematographers, live bands, anchors, makeup artists and more in Gujarat.",
     start_url: "/",
     scope: "/",
     categories: ["lifestyle", "entertainment", "business"],

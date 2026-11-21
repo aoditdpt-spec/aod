@@ -389,7 +389,7 @@ function NewBooking({ onDone }: { onDone: (id: string) => void }) {
     >
       <div className="rounded-lg bg-wash p-4">
         <span className={label}>Paste A WhatsApp Message</span>
-        <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={4} placeholder={"Name: …\nPhone: …\nWho: Photographers × 2, DJs\nDate: 21 Nov 2026\nTime: 6 PM – 11 PM\nCity: Ahmedabad"} className={`${field} h-auto py-2`} />
+        <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={4} placeholder={"Name: …\nPhone: …\nWho: Photographers × 2, Live Band\nDate: 21 Nov 2026\nTime: 6 PM – 11 PM\nCity: Ahmedabad"} className={`${field} h-auto py-2`} />
         <button
           type="button"
           onClick={() => {

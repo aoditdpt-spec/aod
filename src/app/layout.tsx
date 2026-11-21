@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.aod.co.in"),
   openGraph: { siteName: "AOD – Artists on Demand", type: "website", locale: "en_IN" },
   title: { default: "AOD – Artists on Demand", template: "%s · AOD" },
-  description: "Book verified photographers, cinematographers, DJs, anchors and more in Ahmedabad.",
+  description: "Book verified photographers, cinematographers, live bands, anchors and more in Ahmedabad.",
   applicationName: "AOD",
   // The installed app on iPhones (Add to Home Screen).
   appleWebApp: { capable: true, title: "AOD", statusBarStyle: "default" },

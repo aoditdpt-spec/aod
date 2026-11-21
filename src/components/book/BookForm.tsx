@@ -10,33 +10,42 @@ import { categoryIcons } from "@/data/home";
 import { categories } from "@/data/site";
 import { setAudience, useAudience, type Audience } from "@/lib/audience";
 import { backendEnabled } from "@/lib/backend";
-import { durationText, endAfter, time12, timeRange } from "@/lib/event-time";
+import { endAfter, timeRange } from "@/lib/event-time";
 import { orderId } from "@/lib/order-id";
 import { takeRebook } from "@/lib/rebook";
 import { requestCode, signedInEmail, verifyCode } from "@/server/actions/auth";
 import { createBookingRequest, type SaveResult } from "@/server/actions/public";
 import { primaryButton, secondaryButton } from "@/components/ui/buttons";
 import { Dots } from "@/components/ui/Dots";
+import { DatePickerDialog } from "@/components/ui/DatePicker";
 import { DurationField, TimeField } from "@/components/ui/TimePicker";
 import { withCount } from "@/components/ui/CountPicker";
 import { VenueField, blankVenue, type Venue } from "@/components/ui/VenueField";
 
-// The booking request, with as few clicks as possible (on request, 2026-11-19): each pick moves on
-// by itself, with no Next button.
-//   01 Who Are You Looking For?  tap one category (each with the homepage's picture)
-//   02 Which Kind Of Artist?     tap one kind, then How Many? below it on the same question: 1, 2, 3
-//                                or More (a box for 4 to 20); nothing picked to start with. A category
-//                                with only one kind asks How Many? alone. Tapping a number moves on.
-//   03 When, Where And Your Details   date, start time, how many hours, where, the brief for an artist, then
-//                                name, phone and email; Send OTP, then Confirm
-//      Request saves it straight away (no review page) and says "Request Received." with the ref.
-// The answers so far show as chips that jump back; Back and Clear All sit by the progress (Undo
-// removed on request, 2026-11-21).
-// Business events are booked from the company's account (/business), as on aod.co.in: there the
-// portal's Book Artists tab shows these questions with `forceAudience="business"` and the company's
-// contact details filled in; anywhere else a visitor who chose Business Events goes to /business
-// (on a category page, a line points there instead). Mock mode (backendEnabled off): no email goes
-// out, nothing is required, any code or none passes, and the request is kept in this browser.
+// The booking request, one question at a time, sliding from one to the next (on request,
+// 2026-11-21). Taps move on by themselves; only the two questions with typing have a button.
+//   01 Who Are You Looking For?   tap a category
+//   02 Which Kind Of Artist?      tap a kind, then How Many? (1, 2, 3 or More, a box up to 20);
+//                                 a category with one kind asks How Many? alone. The number adds
+//                                 the artists to the order (the cart).
+//   03 Need Anyone Else?          the cart so far; Add Another Artist (back to 01) or No, That's
+//                                 Everyone. So an order can hold several kinds of artist, each
+//                                 picked with single taps.
+//   04 When Is The Event?         the next 15 days from tomorrow as tiles, then Other Date, which
+//                                 opens the calendar popup (DatePicker.tsx)
+//   05 What Time?                 Start Time and How Many Hours?, fields that open scroll wheels;
+//                                 once both are set it moves on
+//   06 Where Is The Event?        the event's name (optional), the venue, and the brief for an artist
+//                                 (optional) under it; Continue
+//   07 Your Details               name, phone and email; Send OTP, then Confirm Request
+//      Confirm saves it straight away (no review page) and says "Request Received." with the ref.
+// The answers so far show as chips that jump back, and a cart button (the number of kinds of artist
+// picked) opens 03. Back, Next (after going back) and Clear All sit by the progress.
+// Business events are booked from the company's account (/business): there the portal's Book
+// Artists tab shows these questions with `forceAudience="business"` and the company's contact
+// details filled in; anywhere else a visitor who chose Business Events goes to /business (on a
+// category page, a line points there instead). Mock mode (backendEnabled off): no email goes out,
+// nothing is required, any code or none passes, and the request is kept in this browser.
 
 export const MOCK_ORDERS_EVENT = "aod-mock-orders";
 
@@ -77,15 +86,12 @@ const isEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const input = "mt-2 h-12 w-full rounded-lg border border-line bg-paper px-4 text-base text-ink outline-none transition-colors focus:border-ink";
 const tile = (on: boolean) => `rounded-xl border font-medium leading-tight transition-colors ${on ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink hover:border-ink"}`;
 const textButton = "text-sm font-medium text-ink underline underline-offset-4 hover:text-brand disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40";
-const blank = { date: "", time: "", hours: 0, venue: blankVenue as Venue, details: "", name: "", phone: "", email: "" };
-const LAST = p.steps.length - 1;
+const blank = { date: "", time: "", hours: 0, occasion: "", venue: blankVenue as Venue, details: "", name: "", phone: "", email: "" };
+// The questions, in order (their titles are p.steps).
+const S = { who: 0, kind: 1, more: 2, date: 3, time: 4, where: 5, you: 6 } as const;
+const LAST = S.you;
 const COUNTS = [1, 2, 3]; // then More, a box for 4 to 20
-// The last question's quick picks; "Other" opens the scroll wheels (TimePicker.tsx).
-const TIMES = ["10:00", "12:00", "15:00", "17:00", "19:00", "20:00"];
-const HOURS = [2, 3, 4, 5, 6, 8];
-const DAYS = 15; // day tiles from tomorrow; "Other" opens the calendar for any later day
-const sectionTitle = "text-xl font-medium sm:text-2xl";
-const subLabel = "text-sm text-muted";
+const DAYS = 15; // day tiles from tomorrow; "Other Date" opens the calendar for any other day
 
 // A YYYY-MM-DD day as the tiles show it.
 function dayParts(value: string) {
@@ -109,18 +115,20 @@ function nextDays(from: string, n: number) {
 }
 
 type Contact = { name: string; phone: string; email: string };
+// One kind of artist in the order: the category, the kind ("Photographers") and how many.
+type Line = { category: string; kind: string; count: number };
 
 // The booking in progress, shared by /book (Get Your Artist) and the category pages, kept for this
-// tab (sessionStorage) (on request, 2026-11-21). Get Your Artist carries on from it; a category
-// page carries on only if it's the same category, otherwise it starts over with that category
-// (keeping the name, phone and email). Sending the request clears it. The business portal keeps
-// its own.
-type Draft = { cat: string | null; kind: string | null; count: number | null; step: number; reached: number; form: typeof blank };
+// tab (sessionStorage). Get Your Artist carries on from it; a category page carries on only if
+// that category is already in it, otherwise it starts over with that category (keeping the name,
+// phone and email). Sending the request clears it. The business portal keeps its own.
+type Draft = { lines: Line[]; cat: string | null; kind: string | null; step: number; reached: number; form: typeof blank };
 const DRAFT_KEY = "aod-book-draft";
 function readDraft(): Draft | null {
   try {
     const v = sessionStorage.getItem(DRAFT_KEY);
-    return v ? (JSON.parse(v) as Draft) : null;
+    const d = v ? (JSON.parse(v) as Partial<Draft>) : null;
+    return d && Array.isArray(d.lines) && d.form ? (d as Draft) : null; // an older draft (one artist, no cart) starts over
   } catch {
     return null;
   }
@@ -134,7 +142,11 @@ function writeDraft(d: Draft | null) {
   }
 }
 
-export function BookForm({ forceAudience, contact, presetCategory, presetDate }: { forceAudience?: Audience; contact?: Contact; presetCategory?: string; presetDate?: string }) {
+// What the business calendar's "add event" popup already asked: its event name, start time and
+// length (the date comes as `presetDate`). Those questions are then skipped.
+export type PresetEvent = { occasion?: string; time?: string; hours?: number };
+
+export function BookForm({ forceAudience, contact, presetCategory, presetDate, presetEvent }: { forceAudience?: Audience; contact?: Contact; presetCategory?: string; presetDate?: string; presetEvent?: PresetEvent }) {
   const chosenAudience = useAudience();
   const router = useRouter();
   const toBusiness = !forceAudience && chosenAudience === "business";
@@ -152,31 +164,30 @@ export function BookForm({ forceAudience, contact, presetCategory, presetDate }:
         </Link>
       </p>
     );
-  return <Questions audience={forceAudience ?? chosenAudience} forced={!!forceAudience} contact={contact} presetCategory={presetCategory} presetDate={presetDate} />;
+  return <Questions audience={forceAudience ?? chosenAudience} forced={!!forceAudience} contact={contact} presetCategory={presetCategory} presetDate={presetDate} presetEvent={presetEvent} />;
 }
 
 // `presetDate` ("YYYY-MM-DD"): the event date already filled in (a day picked on the business calendar).
-function Questions({ audience, forced, contact, presetCategory, presetDate }: { audience: Audience | null | "unknown"; forced: boolean; contact?: Contact; presetCategory?: string; presetDate?: string }) {
+function Questions({ audience, forced, contact, presetCategory, presetDate, presetEvent }: { audience: Audience | null | "unknown"; forced: boolean; contact?: Contact; presetCategory?: string; presetDate?: string; presetEvent?: PresetEvent }) {
   const queryPreset = usePreset();
   const preset = categories.some((c) => c.slug === (presetCategory ?? queryPreset)) ? (presetCategory ?? queryPreset) : "";
   const minDate = useTomorrow();
+  const [lines, setLines] = useState<Line[]>([]);
+  // The artist being picked now (questions 01 and 02), before it joins the cart.
   const [picked, setPicked] = useState<string | null | undefined>(undefined); // undefined: the preset
   const cat = picked === undefined ? preset || null : picked;
   const category = categories.find((c) => c.slug === cat);
   const single = category ? category.types.length <= 1 : false;
-  // A preset category opens at its next question.
-  const [stepState, setStep] = useState<number | null>(null);
-  const step = stepState ?? (preset ? 1 : 0);
-  const [dir, setDir] = useState(1);
-  const [reached, setReached] = useState(0); // the furthest question reached, for Next after Back
   const [kindState, setKind] = useState<string | null>(null);
   const kind = single ? (category?.types[0] ?? category?.name ?? null) : kindState;
-  const [count, setCount] = useState<number | null>(null); // nothing picked to start with
+  const [stepState, setStep] = useState<number | null>(null);
+  const step = stepState ?? (preset ? S.kind : S.who); // a preset category opens at its next question
+  const [dir, setDir] = useState(1);
+  const [reached, setReached] = useState(0); // the furthest question reached, for Next after Back
   const [more, setMore] = useState("");
   const [showMore, setShowMore] = useState(false);
-  const [otherTime, setOtherTime] = useState(false);
-  const [otherHours, setOtherHours] = useState(false);
-  const [form, setForm] = useState(() => ({ ...blank, date: presetDate ?? "", ...contact }));
+  const [calendar, setCalendar] = useState(false);
+  const [form, setForm] = useState(() => ({ ...blank, date: presetDate ?? "", occasion: presetEvent?.occasion ?? "", time: presetEvent?.time ?? "", hours: presetEvent?.hours ?? 0, ...contact }));
   const [missing, setMissing] = useState<string[]>([]);
   const [view, setView] = useState<"form" | "done">("form");
   const [ref, setRef] = useState("");
@@ -199,52 +210,54 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
   const days = nextDays(minDate, DAYS);
   const pickedDay = form.date ? dayParts(form.date) : null;
   const otherDate = Boolean(form.date) && !days.some((d) => d.value === form.date);
-  const timeIsOther = otherTime || (Boolean(form.time) && !TIMES.includes(form.time));
-  const hoursIsOther = otherHours || (form.hours > 0 && !HOURS.some((h) => h * 60 === form.hours));
   const kindName = kind ?? category?.name ?? "";
-  const needsText = kindName ? withCount(kindName, count ?? 1) : "";
+  const lineCount = (k: string) => lines.find((l) => l.category === cat && l.kind === k)?.count ?? null;
+  const needsText = lines.map((l) => withCount(l.kind, l.count)).join(", ");
+  const cats = [...new Set(lines.map((l) => l.category))];
 
   // Each time the page is shown (Next.js keeps a page around and runs this again when you come
   // back): Book Again's answers if there are some (My Bookings, the business portal), opened at the
-  // details; otherwise the booking in progress (see Draft above).
+  // date; otherwise the booking in progress (see Draft above).
   const shared = !forced;
   const ready = useRef(false);
   useEffect(() => {
     const again = takeRebook();
     const draft = shared ? readDraft() : null;
     void Promise.resolve().then(() => {
+      setShowMore(false);
+      setMissing([]);
+      setView("form");
       if (again) {
-        const c = again.categories[0] ?? null;
-        const k = (c && again.kinds[c]?.[0]) || categories.find((x) => x.slug === c)?.types[0] || null;
-        setPicked(c);
-        setKind(k);
-        setCount((k && again.counts[k]) || 1);
-        setForm((f) => ({ ...f, venue: { ...blankVenue, text: again.venue }, time: again.time, hours: again.hours, details: again.details }));
+        const fromAgain: Line[] = again.categories.flatMap((c) => {
+          const types = categories.find((x) => x.slug === c)?.types ?? [];
+          const ks = again.kinds[c]?.length ? again.kinds[c] : types.slice(0, 1);
+          return ks.map((k) => ({ category: c, kind: k, count: again.counts[k] || 1 }));
+        });
+        setLines(fromAgain);
+        setPicked(null);
+        setKind(null);
+        setForm((f) => ({ ...f, date: "", venue: { ...blankVenue, text: again.venue }, time: again.time, hours: again.hours, details: again.details }));
         moved.current = true;
-        setStep(LAST);
-        setReached(LAST);
-        setView("form");
+        setStep(S.date);
+        setReached(S.date);
       } else if (shared) {
-        setShowMore(false);
-        setMissing([]);
-        setView("form");
-        if (draft && (!preset || draft.cat === preset)) {
+        if (draft && (!preset || draft.cat === preset || draft.lines.some((l) => l.category === preset))) {
+          setLines(draft.lines);
           setPicked(draft.cat);
           setKind(draft.kind);
-          setCount(draft.count);
           setForm(draft.form);
           setStep(draft.step);
           setReached(draft.reached);
         } else {
           // A different category (or nothing yet): start over with this one.
           const fresh = { ...blank, name: draft?.form.name ?? "", phone: draft?.form.phone ?? "", email: draft?.form.email ?? "" };
+          setLines([]);
           setPicked(undefined);
           setKind(null);
-          setCount(null);
           setForm(fresh);
           setStep(null);
           setReached(0);
-          writeDraft({ cat: preset || null, kind: null, count: null, step: preset ? 1 : 0, reached: 0, form: fresh });
+          writeDraft({ lines: [], cat: preset || null, kind: null, step: preset ? S.kind : S.who, reached: 0, form: fresh });
         }
       }
       ready.current = true;
@@ -257,8 +270,8 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
   // Keep the booking in progress as it changes; a sent request clears it.
   useEffect(() => {
     if (!shared || !ready.current) return;
-    writeDraft(view === "done" ? null : { cat, kind: kindState, count, step, reached, form });
-  }, [shared, view, cat, kindState, count, step, reached, form]);
+    writeDraft(view === "done" ? null : { lines, cat, kind: kindState, step, reached, form });
+  }, [shared, view, lines, cat, kindState, step, reached, form]);
 
   // Already signed in with this email? Typing it skips the code.
   useEffect(() => {
@@ -284,50 +297,72 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
     setReached((r) => Math.max(r, to));
   };
   function clearAll() {
+    setLines([]);
     setPicked(null);
     setKind(null);
-    setCount(null);
     setShowMore(false);
     setForm({ ...blank, ...contact });
     setMissing([]);
     setReached(0);
-    goStep(0);
+    goStep(S.who);
   }
-  const back = () => goStep(step - 1);
+  const back = () => goStep(step === S.who && lines.length ? S.more : step - 1);
   // Next shows after Back, while the question on screen is still answered.
-  const canNext = step < reached && (step === 0 ? Boolean(cat) : step === 1 ? Boolean(kind && count) : false);
+  const answered = [Boolean(cat), Boolean(kind && lineCount(kind)), lines.length > 0, Boolean(form.date), Boolean(form.time && form.hours), true, false];
+  const canNext = step < reached && answered[step];
   const next = () => goStep(step + 1);
 
   const pickCategory = (slug: string) => {
     if (slug !== cat) {
       setKind(null);
-      setCount(null);
       setShowMore(false);
-      setReached(1);
     }
     setPicked(slug);
-    goStep(1);
+    goStep(S.kind);
   };
   // Picking a kind stays on question 02, where How Many? appears under the kinds.
   const pickKind = (k: string) => {
-    if (k !== kindState) {
-      setCount(null);
-      setShowMore(false);
-      setReached((r) => Math.min(r, 1));
-    }
+    if (k !== kindState) setShowMore(false);
     setKind(k);
   };
+  // How many: the artists join the cart (a kind already in it gets the new number), then 03.
   const pickCount = (n: number) => {
-    setCount(Math.max(1, Math.min(20, n)));
-    goStep(LAST);
+    if (!cat || !kind) return;
+    const c = Math.max(1, Math.min(20, n));
+    setLines((ls) => (ls.some((l) => l.category === cat && l.kind === kind) ? ls.map((l) => (l.category === cat && l.kind === kind ? { ...l, count: c } : l)) : [...ls, { category: cat, kind, count: c }]));
+    setShowMore(false);
+    setMore("");
+    goStep(S.more);
   };
-  const set = (key: "details" | "name" | "phone" | "email") => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const removeLine = (l: Line) => setLines((ls) => ls.filter((x) => !(x.category === l.category && x.kind === l.kind)));
+  // Add Another Artist: question 01 again, with nothing picked.
+  const addAnother = () => {
+    setPicked(null);
+    setKind(null);
+    setShowMore(false);
+    goStep(S.who);
+  };
+  // No, That's Everyone: on to the first question not answered yet (a date and time from the
+  // business calendar, or Book Again's time, are already there).
+  const afterCart = () => goStep(!form.date ? S.date : !(form.time && form.hours) ? S.time : S.where);
+  const pickDate = (date: string) => {
+    change({ date });
+    setCalendar(false);
+    goStep(form.time && form.hours ? S.where : S.time);
+  };
+  // Start time and how many hours: once both are set, on to where.
+  const pickTime = (patch: Partial<typeof blank>) => {
+    const f = { ...form, ...patch };
+    change(patch);
+    if (f.time && f.hours > 0) goStep(S.where);
+  };
+  const set = (key: "occasion" | "details" | "name" | "phone" | "email") => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [key]: e.target.value }));
   const change = (patch: Partial<typeof blank>) => setForm((f) => ({ ...f, ...patch }));
 
   function stillNeeded() {
     const f = p.fields;
     return [
-      !cat && p.rows.who,
+      !lines.length && p.rows.who,
       !form.date && f.date,
       !form.time && f.time,
       !form.hours && f.hours.replace("?", ""),
@@ -342,6 +377,7 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
+    if (step === S.where) return goStep(S.you); // Continue
     const need = backendEnabled ? stillNeeded() : [];
     setMissing(need);
     if (need.length > 0) return;
@@ -376,29 +412,31 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
 
   async function confirm() {
     setSaveError(null);
-    const lines = cat ? [{ category: cat, name: kindName, count: count ?? 1 }] : [];
+    const sent = lines.map((l) => ({ category: l.category, name: l.kind, count: l.count }));
+    const kinds = lines.map((l) => l.kind);
     if (!backendEnabled) {
       const n = saveMock({
         audience,
-        categories: cat ? [cat] : [],
-        kinds: kind ? [kind] : [],
-        counts: kind ? { [kind]: count ?? 1 } : {},
-        lines,
+        categories: cats,
+        kinds,
+        counts: Object.fromEntries(lines.map((l) => [l.kind, l.count])),
+        lines: sent,
         needs: needsText,
         ...form,
         endTime,
         email,
       });
-      setRef(orderId(cat ? [cat] : [], n, new Date(), audience === "business"));
+      setRef(orderId(cats, n, new Date(), audience === "business"));
       moved.current = true;
       return setView("done");
     }
     setBusy("save");
     const res = await createBookingRequest({
       audience: audience === "business" ? "business" : "personal",
-      categories: cat ? [cat] : [],
-      kinds: kind ? [kind] : [],
-      lines,
+      categories: cats,
+      kinds,
+      lines: sent,
+      occasion: form.occasion,
       date: form.date,
       startTime: form.time,
       endTime,
@@ -427,15 +465,15 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
 
   // Book Another Event: the questions again from the start, keeping the contact details.
   function another() {
+    setLines([]);
     setPicked(null);
     setKind(null);
-    setCount(null);
     setShowMore(false);
     setForm((f) => ({ ...blank, name: f.name, phone: f.phone, email: f.email }));
     setMissing([]);
     setSaveError(null);
     setDir(-1);
-    setStep(0);
+    setStep(S.who);
     setReached(0);
     moved.current = true;
     setView("form");
@@ -443,8 +481,10 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
 
   // The answers so far, as chips that jump back to their question.
   const chips = [
-    { text: category?.name ?? "", step: 0 },
-    { text: count ? needsText : single ? "" : (kind ?? ""), step: 1 },
+    { text: needsText, step: S.more },
+    { text: pickedDay?.long ?? "", step: S.date },
+    { text: form.time && form.hours > 0 ? timeRange(form.time, endTime) : "", step: S.time },
+    { text: form.occasion || form.venue.text, step: S.where },
   ].filter((c) => c.text && c.step < step);
 
   if (view === "done")
@@ -477,6 +517,8 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
       </div>
     );
 
+  const title = step === S.kind && single && kindName ? p.howMany(kindName) : p.steps[step];
+
   return (
     <div ref={top} className="max-w-3xl scroll-mt-24">
       {/* The first-visit choice (AudiencePrompt); "Change" asks the question again. */}
@@ -489,17 +531,23 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
         </p>
       )}
 
-      {/* Progress, with Back, Next (after going back) and Clear All. */}
+      {/* Progress, the cart, then Back, Next (after going back) and Clear All. */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink pt-5">
         <div className="flex items-center gap-3 text-sm text-muted">
           <span>{p.question(step + 1, p.steps.length)}</span>
           <span className="flex gap-1" aria-hidden>
             {p.steps.map((_, i) => (
-              <i key={i} className={`h-1 w-6 rounded-full transition-colors ${i <= step ? "bg-ink" : "bg-line"}`} />
+              <i key={i} className={`h-1 w-5 rounded-full transition-colors ${i <= step ? "bg-ink" : "bg-line"}`} />
             ))}
           </span>
         </div>
-        <div className="flex gap-5">
+        <div className="flex items-center gap-5">
+          {lines.length > 0 && step !== S.more && (
+            <button type="button" onClick={() => goStep(S.more)} aria-label={`${p.cart}: ${needsText}`} className="relative grid h-9 w-9 place-items-center rounded-full border border-line text-ink transition-colors hover:border-ink">
+              <CartIcon />
+              <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[11px] font-medium text-white tabular-nums">{lines.length}</span>
+            </button>
+          )}
           {step > 0 && (
             <button type="button" onClick={back} className={textButton}>
               {p.back}
@@ -510,7 +558,7 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
               {p.next}
             </button>
           )}
-          <button type="button" onClick={clearAll} disabled={!cat && JSON.stringify(form) === JSON.stringify({ ...blank, ...contact })} className={textButton}>
+          <button type="button" onClick={clearAll} disabled={!lines.length && !cat && JSON.stringify(form) === JSON.stringify({ ...blank, ...contact })} className={textButton}>
             {p.clear}
           </button>
         </div>
@@ -546,23 +594,27 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
             >
               <p className="text-sm text-muted">{String(step + 1).padStart(2, "0")}</p>
               <h2 id="book-question" ref={heading} tabIndex={-1} className="mt-2 text-2xl outline-none sm:text-3xl">
-                {step === 1 && single && kindName ? p.howMany(kindName) : p.steps[step]}
+                {title}
               </h2>
               <div className="mt-6">
-                {step === 0 && (
+                {step === S.who && (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {categories.map((c) => (
-                      <button key={c.slug} type="button" aria-pressed={cat === c.slug} onClick={() => pickCategory(c.slug)} className={`flex flex-col items-start rounded-xl border p-4 text-left text-base font-medium leading-tight text-ink transition-colors ${cat === c.slug ? "border-ink bg-wash ring-1 ring-ink" : "border-line bg-paper hover:border-ink"}`}>
-                        {/* The homepage's picture for the category (categoryIcons), a transparent cut-out. A picked
-                            tile is outlined, not black, so the dark clothes stay visible. */}
-                        <Image src={categoryIcons[c.slug]} alt="" width={512} height={512} className="h-14 w-14 sm:h-16 sm:w-16" />
-                        <span className="mt-3">{c.name}</span>
-                      </button>
-                    ))}
+                    {categories.map((c) => {
+                      const inCart = lines.some((l) => l.category === c.slug);
+                      return (
+                        <button key={c.slug} type="button" aria-pressed={cat === c.slug} onClick={() => pickCategory(c.slug)} className={`relative flex flex-col items-start rounded-xl border p-4 text-left text-base font-medium leading-tight text-ink transition-colors ${cat === c.slug ? "border-ink bg-wash ring-1 ring-ink" : "border-line bg-paper hover:border-ink"}`}>
+                          {/* The homepage's picture for the category (categoryIcons), a transparent cut-out. A picked
+                              tile is outlined, not black, so the dark clothes stay visible. */}
+                          <Image src={categoryIcons[c.slug]} alt="" width={512} height={512} className="h-14 w-14 sm:h-16 sm:w-16" />
+                          <span className="mt-3">{c.name}</span>
+                          {inCart && <span className="absolute right-3 top-3 rounded-full bg-brand px-2 py-0.5 text-[11px] font-medium text-white">{p.added}</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
-                {step === 1 && category && !single && (
+                {step === S.kind && category && !single && (
                   <div className="flex flex-wrap gap-2">
                     {category.types.map((t) => (
                       <button key={t} type="button" aria-pressed={kindState === t} onClick={() => pickKind(t)} className={`h-12 px-5 text-base ${tile(kindState === t)}`}>
@@ -571,20 +623,20 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
                     ))}
                   </div>
                 )}
-                {step === 1 && !category && <p className="text-lg text-muted">{p.pickFirst}</p>}
+                {step === S.kind && !category && <p className="text-lg text-muted">{p.pickFirst}</p>}
 
                 {/* How Many?, on the same question once a kind is picked (or straight away for a
                     category with only one kind): 1, 2, 3, or More for a box up to 20. */}
-                {step === 1 && category && kind && (
+                {step === S.kind && category && kind && (
                   <div className={single ? "" : "mt-10"}>
                     {!single && <h3 className="text-xl sm:text-2xl">{p.howMany(kindName)}</h3>}
                     <div className={`flex flex-wrap gap-2 ${single ? "" : "mt-4"}`}>
                       {COUNTS.map((n) => (
-                        <button key={n} type="button" aria-pressed={count === n} onClick={() => pickCount(n)} className={`h-12 min-w-14 px-4 text-base tabular-nums ${tile(count === n)} justify-center text-center`}>
+                        <button key={n} type="button" aria-pressed={lineCount(kind) === n} onClick={() => pickCount(n)} className={`h-12 min-w-14 justify-center px-4 text-center text-base tabular-nums ${tile(lineCount(kind) === n)}`}>
                           {n}
                         </button>
                       ))}
-                      <button type="button" aria-pressed={showMore} onClick={() => setShowMore(true)} className={`h-12 px-5 text-base ${tile(showMore || (count ?? 0) > COUNTS.length)}`}>
+                      <button type="button" aria-pressed={showMore} onClick={() => setShowMore(true)} className={`h-12 px-5 text-base ${tile(showMore || (lineCount(kind) ?? 0) > COUNTS.length)}`}>
                         {p.more}
                       </button>
                     </div>
@@ -615,130 +667,103 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
                   </div>
                 )}
 
-                {step === LAST && (
+                {/* The cart: who's in the order so far, then add another or carry on. */}
+                {step === S.more && (
                   <>
-                    {/* Tap-to-pick, like the first two questions, so it doesn't read as a form
-                        (on request, 2026-11-21): When (a day, a start time, how long; "Other"
-                        opens the calendar or the scroll wheels), Where, the brief, then the
-                        contact details in a card. */}
-                    <h3 className={sectionTitle}>{p.sections.when}</h3>
-                    <p className={`${subLabel} mt-4`}>{p.fields.date}</p>
-                    <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-8 sm:overflow-visible sm:px-0">
-                      {days.map((d) => (
-                        <button key={d.value} type="button" aria-pressed={form.date === d.value} aria-label={d.long} onClick={() => change({ date: d.value })} className={`flex w-[4.5rem] shrink-0 flex-col items-center py-3 text-center sm:w-auto ${tile(form.date === d.value)}`}>
-                          <span className="text-xs opacity-70">{d.weekday}</span>
-                          <span className="mt-1 text-2xl tabular-nums">{d.day}</span>
-                          <span className="text-xs opacity-70">{d.month}</span>
-                        </button>
-                      ))}
-                      {/* Any other day: the browser's own calendar, opened by a tap anywhere on the tile. */}
-                      <label className={`relative flex w-[4.5rem] shrink-0 cursor-pointer flex-col items-center justify-center py-3 text-center sm:w-auto ${tile(otherDate)}`}>
-                        <span className="text-xs opacity-70">{otherDate ? pickedDay?.weekday : p.otherDate[0]}</span>
-                        <span className={`mt-1 tabular-nums ${otherDate ? "text-2xl" : "text-base"}`}>{otherDate ? pickedDay?.day : p.otherDate[1]}</span>
-                        <span className="text-xs opacity-70">{otherDate ? pickedDay?.month : "\u00a0"}</span>
-                        <input
-                          type="date"
-                          min={minDate || undefined}
-                          value={form.date}
-                          onChange={(e) => change({ date: e.target.value })}
-                          onClick={(e) => {
-                            try {
-                              e.currentTarget.showPicker?.();
-                            } catch {
-                              // Older browsers open it themselves.
-                            }
-                          }}
-                          aria-label={p.fields.date}
-                          className="absolute inset-0 cursor-pointer opacity-0"
-                        />
-                      </label>
-                    </div>
-
-                    <p className={`${subLabel} mt-8`}>{p.fields.time}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {TIMES.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          aria-pressed={form.time === t && !otherTime}
-                          onClick={() => {
-                            setOtherTime(false);
-                            change({ time: t });
-                          }}
-                          className={`h-12 px-4 text-base tabular-nums ${tile(form.time === t && !otherTime)}`}
-                        >
-                          {time12(t).replace(":00", "")}
-                        </button>
-                      ))}
-                      <button type="button" aria-pressed={timeIsOther} onClick={() => setOtherTime(true)} className={`h-12 px-5 text-base ${tile(timeIsOther)}`}>
-                        {form.time && !TIMES.includes(form.time) ? time12(form.time) : p.other}
-                      </button>
-                    </div>
-                    {timeIsOther && (
-                      <div className="mt-3 max-w-xs">
-                        <TimeField label={p.pickTime} value={form.time} onChange={(time) => change({ time })} />
-                      </div>
+                    {lines.length > 0 && (
+                      <ul className="mb-8 border-t border-line">
+                        {lines.map((l) => (
+                          <li key={`${l.category}-${l.kind}`} className="flex items-center gap-4 border-b border-line py-3.5">
+                            <Image src={categoryIcons[l.category]} alt="" width={512} height={512} className="h-10 w-10 shrink-0" />
+                            <span className="min-w-0 flex-1 text-lg">{withCount(l.kind, l.count)}</span>
+                            <button type="button" onClick={() => removeLine(l)} className={textButton}>
+                              {p.remove}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-
-                    <p className={`${subLabel} mt-8`}>{p.fields.hours}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {HOURS.map((h) => (
-                        <button
-                          key={h}
-                          type="button"
-                          aria-pressed={form.hours === h * 60 && !otherHours}
-                          onClick={() => {
-                            setOtherHours(false);
-                            change({ hours: h * 60 });
-                          }}
-                          className={`h-12 px-4 text-base tabular-nums ${tile(form.hours === h * 60 && !otherHours)}`}
-                        >
-                          {p.hoursShort(h)}
-                        </button>
-                      ))}
-                      <button type="button" aria-pressed={hoursIsOther} onClick={() => setOtherHours(true)} className={`h-12 px-5 text-base ${tile(hoursIsOther)}`}>
-                        {form.hours > 0 && !HOURS.some((h) => h * 60 === form.hours) ? durationText(form.hours) : p.other}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <button type="button" onClick={addAnother} className={`flex min-h-20 items-center gap-3 p-5 text-left text-lg ${tile(false)}`}>
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-wash text-xl leading-none" aria-hidden>
+                          +
+                        </span>
+                        {lines.length ? p.addAnother : p.addFirst}
                       </button>
+                      {lines.length > 0 && (
+                        <button type="button" onClick={afterCart} className={`flex min-h-20 items-center p-5 text-left text-lg ${tile(true)}`}>
+                          {p.thatsEveryone}
+                        </button>
+                      )}
                     </div>
-                    {hoursIsOther && (
-                      <div className="mt-3 max-w-xs">
-                        <DurationField label={p.pickHours} value={form.hours} onChange={(hours) => change({ hours })} />
-                      </div>
-                    )}
+                  </>
+                )}
 
-                    {/* The answer in one line, once there's a start time and a length. */}
+                {/* The next 15 days from tomorrow, then Other Date (the calendar popup). */}
+                {step === S.date && (
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+                    {days.map((d) => (
+                      <button key={d.value} type="button" aria-pressed={form.date === d.value} aria-label={d.long} onClick={() => pickDate(d.value)} className={`flex flex-col items-center py-3 text-center ${tile(form.date === d.value)}`}>
+                        <span className="text-xs opacity-70">{d.weekday}</span>
+                        <span className="mt-1 text-2xl tabular-nums">{d.day}</span>
+                        <span className="text-xs opacity-70">{d.month}</span>
+                      </button>
+                    ))}
+                    <button type="button" aria-pressed={otherDate} onClick={() => setCalendar(true)} className={`flex flex-col items-center justify-center py-3 text-center ${tile(otherDate)}`}>
+                      <span className="text-xs opacity-70">{otherDate ? pickedDay?.weekday : p.otherDate[0]}</span>
+                      <span className={`mt-1 tabular-nums ${otherDate ? "text-2xl" : "text-base"}`}>{otherDate ? pickedDay?.day : p.otherDate[1]}</span>
+                      <span className="text-xs opacity-70">{otherDate ? pickedDay?.month : " "}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Start time and how many hours: fields that open the scroll wheels. */}
+                {step === S.time && (
+                  <>
+                    <div className="grid max-w-xl gap-4 sm:grid-cols-2">
+                      <TimeField label={p.fields.time} value={form.time} onChange={(time) => pickTime({ time })} />
+                      <DurationField label={p.fields.hours} value={form.hours} onChange={(hours) => pickTime({ hours })} align="right" />
+                    </div>
                     {form.time && form.hours > 0 && (
                       <p className="mt-6 rounded-xl bg-wash px-4 py-3 text-base text-ink" aria-live="polite">
                         {pickedDay && <span className="font-medium">{pickedDay.long} · </span>}
                         {timeRange(form.time, endTime)}
                       </p>
                     )}
+                  </>
+                )}
 
-                    <h3 className={`${sectionTitle} mt-14`}>{p.fields.venue}</h3>
-                    <div className="mt-4">
-                      <VenueField label={p.fields.venue} hideLabel placeholder={p.venuePlaceholder} value={form.venue} onChange={(venue) => change({ venue })} inputClass={input} testNote={!backendEnabled} />
-                    </div>
+                {/* Where, and the brief for an artist (optional) right under it. */}
+                {step === S.where && (
+                  <>
+                    <label className="mb-8 block text-sm text-muted">
+                      {p.fields.occasion}
+                      <input value={form.occasion} onChange={set("occasion")} placeholder={p.occasionPlaceholder} className={`${input} placeholder:text-muted/70`} />
+                    </label>
+                    <VenueField label={p.fields.venue} hideLabel placeholder={p.venuePlaceholder} value={form.venue} onChange={(venue) => change({ venue })} inputClass={input} testNote={!backendEnabled} />
+                    <label className="mt-8 block text-sm text-muted">
+                      {p.fields.details}
+                      <textarea value={form.details} onChange={set("details")} rows={4} placeholder={p.detailsPlaceholder} className={`${input} h-auto py-3 placeholder:text-muted/70`} />
+                    </label>
+                  </>
+                )}
 
-                    <h3 className={`${sectionTitle} mt-14`}>{p.fields.details}</h3>
-                    <textarea value={form.details} onChange={set("details")} rows={3} aria-label={p.fields.details} placeholder={p.detailsPlaceholder} className={`${input} mt-4 h-auto py-3 placeholder:text-muted/70`} />
-
+                {step === S.you && (
+                  <>
                     {/* Name and phone side by side, half the width each; email on its own line. */}
-                    <div className="mt-14 rounded-2xl bg-wash p-5 sm:p-6">
-                      <h3 className={sectionTitle}>{p.detailsTitle}</h3>
-                      <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
-                        <label className="text-sm text-muted">
-                          {p.fields.name}
-                          <input value={form.name} onChange={set("name")} autoComplete="name" className={input} />
-                        </label>
-                        <label className="text-sm text-muted">
-                          {p.fields.phone}
-                          <input value={form.phone} onChange={set("phone")} inputMode="tel" autoComplete="tel" className={input} />
-                        </label>
-                        <label className="col-span-2 text-sm text-muted">
-                          {p.fields.email}
-                          <input type="email" inputMode="email" value={form.email} onChange={set("email")} autoComplete="email" className={input} />
-                        </label>
-                      </div>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <label className="text-sm text-muted">
+                        {p.fields.name}
+                        <input value={form.name} onChange={set("name")} autoComplete="name" className={input} />
+                      </label>
+                      <label className="text-sm text-muted">
+                        {p.fields.phone}
+                        <input value={form.phone} onChange={set("phone")} inputMode="tel" autoComplete="tel" className={input} />
+                      </label>
+                      <label className="col-span-2 text-sm text-muted">
+                        {p.fields.email}
+                        <input type="email" inputMode="email" value={form.email} onChange={set("email")} autoComplete="email" className={input} />
+                      </label>
                     </div>
                     {/* The spam trap: hidden, so autofill and people never reach it. */}
                     <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -780,8 +805,15 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
           </AnimatePresence>
         </div>
 
-        {/* Only the last question has a button: Send OTP, then Confirm Request. */}
-        {step === LAST && (
+        {/* Only the questions with typing have a button: Continue, then Send OTP / Confirm Request. */}
+        {step === S.where && (
+          <div className="mt-10 flex flex-wrap gap-3 max-sm:*:flex-1">
+            <button type="submit" className={primaryButton}>
+              {p.continue}
+            </button>
+          </div>
+        )}
+        {step === S.you && (
           <div className="mt-12 flex flex-wrap items-center gap-3 max-sm:*:flex-1">
             <button type="submit" disabled={Boolean(busy) || (backendEnabled && codeSent && code.length !== 6)} className={`${primaryButton} disabled:opacity-40`}>
               {busy === "code" ? p.sending : busy === "verify" ? p.checking : busy === "save" ? p.saving : confirmed || codeSent ? p.confirm : p.sendCode}
@@ -804,6 +836,17 @@ function Questions({ audience, forced, contact, presetCategory, presetDate }: { 
           </p>
         )}
       </form>
+
+      <DatePickerDialog open={calendar} value={form.date} min={minDate} onApply={pickDate} onClose={() => setCalendar(false)} />
     </div>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="h-[18px] w-[18px]">
+      <path d="M6 7h12l-1 13H7L6 7z" />
+      <path d="M9 7a3 3 0 0 1 6 0" />
+    </svg>
   );
 }

@@ -4,7 +4,7 @@ type Cat = { slug: string; name: string; types: string[] };
 // "Paste A WhatsApp Message" in the admin's New Booking, as on aod.co.in: reads an order written
 // on WhatsApp (the booking form's message, or one typed by hand) into the form's fields. It reads
 // "Name: …", "Phone: …", "Date: …", "Time: 6 PM – 11 PM", "City: …", "Venue: …", "Occasion: …",
-// "Budget: …", and who they need from "Photographers × 2", "3 x DJs" or "Anchors (2)"; anything
+// "Budget: …", and who they need from "Photographers × 2", "3 x Live Band" or "Anchors (2)"; anything
 // it doesn't recognise goes into the notes.
 
 export type ParsedOrder = {
@@ -47,13 +47,16 @@ function toDate(t: string): string {
   return Number.isNaN(d.getTime()) ? "" : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-// Every kind of artist (and category name) to look for, longest first.
+// Names a kind had before, still read from older messages: "DJs" became "Live Band" (2026-11-21).
+const renamed: Record<string, string[]> = { "Live Band": ["DJs"], "Musicians & Live Band": ["Musicians & DJs"] };
+
+// Every kind of artist (and category name) to look for, longest first; `as` is the name it's saved as.
 const namesOf = (categories: Cat[]) =>
   categories
-  .flatMap((c) => [...c.types.map((t) => ({ name: t, category: c.slug })), { name: c.name, category: c.slug }])
-  .sort((a, b) => b.name.length - a.name.length);
+    .flatMap((c) => [...c.types, c.name].flatMap((t) => [{ name: t, as: t, category: c.slug }, ...(renamed[t] ?? []).map((old) => ({ name: old, as: t, category: c.slug }))]))
+    .sort((a, b) => b.name.length - a.name.length);
 
-function linesFrom(text: string, names: { name: string; category: string }[]) {
+function linesFrom(text: string, names: { name: string; as: string; category: string }[]) {
   const out: ParsedOrder["lines"] = [];
   let rest = text;
   for (const n of names) {
@@ -61,7 +64,7 @@ function linesFrom(text: string, names: { name: string; category: string }[]) {
     const re = new RegExp(`(?:(\\d+)\\s*[x×]\\s*)?(${n.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}|${singular.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})s?(?:\\s*[x×]\\s*(\\d+)|\\s*\\((\\d+)\\))?`, "i");
     const m = re.exec(rest);
     if (!m) continue;
-    out.push({ category: n.category, name: n.name, count: Number(m[1] ?? m[3] ?? m[4] ?? 1) || 1 });
+    out.push({ category: n.category, name: n.as, count: Number(m[1] ?? m[3] ?? m[4] ?? 1) || 1 });
     rest = rest.replace(m[0], " ");
   }
   return out;

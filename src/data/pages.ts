@@ -3,28 +3,30 @@
 
 export const categoriesPage = {
   title: "All Categories.",
-  meta: "Photo & video, models & creators, anchors, live music & DJs, comedians and makeup in Ahmedabad and across Gujarat.",
+  meta: "Photo & video, models & creators, anchors, live music & live bands, comedians and makeup in Ahmedabad and across Gujarat.",
 };
 
 export const bookPage = {
   title: "Get Your Artist.",
   meta: "Tell AOD who you need, when and where, and get a verified artist for your event.",
-  // The questions, one at a time; each pick moves on by itself (no Next button).
-  // Which kind and how many share question 02 (on request, 2026-11-20).
-  steps: ["Who Are You Looking For?", "Which Kind Of Artist?", "When, Where And Your Details"],
+  // The questions, one at a time, sliding from one to the next (on request, 2026-11-21); taps move
+  // on by themselves. Which kind and how many share question 02; 03 is the cart.
+  steps: ["Who Are You Looking For?", "Which Kind Of Artist?", "Need Anyone Else?", "When Is The Event?", "What Time?", "Where Is The Event?", "Your Details"],
   howMany: (name: string) => `How Many ${name}?`,
   question: (n: number, of: number) => `Question ${n} of ${of}`,
   pickFirst: "Pick who you're looking for first.",
   more: "More",
   continue: "Continue",
   detailsTitle: "Your Details",
-  // The last question's parts and quick picks (BookForm.tsx).
-  sections: { when: "When Is The Event?" },
+  // Question 03, the cart (BookForm.tsx), and the cart button by the progress.
+  cart: "Your Artists",
+  added: "Added",
+  remove: "Remove",
+  addAnother: "Add Another Artist",
+  addFirst: "Add An Artist",
+  thatsEveryone: "No, That's Everyone",
+  // The last date tile, which opens the calendar popup.
   otherDate: ["Other", "Date"],
-  other: "Other",
-  pickTime: "Pick A Time",
-  pickHours: "Pick A Length",
-  hoursShort: (h: number) => `${h} Hrs`,
   back: "Back",
   next: "Next",
   clear: "Clear All",
@@ -33,6 +35,7 @@ export const bookPage = {
     time: "Start Time",
     hours: "How Many Hours?",
     venue: "Where Is The Event?",
+    occasion: "Event Name (Optional)",
     details: "Brief For An Artist (Optional)",
     name: "Your Name",
     phone: "Phone Number",
@@ -40,6 +43,7 @@ export const bookPage = {
   },
   // The exact venue (Google Maps suggestions under the box, VenueField.tsx).
   venuePlaceholder: "Search A Hotel, Hall Or Home Address",
+  occasionPlaceholder: "Annual Day, Product Launch, Sangeet…",
   // The "Brief For An Artist" box's placeholder: what the team usually asks next.
   detailsPlaceholder: "Guest Count, Budget, Special Requirements Etc.",
   sendCode: "Send OTP",
@@ -89,7 +93,7 @@ export const businessPage = {
 export const artistsPage = {
   label: "For Artists",
   title: "Get Booked For What You Do Best.",
-  meta: "Photographers, filmmakers, anchors, singers, DJs, comedians, models and makeup artists: join AOD and get booked.",
+  meta: "Photographers, filmmakers, anchors, singers, live bands, comedians, models and makeup artists: join AOD and get booked.",
   // The rest of aod.co.in/for-artists (2026-11-21), headings in Title Case.
   whyTitle: "Your Talent Deserves The Right Stage",
   why: [

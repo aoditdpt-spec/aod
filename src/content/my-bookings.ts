@@ -106,7 +106,7 @@ export function sampleOrders(now: Date): CustomerOrder[] {
       city: "Vadodara",
       venue: "Banquet hall, Alkapuri",
       notes: "About 250 guests, Bollywood and Garba mix.",
-      artists: [{ name: "DJ Rohan Bhatt", craft: "Musicians & DJs", city: "Ahmedabad" }],
+      artists: [{ name: "Rohan Bhatt", craft: "Musicians & Live Band", city: "Ahmedabad" }],
       quote: 32000,
       advance: 9600,
       payments: [],

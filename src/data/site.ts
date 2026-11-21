@@ -31,8 +31,8 @@ export type Category = {
 
 // The six categories, in the owner's order and wording (2026-11-18): Photography & Film (first
 // "Photos and Videos")
-// (photographers, cinematographers, drone pilots), Anchors and Hosts, Musicians & DJs (singers,
-// musicians, DJs), Stand-Up Comedians, Models & Creators (models, influencers, reel creators),
+// (photographers, cinematographers, drone pilots), Anchors and Hosts, Musicians & Live Band
+// (singers, musicians, live band; "DJs" until 2026-11-21), Stand-Up Comedians, Models & Creators (models, influencers, reel creators),
 // Makeup & Styling. Editors were removed, and no prices are shown for now. The services are no
 // longer listed on the site (no sub-categories on the category pages); they stay here only as
 // words the search understands, each finding its category.
@@ -126,10 +126,10 @@ export const categories: Category[] = [
   },
   {
     slug: "musicians-djs",
-    name: "Musicians & DJs",
-    blurb: "Live Bands, Singers and DJs for Sangeets, Receptions and After-Parties",
+    name: "Musicians & Live Band", // "DJs" renamed "Live Band" everywhere (on request, 2026-11-21); the slug stays
+    blurb: "Live Bands, Singers and Musicians for Sangeets, Receptions and After-Parties",
     image: "/categories/icons/cutout-musician.png",
-    types: ["Musicians", "DJs", "Singers"],
+    types: ["Musicians", "Live Band", "Singers"],
     keywords: ["music", "musician", "musicians", "band", "bands", "dj", "djs", "singer", "singers", "vocalist", "vocals", "garba", "sufi", "ghazal"],
     groups: [
       {
@@ -145,14 +145,14 @@ export const categories: Category[] = [
         ],
       },
       {
-        title: "Musicians & DJs",
+        title: "Musicians & Live Band",
         services: [
           "Corporate Gala Dinner Background Music",
-          "Corporate Annual Party DJ Set",
-          "Retail Brand Store Launch / Promotional DJ Set",
-          "Wedding Sangeet & Cocktail Party DJ",
+          "Corporate Annual Party Live Band Set",
+          "Retail Brand Store Launch / Promotional Live Band Set",
+          "Wedding Sangeet & Cocktail Party Live Band",
           "Mehendi Sundowner Live Acoustic Set",
-          "Milestone Birthday & Anniversary DJ",
+          "Milestone Birthday & Anniversary Live Band",
         ],
       },
     ],
@@ -248,7 +248,7 @@ export const nav = {
   searchWords: [
     "Photographers",
     "Wedding films",
-    "DJs",
+    "Live Band",
     "Anchors",
     "Makeup artists",
     "Drone shoots",

@@ -26,7 +26,7 @@ export const heroMosaic: ({ kind: "text"; value: string; label: string } | { kin
   { kind: "text", value: "20+", label: "Events Hosted By Our Anchors" },
   { kind: "photo", src: "/home/drone-pilot.jpg", alt: "A drone pilot flying a drone at sunset" },
   { kind: "text", value: "1M+", label: "Views On Reels We Made" },
-  { kind: "photo", src: "/home/dj.jpg", alt: "A DJ playing to a crowd" },
+  { kind: "photo", src: "/home/dj.jpg", alt: "A live band playing to a crowd" },
 ];
 
 // Each category's picture on the homepage cards (public/categories/icons): the owner's set, made in
@@ -105,7 +105,7 @@ export const footer = {
       links: [
         { href: "/categories/photo-video", label: "Photography & Film" },
         { href: "/categories/anchors-hosts", label: "Anchors and Hosts" },
-        { href: "/categories/musicians-djs", label: "Musicians & DJs" },
+        { href: "/categories/musicians-djs", label: "Musicians & Live Band" },
         { href: "/categories/comedians", label: "Stand-Up Comedians" },
         { href: "/categories/models-creators", label: "Models & Creators" },
         { href: "/categories/makeup-styling", label: "Makeup & Styling" },

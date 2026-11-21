@@ -48,7 +48,7 @@ async function confirmedEmail() {
 export type BookingInput = {
   audience?: Audience; // "business" from the business portal's Book Artists tab
   categories: string[]; // slugs, as picked
-  kinds?: string[]; // the kinds of artist picked (Photographers, DJs…)
+  kinds?: string[]; // the kinds of artist picked (Photographers, Live Band…)
   lines?: { category: string; name: string; count: number }[]; // how many of each kind
   occasion?: string;
   brief?: string;
@@ -227,7 +227,7 @@ export type ApplicationInput = {
   email: string;
   city: string;
   category: string; // category slug
-  kind: string; // the kind of artist picked (Photographers, DJs…), or "" for a category with one kind
+  kind: string; // the kind of artist picked (Photographers, Live Band…), or "" for a category with one kind
   experience: string;
   instagram: string; // the username, without instagram.com/
   link: string; // a portfolio or showreel link

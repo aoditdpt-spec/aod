@@ -39,16 +39,14 @@ export function Applications() {
         <tbody>
           {rows.map((a) => (
             <tr key={a.id} className="cursor-pointer hover:bg-wash" onClick={() => o.open(a.id)}>
+              {/* No photo in the list (on request, 2026-11-21); the drawer still shows it. */}
               <td className={td}>
-                <span className="flex items-center gap-2.5">
-                  <Avatar src={a.photo} name={a.name} size={30} />
-                  <button type="button" className="text-left" onClick={() => o.open(a.id)}>
-                    {a.name}
-                    <small className={sub}>
-                      {a.id}, {a.city}
-                    </small>
-                  </button>
-                </span>
+                <button type="button" className="text-left" onClick={() => o.open(a.id)}>
+                  {a.name}
+                  <small className={sub}>
+                    {a.id}, {a.city}
+                  </small>
+                </button>
               </td>
               <td className={`${td} max-sm:hidden`}>{a.craft}</td>
               <td className={td}>

@@ -31,7 +31,7 @@ const cases: { name: string; text: string; expect: Partial<ParsedOrder> }[] = [
       notes: "About 200 guests",
       lines: [
         { category: "photo-video", name: "Photographers", count: 2 },
-        { category: "musicians-djs", name: "DJs", count: 1 },
+        { category: "musicians-djs", name: "Live Band", count: 1 }, // an older message's "DJs" reads as the renamed kind
       ],
     },
   },

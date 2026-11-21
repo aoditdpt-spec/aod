@@ -27,7 +27,7 @@ export const privacy: LegalDoc = {
       id: "who",
       heading: "Who we are",
       body: [
-        `${brand.fullName} is a marketplace based in ${brand.city}, ${brand.region}, that connects customers with vetted photographers, cinematographers, DJs, anchors, makeup artists and other event talent. For the personal data described here, AOD is the "data fiduciary" under the DPDP Act.`,
+        `${brand.fullName} is a marketplace based in ${brand.city}, ${brand.region}, that connects customers with vetted photographers, cinematographers, live bands, anchors, makeup artists and other event talent. For the personal data described here, AOD is the "data fiduciary" under the DPDP Act.`,
       ],
     },
     {

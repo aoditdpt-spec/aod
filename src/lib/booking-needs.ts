@@ -21,7 +21,7 @@ export function clampCount(n: unknown): number {
 // "Photographers × 3"; a single artist shows the label alone.
 export const withCount = (label: string, n = 1) => (n > 1 ? `${label} × ${n}` : label);
 
-// "Photographers × 3, Musicians & DJs × 1": how the booking form's WhatsApp message, the emails and
+// "Photographers × 3, Musicians & Live Band × 1": how the booking form's WhatsApp message, the emails and
 // the sheet write a request (always with the number, so "× 1" says the customer asked for one).
 export const needsText = (needs: { name: string; count: number }[]) => needs.map((n) => `${n.name} × ${n.count}`).join(", ");
 
