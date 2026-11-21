@@ -146,7 +146,9 @@ function writeDraft(d: Draft | null) {
 // length (the date comes as `presetDate`). Those questions are then skipped.
 export type PresetEvent = { occasion?: string; time?: string; hours?: number };
 
-export function BookForm({ forceAudience, contact, presetCategory, presetDate, presetEvent }: { forceAudience?: Audience; contact?: Contact; presetCategory?: string; presetDate?: string; presetEvent?: PresetEvent }) {
+// `onOrders`: the business portal's Orders tab, which the confirmation's second button opens
+// instead of My Bookings (a company's orders live there, on request 2026-11-21).
+export function BookForm({ forceAudience, contact, presetCategory, presetDate, presetEvent, onOrders }: { forceAudience?: Audience; contact?: Contact; presetCategory?: string; presetDate?: string; presetEvent?: PresetEvent; onOrders?: () => void }) {
   const chosenAudience = useAudience();
   const router = useRouter();
   const toBusiness = !forceAudience && chosenAudience === "business";
@@ -164,11 +166,11 @@ export function BookForm({ forceAudience, contact, presetCategory, presetDate, p
         </Link>
       </p>
     );
-  return <Questions audience={forceAudience ?? chosenAudience} forced={!!forceAudience} contact={contact} presetCategory={presetCategory} presetDate={presetDate} presetEvent={presetEvent} />;
+  return <Questions audience={forceAudience ?? chosenAudience} forced={!!forceAudience} contact={contact} presetCategory={presetCategory} presetDate={presetDate} presetEvent={presetEvent} onOrders={onOrders} />;
 }
 
 // `presetDate` ("YYYY-MM-DD"): the event date already filled in (a day picked on the business calendar).
-function Questions({ audience, forced, contact, presetCategory, presetDate, presetEvent }: { audience: Audience | null | "unknown"; forced: boolean; contact?: Contact; presetCategory?: string; presetDate?: string; presetEvent?: PresetEvent }) {
+function Questions({ audience, forced, contact, presetCategory, presetDate, presetEvent, onOrders }: { audience: Audience | null | "unknown"; forced: boolean; contact?: Contact; presetCategory?: string; presetDate?: string; presetEvent?: PresetEvent; onOrders?: () => void }) {
   const queryPreset = usePreset();
   const preset = categories.some((c) => c.slug === (presetCategory ?? queryPreset)) ? (presetCategory ?? queryPreset) : "";
   const minDate = useTomorrow();
@@ -509,11 +511,16 @@ function Questions({ audience, forced, contact, presetCategory, presetDate, pres
           <button type="button" onClick={another} className={primaryButton}>
             {p.another}
           </button>
-          <Link href="/my-bookings" className={secondaryButton}>
-            {p.myBookings}
-          </Link>
+          {onOrders ? (
+            <button type="button" onClick={onOrders} className={secondaryButton}>
+              {p.yourOrders}
+            </button>
+          ) : (
+            <Link href="/my-bookings" className={secondaryButton}>
+              {p.myBookings}
+            </Link>
+          )}
         </div>
-        {!backendEnabled && <p className="mt-6 text-sm text-muted">{p.previewNote}</p>}
       </div>
     );
 
@@ -740,7 +747,7 @@ function Questions({ audience, forced, contact, presetCategory, presetDate, pres
                       {p.fields.occasion}
                       <input value={form.occasion} onChange={set("occasion")} placeholder={p.occasionPlaceholder} className={`${input} placeholder:text-muted/70`} />
                     </label>
-                    <VenueField label={p.fields.venue} hideLabel placeholder={p.venuePlaceholder} value={form.venue} onChange={(venue) => change({ venue })} inputClass={input} testNote={!backendEnabled} />
+                    <VenueField label={p.fields.venue} hideLabel placeholder={p.venuePlaceholder} value={form.venue} onChange={(venue) => change({ venue })} inputClass={input} />
                     <label className="mt-8 block text-sm text-muted">
                       {p.fields.details}
                       <textarea value={form.details} onChange={set("details")} rows={4} placeholder={p.detailsPlaceholder} className={`${input} h-auto py-3 placeholder:text-muted/70`} />
@@ -792,7 +799,6 @@ function Questions({ audience, forced, contact, presetCategory, presetDate, pres
                             {codeError}
                           </p>
                         )}
-                        {!backendEnabled && <p className="mt-3 text-sm text-muted">{p.codePreview}</p>}
                         <button type="button" onClick={sendCode} disabled={Boolean(busy)} className={`mt-3 ${textButton}`}>
                           {p.newCode}
                         </button>

@@ -52,7 +52,6 @@ export const bookPage = {
   codeSent: "We've sent a 6-digit code to",
   codeLabel: "6-digit code",
   // Without the backend keys (.env.local) nothing is emailed or saved, and the page says so.
-  codePreview: "Test mode: no email is sent. Any code works, or none.",
   newCode: "Send A New Code",
   confirm: "Confirm Request",
   saving: "Saving…",
@@ -65,7 +64,7 @@ export const bookPage = {
   copySent: "A copy is on its way to",
   another: "Book Another Event",
   myBookings: "Go To My Bookings",
-  previewNote: "Test mode: mock data, kept in this browser only.",
+  yourOrders: "Go To Your Orders", // the business portal's version
   rows: { who: "Who" },
 };
 
@@ -288,5 +287,4 @@ export const newsletterPages = {
     doneTitle: "You're Unsubscribed.",
     doneText: "You won't get the AOD newsletter any more.",
   },
-  testNote: "Test mode: nothing is saved.",
 };

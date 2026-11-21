@@ -123,7 +123,6 @@ export function AdminSignIn() {
             {error}
           </p>
         )}
-        {!backendEnabled && <p className="mt-6 text-xs text-muted">Test mode: no email is sent. Any code works, or none.</p>}
         <MainSiteLink className="mt-10" />
       </div>
     </div>

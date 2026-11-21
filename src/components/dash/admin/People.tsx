@@ -4,7 +4,6 @@ import Link from "@/components/ui/AppLink";
 import { Avatar } from "@/components/ui/Avatar";
 import { useState } from "react";
 import { categories, cities } from "@/data/site";
-import { backendEnabled } from "@/lib/backend";
 import { act, ago, appStageLabel, appStages, catName, openStage, shortDate, stageLabel, useDb, type AppStage, type Artist } from "@/lib/app-db";
 import { meetingWhen } from "./Overview";
 import { kindName, workAnswerLabel } from "@/data/work-questions";
@@ -174,7 +173,7 @@ export function Artists() {
         </tbody>
       </table>
 
-      <Drawer open={o.value === "new"} onClose={o.close} title="Add Artist" subtitle={backendEnabled ? undefined : "Every field can be left empty in test mode."}>
+      <Drawer open={o.value === "new"} onClose={o.close} title="Add Artist" >
         <ArtistForm onSave={(a) => o.open(act.addArtist({ name: a.name ?? "", craft: a.craft ?? "", cats: a.cats ?? [], city: a.city ?? "", email: a.email ?? "", phone: a.phone ?? "", photo: "" }))} cta="Add Artist" />
       </Drawer>
       <Drawer open={!!open} onClose={o.close} title={open?.name ?? ""} subtitle={open ? `${open.id} · ${open.craft}` : undefined}>

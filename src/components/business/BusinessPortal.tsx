@@ -192,9 +192,7 @@ function BusinessAuth() {
             <p className="text-sm text-muted">
               We&apos;ve sent a 6-digit code to <span className="text-ink">{f.email}</span>
             </p>
-          ) : (
-            <p className="text-sm text-muted">Test mode: no email is sent. Any code works, or none.</p>
-          )}
+          ) : null}
           <div className="flex flex-wrap gap-3 max-sm:*:flex-1">
             <button type="button" onClick={() => setStep("details")} className={secondaryButton}>
               Back
@@ -301,6 +299,10 @@ function BusinessApp({ company }: { company: Company }) {
             presetDate={book.date}
             presetEvent={book.event}
             contact={{ name: company.contactName, phone: company.phone, email: company.email }}
+            onOrders={() => {
+              setBook({});
+              setTab("orders");
+            }}
           />
         ) : tab === "company" ? (
           <CompanyDetails key={company.email} company={company} />
@@ -391,9 +393,10 @@ function CompanyCalendar({ db, orders, onOpen, onAdd }: { db: Db; orders: Order[
                 onClick={() => setPicked(k)}
                 aria-pressed={isPicked}
                 aria-label={`${shortDate(k)}, ${list.length} order${list.length === 1 ? "" : "s"}`}
-                className="flex h-12 w-full flex-col items-center justify-start pt-1 disabled:cursor-default"
+                className="relative flex h-12 w-full flex-col items-center justify-start pt-1 disabled:cursor-default"
               >
-                <span className={`grid h-8 w-8 place-items-center rounded-full text-[15px] tabular-nums transition-colors ${past(k) ? "line-through decoration-2" : ""} ${isPicked ? "bg-ink text-paper" : k === db.todayKey ? "bg-brand text-white" : past(k) ? "text-muted/50" : "text-ink"}`}>{d}</span>
+                {past(k) && <i aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top_right,transparent_calc(50%-0.75px),var(--color-line)_50%,transparent_calc(50%+0.75px))]" />}
+                <span className={`relative grid h-8 w-8 place-items-center rounded-full text-[15px] tabular-nums transition-colors ${isPicked ? "bg-ink text-paper" : k === db.todayKey ? "bg-brand text-white" : past(k) ? "text-muted/50" : "text-ink"}`}>{d}</span>
                 <span className="mt-0.5 flex h-1.5 gap-0.5">
                   {list.slice(0, 3).map((o) => (
                     <i key={o.b.id} className={`h-1.5 w-1.5 rounded-full ${stageDot[stageOf(o.b)]}`} />
@@ -447,10 +450,11 @@ function CompanyCalendar({ db, orders, onOpen, onAdd }: { db: Db; orders: Order[
                 className={`relative -m-1.5 min-h-24 p-1.5 transition-colors ${isPast ? "bg-wash" : bookable ? "cursor-pointer hover:bg-wash/60" : ""}`}
                 title={bookable ? `Add an event on ${shortDate(k)}` : undefined}
               >
-                {/* A past day is struck through: its number, and a line corner to corner across
-                    the day (on request, 2026-11-21). Its orders sit above the line and still open. */}
+                {/* A past day is struck through with a line corner to corner across the whole day,
+                    not through its number (on request, 2026-11-21). Its orders sit above the line
+                    and still open. */}
                 {isPast && <i aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top_right,transparent_calc(50%-0.75px),var(--color-line)_50%,transparent_calc(50%+0.75px))]" />}
-                <span className={`relative grid h-7 w-7 place-items-center rounded-full text-xs tabular-nums ${k === db.todayKey ? "bg-brand font-medium text-white" : isPast ? "text-muted/50 line-through decoration-2" : "text-ink"}`}>{d}</span>
+                <span className={`relative grid h-7 w-7 place-items-center rounded-full text-xs tabular-nums ${k === db.todayKey ? "bg-brand font-medium text-white" : isPast ? "text-muted/50" : "text-ink"}`}>{d}</span>
                 <div className="relative mt-1 space-y-1">
                   {on(k).map((o) => (
                     <button

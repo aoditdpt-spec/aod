@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 // suggestions under the box as the visitor types, like the search bar's, and a small map of the
 // place once one is picked. Needs NEXT_PUBLIC_GOOGLE_MAPS_API_KEY (a browser key restricted to
 // the site's addresses, with the Maps JavaScript API, Places API (New) and Maps Embed API on);
-// without it the box is plain text and says so in test mode.
+// without it the box is plain text.
 
 export type Venue = { text: string; placeId: string; city: string };
 export const blankVenue: Venue = { text: "", placeId: "", city: "" };
@@ -43,7 +43,7 @@ function loadPlaces(): Promise<PlacesLib | null> {
 // Gujarat, roughly: suggestions lean towards it (and stay in India) without hiding the rest.
 const bias = { center: { lat: 22.7, lng: 71.6 }, radius: 50000 };
 
-export function VenueField({ label, hideLabel = false, placeholder, value, onChange, inputClass, testNote }: { label: string; hideLabel?: boolean; placeholder: string; value: Venue; onChange: (v: Venue) => void; inputClass: string; testNote: boolean }) {
+export function VenueField({ label, hideLabel = false, placeholder, value, onChange, inputClass }: { label: string; hideLabel?: boolean; placeholder: string; value: Venue; onChange: (v: Venue) => void; inputClass: string }) {
   const [lib, setLib] = useState<PlacesLib | null>(null);
   const [list, setList] = useState<Prediction[]>([]);
   const [open, setOpen] = useState(false);
@@ -153,7 +153,6 @@ export function VenueField({ label, hideLabel = false, placeholder, value, onCha
           className="mt-3 h-48 w-full rounded-xl border border-line"
         />
       )}
-      {!KEY && testNote && <p className="mt-2 text-xs text-muted">Test mode: Google Maps suggestions switch on once a Maps key is added.</p>}
     </div>
   );
 }

@@ -68,11 +68,7 @@ export function CaseForm() {
             Track This Dispute
           </Link>
         </div>
-        {backendEnabled ? (
-          <p className="mt-6 text-sm text-muted">We&apos;ve emailed you a copy. To add photos or chats, reply to that email.</p>
-        ) : (
-          <p className="mt-6 text-sm text-muted">Test mode: kept in this browser only. The admin&apos;s Dispute Desk shows it.</p>
-        )}
+        {backendEnabled && <p className="mt-6 text-sm text-muted">We&apos;ve emailed you a copy. To add photos or chats, reply to that email.</p>}
       </div>
     );
 
@@ -240,7 +236,6 @@ export function CaseForm() {
           {error}
         </p>
       )}
-      {!backendEnabled && <p className="text-sm text-muted">Test mode: nothing is required, and the case stays in this browser.</p>}
     </form>
   );
 }

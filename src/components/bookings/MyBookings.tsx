@@ -132,9 +132,7 @@ function SignIn() {
             <p className="text-sm text-muted">
               We&apos;ve sent a 6-digit code to <span className="text-ink">{email}</span>
             </p>
-          ) : (
-            <p className="text-sm text-muted">Test mode: no email is sent. Any code works, or none.</p>
-          )}
+          ) : null}
           <div className="flex flex-wrap gap-3 max-sm:*:flex-1">
             <button type="button" onClick={() => setStep("email")} className={secondaryButton}>
               Back
@@ -205,7 +203,6 @@ function Orders({ db, email }: { db: Db; email: string }) {
         </ul>
       )}
       {!orders.length && <p className="mt-8 text-muted">No bookings with this email yet.</p>}
-      {!backendEnabled && <p className="mt-12 text-xs text-muted">Test mode: your requests from this browser, plus two samples.</p>}
     </>
   );
 }

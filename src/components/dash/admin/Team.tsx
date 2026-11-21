@@ -6,7 +6,6 @@ import { buildXlsx } from "@/lib/xlsx";
 import { useExcelExport } from "../ExcelExport";
 import { act, ago, appStageLabel, catName, openStage, rupees, sameMonth, settingList, stages, useDb, type Staff } from "@/lib/app-db";
 import { categories } from "@/data/site";
-import { backendEnabled } from "@/lib/backend";
 import { Head, Loading, Nums, Title, Toggle, btn, btnMain, field, label, sub, td, th } from "../ui";
 
 // Reports And Exports: the month in numbers, orders by category and stage, and CSV downloads.
@@ -29,7 +28,7 @@ export function Reports() {
 
   return (
     <>
-      <Title title="Reports And Exports" text={backendEnabled ? undefined : "Sample figures in test mode."} />
+      <Title title="Reports And Exports" />
       <Nums
         items={[
           { value: rupees(revenue), label: "Verified This Month" },

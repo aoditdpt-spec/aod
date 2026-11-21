@@ -76,7 +76,6 @@ export function ArtistSignIn() {
             <span className="mb-2 block text-sm text-muted">Enter The OTP</span>
             <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" className={`${input} max-w-48 tracking-[0.3em]`} />
           </label>
-          {!backendEnabled && <p className="text-sm text-muted">Test mode: no email is sent. Any code works, or none.</p>}
           <div className="flex flex-wrap gap-3 max-sm:*:flex-1">
             <button type="button" onClick={() => setStep("email")} className={secondaryButton}>
               Back

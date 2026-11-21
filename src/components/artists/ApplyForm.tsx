@@ -197,7 +197,6 @@ export function ApplyForm() {
             Complete Your Details
           </Link>
         </div>
-        {!backendEnabled && <p className="mt-6 text-sm text-muted">Test mode: kept in this browser only. The admin&apos;s Applications page shows it.</p>}
       </div>
     );
 
@@ -274,7 +273,6 @@ export function ApplyForm() {
                           aria-label="6-digit code"
                           className={`${input} mt-4 max-w-56 text-xl tracking-[0.3em] tabular-nums`}
                         />
-                        {!backendEnabled && <p className="mt-3 text-sm text-muted">Test mode: no email is sent. Any code works, or none.</p>}
                         <button type="button" onClick={() => void sendCode()} disabled={Boolean(busy)} className="mt-3 text-sm font-medium underline underline-offset-4 hover:text-brand disabled:opacity-40">
                           Send A New Code
                         </button>
@@ -368,7 +366,6 @@ export function ApplyForm() {
             {saveError}
           </p>
         )}
-        {step === LAST && !backendEnabled && <p className="mt-4 text-sm text-muted">Test mode: nothing is required, and the profile stays in this browser.</p>}
       </form>
     </div>
   );

@@ -132,9 +132,9 @@ function Calendar({ value, min, onApply, onClose }: { value: string; min: string
         </div>
       </div>
 
-      <div className="flex items-center gap-3 border-t border-line px-5 py-4">
-        <span className="h-10 min-w-0 flex-1 truncate rounded-lg border border-line px-3 text-sm leading-10 text-ink">{picked || <span className="text-muted">Select A Date</span>}</span>
-      </div>
+      <p className="truncate border-t border-line px-5 py-4 text-sm" aria-live="polite">
+        {picked ? <span className="font-medium text-ink">{picked}</span> : <span className="text-muted">Select A Date</span>}
+      </p>
       <div className="grid grid-cols-2 gap-3 px-5 pb-5">
         <button type="button" onClick={onClose} className="h-10 rounded-lg border border-line text-sm font-medium text-ink transition-colors hover:border-ink">
           Cancel

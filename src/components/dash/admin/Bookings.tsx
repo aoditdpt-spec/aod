@@ -5,7 +5,6 @@ import { categories, cities } from "@/data/site";
 import { timeRange } from "@/lib/event-time";
 import { act, ago, catName, parseDay, rupees, shortDate, stageLabel, stages, useDb, type Db, type Line, type Stage } from "@/lib/app-db";
 import { parseWhatsappOrder } from "@/lib/whatsapp-order";
-import { backendEnabled } from "@/lib/backend";
 import { BookingTable } from "./Overview";
 import { Drawer, Head, Loading, Rows, Status, Tabs, Title, btn, btnInk, btnMain, btnText, field, label, stageTone, useOpen } from "../ui";
 
@@ -57,7 +56,7 @@ export function Bookings() {
       <Drawer open={!!open} onClose={o.close} title={open?.id ?? ""} subtitle={open ? `${open.customer} · ${open.source}` : undefined}>
         {open && <BookingDetail key={open.id} id={open.id} onDeleted={o.close} />}
       </Drawer>
-      <Drawer open={o.isNew || o.value === "new"} onClose={o.close} title="New Booking" subtitle={backendEnabled ? undefined : "Every field can be left empty in test mode."}>
+      <Drawer open={o.isNew || o.value === "new"} onClose={o.close} title="New Booking" >
         <NewBooking onDone={(id) => o.open(id)} />
       </Drawer>
     </>

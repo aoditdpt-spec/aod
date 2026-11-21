@@ -64,13 +64,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 function ModeMark() {
   const saving = useAdminSaving();
   const connection = useLiveConnection();
-  if (!backendEnabled)
-    return (
-      <>
-        <i className="h-1.5 w-1.5 rounded-full bg-ink/30" />
-        Test Mode
-      </>
-    );
+  if (!backendEnabled) return null; // no "Test Mode" label (on request, 2026-11-21)
   return (
     <>
       <i className={`h-1.5 w-1.5 rounded-full ${connection === "live" ? "bg-[#1a9b4b]" : "bg-ink/30"}`} />
